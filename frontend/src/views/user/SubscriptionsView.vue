@@ -11,14 +11,14 @@
       <!-- Empty State -->
       <div v-else-if="subscriptions.length === 0" class="card p-12 text-center">
         <div
-          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-dark-700"
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-md border border-border bg-metal-raised shadow-metal-edge"
         >
-          <Icon name="creditCard" size="xl" class="text-gray-400" />
+          <Icon name="creditCard" size="xl" class="text-primary-200" />
         </div>
-        <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 class="mb-2 text-lg font-semibold text-foreground">
           {{ t('userSubscriptions.noActiveSubscriptions') }}
         </h3>
-        <p class="text-gray-500 dark:text-dark-400">
+        <p class="text-muted-foreground">
           {{ t('userSubscriptions.noActiveSubscriptionsDesc') }}
         </p>
       </div>
@@ -28,25 +28,25 @@
         <div
           v-for="subscription in subscriptions"
           :key="subscription.id"
-          class="overflow-hidden rounded-2xl border bg-white dark:bg-dark-800"
+          class="overflow-hidden rounded-lg border bg-card"
           :class="platformBorderClass(subscription.group?.platform || '')"
         >
           <!-- Header -->
           <div
-            class="flex items-center justify-between border-b border-gray-100 p-4 dark:border-dark-700"
+            class="flex items-center justify-between border-b border-border p-4"
           >
             <div class="flex items-center gap-3">
               <div :class="['h-1.5 w-1.5 shrink-0 rounded-full', platformAccentDotClass(subscription.group?.platform || '')]" />
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="font-semibold text-gray-900 dark:text-white">
+                  <h3 class="font-semibold text-foreground">
                     {{ subscription.group?.name || `Group #${subscription.group_id}` }}
                   </h3>
                   <span :class="['rounded-md border px-2 py-0.5 text-[11px] font-medium', platformBadgeClass(subscription.group?.platform || '')]">
                     {{ platformLabel(subscription.group?.platform || '') }}
                   </span>
                 </div>
-                <p v-if="subscription.group?.description" class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
+                <p v-if="subscription.group?.description" class="mt-0.5 text-xs text-muted-foreground">
                   {{ subscription.group.description }}
                 </p>
               </div>
@@ -56,10 +56,10 @@
                 :class="[
                   'rounded-full px-2 py-0.5 text-xs font-medium',
                   subscription.status === 'active'
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                    ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
                     : subscription.status === 'expired'
-                      ? 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-400'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                      ? 'border border-border bg-muted text-muted-foreground'
+                      : 'border border-red-500/30 bg-red-500/10 text-red-400'
                 ]"
               >
                 {{ t(`userSubscriptions.status.${subscription.status}`) }}
@@ -78,7 +78,7 @@
           <div class="space-y-4 p-4">
             <!-- Expiration Info -->
             <div v-if="subscription.expires_at" class="flex items-center justify-between text-sm">
-              <span class="text-gray-500 dark:text-dark-400">{{
+              <span class="text-muted-foreground">{{
                 t('userSubscriptions.expires')
               }}</span>
               <span :class="getExpirationClass(subscription.expires_at)">
@@ -86,10 +86,10 @@
               </span>
             </div>
             <div v-else class="flex items-center justify-between text-sm">
-              <span class="text-gray-500 dark:text-dark-400">{{
+              <span class="text-muted-foreground">{{
                 t('userSubscriptions.expires')
               }}</span>
-              <span class="text-gray-700 dark:text-gray-300">{{
+              <span class="text-foreground/85">{{
                 t('userSubscriptions.noExpiration')
               }}</span>
             </div>
@@ -97,16 +97,16 @@
             <!-- Daily Usage -->
             <div v-if="subscription.group?.daily_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.daily') }}
                 </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
+                <span class="text-sm text-muted-foreground">
                   ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.daily_limit_usd.toFixed(2)
                   }}
                 </span>
               </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+              <div class="relative h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
                   :class="
@@ -125,7 +125,7 @@
               </div>
               <p
                 v-if="subscription.daily_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
+                class="text-xs text-muted-foreground"
               >
                 {{ formatDailyUsageWindow(subscription) }}
               </p>
@@ -134,16 +134,16 @@
             <!-- Weekly Usage -->
             <div v-if="subscription.group?.weekly_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.weekly') }}
                 </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
+                <span class="text-sm text-muted-foreground">
                   ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.weekly_limit_usd.toFixed(2)
                   }}
                 </span>
               </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+              <div class="relative h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
                   :class="
@@ -162,7 +162,7 @@
               </div>
               <p
                 v-if="subscription.weekly_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
+                class="text-xs text-muted-foreground"
               >
                 {{
                   t('userSubscriptions.resetIn', {
@@ -175,16 +175,16 @@
             <!-- Monthly Usage -->
             <div v-if="subscription.group?.monthly_limit_usd" class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.monthly') }}
                 </span>
-                <span class="text-sm text-gray-500 dark:text-dark-400">
+                <span class="text-sm text-muted-foreground">
                   ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.monthly_limit_usd.toFixed(2)
                   }}
                 </span>
               </div>
-              <div class="relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
+              <div class="relative h-2 overflow-hidden rounded-full bg-muted">
                 <div
                   class="absolute inset-y-0 left-0 rounded-full transition-all duration-300"
                   :class="
@@ -203,7 +203,7 @@
               </div>
               <p
                 v-if="subscription.monthly_window_start"
-                class="text-xs text-gray-500 dark:text-dark-400"
+                class="text-xs text-muted-foreground"
               >
                 {{
                   t('userSubscriptions.resetIn', {
@@ -220,15 +220,15 @@
                 !subscription.group?.weekly_limit_usd &&
                 !subscription.group?.monthly_limit_usd
               "
-              class="flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 py-6 dark:from-emerald-900/20 dark:to-teal-900/20"
+              class="flex items-center justify-center rounded-md border border-border bg-metal-raised py-6 shadow-metal-edge"
             >
               <div class="flex items-center gap-3">
-                <span class="text-4xl text-emerald-600 dark:text-emerald-400">∞</span>
+                <span class="text-4xl text-primary-200">∞</span>
                 <div>
-                  <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  <p class="text-sm font-medium text-foreground">
                     {{ t('userSubscriptions.unlimited') }}
                   </p>
-                  <p class="text-xs text-emerald-600/70 dark:text-emerald-400/70">
+                  <p class="text-xs text-muted-foreground">
                     {{ t('userSubscriptions.unlimitedDesc') }}
                   </p>
                 </div>
