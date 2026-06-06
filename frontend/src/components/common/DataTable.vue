@@ -32,28 +32,37 @@
     </template>
 
     <template v-else>
-      <div
-        v-for="(row, index) in sortedData"
-        :key="resolveRowKey(row, index)"
-        class="rounded-lg border border-gray-200 bg-white p-4 dark:border-dark-700 dark:bg-dark-900"
-      >
-        <div class="space-y-3">
-          <div
-            v-for="column in dataColumns"
-            :key="column.key"
-            class="flex items-start justify-between gap-4"
-          >
-            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400">
-              {{ column.label }}
-            </span>
-            <div class="text-right text-sm text-gray-900 dark:text-gray-100">
-              <slot :name="`cell-${column.key}`" :row="row" :value="row[column.key]" :expanded="actionsExpanded">
-                {{ column.formatter ? column.formatter(row[column.key], row) : row[column.key] }}
-              </slot>
+      <!-- 卡片视图虚拟化(window 滚动):仅渲染视口附近的卡片，保留整页滚动手感。
+           容器高度 = 全部卡片的虚拟总高；每张卡片绝对定位到 (start - scrollMargin)。 -->
+      <div ref="cardListRef" :style="{ position: 'relative', width: '100%', height: cardTotalSize + 'px' }">
+        <div
+          v-for="virtualRow in cardVirtualItems"
+          :key="resolveRowKey(sortedData[virtualRow.index], virtualRow.index)"
+          :ref="cardMeasureElement"
+          :data-index="virtualRow.index"
+          class="pb-3"
+          :style="{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start - cardScrollMargin}px)` }"
+        >
+          <div class="rounded-lg border border-gray-200 bg-white p-4 dark:border-dark-700 dark:bg-dark-900">
+            <div class="space-y-3">
+              <div
+                v-for="column in dataColumns"
+                :key="column.key"
+                class="flex items-start justify-between gap-4"
+              >
+                <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400">
+                  {{ column.label }}
+                </span>
+                <div class="text-right text-sm text-gray-900 dark:text-gray-100">
+                  <slot :name="`cell-${column.key}`" :row="sortedData[virtualRow.index]" :value="sortedData[virtualRow.index][column.key]" :expanded="actionsExpanded">
+                    {{ column.formatter ? column.formatter(sortedData[virtualRow.index][column.key], sortedData[virtualRow.index]) : sortedData[virtualRow.index][column.key] }}
+                  </slot>
+                </div>
+              </div>
+              <div v-if="hasActionsColumn" class="border-t border-gray-200 pt-3 dark:border-dark-700">
+                <slot name="cell-actions" :row="sortedData[virtualRow.index]" :value="sortedData[virtualRow.index]['actions']" :expanded="actionsExpanded"></slot>
+              </div>
             </div>
-          </div>
-          <div v-if="hasActionsColumn" class="border-t border-gray-200 pt-3 dark:border-dark-700">
-            <slot name="cell-actions" :row="row" :value="row['actions']" :expanded="actionsExpanded"></slot>
           </div>
         </div>
       </div>
@@ -197,7 +206,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { useVirtualizer, observeElementRect as observeElementRectDefault } from '@tanstack/vue-virtual'
+import { useVirtualizer, useWindowVirtualizer, observeElementRect as observeElementRectDefault } from '@tanstack/vue-virtual'
 import { useI18n } from 'vue-i18n'
 import type { Column } from './types'
 import Icon from '@/components/icons/Icon.vue'
@@ -332,17 +341,25 @@ onMounted(() => {
     isDesktopViewport.value = desktopViewportMediaQuery.matches
     desktopViewportListener = (event: MediaQueryListEvent) => {
       isDesktopViewport.value = event.matches
+      // 切到卡片视图后，列表偏移可能变化，重测以校正 window 虚拟化基准
+      if (!event.matches) nextTick(updateCardScrollMargin)
     }
     if (typeof desktopViewportMediaQuery.addEventListener === 'function') {
       desktopViewportMediaQuery.addEventListener('change', desktopViewportListener)
     } else {
       desktopViewportMediaQuery.addListener(desktopViewportListener)
     }
+    // 卡片视图 window 虚拟化：窗口尺寸变化时重测列表相对文档的偏移
+    window.addEventListener('resize', updateCardScrollMargin)
+    nextTick(updateCardScrollMargin)
   }
 })
 
 onUnmounted(() => {
   detachDesktopTableTracking()
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateCardScrollMargin)
+  }
   if (desktopViewportMediaQuery && desktopViewportListener) {
     if (typeof desktopViewportMediaQuery.removeEventListener === 'function') {
       desktopViewportMediaQuery.removeEventListener('change', desktopViewportListener)
@@ -625,6 +642,39 @@ const measureElement = (el: any) => {
     rowVirtualizer.value.measureElement(el as Element)
   }
 }
+
+// --- 卡片/移动视图虚拟化(window 滚动)---
+// 桌面走 .table-wrapper 内部滚动(上方 rowVirtualizer);移动端卡片视图改用 window 虚拟化，
+// 以页面为滚动体，只渲染视口附近卡片 —— 既消除大列表全量挂载导致的卡死，又保留整页滚动手感。
+// 两个 virtualizer 通过 count(按 isDesktopViewport 互斥置 0)只激活其一。
+const cardListRef = ref<HTMLElement | null>(null)
+const cardScrollMargin = ref(0)
+
+const updateCardScrollMargin = () => {
+  if (typeof window === 'undefined' || !cardListRef.value) return
+  // 列表容器相对文档顶部的偏移(上方筛选/统计区高度);window 虚拟化据此把页面滚动换算成可见范围
+  cardScrollMargin.value = cardListRef.value.getBoundingClientRect().top + window.scrollY
+}
+
+const cardVirtualizer = useWindowVirtualizer(computed(() => ({
+  count: !isDesktopViewport.value ? (sortedData.value?.length ?? 0) : 0,
+  estimateSize: () => props.estimateRowHeight ?? 56,
+  overscan: props.overscan ?? 5,
+  scrollMargin: cardScrollMargin.value,
+  // 首个有效视口高度到来前先按一屏渲染,避免布局未结算瞬间的空白帧(对齐桌面 rowVirtualizer 兜底)
+  initialRect: { width: 0, height: estimatedViewportHeight() },
+})))
+
+const cardVirtualItems = computed(() => cardVirtualizer.value.getVirtualItems())
+const cardTotalSize = computed(() => cardVirtualizer.value.getTotalSize())
+const cardMeasureElement = (el: any) => {
+  if (el) cardVirtualizer.value.measureElement(el as Element)
+}
+
+// 数据/加载态变化后,上方区域高度可能改变,重测列表偏移
+watch([() => sortedData.value?.length, () => props.loading, isDesktopViewport], () => {
+  if (!isDesktopViewport.value) nextTick(updateCardScrollMargin)
+})
 
 const hasActionsColumn = computed(() => {
   return props.columns.some(column => column.key === 'actions')
