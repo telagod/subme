@@ -104,9 +104,9 @@ func TestCredentialCipher_SkipsNonSensitive(t *testing.T) {
 func TestCredentialCipher_SkipsNonStringValues(t *testing.T) {
 	c := testCredCipher(t, true)
 	in := map[string]any{
-		"api_key":        123,         // 敏感键但非 string
-		"_token_version": int64(7),    // 内部字段
-		"flag":           true,        // 非敏感非 string
+		"api_key":        123,      // 敏感键但非 string
+		"_token_version": int64(7), // 内部字段
+		"flag":           true,     // 非敏感非 string
 	}
 	enc := c.EncryptMap(in)
 	assert.Equal(t, 123, enc["api_key"])

@@ -44,7 +44,7 @@ func TestCredentials_EncryptedAtRest_DecryptedOnRead(t *testing.T) {
 		Credentials: map[string]any{
 			"api_key":       "sk-secret-xyz",
 			"refresh_token": "rt-secret",
-			"base_url":      "https://api.example.com/v1",          // 非敏感
+			"base_url":      "https://api.example.com/v1",           // 非敏感
 			"model_mapping": map[string]any{"gpt-5": "gpt-5-codex"}, // 嵌套，不加密
 		},
 		Extra:       map[string]any{},
