@@ -975,7 +975,8 @@ func TestOpenAIGatewayService_OAuthPassthrough_NonCodexUAFallbackToCodexUA(t *te
 	require.NoError(t, err)
 	require.Equal(t, false, gjson.GetBytes(upstream.lastBody, "store").Bool())
 	require.Equal(t, true, gjson.GetBytes(upstream.lastBody, "stream").Bool())
-	require.Equal(t, codexCLIUserAgent, upstream.lastReq.Header.Get("User-Agent"))
+	// 中性身份对齐：OAuth 非 Codex UA 兜底改用中性 UA，不再伪装官方 Codex CLI
+	require.Equal(t, buildNeutralUserAgent(), upstream.lastReq.Header.Get("User-Agent"))
 }
 
 func TestOpenAIGatewayService_CodexCLIOnly_RejectsNonCodexClient(t *testing.T) {

@@ -31,12 +31,13 @@ func TestIsolateOpenAISessionID(t *testing.T) {
 		require.NotEqual(t, a, b)
 	})
 
-	t.Run("format_is_16_hex_chars", func(t *testing.T) {
+	t.Run("format_is_uuid", func(t *testing.T) {
 		result := isolateOpenAISessionID(99, "test_session")
-		assert.Len(t, result, 16, "应为 16 字符的 hex 字符串")
+		// 派生为标准 UUID 形态（避免 16 位 hex 这类非常规指纹被上游识别）
+		assert.Len(t, result, 36, "应为 36 字符的 UUID 字符串")
 		for _, ch := range result {
-			assert.True(t, (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'),
-				"应仅包含 hex 字符: %c", ch)
+			assert.True(t, (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || ch == '-',
+				"应仅包含 hex 字符或连字符: %c", ch)
 		}
 	})
 
