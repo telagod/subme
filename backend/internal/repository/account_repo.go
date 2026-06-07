@@ -69,14 +69,17 @@ var schedulerNeutralExtraKeys = map[string]struct{}{
 // NewAccountRepository 创建账户仓储实例。
 // 这是对外暴露的构造函数，返回接口类型以便于依赖注入。
 func NewAccountRepository(client *dbent.Client, sqlDB *sql.DB, schedulerCache service.SchedulerCache, cipher *CredentialCipher) service.AccountRepository {
-	// 注册包级解密器，供包级 accountEntityToService 读路径使用。
-	setPkgCredentialCipher(cipher)
 	return newAccountRepositoryWithSQL(client, sqlDB, schedulerCache, cipher)
 }
 
 // newAccountRepositoryWithSQL 是内部构造函数，支持依赖注入 SQL 执行器。
 // 这种设计便于单元测试时注入 mock 对象。
 func newAccountRepositoryWithSQL(client *dbent.Client, sqlq sqlExecutor, schedulerCache service.SchedulerCache, cipher *CredentialCipher) *accountRepository {
+	// 注册包级解密器，供包级 accountEntityToService 读路径(含跨包 usage_log_repo)使用。
+	// 所有构造路径(生产 NewAccountRepository / 测试 newAccountRepositoryWithSQL)统一在此设置，
+	// 保证读、写 cipher 同源一致——否则写用 r.cipher 加密、读用 nil 包级不解密，会读出密文。
+	// 全局状态仅在启动构造期写入，运行期只读；集成测试串行构造，每次覆盖为本测试 cipher。
+	setPkgCredentialCipher(cipher)
 	return &accountRepository{client: client, sql: sqlq, schedulerCache: schedulerCache, cipher: cipher}
 }
 
