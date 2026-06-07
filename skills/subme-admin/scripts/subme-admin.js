@@ -3,51 +3,51 @@
 const fs = require("fs");
 const path = require("path");
 
-const BASE_URL = (process.env.SUB2API_BASE_URL || "").replace(/\/$/, "");
-const ADMIN_API_KEY = process.env.SUB2API_ADMIN_API_KEY || "";
+const BASE_URL = (process.env.SUBME_BASE_URL || "").replace(/\/$/, "");
+const ADMIN_API_KEY = process.env.SUBME_ADMIN_API_KEY || "";
 
 function usage() {
   console.log(`Usage:
-  sub2api-admin.js accounts list [--page-size 200] [--page N] [--search TEXT] [--platform openai] [--type oauth] [--status active] [--group NAME] [--privacy-mode MODE] [--sort-by name] [--sort-order asc]
-  sub2api-admin.js accounts export [--ids 1,2] [--file accounts.json] [--include-proxies false] [list filters...]
-  sub2api-admin.js accounts import-data --file accounts.json [--skip-default-group-bind]
-  sub2api-admin.js accounts create --json '{...}' | --file account.json
-  sub2api-admin.js accounts update <id> --json '{...}' | --file patch.json
-  sub2api-admin.js accounts get <id>
-  sub2api-admin.js accounts delete <id>
-  sub2api-admin.js accounts keep-only --name <account-name>
-  sub2api-admin.js accounts usage <id> [--source SOURCE] [--force]
-  sub2api-admin.js accounts stats <id> [--days 30]
-  sub2api-admin.js accounts today-stats <id>
-  sub2api-admin.js accounts batch-today-stats --ids 1,2
-  sub2api-admin.js accounts set-status <id> <active|paused|...>
-  sub2api-admin.js accounts set-schedulable <id> <true|false>
-  sub2api-admin.js accounts clear-error <id>
-  sub2api-admin.js accounts clear-rate-limit <id>
-  sub2api-admin.js accounts recover-state <id>
-  sub2api-admin.js accounts reset-quota <id>
-  sub2api-admin.js accounts refresh <id>
-  sub2api-admin.js accounts test <id>
-  sub2api-admin.js accounts models <id>
-  sub2api-admin.js accounts sync-models <id>
-  sub2api-admin.js accounts apply-oauth <id> --json '{...}' | --file credentials.json
-  sub2api-admin.js accounts batch-create --file accounts.json
-  sub2api-admin.js accounts batch-update-credentials --json '{...}' | --file payload.json
-  sub2api-admin.js accounts bulk-update --ids 1,2 --json '{...}' | --file patch.json
-  sub2api-admin.js accounts batch-refresh --ids 1,2
-  sub2api-admin.js accounts batch-clear-error --ids 1,2
-  sub2api-admin.js accounts temp-unschedulable <id>
-  sub2api-admin.js accounts reset-temp-unschedulable <id>
-  sub2api-admin.js accounts crs-preview --json '{...}' | --file payload.json
-  sub2api-admin.js accounts crs-sync --json '{...}' | --file payload.json
-  sub2api-admin.js accounts import-codex-session --json '{...}' | --file payload.json
-  sub2api-admin.js accounts antigravity-default-model-mapping
-  sub2api-admin.js accounts import-json --file <path> --template-name <name> [--skip-name <name>] [--dry-run]
-  sub2api-admin.js groups all
-  sub2api-admin.js proxies all
-  sub2api-admin.js error-rules list|get|create|update|delete|toggle ...
-  sub2api-admin.js tls-profiles list|get|create|update|delete ...
-  sub2api-admin.js api <GET|POST|PUT|DELETE> <admin-path> [--json '{...}' | --file payload.json]
+  subme-admin.js accounts list [--page-size 200] [--page N] [--search TEXT] [--platform openai] [--type oauth] [--status active] [--group NAME] [--privacy-mode MODE] [--sort-by name] [--sort-order asc]
+  subme-admin.js accounts export [--ids 1,2] [--file accounts.json] [--include-proxies false] [list filters...]
+  subme-admin.js accounts import-data --file accounts.json [--skip-default-group-bind]
+  subme-admin.js accounts create --json '{...}' | --file account.json
+  subme-admin.js accounts update <id> --json '{...}' | --file patch.json
+  subme-admin.js accounts get <id>
+  subme-admin.js accounts delete <id>
+  subme-admin.js accounts keep-only --name <account-name>
+  subme-admin.js accounts usage <id> [--source SOURCE] [--force]
+  subme-admin.js accounts stats <id> [--days 30]
+  subme-admin.js accounts today-stats <id>
+  subme-admin.js accounts batch-today-stats --ids 1,2
+  subme-admin.js accounts set-status <id> <active|paused|...>
+  subme-admin.js accounts set-schedulable <id> <true|false>
+  subme-admin.js accounts clear-error <id>
+  subme-admin.js accounts clear-rate-limit <id>
+  subme-admin.js accounts recover-state <id>
+  subme-admin.js accounts reset-quota <id>
+  subme-admin.js accounts refresh <id>
+  subme-admin.js accounts test <id>
+  subme-admin.js accounts models <id>
+  subme-admin.js accounts sync-models <id>
+  subme-admin.js accounts apply-oauth <id> --json '{...}' | --file credentials.json
+  subme-admin.js accounts batch-create --file accounts.json
+  subme-admin.js accounts batch-update-credentials --json '{...}' | --file payload.json
+  subme-admin.js accounts bulk-update --ids 1,2 --json '{...}' | --file patch.json
+  subme-admin.js accounts batch-refresh --ids 1,2
+  subme-admin.js accounts batch-clear-error --ids 1,2
+  subme-admin.js accounts temp-unschedulable <id>
+  subme-admin.js accounts reset-temp-unschedulable <id>
+  subme-admin.js accounts crs-preview --json '{...}' | --file payload.json
+  subme-admin.js accounts crs-sync --json '{...}' | --file payload.json
+  subme-admin.js accounts import-codex-session --json '{...}' | --file payload.json
+  subme-admin.js accounts antigravity-default-model-mapping
+  subme-admin.js accounts import-json --file <path> --template-name <name> [--skip-name <name>] [--dry-run]
+  subme-admin.js groups all
+  subme-admin.js proxies all
+  subme-admin.js error-rules list|get|create|update|delete|toggle ...
+  subme-admin.js tls-profiles list|get|create|update|delete ...
+  subme-admin.js api <GET|POST|PUT|DELETE> <admin-path> [--json '{...}' | --file payload.json]
 `);
 }
 
@@ -79,9 +79,9 @@ function parseArgs(argv) {
 }
 
 function authHeaders() {
-  if (!BASE_URL) throw new Error("Missing SUB2API_BASE_URL");
+  if (!BASE_URL) throw new Error("Missing SUBME_BASE_URL");
   if (ADMIN_API_KEY) return { "x-api-key": ADMIN_API_KEY };
-  throw new Error("Missing SUB2API_ADMIN_API_KEY");
+  throw new Error("Missing SUBME_ADMIN_API_KEY");
 }
 
 async function apiRequest(method, pathname, body) {

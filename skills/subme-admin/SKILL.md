@@ -1,5 +1,5 @@
 ---
-name: sub2api-admin
+name: subme-admin
 description: Manage Sub2API admin APIs for accounts, groups, proxies, error passthrough rules, TLS fingerprint profiles, imports, exports, batch updates, and raw administrator API calls. Use when the user mentions Sub2API, admin API keys, account management, bulk account import/export, keeping or deleting accounts, refreshing accounts, clearing errors, CRS sync, or managing Sub2API backend settings through the admin API.
 ---
 
@@ -8,17 +8,17 @@ description: Manage Sub2API admin APIs for accounts, groups, proxies, error pass
 Use the bundled CLI instead of ad hoc `curl`.
 
 ```bash
-export SUB2API_BASE_URL='https://your-sub2api-host'
-export SUB2API_ADMIN_API_KEY='<admin api key>'
+export SUBME_BASE_URL='https://your-subme-host'
+export SUBME_ADMIN_API_KEY='<admin api key>'
 
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts list
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts list
 ```
 
 For all commands and payload examples, read [references/admin-cli.md](references/admin-cli.md).
 
 ## Workflow
 
-1. Reuse `SUB2API_BASE_URL` and `SUB2API_ADMIN_API_KEY` from the environment.
+1. Reuse `SUBME_BASE_URL` and `SUBME_ADMIN_API_KEY` from the environment.
 2. Run read-only commands first: `accounts list`, `accounts get <id>`, `groups all`, or `proxies all`.
 3. Before destructive or bulk writes, print the target account names and IDs.
 4. Execute the write command only after the target set is clear.
@@ -27,13 +27,13 @@ For all commands and payload examples, read [references/admin-cli.md](references
 ## Common Commands
 
 ```bash
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts list --page-size 20
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts get 40
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts usage 40
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts set-schedulable 40 true
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js accounts bulk-update --ids 40,39 --json '{"concurrency":10}'
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js error-rules list
-node ~/.codex/skills/sub2api-admin/scripts/sub2api-admin.js tls-profiles list
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts list --page-size 20
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts get 40
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts usage 40
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts set-schedulable 40 true
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js accounts bulk-update --ids 40,39 --json '{"concurrency":10}'
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js error-rules list
+node ~/.codex/skills/subme-admin/scripts/subme-admin.js tls-profiles list
 ```
 
 ## Safety Notes
