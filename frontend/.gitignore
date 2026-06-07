@@ -1,0 +1,4 @@
+
+# npm/pnpm residue (pnpm-only project)
+package-lock.json
+pnpm-workspace.yaml
