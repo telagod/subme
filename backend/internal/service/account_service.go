@@ -20,6 +20,7 @@ const AccountPrivacyModeUnsetFilter = "__unset__"
 
 type AccountRepository interface {
 	Create(ctx context.Context, account *Account) error
+	BulkCreate(ctx context.Context, accounts []*Account, groupIDsPerAccount [][]int64) error
 	GetByID(ctx context.Context, id int64) (*Account, error)
 	// GetByIDs fetches accounts by IDs in a single query.
 	// It should return all accounts found (missing IDs are ignored).

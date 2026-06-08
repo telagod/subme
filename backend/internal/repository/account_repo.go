@@ -15,6 +15,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -151,6 +152,101 @@ func (r *accountRepository) Create(ctx context.Context, account *service.Account
 	account.UpdatedAt = created.UpdatedAt
 	if err := enqueueSchedulerOutbox(ctx, r.sql, service.SchedulerOutboxEventAccountChanged, &account.ID, nil, buildSchedulerGroupPayload(account.GroupIDs)); err != nil {
 		logger.LegacyPrintf("repository.account", "[SchedulerOutbox] enqueue account create failed: account=%d err=%v", account.ID, err)
+	}
+	return nil
+}
+
+func (r *accountRepository) BulkCreate(ctx context.Context, accounts []*service.Account, groupIDsPerAccount [][]int64) error {
+	if len(accounts) == 0 {
+		return nil
+	}
+	if len(accounts) != len(groupIDsPerAccount) {
+		return fmt.Errorf("BulkCreate: accounts len %d != groupIDsPerAccount len %d", len(accounts), len(groupIDsPerAccount))
+	}
+
+	tx, err := r.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("BulkCreate: begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	builders := make([]*dbent.AccountCreate, 0, len(accounts))
+	for _, account := range accounts {
+		encCreds, encErr := r.cipher.EncryptMap(normalizeJSONMap(account.Credentials))
+		if encErr != nil {
+			return fmt.Errorf("BulkCreate: encrypt: %w", encErr)
+		}
+		b := tx.Account.Create().
+			SetName(account.Name).
+			SetNillableNotes(account.Notes).
+			SetPlatform(account.Platform).
+			SetType(account.Type).
+			SetCredentials(encCreds).
+			SetExtra(normalizeJSONMap(account.Extra)).
+			SetConcurrency(account.Concurrency).
+			SetPriority(account.Priority).
+			SetStatus(account.Status).
+			SetSchedulable(account.Schedulable).
+			SetAutoPauseOnExpired(account.AutoPauseOnExpired)
+		if account.RateMultiplier != nil {
+			b.SetRateMultiplier(*account.RateMultiplier)
+		}
+		if account.LoadFactor != nil {
+			b.SetLoadFactor(*account.LoadFactor)
+		}
+		if account.ProxyID != nil {
+			b.SetProxyID(*account.ProxyID)
+		}
+		if account.ExpiresAt != nil {
+			b.SetExpiresAt(*account.ExpiresAt)
+		}
+		builders = append(builders, b)
+	}
+
+	created, err := tx.Account.CreateBulk(builders...).Save(ctx)
+	if err != nil {
+		return fmt.Errorf("BulkCreate: insert accounts: %w", translatePersistenceError(err, service.ErrAccountNotFound, nil))
+	}
+	for i, ent := range created {
+		accounts[i].ID = ent.ID
+		accounts[i].CreatedAt = ent.CreatedAt
+		accounts[i].UpdatedAt = ent.UpdatedAt
+	}
+
+	var groupBuilders []*dbent.AccountGroupCreate
+	for i, groupIDs := range groupIDsPerAccount {
+		for pri, gid := range groupIDs {
+			groupBuilders = append(groupBuilders, tx.AccountGroup.Create().
+				SetAccountID(accounts[i].ID).
+				SetGroupID(gid).
+				SetPriority(pri+1))
+		}
+	}
+	if len(groupBuilders) > 0 {
+		if _, err := tx.AccountGroup.CreateBulk(groupBuilders...).Save(ctx); err != nil {
+			return fmt.Errorf("BulkCreate: insert groups: %w", err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("BulkCreate: commit: %w", err)
+	}
+
+	ids := make([]int64, len(accounts))
+	allGroupIDs := make(map[int64]struct{})
+	for i, acc := range accounts {
+		ids[i] = acc.ID
+		for _, gid := range groupIDsPerAccount[i] {
+			allGroupIDs[gid] = struct{}{}
+		}
+	}
+	gidSlice := make([]int64, 0, len(allGroupIDs))
+	for gid := range allGroupIDs {
+		gidSlice = append(gidSlice, gid)
+	}
+	payload := map[string]any{"account_ids": ids, "group_ids": gidSlice}
+	if err := enqueueSchedulerOutbox(ctx, r.sql, service.SchedulerOutboxEventAccountBulkChanged, nil, nil, payload); err != nil {
+		logger.LegacyPrintf("repository.account", "[SchedulerOutbox] enqueue bulk create failed: count=%d err=%v", len(accounts), err)
 	}
 	return nil
 }
