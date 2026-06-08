@@ -322,14 +322,15 @@ func (h *AccountHandler) List(c *gin.Context) {
 	// 批量获取窗口费用（按 startTime 分组，每组 1 条 SQL）
 	if len(windowCostAccountIDs) > 0 {
 		windowCosts = make(map[int64]float64)
+		accountByID := make(map[int64]*service.Account, len(accounts))
+		for i := range accounts {
+			accountByID[accounts[i].ID] = &accounts[i]
+		}
 		groups := make(map[time.Time][]int64)
 		for _, id := range windowCostAccountIDs {
-			for i := range accounts {
-				if accounts[i].ID == id {
-					st := accounts[i].GetCurrentWindowStartTime()
-					groups[st] = append(groups[st], id)
-					break
-				}
+			if acc, ok := accountByID[id]; ok {
+				st := acc.GetCurrentWindowStartTime()
+				groups[st] = append(groups[st], id)
 			}
 		}
 		for startTime, ids := range groups {
