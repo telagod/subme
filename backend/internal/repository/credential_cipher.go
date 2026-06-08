@@ -111,3 +111,41 @@ func (c *CredentialCipher) DecryptMap(in map[string]any) map[string]any {
 	}
 	return out
 }
+
+// EncryptValue 加密单个敏感 string 值(如 api_key),返回密文(带 enc:v1: 前缀)。
+//
+// degrade-safe:cipher nil / 未启用 / 无加密器时返回 (原值, false, nil),由调用方落明文。
+// fail-secure:加密器报错时返回 error(绝不静默落明文)。
+// 幂等 + 防伪造:已是本系统密文则原样返回;伪造 enc:v1: 前缀剥离后重新加密。
+// 第二返回值 encrypted 标识是否产出了密文(true=已加密,false=降级明文)。
+func (c *CredentialCipher) EncryptValue(s string) (string, bool, error) {
+	if c == nil || !c.enabled || c.enc == nil {
+		return s, false, nil
+	}
+	if strings.HasPrefix(s, credentialEncPrefixV1) {
+		body := strings.TrimPrefix(s, credentialEncPrefixV1)
+		if _, err := c.enc.Decrypt(body); err == nil {
+			return s, true, nil // 本系统密文,幂等跳过
+		}
+		s = body // 伪造前缀,剥离当明文重新加密
+	}
+	ct, err := c.enc.Encrypt(s)
+	if err != nil {
+		return "", false, fmt.Errorf("encrypt value: %w", err)
+	}
+	return credentialEncPrefixV1 + ct, true, nil
+}
+
+// DecryptValue 解密单个值。向后兼容:无 enc:v1: 前缀的明文原样返回;nil-safe;
+// 解密失败保留密文 + warn(不 panic、不使值不可用)。
+func (c *CredentialCipher) DecryptValue(s string) string {
+	if c == nil || c.enc == nil || !strings.HasPrefix(s, credentialEncPrefixV1) {
+		return s
+	}
+	pt, err := c.enc.Decrypt(strings.TrimPrefix(s, credentialEncPrefixV1))
+	if err != nil {
+		slog.Warn("credential value decrypt failed, keeping ciphertext", "err", err)
+		return s
+	}
+	return pt
+}

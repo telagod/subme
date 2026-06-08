@@ -26,7 +26,7 @@ func (s *APIKeyRepoSuite) SetupTest() {
 	s.ctx = context.Background()
 	tx := testEntTx(s.T())
 	s.client = tx.Client()
-	s.repo = newAPIKeyRepositoryWithSQL(s.client, tx)
+	s.repo = newAPIKeyRepositoryWithSQL(s.client, tx, nil)
 }
 
 func TestAPIKeyRepoSuite(t *testing.T) {
@@ -506,7 +506,7 @@ func (s *APIKeyRepoSuite) TestIncrementQuotaUsedAndGetState() {
 // 注意：此测试使用 testEntClient（非事务隔离），数据会真正写入数据库。
 func TestIncrementQuotaUsed_Concurrent(t *testing.T) {
 	client := testEntClient(t)
-	repo := NewAPIKeyRepository(client, integrationDB).(*apiKeyRepository)
+	repo := NewAPIKeyRepository(client, integrationDB, nil).(*apiKeyRepository)
 	ctx := context.Background()
 
 	// 创建测试用户和 API Key

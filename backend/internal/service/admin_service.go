@@ -2226,8 +2226,9 @@ func (s *adminServiceImpl) DeleteGroup(ctx context.Context, id int64) error {
 		}()
 	}
 	if s.authCacheInvalidator != nil {
-		for _, key := range groupKeys {
-			s.authCacheInvalidator.InvalidateAuthCacheByKey(ctx, key)
+		for _, h := range groupKeys {
+			// groupKeys 现为 key_hash 列表(ListKeysByGroupID 改返 hash),直接作 cacheKey。
+			s.authCacheInvalidator.InvalidateAuthCacheByHash(ctx, h)
 		}
 	}
 
@@ -2487,12 +2488,12 @@ func (s *adminServiceImpl) ReplaceUserGroup(ctx context.Context, userID, oldGrou
 		return nil, fmt.Errorf("commit transaction: %w", err)
 	}
 
-	// 失效该用户所有 Key 的认证缓存
+	// 失效该用户所有 Key 的认证缓存(ListKeysByUserID 返 key_hash,直接作 cacheKey)
 	if s.authCacheInvalidator != nil {
-		keys, keyErr := s.apiKeyRepo.ListKeysByUserID(ctx, userID)
+		hashes, keyErr := s.apiKeyRepo.ListKeysByUserID(ctx, userID)
 		if keyErr == nil {
-			for _, k := range keys {
-				s.authCacheInvalidator.InvalidateAuthCacheByKey(ctx, k)
+			for _, h := range hashes {
+				s.authCacheInvalidator.InvalidateAuthCacheByHash(ctx, h)
 			}
 		}
 	}

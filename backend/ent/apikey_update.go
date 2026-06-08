@@ -86,6 +86,46 @@ func (_u *APIKeyUpdate) SetNillableKey(v *string) *APIKeyUpdate {
 	return _u
 }
 
+// SetKeyHash sets the "key_hash" field.
+func (_u *APIKeyUpdate) SetKeyHash(v string) *APIKeyUpdate {
+	_u.mutation.SetKeyHash(v)
+	return _u
+}
+
+// SetNillableKeyHash sets the "key_hash" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableKeyHash(v *string) *APIKeyUpdate {
+	if v != nil {
+		_u.SetKeyHash(*v)
+	}
+	return _u
+}
+
+// ClearKeyHash clears the value of the "key_hash" field.
+func (_u *APIKeyUpdate) ClearKeyHash() *APIKeyUpdate {
+	_u.mutation.ClearKeyHash()
+	return _u
+}
+
+// SetKeyEncrypted sets the "key_encrypted" field.
+func (_u *APIKeyUpdate) SetKeyEncrypted(v string) *APIKeyUpdate {
+	_u.mutation.SetKeyEncrypted(v)
+	return _u
+}
+
+// SetNillableKeyEncrypted sets the "key_encrypted" field if the given value is not nil.
+func (_u *APIKeyUpdate) SetNillableKeyEncrypted(v *string) *APIKeyUpdate {
+	if v != nil {
+		_u.SetKeyEncrypted(*v)
+	}
+	return _u
+}
+
+// ClearKeyEncrypted clears the value of the "key_encrypted" field.
+func (_u *APIKeyUpdate) ClearKeyEncrypted() *APIKeyUpdate {
+	_u.mutation.ClearKeyEncrypted()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *APIKeyUpdate) SetName(v string) *APIKeyUpdate {
 	_u.mutation.SetName(v)
@@ -550,6 +590,16 @@ func (_u *APIKeyUpdate) check() error {
 			return &ValidationError{Name: "key", err: fmt.Errorf(`ent: validator failed for field "APIKey.key": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.KeyHash(); ok {
+		if err := apikey.KeyHashValidator(v); err != nil {
+			return &ValidationError{Name: "key_hash", err: fmt.Errorf(`ent: validator failed for field "APIKey.key_hash": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.KeyEncrypted(); ok {
+		if err := apikey.KeyEncryptedValidator(v); err != nil {
+			return &ValidationError{Name: "key_encrypted", err: fmt.Errorf(`ent: validator failed for field "APIKey.key_encrypted": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Name(); ok {
 		if err := apikey.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "APIKey.name": %w`, err)}
@@ -589,6 +639,18 @@ func (_u *APIKeyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Key(); ok {
 		_spec.SetField(apikey.FieldKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.KeyHash(); ok {
+		_spec.SetField(apikey.FieldKeyHash, field.TypeString, value)
+	}
+	if _u.mutation.KeyHashCleared() {
+		_spec.ClearField(apikey.FieldKeyHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.KeyEncrypted(); ok {
+		_spec.SetField(apikey.FieldKeyEncrypted, field.TypeString, value)
+	}
+	if _u.mutation.KeyEncryptedCleared() {
+		_spec.ClearField(apikey.FieldKeyEncrypted, field.TypeString)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(apikey.FieldName, field.TypeString, value)
@@ -870,6 +932,46 @@ func (_u *APIKeyUpdateOne) SetNillableKey(v *string) *APIKeyUpdateOne {
 	if v != nil {
 		_u.SetKey(*v)
 	}
+	return _u
+}
+
+// SetKeyHash sets the "key_hash" field.
+func (_u *APIKeyUpdateOne) SetKeyHash(v string) *APIKeyUpdateOne {
+	_u.mutation.SetKeyHash(v)
+	return _u
+}
+
+// SetNillableKeyHash sets the "key_hash" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableKeyHash(v *string) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetKeyHash(*v)
+	}
+	return _u
+}
+
+// ClearKeyHash clears the value of the "key_hash" field.
+func (_u *APIKeyUpdateOne) ClearKeyHash() *APIKeyUpdateOne {
+	_u.mutation.ClearKeyHash()
+	return _u
+}
+
+// SetKeyEncrypted sets the "key_encrypted" field.
+func (_u *APIKeyUpdateOne) SetKeyEncrypted(v string) *APIKeyUpdateOne {
+	_u.mutation.SetKeyEncrypted(v)
+	return _u
+}
+
+// SetNillableKeyEncrypted sets the "key_encrypted" field if the given value is not nil.
+func (_u *APIKeyUpdateOne) SetNillableKeyEncrypted(v *string) *APIKeyUpdateOne {
+	if v != nil {
+		_u.SetKeyEncrypted(*v)
+	}
+	return _u
+}
+
+// ClearKeyEncrypted clears the value of the "key_encrypted" field.
+func (_u *APIKeyUpdateOne) ClearKeyEncrypted() *APIKeyUpdateOne {
+	_u.mutation.ClearKeyEncrypted()
 	return _u
 }
 
@@ -1350,6 +1452,16 @@ func (_u *APIKeyUpdateOne) check() error {
 			return &ValidationError{Name: "key", err: fmt.Errorf(`ent: validator failed for field "APIKey.key": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.KeyHash(); ok {
+		if err := apikey.KeyHashValidator(v); err != nil {
+			return &ValidationError{Name: "key_hash", err: fmt.Errorf(`ent: validator failed for field "APIKey.key_hash": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.KeyEncrypted(); ok {
+		if err := apikey.KeyEncryptedValidator(v); err != nil {
+			return &ValidationError{Name: "key_encrypted", err: fmt.Errorf(`ent: validator failed for field "APIKey.key_encrypted": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Name(); ok {
 		if err := apikey.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "APIKey.name": %w`, err)}
@@ -1406,6 +1518,18 @@ func (_u *APIKeyUpdateOne) sqlSave(ctx context.Context) (_node *APIKey, err erro
 	}
 	if value, ok := _u.mutation.Key(); ok {
 		_spec.SetField(apikey.FieldKey, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.KeyHash(); ok {
+		_spec.SetField(apikey.FieldKeyHash, field.TypeString, value)
+	}
+	if _u.mutation.KeyHashCleared() {
+		_spec.ClearField(apikey.FieldKeyHash, field.TypeString)
+	}
+	if value, ok := _u.mutation.KeyEncrypted(); ok {
+		_spec.SetField(apikey.FieldKeyEncrypted, field.TypeString, value)
+	}
+	if _u.mutation.KeyEncryptedCleared() {
+		_spec.ClearField(apikey.FieldKeyEncrypted, field.TypeString)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(apikey.FieldName, field.TypeString, value)

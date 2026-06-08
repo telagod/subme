@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/internal/pkg/apikeyhash"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/stretchr/testify/require"
 )
@@ -60,7 +61,7 @@ func (s *apiKeyRepoStub) GetKeyAndOwnerID(ctx context.Context, id int64) (string
 		return "", 0, s.getByIDErr
 	}
 	if s.apiKey != nil {
-		return s.apiKey.Key, s.apiKey.UserID, nil
+		return apikeyhash.Hash(s.apiKey.Key), s.apiKey.UserID, nil
 	}
 	return "", 0, ErrAPIKeyNotFound
 }

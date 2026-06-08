@@ -247,3 +247,60 @@ func TestCredentialCipher_DoesNotMutateInput(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "sk-orig", in["api_key"], "EncryptMap 不应修改入参")
 }
+
+// ── 单值 EncryptValue/DecryptValue(供 api_key 等单字段加密)─────────────────
+
+func TestCredentialCipher_EncryptValue_RoundTrip(t *testing.T) {
+	c := testCredCipher(t, true)
+	ct, encrypted, err := c.EncryptValue("sk-secret-123")
+	require.NoError(t, err)
+	require.True(t, encrypted, "启用时应加密")
+	require.True(t, strings.HasPrefix(ct, credentialEncPrefixV1), "应带 enc:v1: 前缀")
+	require.NotEqual(t, "sk-secret-123", ct)
+	assert.Equal(t, "sk-secret-123", c.DecryptValue(ct), "应解密还原")
+}
+
+func TestCredentialCipher_EncryptValue_DegradeWhenDisabled(t *testing.T) {
+	c := testCredCipher(t, false)
+	ct, encrypted, err := c.EncryptValue("sk-plain")
+	require.NoError(t, err)
+	assert.False(t, encrypted, "未启用不应加密")
+	assert.Equal(t, "sk-plain", ct, "未启用返回原值明文")
+}
+
+func TestCredentialCipher_EncryptValue_FailSecure(t *testing.T) {
+	c := &CredentialCipher{enc: failEncryptor{}, enabled: true}
+	ct, encrypted, err := c.EncryptValue("sk-secret")
+	require.Error(t, err, "加密失败应返回 error")
+	assert.False(t, encrypted)
+	assert.Empty(t, ct, "fail-secure 不返回明文")
+}
+
+func TestCredentialCipher_EncryptValue_Idempotent(t *testing.T) {
+	c := testCredCipher(t, true)
+	once, _, err := c.EncryptValue("sk-abc")
+	require.NoError(t, err)
+	twice, _, err := c.EncryptValue(once)
+	require.NoError(t, err)
+	assert.Equal(t, once, twice, "本系统密文应幂等跳过")
+	assert.Equal(t, "sk-abc", c.DecryptValue(twice))
+}
+
+func TestCredentialCipher_EncryptValue_SpoofedPrefix(t *testing.T) {
+	c := testCredCipher(t, true)
+	ct, encrypted, err := c.EncryptValue(credentialEncPrefixV1 + "forged-not-ciphertext")
+	require.NoError(t, err)
+	require.True(t, encrypted)
+	assert.Equal(t, "forged-not-ciphertext", c.DecryptValue(ct), "伪造前缀剥离后当明文加密")
+}
+
+func TestCredentialCipher_DecryptValue_PlaintextAndNilSafe(t *testing.T) {
+	c := testCredCipher(t, true)
+	assert.Equal(t, "sk-legacy", c.DecryptValue("sk-legacy"), "无前缀明文原样返回")
+	var nilCipher *CredentialCipher
+	assert.Equal(t, "x", nilCipher.DecryptValue("x"), "nil cipher DecryptValue 原样")
+	out, encrypted, err := nilCipher.EncryptValue("y")
+	require.NoError(t, err)
+	assert.False(t, encrypted)
+	assert.Equal(t, "y", out, "nil cipher EncryptValue 原样")
+}

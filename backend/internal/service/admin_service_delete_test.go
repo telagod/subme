@@ -605,7 +605,9 @@ func TestAdminService_DeleteGroup_InvalidatesAuthCacheForBoundKeys(t *testing.T)
 	require.NoError(t, err)
 	require.Equal(t, []int64{5}, repo.deleteCalls)
 	require.Equal(t, []int64{5}, apiKeyRepo.listGroupIDs)
-	require.Equal(t, []string{"k1", "k2"}, invalidator.keys)
+	// admin DeleteGroup 现调 InvalidateAuthCacheByHash(非 ByKey),录到 hashes 字段。
+	// stub 返的 "k1","k2" 模拟 repo ListKeysByGroupID 返回的 key_hash 列表。
+	require.Equal(t, []string{"k1", "k2"}, invalidator.hashes)
 }
 
 func TestAdminService_DeleteGroup_NotFound(t *testing.T) {

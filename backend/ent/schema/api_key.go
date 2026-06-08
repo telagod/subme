@@ -39,6 +39,22 @@ func (APIKey) Fields() []ent.Field {
 			NotEmpty().
 			Sensitive().
 			Unique(),
+		// key_hash: hex(sha256(key)),用于 auth 等值查询索引(替代明文 key lookup,消除 DB 明文依赖)。
+		// Optional+Nillable 兼容迁移期回填;部分唯一索引(WHERE deleted_at IS NULL)由 migration 建,
+		// 避免 ent 全列 Unique 与软删除 tombstone 冲突(删除后可重建同 key)。
+		field.String("key_hash").
+			MaxLen(64).
+			Optional().
+			Nillable().
+			Comment("hex(sha256(key)) for indexed auth lookup; partial-unique index in migration"),
+		// key_encrypted: "enc:v1:" + base64(AES-256-GCM(key)),可逆,读出口解密供用户始终查看明文。
+		// NULL 表示未加密(degrade-safe:未配持久密钥时回退读 key 列明文)。
+		field.String("key_encrypted").
+			MaxLen(300).
+			Optional().
+			Nillable().
+			Sensitive().
+			Comment("enc:v1: + AES(key); NULL when encryption disabled (degrade-safe fallback to key column)"),
 		field.String("name").
 			MaxLen(100).
 			NotEmpty(),
@@ -137,6 +153,8 @@ func (APIKey) Edges() []ent.Edge {
 func (APIKey) Indexes() []ent.Index {
 	return []ent.Index{
 		// key 字段已在 Fields() 中声明 Unique()，无需重复索引
+		// key_hash 普通索引(auth 等值查询);部分唯一约束在 migration 建(WHERE deleted_at IS NULL)
+		index.Fields("key_hash"),
 		index.Fields("user_id"),
 		index.Fields("group_id"),
 		index.Fields("status"),

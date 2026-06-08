@@ -176,6 +176,8 @@ func (m *mockChannelAuthCacheInvalidator) InvalidateAuthCacheByKey(_ context.Con
 	m.invalidatedKeys = append(m.invalidatedKeys, key)
 }
 
+func (m *mockChannelAuthCacheInvalidator) InvalidateAuthCacheByHash(_ context.Context, _ string) {}
+
 func (m *mockChannelAuthCacheInvalidator) InvalidateAuthCacheByUserID(_ context.Context, userID int64) {
 	m.invalidatedUserIDs = append(m.invalidatedUserIDs, userID)
 }

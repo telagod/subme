@@ -48,10 +48,15 @@ type authCacheInvalidatorStub struct {
 	userIDs  []int64
 	groupIDs []int64
 	keys     []string
+	hashes   []string
 }
 
 func (s *authCacheInvalidatorStub) InvalidateAuthCacheByKey(ctx context.Context, key string) {
 	s.keys = append(s.keys, key)
+}
+
+func (s *authCacheInvalidatorStub) InvalidateAuthCacheByHash(ctx context.Context, keyHash string) {
+	s.hashes = append(s.hashes, keyHash)
 }
 
 func (s *authCacheInvalidatorStub) InvalidateAuthCacheByUserID(ctx context.Context, userID int64) {

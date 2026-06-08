@@ -80,6 +80,16 @@ func Key(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldKey, v))
 }
 
+// KeyHash applies equality check predicate on the "key_hash" field. It's identical to KeyHashEQ.
+func KeyHash(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldKeyHash, v))
+}
+
+// KeyEncrypted applies equality check predicate on the "key_encrypted" field. It's identical to KeyEncryptedEQ.
+func KeyEncrypted(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldKeyEncrypted, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldEQ(FieldName, v))
@@ -373,6 +383,156 @@ func KeyEqualFold(v string) predicate.APIKey {
 // KeyContainsFold applies the ContainsFold predicate on the "key" field.
 func KeyContainsFold(v string) predicate.APIKey {
 	return predicate.APIKey(sql.FieldContainsFold(FieldKey, v))
+}
+
+// KeyHashEQ applies the EQ predicate on the "key_hash" field.
+func KeyHashEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldKeyHash, v))
+}
+
+// KeyHashNEQ applies the NEQ predicate on the "key_hash" field.
+func KeyHashNEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldKeyHash, v))
+}
+
+// KeyHashIn applies the In predicate on the "key_hash" field.
+func KeyHashIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldIn(FieldKeyHash, vs...))
+}
+
+// KeyHashNotIn applies the NotIn predicate on the "key_hash" field.
+func KeyHashNotIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotIn(FieldKeyHash, vs...))
+}
+
+// KeyHashGT applies the GT predicate on the "key_hash" field.
+func KeyHashGT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGT(FieldKeyHash, v))
+}
+
+// KeyHashGTE applies the GTE predicate on the "key_hash" field.
+func KeyHashGTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGTE(FieldKeyHash, v))
+}
+
+// KeyHashLT applies the LT predicate on the "key_hash" field.
+func KeyHashLT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLT(FieldKeyHash, v))
+}
+
+// KeyHashLTE applies the LTE predicate on the "key_hash" field.
+func KeyHashLTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLTE(FieldKeyHash, v))
+}
+
+// KeyHashContains applies the Contains predicate on the "key_hash" field.
+func KeyHashContains(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContains(FieldKeyHash, v))
+}
+
+// KeyHashHasPrefix applies the HasPrefix predicate on the "key_hash" field.
+func KeyHashHasPrefix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasPrefix(FieldKeyHash, v))
+}
+
+// KeyHashHasSuffix applies the HasSuffix predicate on the "key_hash" field.
+func KeyHashHasSuffix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasSuffix(FieldKeyHash, v))
+}
+
+// KeyHashIsNil applies the IsNil predicate on the "key_hash" field.
+func KeyHashIsNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldIsNull(FieldKeyHash))
+}
+
+// KeyHashNotNil applies the NotNil predicate on the "key_hash" field.
+func KeyHashNotNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotNull(FieldKeyHash))
+}
+
+// KeyHashEqualFold applies the EqualFold predicate on the "key_hash" field.
+func KeyHashEqualFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEqualFold(FieldKeyHash, v))
+}
+
+// KeyHashContainsFold applies the ContainsFold predicate on the "key_hash" field.
+func KeyHashContainsFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContainsFold(FieldKeyHash, v))
+}
+
+// KeyEncryptedEQ applies the EQ predicate on the "key_encrypted" field.
+func KeyEncryptedEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEQ(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedNEQ applies the NEQ predicate on the "key_encrypted" field.
+func KeyEncryptedNEQ(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNEQ(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedIn applies the In predicate on the "key_encrypted" field.
+func KeyEncryptedIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldIn(FieldKeyEncrypted, vs...))
+}
+
+// KeyEncryptedNotIn applies the NotIn predicate on the "key_encrypted" field.
+func KeyEncryptedNotIn(vs ...string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotIn(FieldKeyEncrypted, vs...))
+}
+
+// KeyEncryptedGT applies the GT predicate on the "key_encrypted" field.
+func KeyEncryptedGT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGT(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedGTE applies the GTE predicate on the "key_encrypted" field.
+func KeyEncryptedGTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldGTE(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedLT applies the LT predicate on the "key_encrypted" field.
+func KeyEncryptedLT(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLT(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedLTE applies the LTE predicate on the "key_encrypted" field.
+func KeyEncryptedLTE(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldLTE(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedContains applies the Contains predicate on the "key_encrypted" field.
+func KeyEncryptedContains(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContains(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedHasPrefix applies the HasPrefix predicate on the "key_encrypted" field.
+func KeyEncryptedHasPrefix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasPrefix(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedHasSuffix applies the HasSuffix predicate on the "key_encrypted" field.
+func KeyEncryptedHasSuffix(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldHasSuffix(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedIsNil applies the IsNil predicate on the "key_encrypted" field.
+func KeyEncryptedIsNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldIsNull(FieldKeyEncrypted))
+}
+
+// KeyEncryptedNotNil applies the NotNil predicate on the "key_encrypted" field.
+func KeyEncryptedNotNil() predicate.APIKey {
+	return predicate.APIKey(sql.FieldNotNull(FieldKeyEncrypted))
+}
+
+// KeyEncryptedEqualFold applies the EqualFold predicate on the "key_encrypted" field.
+func KeyEncryptedEqualFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldEqualFold(FieldKeyEncrypted, v))
+}
+
+// KeyEncryptedContainsFold applies the ContainsFold predicate on the "key_encrypted" field.
+func KeyEncryptedContainsFold(v string) predicate.APIKey {
+	return predicate.APIKey(sql.FieldContainsFold(FieldKeyEncrypted, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.

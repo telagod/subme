@@ -146,6 +146,8 @@ type APIKeyCache interface {
 // APIKeyAuthCacheInvalidator 提供认证缓存失效能力
 type APIKeyAuthCacheInvalidator interface {
 	InvalidateAuthCacheByKey(ctx context.Context, key string)
+	// InvalidateAuthCacheByHash 入参已是 key_hash(= cacheKey),直接用、不二次 hash。
+	InvalidateAuthCacheByHash(ctx context.Context, keyHash string)
 	InvalidateAuthCacheByUserID(ctx context.Context, userID int64)
 	InvalidateAuthCacheByGroupID(ctx context.Context, groupID int64)
 }
@@ -660,7 +662,8 @@ func (s *APIKeyService) Delete(ctx context.Context, id int64, userID int64) erro
 	if s.cache != nil {
 		_ = s.cache.DeleteCreateAttemptCount(ctx, userID)
 	}
-	s.InvalidateAuthCacheByKey(ctx, key)
+	// key 现为 key_hash(GetKeyAndOwnerID 返 hash),直接作缓存键清除(不再二次 hash)。
+	s.InvalidateAuthCacheByHash(ctx, key)
 	s.lastUsedTouchL1.Delete(id)
 
 	return nil
