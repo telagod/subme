@@ -209,7 +209,7 @@
           default-sort-key="name"
           default-sort-order="asc"
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
-          :estimate-row-height="72"
+          :estimate-row-height="44"
           :overscan="5"
           :row-class="(row: any) => isSelected(row.id) ? 'bg-primary-900/10' : ''"
         >
@@ -303,35 +303,21 @@
             />
           </template>
           <template #cell-proxy="{ row }">
-<<<<<<< HEAD
-            <div v-if="row.proxy" class="flex items-center gap-2">
-              <span class="text-sm text-foreground/85">{{ row.proxy.name }}</span>
-              <span v-if="row.proxy.country_code" class="text-xs text-muted-foreground">
-                ({{ row.proxy.country_code }})
-              </span>
-            </div>
-            <span v-else class="text-sm text-muted-foreground">-</span>
-=======
-            <div class="flex flex-col gap-1">
-              <div v-if="row.proxy" class="flex items-center gap-2">
+            <div class="flex flex-col gap-0.5">
+              <div v-if="row.proxy" class="flex items-center gap-1.5">
                 <span class="text-sm text-foreground/85">{{ row.proxy.name }}</span>
-                <span v-if="row.proxy.country_code" class="text-xs text-muted-foreground">
-                  ({{ row.proxy.country_code }})
-                </span>
+                <span v-if="row.proxy.country_code" class="text-[10px] text-muted-foreground">({{ row.proxy.country_code }})</span>
               </div>
               <span v-else class="text-sm text-muted-foreground">-</span>
-              <div v-if="row.proxy && row.proxy.expires_at" class="flex items-center gap-2 text-xs">
-                <span class="text-foreground/75">{{ formatDateTime(row.proxy.expires_at) }}</span>
+              <div v-if="row.proxy?.expires_at" class="flex items-center gap-1 text-[10px]">
+                <span class="text-muted-foreground">{{ formatDateTime(row.proxy.expires_at) }}</span>
                 <span :class="proxyExpiryBadge(row.proxy)">{{ proxyExpiryText(row.proxy) }}</span>
               </div>
               <div v-if="row.proxy_fallback_origin_id" class="flex items-center gap-1">
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30" :title="t('admin.accounts.fallbackActiveTip', { origin: row.proxy_fallback_origin_name })">
-                  {{ t('admin.accounts.fallbackActive') }}
-                </span>
-                <button class="text-xs px-1.5 py-0.5 rounded border border-border text-foreground/75 hover:bg-accent" @click="onRevertFallback(row)">{{ t('admin.accounts.revertProxy') }}</button>
+                <span class="badge badge-warning text-[10px]" :title="t('admin.accounts.fallbackActiveTip', { origin: row.proxy_fallback_origin_name })">{{ t('admin.accounts.fallbackActive') }}</span>
+                <button class="text-[10px] px-1 py-0.5 rounded border border-border text-muted-foreground hover:bg-accent hover:text-foreground" @click="onRevertFallback(row)">{{ t('admin.accounts.revertProxy') }}</button>
               </div>
             </div>
->>>>>>> upstream/main
           </template>
           <template #cell-rate_multiplier="{ row }">
             <span class="text-sm font-mono text-foreground/85">
@@ -547,7 +533,7 @@ const exportingData = ref(false)
 const showAccountToolsDropdown = ref(false)
 const accountToolsDropdownRef = ref<HTMLElement | null>(null)
 const hiddenColumns = reactive<Set<string>>(new Set())
-const DEFAULT_HIDDEN_COLUMNS = ['today_stats', 'proxy', 'notes', 'priority', 'rate_multiplier']
+const DEFAULT_HIDDEN_COLUMNS = ['today_stats', 'groups', 'proxy', 'notes', 'priority', 'rate_multiplier', 'last_used_at', 'created_at', 'expires_at']
 const HIDDEN_COLUMNS_KEY = 'account-hidden-columns'
 
 // Sorting settings

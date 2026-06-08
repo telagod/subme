@@ -86,7 +86,7 @@
             :key="column.key"
             scope="col"
             :class="[
-              'sticky-header-cell py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground',
+              'sticky-header-cell py-2 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground',
               getAdaptivePaddingClass(),
               { 'cursor-pointer hover:bg-accent': column.sortable },
               getStickyColumnClass(column, index),
@@ -137,7 +137,7 @@
       <tbody class="table-body divide-y divide-border bg-card">
         <!-- Loading skeleton -->
         <tr v-if="loading" v-for="i in 5" :key="i">
-          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-4', getAdaptivePaddingClass()]">
+          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-2', getAdaptivePaddingClass()]">
             <div class="animate-pulse">
               <div class="h-4 w-3/4 rounded bg-muted"></div>
             </div>
@@ -187,7 +187,7 @@
               v-for="(column, colIndex) in columns"
               :key="column.key"
               :class="[
-                'whitespace-nowrap py-4 text-sm text-foreground',
+                'whitespace-nowrap py-2 text-sm text-foreground',
                 getAdaptivePaddingClass(),
                 getStickyColumnClass(column, colIndex),
                 column.class
