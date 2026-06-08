@@ -6731,14 +6731,15 @@ import Icon from "@/components/icons/Icon.vue";
 import Select from "@/components/common/Select.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import PaymentProviderList from "@/components/payment/PaymentProviderList.vue";
-import PaymentProviderDialog from "@/components/payment/PaymentProviderDialog.vue";
+import { defineAsyncComponent } from 'vue'
+const PaymentProviderDialog = defineAsyncComponent(() => import("@/components/payment/PaymentProviderDialog.vue"))
 import GroupBadge from "@/components/common/GroupBadge.vue";
 import GroupOptionItem from "@/components/common/GroupOptionItem.vue";
 import Toggle from "@/components/common/Toggle.vue";
 import ProxySelector from "@/components/common/ProxySelector.vue";
-import ImageUpload from "@/components/common/ImageUpload.vue";
-import BackupSettings from "@/views/admin/BackupView.vue";
-import EmailTemplateEditor from "@/views/admin/settings/EmailTemplateEditor.vue";
+const ImageUpload = defineAsyncComponent(() => import("@/components/common/ImageUpload.vue"))
+const BackupSettings = defineAsyncComponent(() => import("@/views/admin/BackupView.vue"))
+const EmailTemplateEditor = defineAsyncComponent(() => import("@/views/admin/settings/EmailTemplateEditor.vue"))
 import { useClipboard } from "@/composables/useClipboard";
 import { affiliatesAPI, type AffiliateAdminEntry, type SimpleUser as AffiliateSimpleUser } from "@/api/admin/affiliates";
 import { extractApiErrorMessage, extractI18nErrorMessage } from "@/utils/apiError";
