@@ -252,15 +252,28 @@ func (s *SchedulerSnapshotService) pollOutbox() {
 	}
 
 	watermarkForCheck := watermark
-	seen := make(map[batchSeenKey]struct{})
+
+	// Two-phase processing: individual account cache updates first,
+	// then coalesced bucket rebuilds.
+	rebuildSet := make(map[batchSeenKey]struct{})
+	var needFullRebuild bool
+
 	for _, event := range events {
 		eventCtx, cancel := context.WithTimeout(context.Background(), outboxEventTimeout)
-		err := s.handleOutboxEvent(eventCtx, event, seen)
+		err := s.coalescedHandleEvent(eventCtx, event, rebuildSet, &needFullRebuild)
 		cancel()
 		if err != nil {
 			logger.LegacyPrintf("service.scheduler_snapshot", "[Scheduler] outbox handle failed: id=%d type=%s err=%v", event.ID, event.EventType, err)
 			return
 		}
+	}
+
+	if needFullRebuild {
+		if err := s.triggerFullRebuild("outbox_coalesced"); err != nil {
+			logger.LegacyPrintf("service.scheduler_snapshot", "[Scheduler] coalesced full rebuild failed: %v", err)
+		}
+	} else if len(rebuildSet) > 0 {
+		s.rebuildCoalesced(ctx, rebuildSet)
 	}
 
 	lastID := events[len(events)-1].ID
@@ -283,6 +296,137 @@ func (s *SchedulerSnapshotService) pollOutbox() {
 	}
 
 	s.checkOutboxLag(ctx, events[0], watermarkForCheck)
+}
+
+// coalescedHandleEvent processes individual cache updates (SetAccount/DeleteAccount/LastUsed)
+// and collects affected (groupID, platform) pairs for deferred batch rebuild.
+func (s *SchedulerSnapshotService) coalescedHandleEvent(ctx context.Context, event SchedulerOutboxEvent, rebuildSet map[batchSeenKey]struct{}, needFullRebuild *bool) error {
+	switch event.EventType {
+	case SchedulerOutboxEventAccountLastUsed:
+		return s.handleLastUsedEvent(ctx, event.Payload)
+
+	case SchedulerOutboxEventFullRebuild:
+		*needFullRebuild = true
+		return nil
+
+	case SchedulerOutboxEventAccountChanged, SchedulerOutboxEventAccountGroupsChanged:
+		if event.AccountID == nil || *event.AccountID <= 0 {
+			return nil
+		}
+		var groupIDs []int64
+		if event.Payload != nil {
+			groupIDs = parseInt64Slice(event.Payload["group_ids"])
+		}
+		account, err := s.accountRepo.GetByID(ctx, *event.AccountID)
+		if err != nil {
+			if errors.Is(err, ErrAccountNotFound) {
+				if s.cache != nil {
+					_ = s.cache.DeleteAccount(ctx, *event.AccountID)
+				}
+				for _, gid := range s.normalizeGroupIDs(groupIDs) {
+					for _, platform := range []string{PlatformAnthropic, PlatformGemini, PlatformOpenAI, PlatformAntigravity} {
+						rebuildSet[batchSeenKey{gid, platform}] = struct{}{}
+					}
+				}
+				return nil
+			}
+			return err
+		}
+		if s.cache != nil {
+			if err := s.cache.SetAccount(ctx, account); err != nil {
+				return err
+			}
+		}
+		if len(groupIDs) == 0 {
+			groupIDs = account.GroupIDs
+		}
+		for _, gid := range s.normalizeGroupIDs(groupIDs) {
+			rebuildSet[batchSeenKey{gid, account.Platform}] = struct{}{}
+			if account.Platform == PlatformAntigravity && account.IsMixedSchedulingEnabled() {
+				rebuildSet[batchSeenKey{gid, PlatformAnthropic}] = struct{}{}
+				rebuildSet[batchSeenKey{gid, PlatformGemini}] = struct{}{}
+			}
+		}
+		return nil
+
+	case SchedulerOutboxEventAccountBulkChanged:
+		return s.coalescedHandleBulkEvent(ctx, event.Payload, rebuildSet)
+
+	case SchedulerOutboxEventGroupChanged:
+		if event.GroupID == nil || *event.GroupID <= 0 {
+			return nil
+		}
+		gid := *event.GroupID
+		for _, platform := range []string{PlatformAnthropic, PlatformGemini, PlatformOpenAI, PlatformAntigravity} {
+			rebuildSet[batchSeenKey{gid, platform}] = struct{}{}
+		}
+		return nil
+
+	default:
+		return nil
+	}
+}
+
+func (s *SchedulerSnapshotService) coalescedHandleBulkEvent(ctx context.Context, payload map[string]any, rebuildSet map[batchSeenKey]struct{}) error {
+	if payload == nil || s.accountRepo == nil {
+		return nil
+	}
+	ids := parseInt64Slice(payload["account_ids"])
+	if len(ids) == 0 {
+		return nil
+	}
+	preloadGroupIDs := parseInt64Slice(payload["group_ids"])
+	accounts, err := s.accountRepo.GetByIDs(ctx, ids)
+	if err != nil {
+		return err
+	}
+	found := make(map[int64]struct{}, len(accounts))
+	for _, account := range accounts {
+		if account == nil || account.ID <= 0 {
+			continue
+		}
+		found[account.ID] = struct{}{}
+		if s.cache != nil {
+			if err := s.cache.SetAccount(ctx, account); err != nil {
+				return err
+			}
+		}
+		for _, gid := range account.GroupIDs {
+			if gid > 0 {
+				rebuildSet[batchSeenKey{gid, account.Platform}] = struct{}{}
+			}
+		}
+	}
+	if s.cache != nil {
+		for _, id := range ids {
+			if _, ok := found[id]; !ok {
+				_ = s.cache.DeleteAccount(ctx, id)
+			}
+		}
+	}
+	for _, gid := range preloadGroupIDs {
+		if gid > 0 {
+			for _, platform := range []string{PlatformAnthropic, PlatformGemini, PlatformOpenAI, PlatformAntigravity} {
+				rebuildSet[batchSeenKey{gid, platform}] = struct{}{}
+			}
+		}
+	}
+	return nil
+}
+
+func (s *SchedulerSnapshotService) rebuildCoalesced(ctx context.Context, rebuildSet map[batchSeenKey]struct{}) {
+	for key := range rebuildSet {
+		modes := []string{SchedulerModeSingle, SchedulerModeForced}
+		if key.platform == PlatformAnthropic || key.platform == PlatformGemini {
+			modes = append(modes, SchedulerModeMixed)
+		}
+		for _, mode := range modes {
+			bucket := SchedulerBucket{GroupID: key.groupID, Platform: key.platform, Mode: mode}
+			if err := s.rebuildBucket(ctx, bucket, "outbox_coalesced"); err != nil {
+				logger.LegacyPrintf("service.scheduler_snapshot", "[Scheduler] coalesced rebuild failed: bucket=%s err=%v", bucket.String(), err)
+			}
+		}
+	}
 }
 
 func (s *SchedulerSnapshotService) handleOutboxEvent(ctx context.Context, event SchedulerOutboxEvent, seen map[batchSeenKey]struct{}) error {
