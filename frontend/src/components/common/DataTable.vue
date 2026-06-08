@@ -100,26 +100,33 @@
               :sort-key="sortKey"
               :sort-order="sortOrder"
             >
-              <div class="flex items-center space-x-1">
+              <div class="flex items-center gap-1">
                 <span>{{ column.label }}</span>
-                <span v-if="column.sortable" class="text-muted-foreground">
+                <span v-if="column.sortable" class="inline-flex">
                   <svg
                     v-if="sortKey === column.key"
-                    class="h-4 w-4"
-                    :class="{ 'rotate-180 transform': sortOrder === 'desc' }"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
+                    class="h-3.5 w-3.5 text-foreground transition-transform duration-150"
+                    :class="{ 'rotate-180': sortOrder === 'desc' }"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                   >
-                    <path
-                      fill-rule="evenodd"
-                      d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                      clip-rule="evenodd"
-                    />
+                    <path d="M4 10l4-4 4 4" />
                   </svg>
-                  <svg v-else class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    />
+                  <svg
+                    v-else
+                    class="h-3.5 w-3.5 text-muted-foreground/40"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 6l3-3 3 3M5 10l3 3 3-3" />
                   </svg>
                 </span>
               </div>

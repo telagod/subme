@@ -506,7 +506,10 @@
     @apply animate-spin;
   }
   .skeleton {
-    @apply animate-pulse rounded bg-dark-700/60;
+    @apply rounded;
+    background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 50%, hsl(var(--muted)) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
   }
 
   .divider {
@@ -644,6 +647,12 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* ============ Shimmer 骨架屏动画 ============ */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* ============ 页面过渡（流畅层）============ */
