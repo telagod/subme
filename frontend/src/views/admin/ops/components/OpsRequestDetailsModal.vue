@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
@@ -156,13 +157,11 @@ const kindBadgeClass = (kind: string) => {
           <div class="text-xs text-muted-foreground">
             {{ t('admin.ops.requestDetails.rangeLabel', { range: rangeLabel }) }}
           </div>
-          <button
+          <Button
             type="button"
-            class="btn btn-secondary btn-sm"
-            @click="fetchData"
-          >
+             variant="secondary" size="sm" @click="fetchData">
             {{ t('common.refresh') }}
-          </button>
+          </Button>
         </div>
 
         <!-- Loading -->

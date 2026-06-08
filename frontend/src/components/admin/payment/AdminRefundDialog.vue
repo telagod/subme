@@ -96,15 +96,13 @@
         <label class="input-label">{{ t('payment.admin.refundAmount') }}</label>
         <div class="relative">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{{ order?.order_type === 'balance' ? '$' : '¥' }}</span>
-          <input
+          <Input
             v-model.number="form.amount"
             type="number"
             step="0.01"
             min="0.01"
             :max="maxRefundable"
-            class="input pl-7"
-            required
-          />
+             class="pl-7" required />
         </div>
         <p class="mt-1 text-xs text-muted-foreground">
           {{ t('payment.admin.maxRefundable') }}: {{ order?.order_type === 'balance' ? '$' : '¥' }}{{ maxRefundable.toFixed(2) }}
@@ -147,9 +145,9 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" @click="emit('cancel')" class="btn btn-secondary">
+        <Button type="button" @click="emit('cancel')"  variant="secondary">
           {{ t('common.cancel') }}
-        </button>
+        </Button>
         <button
           type="submit"
           form="refund-form"
@@ -164,6 +162,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

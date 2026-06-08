@@ -13,7 +13,7 @@
             {{ t('admin.settings.payment.providerName') }}
             <span class="text-red-400">*</span>
           </label>
-          <input v-model="form.name" type="text" class="input" required />
+          <Input v-model="form.name" type="text"  required />
         </div>
         <div>
           <label class="input-label">
@@ -129,17 +129,15 @@
               :placeholder="editing ? t('admin.accounts.leaveEmptyToKeep') : ''"
             />
             <div v-else-if="field.sensitive" class="relative">
-              <input
+              <Input
                 :type="visibleFields[field.key] ? 'text' : 'password'"
                 v-model="config[field.key]"
-                class="input pr-10"
-                autocomplete="new-password"
+                 class="pr-10" autocomplete="new-password"
                 data-1p-ignore
                 data-lpignore="true"
                 data-bwignore="true"
                 spellcheck="false"
-                :placeholder="editing ? t('admin.accounts.leaveEmptyToKeep') : (field.defaultValue || '')"
-              />
+                :placeholder="editing ? t('admin.accounts.leaveEmptyToKeep') : (field.defaultValue || '')" />
               <button
                 type="button"
                 @click="visibleFields[field.key] = !visibleFields[field.key]"
@@ -155,13 +153,11 @@
               :options="field.options"
               :searchable="field.options.length > 5"
             />
-            <input
+            <Input
               v-else
               type="text"
               v-model="config[field.key]"
-              class="input"
-              :placeholder="field.defaultValue || ''"
-            />
+               :placeholder="field.defaultValue || ''" />
             <p v-if="field.hintKey" class="mt-1 text-xs leading-relaxed text-muted-foreground">
               {{ t(field.hintKey) }}
             </p>
@@ -173,14 +169,14 @@
           <div v-if="callbackPaths.notifyUrl">
             <label class="input-label">{{ t('admin.settings.payment.field_notifyUrl') }} <span class="text-red-400">*</span></label>
             <div class="flex">
-              <input v-model="notifyBaseUrl" type="text" class="input min-w-0 flex-1 !rounded-r-none !border-r-0" :placeholder="defaultBaseUrl" />
+              <Input v-model="notifyBaseUrl" type="text"  class="min-w-0 flex-1 !rounded-r-none !border-r-0" :placeholder="defaultBaseUrl" />
               <span class="inline-flex items-center whitespace-nowrap rounded-r-md border border-border bg-muted px-3 text-xs text-muted-foreground">{{ callbackPaths.notifyUrl }}</span>
             </div>
           </div>
           <div v-if="callbackPaths.returnUrl">
             <label class="input-label">{{ t('admin.settings.payment.field_returnUrl') }} <span class="text-red-400">*</span></label>
             <div class="flex">
-              <input v-model="returnBaseUrl" type="text" class="input min-w-0 flex-1 !rounded-r-none !border-r-0" :placeholder="defaultBaseUrl" />
+              <Input v-model="returnBaseUrl" type="text"  class="min-w-0 flex-1 !rounded-r-none !border-r-0" :placeholder="defaultBaseUrl" />
               <span class="inline-flex items-center whitespace-nowrap rounded-r-md border border-border bg-muted px-3 text-xs text-muted-foreground">{{ callbackPaths.returnUrl }}</span>
             </div>
           </div>
@@ -218,30 +214,27 @@
             <div class="grid grid-cols-3 gap-3">
               <div>
                 <label class="text-xs text-muted-foreground">{{ t('admin.settings.payment.limitSingleMin') }}</label>
-                <input
+                <Input
                   type="number"
                   :value="getLimitVal(lt.value, 'singleMin')"
                   @input="setLimitVal(lt.value, 'singleMin', ($event.target as HTMLInputElement).value)"
-                  class="input mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)"
-                />
+                   class="mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)" />
               </div>
               <div>
                 <label class="text-xs text-muted-foreground">{{ t('admin.settings.payment.limitSingleMax') }}</label>
-                <input
+                <Input
                   type="number"
                   :value="getLimitVal(lt.value, 'singleMax')"
                   @input="setLimitVal(lt.value, 'singleMax', ($event.target as HTMLInputElement).value)"
-                  class="input mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)"
-                />
+                   class="mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)" />
               </div>
               <div>
                 <label class="text-xs text-muted-foreground">{{ t('admin.settings.payment.limitDaily') }}</label>
-                <input
+                <Input
                   type="number"
                   :value="getLimitVal(lt.value, 'dailyLimit')"
                   @input="setLimitVal(lt.value, 'dailyLimit', ($event.target as HTMLInputElement).value)"
-                  class="input mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)"
-                />
+                   class="mt-0.5" min="1" step="0.01" :placeholder="limitPlaceholder(lt.value)" />
               </div>
             </div>
           </div>
@@ -252,16 +245,18 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" @click="emit('close')" class="btn btn-secondary">{{ t('common.cancel') }}</button>
-        <button type="submit" form="provider-form" :disabled="saving" class="btn btn-primary">
+        <Button type="button" @click="emit('close')"  variant="secondary">{{ t('common.cancel') }}</Button>
+        <Button type="submit" form="provider-form" :disabled="saving" >
           {{ saving ? t('common.saving') : t('common.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { reactive, computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

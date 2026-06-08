@@ -30,31 +30,27 @@
       <div class="grid grid-cols-1 gap-4">
         <div>
           <label for="crs-base-url" class="input-label">{{ t('admin.accounts.crsBaseUrl') }}</label>
-          <input
+          <Input
             id="crs-base-url"
             v-model="form.base_url"
             type="text"
-            class="input"
-            required
-            :placeholder="t('admin.accounts.crsBaseUrlPlaceholder')"
-          />
+             required
+            :placeholder="t('admin.accounts.crsBaseUrlPlaceholder')" />
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label for="crs-username" class="input-label">{{ t('admin.accounts.crsUsername') }}</label>
-            <input id="crs-username" v-model="form.username" type="text" class="input" required autocomplete="username" />
+            <Input id="crs-username" v-model="form.username" type="text"  required autocomplete="username" />
           </div>
           <div>
             <label for="crs-password" class="input-label">{{ t('admin.accounts.crsPassword') }}</label>
-            <input
+            <Input
               id="crs-password"
               v-model="form.password"
               type="password"
-              class="input"
-              required
-              autocomplete="current-password"
-            />
+               required
+              autocomplete="current-password" />
           </div>
         </div>
 
@@ -191,49 +187,41 @@
       <div class="flex justify-end gap-3">
         <!-- Step 1: Input -->
         <template v-if="currentStep === 'input'">
-          <button
-            class="btn btn-secondary"
-            type="button"
+          <Button
+             variant="secondary" type="button"
             :disabled="previewing"
-            @click="handleClose"
-          >
+            @click="handleClose">
             {{ t('common.cancel') }}
-          </button>
-          <button
-            class="btn btn-primary"
-            type="submit"
+          </Button>
+          <Button
+             type="submit"
             form="sync-from-crs-form"
-            :disabled="previewing"
-          >
+            :disabled="previewing">
             {{ previewing ? t('admin.accounts.crsPreviewing') : t('admin.accounts.crsPreview') }}
-          </button>
+          </Button>
         </template>
 
         <!-- Step 2: Preview -->
         <template v-else-if="currentStep === 'preview'">
-          <button
-            class="btn btn-secondary"
-            type="button"
+          <Button
+             variant="secondary" type="button"
             :disabled="syncing"
-            @click="handleBack"
-          >
+            @click="handleBack">
             {{ t('admin.accounts.crsBack') }}
-          </button>
-          <button
-            class="btn btn-primary"
-            type="button"
+          </Button>
+          <Button
+             type="button"
             :disabled="syncing || hasNewButNoneSelected"
-            @click="handleSync"
-          >
+            @click="handleSync">
             {{ syncing ? t('admin.accounts.syncing') : t('admin.accounts.syncNow') }}
-          </button>
+          </Button>
         </template>
 
         <!-- Step 3: Result -->
         <template v-else-if="currentStep === 'result'">
-          <button class="btn btn-secondary" type="button" @click="handleClose">
+          <Button  variant="secondary" type="button" @click="handleClose">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </template>
       </div>
     </template>
@@ -241,6 +229,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

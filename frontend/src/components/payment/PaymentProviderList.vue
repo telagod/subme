@@ -12,15 +12,13 @@
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <button
+          <Button
             type="button"
             @click="emit('refresh')"
             :disabled="loading"
-            class="btn btn-secondary btn-sm"
-            :title="t('common.refresh')"
-          >
+             variant="secondary" size="sm" :title="t('common.refresh')">
             <Icon name="refresh" size="sm" :class="loading ? 'animate-spin' : ''" />
-          </button>
+          </Button>
           <button
             type="button"
             @click="emit('create')"
@@ -78,20 +76,20 @@
             ? t('admin.settings.payment.noProviders')
             : t('admin.settings.payment.enableTypesFirst') }}
         </p>
-        <button
+        <Button
           type="button"
           v-if="canCreate"
           @click="emit('create')"
-          class="btn btn-primary btn-sm mt-2"
-        >
+           size="sm">
           {{ t('admin.settings.payment.createProvider') }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable } from 'vue-draggable-plus'

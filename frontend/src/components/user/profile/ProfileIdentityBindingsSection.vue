@@ -92,99 +92,83 @@
                 data-testid="profile-binding-email-form"
                 class="grid gap-2 sm:grid-cols-[minmax(0,1.4fr)_auto]"
               >
-                <input
+                <Input
                   v-model.trim="emailBindingForm.email"
                   data-testid="profile-binding-email-input"
                   type="email"
-                  class="input"
-                  :placeholder="t('profile.authBindings.emailPlaceholder')"
-                  :disabled="isSendingEmailCode || isBindingEmail"
-                />
-                <button
+                   :placeholder="t('profile.authBindings.emailPlaceholder')"
+                  :disabled="isSendingEmailCode || isBindingEmail" />
+                <Button
                   data-testid="profile-binding-email-send-code"
                   type="button"
-                  class="btn btn-secondary btn-sm"
-                  :disabled="isSendingEmailCode || isBindingEmail"
-                  @click="sendEmailCode"
-                >
+                   variant="secondary" size="sm" :disabled="isSendingEmailCode || isBindingEmail"
+                  @click="sendEmailCode">
                   {{
                     isSendingEmailCode
                       ? t('common.loading')
                       : t('profile.authBindings.sendCodeAction')
                   }}
-                </button>
-                <input
+                </Button>
+                <Input
                   v-model.trim="emailBindingForm.verifyCode"
                   data-testid="profile-binding-email-code-input"
                   type="text"
                   inputmode="numeric"
                   maxlength="6"
-                  class="input"
-                  :placeholder="t('profile.authBindings.codePlaceholder')"
-                  :disabled="isBindingEmail"
-                />
-                <input
+                   :placeholder="t('profile.authBindings.codePlaceholder')"
+                  :disabled="isBindingEmail" />
+                <Input
                   v-model="emailBindingForm.password"
                   data-testid="profile-binding-email-password-input"
                   type="password"
-                  class="input"
-                  :placeholder="emailPasswordPlaceholder"
-                  :disabled="isBindingEmail"
-                />
-                <button
+                   :placeholder="emailPasswordPlaceholder"
+                  :disabled="isBindingEmail" />
+                <Button
                   data-testid="profile-binding-email-submit"
                   type="button"
-                  class="btn btn-primary btn-sm sm:col-span-2"
-                  :disabled="isBindingEmail"
-                  @click="bindEmail"
-                >
+                   size="sm" :disabled="isBindingEmail"
+                  @click="bindEmail">
                   {{
                     isBindingEmail
                       ? t('common.loading')
                       : emailSubmitActionLabel
                   }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           <div class="flex shrink-0 flex-wrap items-center gap-3">
-            <button
+            <Button
               v-if="item.provider === 'email' && compact"
               data-testid="profile-binding-email-toggle"
               type="button"
-              class="btn btn-secondary btn-sm"
-              @click="toggleEmailForm"
-            >
+               variant="secondary" size="sm" @click="toggleEmailForm">
               {{
                 showEmailForm
                   ? t('profile.authBindings.hideEmailFormAction')
                   : t('profile.authBindings.manageEmailAction')
               }}
-            </button>
-            <button
+            </Button>
+            <Button
               v-if="item.canBind"
               :data-testid="`profile-binding-${item.provider}-action`"
               type="button"
-              class="btn btn-primary btn-sm"
-              @click="startBinding(item.provider)"
-            >
+               size="sm" @click="startBinding(item.provider)">
               {{ t('profile.authBindings.bindAction', { providerName: item.label }) }}
-            </button>
-            <button
+            </Button>
+            <Button
               v-if="item.canUnbind"
               :data-testid="`profile-binding-${item.provider}-unbind`"
               type="button"
-              class="btn btn-secondary btn-sm"
-              :disabled="unbindingProvider === item.provider"
-              @click="handleUnbindForItem(item.provider, item.label)"
-            >
+               variant="secondary" size="sm" :disabled="unbindingProvider === item.provider"
+              @click="handleUnbindForItem(item.provider, item.label)">
               {{
                 unbindingProvider === item.provider
                   ? t('common.loading')
                   : t('profile.authBindings.unbindAction')
               }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -193,6 +177,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'

@@ -12,30 +12,24 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
-          class="btn btn-secondary btn-sm"
-          :disabled="loadingTemplate || previewing || !canPreview"
-          @click="refreshPreview"
-        >
+           variant="secondary" size="sm" :disabled="loadingTemplate || previewing || !canPreview"
+          @click="refreshPreview">
           {{ previewing ? t("admin.settings.emailTemplates.previewing") : t("admin.settings.emailTemplates.preview") }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-secondary btn-sm"
-          :disabled="loadingTemplate || restoring || !selectedEvent || !selectedLocale"
-          @click="restoreOfficial"
-        >
+           variant="secondary" size="sm" :disabled="loadingTemplate || restoring || !selectedEvent || !selectedLocale"
+          @click="restoreOfficial">
           {{ restoring ? t("admin.settings.emailTemplates.restoring") : t("admin.settings.emailTemplates.restoreOfficial") }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-primary btn-sm"
-          :disabled="loadingTemplate || saving || !canSave"
-          @click="saveTemplate"
-        >
+           size="sm" :disabled="loadingTemplate || saving || !canSave"
+          @click="saveTemplate">
           {{ saving ? t("admin.settings.emailTemplates.saving") : t("admin.settings.emailTemplates.save") }}
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -140,14 +134,12 @@
               <label class="input-label" for="email-template-subject">
                 {{ t("admin.settings.emailTemplates.subject") }}
               </label>
-              <input
+              <Input
                 id="email-template-subject"
                 v-model="subject"
                 type="text"
-                class="input"
-                :disabled="loadingTemplate"
-                :placeholder="t('admin.settings.emailTemplates.subjectPlaceholder')"
-              />
+                 :disabled="loadingTemplate"
+                :placeholder="t('admin.settings.emailTemplates.subjectPlaceholder')" />
             </div>
 
             <div>
@@ -230,6 +222,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { adminAPI } from "@/api";

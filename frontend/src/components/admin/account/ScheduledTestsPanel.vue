@@ -11,13 +11,12 @@
         <p class="text-sm text-muted-foreground">
           {{ t('admin.scheduledTests.title') }}
         </p>
-        <button
+        <Button
           @click="showAddForm = !showAddForm"
-          class="btn btn-primary flex items-center gap-1.5 text-sm"
-        >
+           class="flex items-center gap-1.5 text-sm">
           <Icon name="plus" size="sm" :stroke-width="2" />
           {{ t('admin.scheduledTests.addPlan') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Add Plan Form -->
@@ -463,6 +462,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

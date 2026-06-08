@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { opsAPI, type OpsRuntimeLogConfig, type OpsSystemLog, type OpsSystemLogSinkHealth } from '@/api/admin/ops'
 import Pagination from '@/components/common/Pagination.vue'
@@ -387,15 +389,15 @@ onMounted(async () => {
         </label>
         <label class="text-xs text-muted-foreground">
           采样初始
-          <input v-model.number="runtimeConfig.sampling_initial" type="number" min="1" class="input mt-1" />
+          <Input v-model.number="runtimeConfig.sampling_initial" type="number" min="1"  class="mt-1" />
         </label>
         <label class="text-xs text-muted-foreground">
           采样后续
-          <input v-model.number="runtimeConfig.sampling_thereafter" type="number" min="1" class="input mt-1" />
+          <Input v-model.number="runtimeConfig.sampling_thereafter" type="number" min="1"  class="mt-1" />
         </label>
         <label class="text-xs text-muted-foreground">
           保留天数
-          <input v-model.number="runtimeConfig.retention_days" type="number" min="1" max="3650" class="input mt-1" />
+          <Input v-model.number="runtimeConfig.retention_days" type="number" min="1" max="3650"  class="mt-1" />
         </label>
         <div class="md:col-span-2 xl:col-span-6">
           <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
@@ -410,12 +412,12 @@ onMounted(async () => {
               </label>
             </div>
             <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-              <button type="button" class="btn btn-primary btn-sm" :disabled="runtimeSaving" @click="saveRuntimeConfig">
+              <Button type="button"  size="sm" :disabled="runtimeSaving" @click="saveRuntimeConfig">
                 {{ runtimeSaving ? '保存中...' : '保存并生效' }}
-              </button>
-              <button type="button" class="btn btn-secondary btn-sm" :disabled="runtimeSaving" @click="resetRuntimeConfig">
+              </Button>
+              <Button type="button"  variant="secondary" size="sm" :disabled="runtimeSaving" @click="resetRuntimeConfig">
                 回滚默认值
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -430,11 +432,11 @@ onMounted(async () => {
       </label>
       <label class="text-xs text-muted-foreground">
         开始时间（可选）
-        <input v-model="filters.start_time" type="datetime-local" class="input mt-1" />
+        <Input v-model="filters.start_time" type="datetime-local"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         结束时间（可选）
-        <input v-model="filters.end_time" type="datetime-local" class="input mt-1" />
+        <Input v-model="filters.end_time" type="datetime-local"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         级别
@@ -442,43 +444,43 @@ onMounted(async () => {
       </label>
       <label class="text-xs text-muted-foreground">
         组件
-        <input v-model="filters.component" type="text" class="input mt-1" placeholder="如 http.access" />
+        <Input v-model="filters.component" type="text"  class="mt-1" placeholder="如 http.access" />
       </label>
       <label class="text-xs text-muted-foreground">
         request_id
-        <input v-model="filters.request_id" type="text" class="input mt-1" />
+        <Input v-model="filters.request_id" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         client_request_id
-        <input v-model="filters.client_request_id" type="text" class="input mt-1" />
+        <Input v-model="filters.client_request_id" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         user_id
-        <input v-model="filters.user_id" type="text" class="input mt-1" />
+        <Input v-model="filters.user_id" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         account_id
-        <input v-model="filters.account_id" type="text" class="input mt-1" />
+        <Input v-model="filters.account_id" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         平台
-        <input v-model="filters.platform" type="text" class="input mt-1" />
+        <Input v-model="filters.platform" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         模型
-        <input v-model="filters.model" type="text" class="input mt-1" />
+        <Input v-model="filters.model" type="text"  class="mt-1" />
       </label>
       <label class="text-xs text-muted-foreground">
         关键词
-        <input v-model="filters.q" type="text" class="input mt-1" placeholder="消息/request_id" />
+        <Input v-model="filters.q" type="text"  class="mt-1" placeholder="消息/request_id" />
       </label>
     </div>
 
     <div class="mb-3 flex flex-wrap gap-2">
-      <button type="button" class="btn btn-primary btn-sm" @click="applyFilters">查询</button>
-      <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters">重置</button>
-      <button type="button" class="btn btn-danger btn-sm" @click="cleanupCurrentFilter">按当前筛选清理</button>
-      <button type="button" class="btn btn-secondary btn-sm" @click="fetchHealth">刷新健康指标</button>
+      <Button type="button"  size="sm" @click="applyFilters">查询</Button>
+      <Button type="button"  variant="secondary" size="sm" @click="resetFilters">重置</Button>
+      <Button type="button"  variant="destructive" size="sm" @click="cleanupCurrentFilter">按当前筛选清理</Button>
+      <Button type="button"  variant="secondary" size="sm" @click="fetchHealth">刷新健康指标</Button>
     </div>
 
     <div class="overflow-hidden rounded-md border border-border">

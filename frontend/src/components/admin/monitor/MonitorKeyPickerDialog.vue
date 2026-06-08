@@ -11,12 +11,10 @@
       </p>
 
       <div class="relative">
-        <input
+        <Input
           v-model="search"
           type="text"
-          class="input pl-9"
-          :placeholder="t('keys.searchPlaceholder')"
-        />
+           class="pl-9" :placeholder="t('keys.searchPlaceholder')" />
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
         </svg>
@@ -64,15 +62,17 @@
     </div>
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-secondary">
+        <Button @click="$emit('close')"  variant="secondary">
           {{ t('common.cancel') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ApiKey } from '@/types'

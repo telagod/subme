@@ -78,31 +78,27 @@
               {{ t('auth.dingtalk.invitationRequired') }}
             </p>
             <div>
-              <input
+              <Input
                 v-model="invitationCode"
                 type="text"
-                class="input w-full"
-                :placeholder="t('auth.invitationCodePlaceholder')"
+                 class="w-full" :placeholder="t('auth.invitationCodePlaceholder')"
                 :disabled="isSubmitting"
-                @keyup.enter="handleSubmitInvitation"
-              />
+                @keyup.enter="handleSubmitInvitation" />
             </div>
-            <button
-              class="btn btn-primary w-full"
-              :disabled="isSubmitting || !invitationCode.trim()"
-              @click="handleSubmitInvitation"
-            >
+            <Button
+               class="w-full" :disabled="isSubmitting || !invitationCode.trim()"
+              @click="handleSubmitInvitation">
               {{ isSubmitting ? t('auth.dingtalk.completing') : t('auth.dingtalk.completeRegistration') }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="needsAdoptionConfirmation">
             <p class="text-sm text-foreground/85">
               {{ t('auth.oauthFlow.reviewProfileBeforeContinue', { providerName }) }}
             </p>
-            <button class="btn btn-primary w-full" :disabled="isSubmitting" @click="handleContinueLogin">
+            <Button  class="w-full" :disabled="isSubmitting" @click="handleContinueLogin">
               {{ isSubmitting ? t('common.processing') : t('auth.continue') }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="needsChooser">
@@ -122,20 +118,16 @@
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-2">
-                  <button
-                    class="btn btn-secondary w-full"
-                    :disabled="isSubmitting"
-                    @click="switchToBindLoginMode()"
-                  >
+                  <Button
+                     variant="secondary" class="w-full" :disabled="isSubmitting"
+                    @click="switchToBindLoginMode()">
                     {{ t('auth.oauthFlow.bindExistingAccount') }}
-                  </button>
-                  <button
-                    class="btn btn-primary w-full"
-                    :disabled="isSubmitting"
-                    @click="switchToCreateAccountMode"
-                  >
+                  </Button>
+                  <Button
+                     class="w-full" :disabled="isSubmitting"
+                    @click="switchToCreateAccountMode">
                     {{ t('auth.oauthFlow.createNewAccount') }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -160,40 +152,32 @@
               {{ t('auth.oauthFlow.bindLoginHint', { providerName }) }}
             </p>
             <div class="space-y-3">
-              <input
+              <Input
                 v-model="bindLoginEmail"
                 data-testid="dingtalk-bind-login-email"
                 type="email"
-                class="input w-full"
-                :placeholder="t('auth.emailPlaceholder')"
+                 class="w-full" :placeholder="t('auth.emailPlaceholder')"
                 :disabled="isSubmitting"
-                @keyup.enter="handleBindLogin"
-              />
-              <input
+                @keyup.enter="handleBindLogin" />
+              <Input
                 v-model="bindLoginPassword"
                 data-testid="dingtalk-bind-login-password"
                 type="password"
-                class="input w-full"
-                :placeholder="t('auth.passwordPlaceholder')"
+                 class="w-full" :placeholder="t('auth.passwordPlaceholder')"
                 :disabled="isSubmitting"
-                @keyup.enter="handleBindLogin"
-              />
-              <button
+                @keyup.enter="handleBindLogin" />
+              <Button
                 data-testid="dingtalk-bind-login-submit"
-                class="btn btn-primary w-full"
-                :disabled="isSubmitting || !bindLoginEmail.trim() || !bindLoginPassword"
-                @click="handleBindLogin"
-              >
+                 class="w-full" :disabled="isSubmitting || !bindLoginEmail.trim() || !bindLoginPassword"
+                @click="handleBindLogin">
                 {{ isSubmitting ? t('common.processing') : t('auth.oauthFlow.logInAndBind') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 v-if="canReturnToCreateAccount"
-                class="btn btn-secondary w-full"
-                :disabled="isSubmitting"
-                @click="switchToCreateAccountMode"
-              >
+                 variant="secondary" class="w-full" :disabled="isSubmitting"
+                @click="switchToCreateAccountMode">
                 {{ t('auth.oauthFlow.useDifferentEmail') }}
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -207,25 +191,21 @@
               }}
             </p>
             <div class="space-y-3">
-              <input
+              <Input
                 v-model="totpCode"
                 data-testid="dingtalk-bind-login-totp"
                 type="text"
                 inputmode="numeric"
                 maxlength="6"
-                class="input w-full"
-                placeholder="123456"
+                 class="w-full" placeholder="123456"
                 :disabled="isSubmitting"
-                @keyup.enter="handleSubmitTotpChallenge"
-              />
-              <button
+                @keyup.enter="handleSubmitTotpChallenge" />
+              <Button
                 data-testid="dingtalk-bind-login-totp-submit"
-                class="btn btn-primary w-full"
-                :disabled="isSubmitting || totpCode.trim().length !== 6"
-                @click="handleSubmitTotpChallenge"
-              >
+                 class="w-full" :disabled="isSubmitting || totpCode.trim().length !== 6"
+                @click="handleSubmitTotpChallenge">
                 {{ isSubmitting ? t('common.processing') : t('auth.oauthFlow.verifyAndContinue') }}
-              </button>
+              </Button>
             </div>
           </template>
         </div>
@@ -235,6 +215,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

@@ -38,13 +38,11 @@
         class="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border bg-card shadow-metal"
       >
         <div class="sticky top-0 border-b border-border bg-card p-2">
-          <input
+          <Input
             v-model="searchQuery"
             type="text"
-            class="input w-full text-sm"
-            :placeholder="t('admin.accounts.searchModels')"
-            @click.stop
-          />
+             class="w-full text-sm" :placeholder="t('admin.accounts.searchModels')"
+            @click.stop />
         </div>
         <div class="max-h-52 overflow-auto">
           <button
@@ -107,15 +105,13 @@
     <div class="mb-3">
       <label class="mb-1.5 block text-sm font-medium text-foreground/85">{{ t('admin.accounts.customModelName') }}</label>
       <div class="flex gap-2">
-        <input
+        <Input
           v-model="customModel"
           type="text"
-          class="input flex-1"
-          :placeholder="t('admin.accounts.enterCustomModelName')"
+           class="flex-1" :placeholder="t('admin.accounts.enterCustomModelName')"
           @keydown.enter.prevent="handleEnter"
           @compositionstart="isComposing = true"
-          @compositionend="isComposing = false"
-        />
+          @compositionend="isComposing = false" />
         <button
           type="button"
           @click="addCustom"
@@ -129,6 +125,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

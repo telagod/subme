@@ -106,15 +106,13 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button"  variant="secondary" @click="handleClose">
           {{ t('common.close') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-primary"
-          :disabled="!isActive || resetting"
-          @click="handleReset"
-        >
+           :disabled="!isActive || resetting"
+          @click="handleReset">
           <svg
             v-if="resetting"
             class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -136,13 +134,14 @@
             ></path>
           </svg>
           {{ t('admin.accounts.recoverState') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

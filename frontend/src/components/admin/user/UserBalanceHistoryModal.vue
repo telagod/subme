@@ -149,13 +149,11 @@
 
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-2">
-        <button
+        <Button
           :disabled="currentPage <= 1"
-          class="btn btn-secondary px-3 py-1 text-sm"
-          @click="loadHistory(currentPage - 1)"
-        >
+           variant="secondary" class="px-3 py-1 text-sm" @click="loadHistory(currentPage - 1)">
           {{ t('pagination.previous') }}
-        </button>
+        </Button>
         <span class="text-sm text-muted-foreground">
           {{ currentPage }} / {{ totalPages }}
         </span>
@@ -172,6 +170,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI, type BalanceHistoryItem } from '@/api/admin'

@@ -87,33 +87,31 @@
       </div>
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <button
+        <Button variant="outline"
           v-if="order.status === 'PENDING'"
           @click="emit('cancel', order)"
-          class="btn btn-sm rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-400 hover:bg-amber-500/20"
-        >
+           class="btn-sm rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-400 hover:bg-amber-500/20">
           {{ t('payment.orders.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           v-if="order.status === 'FAILED'"
           @click="emit('retry', order)"
-          class="btn btn-sm btn-secondary"
-        >
+           variant="secondary" size="sm">
           {{ t('payment.admin.retry') }}
-        </button>
-        <button
+        </Button>
+        <Button variant="outline"
           v-if="canRefund(order)"
           @click="emit('refund', order)"
-          class="btn btn-sm rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20"
-        >
+           class="btn-sm rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20">
           {{ t('payment.admin.refund') }}
-        </button>
+        </Button>
       </div>
     </div>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

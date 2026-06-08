@@ -51,15 +51,16 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-secondary">
+        <Button @click="$emit('close')"  variant="secondary">
           {{ t('channelStatus.closeDetail') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Select from '@/components/common/Select.vue'
@@ -173,20 +174,17 @@ function onNextPage() {
           <div class="w-24">
             <Select v-model="pageSize" :options="pageSizeOptions" />
           </div>
-          <button
-            class="btn btn-secondary btn-sm"
-            :disabled="loading || page <= 1"
-            @click="onPrevPage"
-          >
+          <Button
+             variant="secondary" size="sm" :disabled="loading || page <= 1"
+            @click="onPrevPage">
             {{ t('admin.ops.openaiTokenStats.prevPage') }}
-          </button>
-          <button
-            class="btn btn-secondary btn-sm"
-            :disabled="loading || page >= totalPages"
+          </Button>
+          <Button
+             variant="secondary" size="sm" :disabled="loading || page>= totalPages"
             @click="onNextPage"
           >
             {{ t('admin.ops.openaiTokenStats.nextPage') }}
-          </button>
+          </Button>
           <span class="text-xs text-muted-foreground">
             {{ t('admin.ops.openaiTokenStats.pageInfo', { page, total: totalPages }) }}
           </span>

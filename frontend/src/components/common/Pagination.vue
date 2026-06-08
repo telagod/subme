@@ -52,18 +52,16 @@
 
         <div v-if="showJump" class="flex items-center space-x-2">
           <span class="text-sm text-foreground/85">{{ t('pagination.jumpTo') }}</span>
-          <input
+          <Input
             v-model="jumpPage"
             type="number"
             min="1"
             :max="totalPages"
-            class="input w-20 text-sm"
-            :placeholder="t('pagination.jumpPlaceholder')"
-            @keyup.enter="submitJump"
-          />
-          <button type="button" class="btn btn-ghost btn-sm" @click="submitJump">
+             class="w-20 text-sm" :placeholder="t('pagination.jumpPlaceholder')"
+            @keyup.enter="submitJump" />
+          <Button type="button"  variant="ghost" class="btn-sm" @click="submitJump">
             {{ t('pagination.jumpAction') }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -118,6 +116,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'

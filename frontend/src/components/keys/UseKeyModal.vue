@@ -122,18 +122,18 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button
+        <Button
           @click="emit('close')"
-          class="btn btn-secondary"
-        >
+           variant="secondary">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed, h, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'

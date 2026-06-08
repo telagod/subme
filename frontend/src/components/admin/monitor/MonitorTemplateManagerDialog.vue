@@ -32,10 +32,10 @@
     <!-- active provider list -->
     <div v-if="!editing" class="space-y-2">
       <div class="flex justify-end">
-        <button class="btn btn-primary btn-sm" @click="openCreateForm">
+        <Button  size="sm" @click="openCreateForm">
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.channelMonitor.template.createButton') }}
-        </button>
+        </Button>
       </div>
 
       <div v-if="loading" class="py-8 text-center text-sm text-muted-foreground">
@@ -89,21 +89,19 @@
             </p>
           </div>
           <div class="flex flex-shrink-0 gap-2">
-            <button
-              class="btn btn-secondary btn-sm"
-              :disabled="tpl.associated_monitors === 0"
+            <Button
+               variant="secondary" size="sm" :disabled="tpl.associated_monitors === 0"
               :title="t('admin.channelMonitor.template.applyTooltip')"
-              @click="confirmApply(tpl)"
-            >
+              @click="confirmApply(tpl)">
               <Icon name="refresh" size="sm" class="mr-1" />
               {{ t('admin.channelMonitor.template.applyButton') }}
-            </button>
-            <button class="btn btn-secondary btn-sm" @click="openEditForm(tpl)">
+            </Button>
+            <Button  variant="secondary" size="sm" @click="openEditForm(tpl)">
               {{ t('common.edit') }}
-            </button>
-            <button class="btn btn-secondary btn-sm text-red-400" @click="handleDelete(tpl)">
+            </Button>
+            <Button  variant="secondary" size="sm" @click="handleDelete(tpl)">
               {{ t('common.delete') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -116,13 +114,11 @@
           {{ t('admin.channelMonitor.template.form.name') }}
           <span class="text-red-400">*</span>
         </label>
-        <input
+        <Input
           v-model="form.name"
           type="text"
           required
-          class="input"
-          :placeholder="t('admin.channelMonitor.template.form.namePlaceholder')"
-        />
+           :placeholder="t('admin.channelMonitor.template.form.namePlaceholder')" />
       </div>
 
       <div v-if="editing === 'new'">
@@ -165,12 +161,10 @@
         <label class="input-label">
           {{ t('admin.channelMonitor.template.form.description') }}
         </label>
-        <input
+        <Input
           v-model="form.description"
           type="text"
-          class="input"
-          :placeholder="t('admin.channelMonitor.template.form.descriptionPlaceholder')"
-        />
+           :placeholder="t('admin.channelMonitor.template.form.descriptionPlaceholder')" />
       </div>
 
       <MonitorAdvancedRequestConfig
@@ -189,18 +183,18 @@
       <div class="flex w-full items-center justify-between">
         <!-- Left: back to list / nothing -->
         <div>
-          <button v-if="editing" class="btn btn-secondary" @click="backToList">
+          <Button v-if="editing"  variant="secondary" @click="backToList">
             {{ t('common.back') }}
-          </button>
+          </Button>
         </div>
         <!-- Right: save or close -->
         <div class="flex gap-2">
-          <button class="btn btn-secondary" @click="$emit('close')">
+          <Button  variant="secondary" @click="$emit('close')">
             {{ t('common.close') }}
-          </button>
-          <button v-if="editing" class="btn btn-primary" :disabled="submitting" @click="handleSubmit">
+          </Button>
+          <Button v-if="editing"  :disabled="submitting" @click="handleSubmit">
             {{ submitting ? t('common.submitting') : editing === 'new' ? t('common.create') : t('common.update') }}
-          </button>
+          </Button>
         </div>
       </div>
     </template>
@@ -227,6 +221,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

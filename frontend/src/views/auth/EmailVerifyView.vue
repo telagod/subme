@@ -35,7 +35,7 @@
           <label for="code" class="input-label text-center">
             {{ t('auth.verificationCode') }}
           </label>
-          <input
+          <Input
             id="code"
             v-model="verifyCode"
             type="text"
@@ -44,10 +44,8 @@
             inputmode="numeric"
             maxlength="6"
             :disabled="isLoading"
-            class="input py-3 text-center font-mono text-xl tracking-[0.5em]"
-            :class="{ 'input-error': errors.code }"
-            placeholder="000000"
-          />
+             class="py-3 text-center font-mono text-xl tracking-[0.5em]" :class="{ 'input-error': errors.code }"
+            placeholder="000000" />
           <p class="input-hint text-center">{{ t('auth.verificationCodeHint') }}</p>
         </div>
 
@@ -78,7 +76,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" :disabled="isLoading || !verifyCode" class="btn btn-primary w-full">
+        <Button type="submit" :disabled="isLoading || !verifyCode"  class="w-full">
           <svg
             v-if="isLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
@@ -101,7 +99,7 @@
           </svg>
           <Icon v-else name="checkCircle" size="md" class="mr-2" />
           {{ isLoading ? t('auth.verifying') : t('auth.verifyAndCreate') }}
-        </button>
+        </Button>
 
         <!-- Resend Code -->
         <div class="text-center">
@@ -146,6 +144,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

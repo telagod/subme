@@ -79,14 +79,13 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="mail" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="email"
               :value="email"
               type="email"
               readonly
               disabled
-              class="input pl-11 bg-muted"
-            />
+               class="pl-11 bg-muted" />
           </div>
         </div>
 
@@ -99,17 +98,15 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="lock" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="password"
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
               autocomplete="new-password"
               :disabled="isLoading"
-              class="input pl-11 pr-11"
-              :class="{ 'input-error': errors.password }"
-              :placeholder="t('auth.newPasswordPlaceholder')"
-            />
+               class="pl-11 pr-11" :class="{ 'input-error': errors.password }"
+              :placeholder="t('auth.newPasswordPlaceholder')" />
             <button
               type="button"
               @click="showPassword = !showPassword"
@@ -130,17 +127,15 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="lock" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="confirmPassword"
               v-model="formData.confirmPassword"
               :type="showConfirmPassword ? 'text' : 'password'"
               required
               autocomplete="new-password"
               :disabled="isLoading"
-              class="input pl-11 pr-11"
-              :class="{ 'input-error': errors.confirmPassword }"
-              :placeholder="t('auth.confirmPasswordPlaceholder')"
-            />
+               class="pl-11 pr-11" :class="{ 'input-error': errors.confirmPassword }"
+              :placeholder="t('auth.confirmPasswordPlaceholder')" />
             <button
               type="button"
               @click="showConfirmPassword = !showConfirmPassword"
@@ -153,11 +148,10 @@
         </div>
 
         <!-- Submit Button -->
-        <button
+        <Button
           type="submit"
           :disabled="isLoading"
-          class="btn btn-primary w-full"
-        >
+           class="w-full">
           <svg
             v-if="isLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
@@ -180,7 +174,7 @@
           </svg>
           <Icon v-else name="checkCircle" size="md" class="mr-2" />
           {{ isLoading ? t('auth.resettingPassword') : t('auth.resetPassword') }}
-        </button>
+        </Button>
       </form>
     </div>
 
@@ -200,6 +194,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'

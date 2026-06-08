@@ -53,10 +53,10 @@
               <p class="text-sm font-medium text-foreground/85">{{ t('affiliate.yourCode') }}</p>
               <div class="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
                 <code class="flex-1 truncate text-sm font-semibold text-foreground">{{ detail.aff_code }}</code>
-                <button class="btn btn-secondary btn-sm" @click="copyCode">
+                <Button  variant="secondary" size="sm" @click="copyCode">
                   <Icon name="copy" size="sm" />
                   <span>{{ t('affiliate.copyCode') }}</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -64,10 +64,10 @@
               <p class="text-sm font-medium text-foreground/85">{{ t('affiliate.inviteLink') }}</p>
               <div class="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
                 <code class="flex-1 truncate text-sm text-foreground/85">{{ inviteLink }}</code>
-                <button class="btn btn-secondary btn-sm" @click="copyInviteLink">
+                <Button  variant="secondary" size="sm" @click="copyInviteLink">
                   <Icon name="copy" size="sm" />
                   <span>{{ t('affiliate.copyLink') }}</span>
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -89,15 +89,13 @@
               <h3 class="text-base font-semibold text-foreground">{{ t('affiliate.transfer.title') }}</h3>
               <p class="mt-1 text-sm text-muted-foreground">{{ t('affiliate.transfer.description') }}</p>
             </div>
-            <button
-              class="btn btn-primary"
-              :disabled="transferring || detail.aff_quota <= 0"
-              @click="transferQuota"
-            >
+            <Button
+               :disabled="transferring || detail.aff_quota <= 0"
+              @click="transferQuota">
               <Icon v-if="transferring" name="refresh" size="sm" class="animate-spin" />
               <Icon v-else name="dollar" size="sm" />
               <span>{{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}</span>
-            </button>
+            </Button>
           </div>
           <p v-if="detail.aff_quota <= 0" class="mt-3 text-sm text-amber-400">
             {{ t('affiliate.transfer.empty') }}
@@ -140,6 +138,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'

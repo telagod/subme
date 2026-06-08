@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
@@ -198,7 +200,7 @@ onMounted(() => {
           </svg>
           {{ t('common.refresh') }}
         </button>
-        <button class="btn btn-sm btn-secondary" :disabled="!config" @click="openEditor">{{ t('common.edit') }}</button>
+        <Button  variant="secondary" size="sm" :disabled="!config" @click="openEditor">{{ t('common.edit') }}</Button>
       </div>
     </div>
 
@@ -282,16 +284,14 @@ onMounted(() => {
           <div class="md:col-span-2">
             <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.recipients') }}</div>
             <div class="flex gap-2">
-              <input
+              <Input
                 v-model="alertRecipientInput"
                 type="email"
-                class="input"
-                :placeholder="t('admin.ops.email.recipients')"
-                @keydown.enter.prevent="addRecipient('alert')"
-              />
-              <button class="btn btn-secondary whitespace-nowrap" type="button" @click="addRecipient('alert')">
+                 :placeholder="t('admin.ops.email.recipients')"
+                @keydown.enter.prevent="addRecipient('alert')" />
+              <Button  variant="secondary" class="whitespace-nowrap" type="button" @click="addRecipient('alert')">
                 {{ t('common.add') }}
-              </button>
+              </Button>
             </div>
             <p v-if="alertRecipientError" class="mt-1 text-xs text-red-400">{{ alertRecipientError }}</p>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -315,12 +315,12 @@ onMounted(() => {
 
           <div>
             <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.rateLimitPerHour') }}</div>
-            <input v-model.number="draft.alert.rate_limit_per_hour" type="number" min="0" max="100000" class="input" />
+            <Input v-model.number="draft.alert.rate_limit_per_hour" type="number" min="0" max="100000"  />
           </div>
 
           <div>
             <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.batchWindowSeconds') }}</div>
-            <input v-model.number="draft.alert.batching_window_seconds" type="number" min="0" max="86400" class="input" />
+            <Input v-model.number="draft.alert.batching_window_seconds" type="number" min="0" max="86400"  />
           </div>
 
           <div>
@@ -347,16 +347,14 @@ onMounted(() => {
           <div class="md:col-span-2">
             <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.recipients') }}</div>
             <div class="flex gap-2">
-              <input
+              <Input
                 v-model="reportRecipientInput"
                 type="email"
-                class="input"
-                :placeholder="t('admin.ops.email.recipients')"
-                @keydown.enter.prevent="addRecipient('report')"
-              />
-              <button class="btn btn-secondary whitespace-nowrap" type="button" @click="addRecipient('report')">
+                 :placeholder="t('admin.ops.email.recipients')"
+                @keydown.enter.prevent="addRecipient('report')" />
+              <Button  variant="secondary" class="whitespace-nowrap" type="button" @click="addRecipient('report')">
                 {{ t('common.add') }}
-              </button>
+              </Button>
             </div>
             <p v-if="reportRecipientError" class="mt-1 text-xs text-red-400">{{ reportRecipientError }}</p>
             <div class="mt-2 flex flex-wrap gap-2">
@@ -385,7 +383,7 @@ onMounted(() => {
                   <label class="inline-flex items-center gap-2 text-sm text-foreground/85">
                     <input v-model="draft.report.daily_summary_enabled" type="checkbox" class="h-4 w-4 rounded border-border" />
                   </label>
-                  <input v-model="draft.report.daily_summary_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+                  <Input v-model="draft.report.daily_summary_schedule" type="text"  :placeholder="t('admin.ops.email.cronPlaceholder')" />
                 </div>
               </div>
               <div>
@@ -394,7 +392,7 @@ onMounted(() => {
                   <label class="inline-flex items-center gap-2 text-sm text-foreground/85">
                     <input v-model="draft.report.weekly_summary_enabled" type="checkbox" class="h-4 w-4 rounded border-border" />
                   </label>
-                  <input v-model="draft.report.weekly_summary_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+                  <Input v-model="draft.report.weekly_summary_schedule" type="text"  :placeholder="t('admin.ops.email.cronPlaceholder')" />
                 </div>
               </div>
               <div>
@@ -403,12 +401,12 @@ onMounted(() => {
                   <label class="inline-flex items-center gap-2 text-sm text-foreground/85">
                     <input v-model="draft.report.error_digest_enabled" type="checkbox" class="h-4 w-4 rounded border-border" />
                   </label>
-                  <input v-model="draft.report.error_digest_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+                  <Input v-model="draft.report.error_digest_schedule" type="text"  :placeholder="t('admin.ops.email.cronPlaceholder')" />
                 </div>
               </div>
               <div>
                 <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.errorDigestMinCount') }}</div>
-                <input v-model.number="draft.report.error_digest_min_count" type="number" min="0" max="1000000" class="input" />
+                <Input v-model.number="draft.report.error_digest_min_count" type="number" min="0" max="1000000"  />
               </div>
               <div>
                 <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.accountHealth') }}</div>
@@ -416,12 +414,12 @@ onMounted(() => {
                   <label class="inline-flex items-center gap-2 text-sm text-foreground/85">
                     <input v-model="draft.report.account_health_enabled" type="checkbox" class="h-4 w-4 rounded border-border" />
                   </label>
-                  <input v-model="draft.report.account_health_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+                  <Input v-model="draft.report.account_health_schedule" type="text"  :placeholder="t('admin.ops.email.cronPlaceholder')" />
                 </div>
               </div>
               <div>
                 <div class="mb-1 text-xs font-medium text-foreground/85">{{ t('admin.ops.email.accountHealthThreshold') }}</div>
-                <input v-model.number="draft.report.account_health_error_rate_threshold" type="number" min="0" max="100" step="0.1" class="input" />
+                <Input v-model.number="draft.report.account_health_error_rate_threshold" type="number" min="0" max="100" step="0.1"  />
               </div>
             </div>
             <div class="mt-2 text-xs text-muted-foreground">{{ t('admin.ops.email.reportHint') }}</div>
@@ -431,10 +429,10 @@ onMounted(() => {
     </div>
     <template #footer>
       <div class="flex justify-end gap-2">
-        <button class="btn btn-secondary" @click="showEditor = false">{{ t('common.cancel') }}</button>
-        <button class="btn btn-primary" :disabled="saving || !editorValidation.valid" @click="saveConfig">
+        <Button  variant="secondary" @click="showEditor = false">{{ t('common.cancel') }}</Button>
+        <Button  :disabled="saving || !editorValidation.valid" @click="saveConfig">
           {{ saving ? t('common.saving') : t('common.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>

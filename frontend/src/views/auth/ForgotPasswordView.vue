@@ -51,7 +51,7 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="mail" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="email"
               v-model="formData.email"
               type="email"
@@ -59,10 +59,8 @@
               autofocus
               autocomplete="email"
               :disabled="isLoading"
-              class="input pl-11"
-              :class="{ 'input-error': errors.email }"
-              :placeholder="t('auth.emailPlaceholder')"
-            />
+               class="pl-11" :class="{ 'input-error': errors.email }"
+              :placeholder="t('auth.emailPlaceholder')" />
           </div>
         </div>
 
@@ -78,11 +76,10 @@
         </div>
 
         <!-- Submit Button -->
-        <button
+        <Button
           type="submit"
           :disabled="isLoading || (turnstileEnabled && !turnstileToken)"
-          class="btn btn-primary w-full"
-        >
+           class="w-full">
           <svg
             v-if="isLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
@@ -105,7 +102,7 @@
           </svg>
           <Icon v-else name="mail" size="md" class="mr-2" />
           {{ isLoading ? t('auth.sendingResetLink') : t('auth.sendResetLink') }}
-        </button>
+        </Button>
       </form>
     </div>
 
@@ -125,6 +122,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'

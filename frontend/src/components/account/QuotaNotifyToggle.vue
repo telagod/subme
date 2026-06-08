@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { QUOTA_THRESHOLD_TYPE_FIXED, QUOTA_THRESHOLD_TYPE_PERCENTAGE, type QuotaThresholdType } from '@/constants/account'
 
 defineProps<{
@@ -32,15 +33,14 @@ const emit = defineEmits<{
       />
     </button>
     <template v-if="enabled">
-      <input
+      <Input
         :value="threshold"
         @input="emit('update:threshold', parseFloat(($event.target as HTMLInputElement).value) || null)"
         type="number"
         min="0"
         :max="thresholdType === QUOTA_THRESHOLD_TYPE_PERCENTAGE ? 100 : undefined"
         :step="thresholdType === QUOTA_THRESHOLD_TYPE_PERCENTAGE ? 1 : 0.01"
-        class="input py-1 text-sm flex-1 min-w-0"
-      />
+         class="py-1 text-sm flex-1 min-w-0" />
       <select
         :value="thresholdType || QUOTA_THRESHOLD_TYPE_FIXED"
         @change="emit('update:thresholdType', ($event.target as HTMLSelectElement).value as QuotaThresholdType)"

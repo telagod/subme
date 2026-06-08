@@ -23,15 +23,13 @@
         </h4>
         <div class="flex items-end gap-2">
           <div class="relative flex-1">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               autocomplete="off"
-              class="input w-full"
-              :placeholder="t('admin.groups.searchUserPlaceholder')"
+               class="w-full" :placeholder="t('admin.groups.searchUserPlaceholder')"
               @input="handleSearchUsers"
-              @focus="showDropdown = true"
-            />
+              @focus="showDropdown = true" />
             <div
               v-if="showDropdown && searchResults.length > 0"
               class="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-card shadow-metal"
@@ -60,14 +58,12 @@
               placeholder="1.0"
             />
           </div>
-          <button
+          <Button
             type="button"
-            class="btn btn-primary shrink-0"
-            :disabled="!selectedUser || !newRate"
-            @click="handleAddLocal"
-          >
+             class="shrink-0" :disabled="!selectedUser || !newRate"
+            @click="handleAddLocal">
             {{ t('common.add') }}
-          </button>
+          </Button>
         </div>
 
         <!-- 批量调整 + 全部清空 -->
@@ -84,14 +80,12 @@
               class="hide-spinner w-20 rounded-md border border-border bg-card px-2 py-1 text-center text-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
               placeholder="0.5"
             />
-            <button
+            <Button
               type="button"
-              class="btn btn-primary btn-sm shrink-0 px-2.5 py-1 text-xs"
-              :disabled="!batchFactor || batchFactor <= 0"
-              @click="applyBatchFactor"
-            >
+               size="sm" :disabled="!batchFactor || batchFactor <= 0"
+              @click="applyBatchFactor">
               {{ t('admin.groups.applyMultiplier') }}
-            </button>
+            </Button>
           </div>
           <div class="ml-auto">
             <button
@@ -218,19 +212,17 @@
         </template>
         <!-- 右侧：关闭 / 保存 -->
         <div class="ml-auto flex items-center gap-3">
-          <button type="button" class="btn btn-sm px-4 py-1.5" @click="handleClose">
+          <Button variant="outline" type="button"  class="btn-sm px-4 py-1.5" @click="handleClose">
             {{ t('common.close') }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="isDirty"
             type="button"
-            class="btn btn-primary btn-sm px-4 py-1.5"
-            :disabled="saving"
-            @click="handleSave"
-          >
+             size="sm" :disabled="saving"
+            @click="handleSave">
             <Icon v-if="saving" name="refresh" size="sm" class="mr-1 animate-spin" />
             {{ t('common.save') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -239,6 +231,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

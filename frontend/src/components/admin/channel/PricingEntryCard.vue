@@ -104,28 +104,28 @@
           <div class="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-5">
             <div>
               <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.inputPrice', '输入') }}</label>
-              <input :value="entry.input_price" @input="emitField('input_price', ($event.target as HTMLInputElement).value)"
-                type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+              <Input :value="entry.input_price" @input="emitField('input_price', ($event.target as HTMLInputElement).value)"
+                type="number" step="any" min="0"  class="mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
             </div>
             <div>
               <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.outputPrice', '输出') }}</label>
-              <input :value="entry.output_price" @input="emitField('output_price', ($event.target as HTMLInputElement).value)"
-                type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+              <Input :value="entry.output_price" @input="emitField('output_price', ($event.target as HTMLInputElement).value)"
+                type="number" step="any" min="0"  class="mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
             </div>
             <div>
               <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.cacheWritePrice', '缓存写入') }}</label>
-              <input :value="entry.cache_write_price" @input="emitField('cache_write_price', ($event.target as HTMLInputElement).value)"
-                type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+              <Input :value="entry.cache_write_price" @input="emitField('cache_write_price', ($event.target as HTMLInputElement).value)"
+                type="number" step="any" min="0"  class="mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
             </div>
             <div>
               <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.cacheReadPrice', '缓存读取') }}</label>
-              <input :value="entry.cache_read_price" @input="emitField('cache_read_price', ($event.target as HTMLInputElement).value)"
-                type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+              <Input :value="entry.cache_read_price" @input="emitField('cache_read_price', ($event.target as HTMLInputElement).value)"
+                type="number" step="any" min="0"  class="mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
             </div>
             <div>
               <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.imageTokenPrice', '图片输出') }}</label>
-              <input :value="entry.image_output_price" @input="emitField('image_output_price', ($event.target as HTMLInputElement).value)"
-                type="number" step="any" min="0" class="input mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+              <Input :value="entry.image_output_price" @input="emitField('image_output_price', ($event.target as HTMLInputElement).value)"
+                type="number" step="any" min="0"  class="mt-0.5 text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
             </div>
           </div>
 
@@ -161,8 +161,8 @@
             <span class="ml-1 font-normal text-muted-foreground">$</span>
           </label>
           <div class="mt-1 w-48">
-            <input :value="entry.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
-              type="number" step="any" min="0" class="input text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+            <Input :value="entry.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
+              type="number" step="any" min="0"  class="text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
           </div>
 
           <!-- Tiers -->
@@ -197,8 +197,8 @@
             <span class="ml-1 font-normal text-muted-foreground">$</span>
           </label>
           <div class="mt-1 w-48">
-            <input :value="entry.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
-              type="number" step="any" min="0" class="input text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
+            <Input :value="entry.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
+              type="number" step="any" min="0"  class="text-sm" :placeholder="t('admin.channels.form.pricePlaceholder', '默认')" />
           </div>
 
           <!-- Image tiers -->
@@ -227,6 +227,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Select from '@/components/common/Select.vue'

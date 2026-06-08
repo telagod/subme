@@ -10,13 +10,11 @@
               size="md"
               class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.proxies.searchProxies')"
-              class="input pl-10"
-              @input="handleSearch"
-            />
+               class="pl-10" @input="handleSearch" />
           </div>
 
           <div class="w-full sm:w-40">
@@ -38,51 +36,43 @@
 
           <!-- Right: All action buttons -->
           <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-            <button
+            <Button
               @click="loadProxies"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh')"
-            >
+               variant="secondary" :title="t('common.refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button
+            </Button>
+            <Button
               @click="handleBatchTest"
               :disabled="batchTesting || loading"
-              class="btn btn-secondary"
-              :title="t('admin.proxies.testConnection')"
-            >
+               variant="secondary" :title="t('admin.proxies.testConnection')">
               <Icon name="play" size="md" class="mr-2" />
               {{ t('admin.proxies.testConnection') }}
-            </button>
-            <button
+            </Button>
+            <Button
               @click="handleBatchQualityCheck"
               :disabled="batchQualityChecking || loading"
-              class="btn btn-secondary"
-              :title="t('admin.proxies.batchQualityCheck')"
-            >
+               variant="secondary" :title="t('admin.proxies.batchQualityCheck')">
               <Icon name="shield" size="md" class="mr-2" :class="batchQualityChecking ? 'animate-pulse' : ''" />
               {{ t('admin.proxies.batchQualityCheck') }}
-            </button>
-            <button
+            </Button>
+            <Button
               @click="openBatchDelete"
               :disabled="selectedCount === 0"
-              class="btn btn-danger"
-              :title="t('admin.proxies.batchDeleteAction')"
-            >
+               variant="destructive" :title="t('admin.proxies.batchDeleteAction')">
               <Icon name="trash" size="md" class="mr-2" />
               {{ t('admin.proxies.batchDeleteAction') }}
-            </button>
-            <button @click="showImportData = true" class="btn btn-secondary">
+            </Button>
+            <Button @click="showImportData = true"  variant="secondary">
               {{ t('admin.proxies.dataImport') }}
-            </button>
-            <button @click="showExportDataDialog = true" class="btn btn-secondary">
+            </Button>
+            <Button @click="showExportDataDialog = true"  variant="secondary">
               {{ selectedCount > 0 ? t('admin.proxies.dataExportSelected') : t('admin.proxies.dataExport') }}
-            </button>
-            <button @click="showCreateModal = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showCreateModal = true" >
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.proxies.createProxy') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -428,13 +418,11 @@
       >
         <div>
           <label class="input-label">{{ t('admin.proxies.name') }}</label>
-          <input
+          <Input
             v-model="createForm.name"
             type="text"
             required
-            class="input"
-            :placeholder="t('admin.proxies.enterProxyName')"
-          />
+             :placeholder="t('admin.proxies.enterProxyName')" />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.protocol') }}</label>
@@ -443,45 +431,39 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="input-label">{{ t('admin.proxies.host') }}</label>
-            <input
+            <Input
               v-model="createForm.host"
               type="text"
               required
               :placeholder="t('admin.proxies.form.hostPlaceholder')"
-              class="input"
-            />
+               />
           </div>
           <div>
             <label class="input-label">{{ t('admin.proxies.port') }}</label>
-            <input
+            <Input
               v-model.number="createForm.port"
               type="number"
               required
               min="1"
               max="65535"
               :placeholder="t('admin.proxies.form.portPlaceholder')"
-              class="input"
-            />
+               />
           </div>
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.username') }}</label>
-          <input
+          <Input
             v-model="createForm.username"
             type="text"
-            class="input"
-            :placeholder="t('admin.proxies.optionalAuth')"
-          />
+             :placeholder="t('admin.proxies.optionalAuth')" />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.password') }}</label>
           <div class="relative">
-            <input
+            <Input
               v-model="createForm.password"
               :type="createPasswordVisible ? 'text' : 'password'"
-              class="input pr-10"
-              :placeholder="t('admin.proxies.optionalAuth')"
-            />
+               class="pr-10" :placeholder="t('admin.proxies.optionalAuth')" />
             <button
               type="button"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/75 dark:hover:text-foreground/75"
@@ -494,25 +476,21 @@
         <div>
           <label class="input-label">{{ t('admin.proxies.expiresAt') }}</label>
           <div class="mb-2 flex flex-wrap gap-2">
-            <button
+            <Button variant="outline"
               v-for="d in EXPIRY_PRESETS"
               :key="d"
               type="button"
-              class="btn btn-sm"
-              :class="createForm.expires_at === addDaysToBase('', d) ? 'btn-primary' : 'btn-secondary'"
-              @click="createExpiresDays = d"
-            >
+               class="btn-sm" :class="createForm.expires_at === addDaysToBase('', d) ? 'btn-primary' : 'btn-secondary'"
+              @click="createExpiresDays = d">
               {{ t('admin.proxies.nDays', { days: d }) }}
-            </button>
+            </Button>
           </div>
-          <input
+          <Input
             v-model.number="createExpiresDays"
             type="number"
             min="0"
-            class="input mb-2"
-            :placeholder="t('admin.proxies.expiryDaysPlaceholder')"
-          />
-          <input v-model="createForm.expires_at" type="date" class="input" />
+             class="mb-2" :placeholder="t('admin.proxies.expiryDaysPlaceholder')" />
+          <Input v-model="createForm.expires_at" type="date"  />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.fallbackMode') }}</label>
@@ -590,16 +568,15 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeCreateModal" type="button" class="btn btn-secondary">
+          <Button @click="closeCreateModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="createMode === 'standard'"
             type="submit"
             form="create-proxy-form"
             :disabled="submitting"
-            class="btn btn-primary"
-          >
+            >
             <svg
               v-if="submitting"
               class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -621,14 +598,13 @@
               ></path>
             </svg>
             {{ submitting ? t('admin.proxies.creating') : t('common.create') }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-else
             @click="handleBatchCreate"
             type="button"
             :disabled="submitting || batchParseResult.valid === 0"
-            class="btn btn-primary"
-          >
+            >
             <svg
               v-if="submitting"
               class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -654,7 +630,7 @@
                 ? t('admin.proxies.importing')
                 : t('admin.proxies.importProxies', { count: batchParseResult.valid })
             }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -674,7 +650,7 @@
       >
         <div>
           <label class="input-label">{{ t('admin.proxies.name') }}</label>
-          <input v-model="editForm.name" type="text" required class="input" />
+          <Input v-model="editForm.name" type="text" required  />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.protocol') }}</label>
@@ -683,34 +659,31 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="input-label">{{ t('admin.proxies.host') }}</label>
-            <input v-model="editForm.host" type="text" required class="input" />
+            <Input v-model="editForm.host" type="text" required  />
           </div>
           <div>
             <label class="input-label">{{ t('admin.proxies.port') }}</label>
-            <input
+            <Input
               v-model.number="editForm.port"
               type="number"
               required
               min="1"
               max="65535"
-              class="input"
-            />
+               />
           </div>
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.username') }}</label>
-          <input v-model="editForm.username" type="text" class="input" />
+          <Input v-model="editForm.username" type="text"  />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.password') }}</label>
           <div class="relative">
-            <input
+            <Input
               v-model="editForm.password"
               :type="editPasswordVisible ? 'text' : 'password'"
               :placeholder="t('admin.proxies.leaveEmptyToKeep')"
-              class="input pr-10"
-              @input="editPasswordDirty = true"
-            />
+               class="pr-10" @input="editPasswordDirty = true" />
             <button
               type="button"
               class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/75 dark:hover:text-foreground/75"
@@ -727,25 +700,21 @@
         <div>
           <label class="input-label">{{ t('admin.proxies.expiresAt') }}</label>
           <div class="mb-2 flex flex-wrap gap-2">
-            <button
+            <Button variant="outline"
               v-for="d in EXPIRY_PRESETS"
               :key="d"
               type="button"
-              class="btn btn-sm"
-              :class="editForm.expires_at === addDaysToBase(editBaseDate, d) ? 'btn-primary' : 'btn-secondary'"
-              @click="editExpiresDays = d"
-            >
+               class="btn-sm" :class="editForm.expires_at === addDaysToBase(editBaseDate, d) ? 'btn-primary' : 'btn-secondary'"
+              @click="editExpiresDays = d">
               {{ t('admin.proxies.nDays', { days: d }) }}
-            </button>
+            </Button>
           </div>
-          <input
+          <Input
             v-model.number="editExpiresDays"
             type="number"
             min="0"
-            class="input mb-2"
-            :placeholder="t('admin.proxies.expiryDaysPlaceholder')"
-          />
-          <input v-model="editForm.expires_at" type="date" class="input" />
+             class="mb-2" :placeholder="t('admin.proxies.expiryDaysPlaceholder')" />
+          <Input v-model="editForm.expires_at" type="date"  />
         </div>
         <div>
           <label class="input-label">{{ t('admin.proxies.fallbackMode') }}</label>
@@ -764,16 +733,15 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeEditModal" type="button" class="btn btn-secondary">
+          <Button @click="closeEditModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="editingProxy"
             type="submit"
             form="edit-proxy-form"
             :disabled="submitting"
-            class="btn btn-primary"
-          >
+            >
             <svg
               v-if="submitting"
               class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -795,7 +763,7 @@
               ></path>
             </svg>
             {{ submitting ? t('admin.proxies.updating') : t('common.update') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -908,9 +876,9 @@
       </div>
       <template #footer>
         <div class="flex justify-end">
-          <button @click="closeQualityReportDialog" class="btn btn-secondary">
+          <Button @click="closeQualityReportDialog"  variant="secondary">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -953,9 +921,9 @@
       </div>
       <template #footer>
         <div class="flex justify-end">
-          <button @click="closeAccountsModal" class="btn btn-secondary">
+          <Button @click="closeAccountsModal"  variant="secondary">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -963,6 +931,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

@@ -9,22 +9,18 @@
           :key="i"
           class="flex items-center gap-2"
         >
-          <input
+          <Input
             v-model="row.name"
             type="text"
             spellcheck="false"
             :placeholder="t('admin.channelMonitor.advanced.headerNamePlaceholder')"
-            class="input w-52 flex-none font-mono text-xs"
-            @blur="commitHeaders"
-          />
-          <input
+             class="w-52 flex-none font-mono text-xs" @blur="commitHeaders" />
+          <Input
             v-model="row.value"
             type="text"
             spellcheck="false"
             :placeholder="t('admin.channelMonitor.advanced.headerValuePlaceholder')"
-            class="input flex-1 font-mono text-xs"
-            @blur="commitHeaders"
-          />
+             class="flex-1 font-mono text-xs" @blur="commitHeaders" />
           <button
             type="button"
             class="flex-none rounded p-1 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
@@ -104,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { APIMode, BodyOverrideMode, Provider } from '@/api/admin/channelMonitor'

@@ -31,26 +31,24 @@
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                   <Icon name="gift" size="md" class="text-muted-foreground" />
                 </div>
-                <input
+                <Input
                   id="code"
                   v-model="redeemCode"
                   type="text"
                   required
                   :placeholder="t('redeem.redeemCodePlaceholder')"
                   :disabled="submitting"
-                  class="input py-3 pl-12 text-lg"
-                />
+                   class="py-3 pl-12 text-lg" />
               </div>
               <p class="input-hint">
                 {{ t('redeem.redeemCodeHint') }}
               </p>
             </div>
 
-            <button
+            <Button
               type="submit"
               :disabled="!redeemCode || submitting"
-              class="btn btn-primary w-full py-3"
-            >
+               class="w-full">
               <svg
                 v-if="submitting"
                 class="-ml-1 mr-2 h-5 w-5 animate-spin"
@@ -73,7 +71,7 @@
               </svg>
               <Icon v-else name="checkCircle" size="md" class="mr-2" />
               {{ submitting ? t('redeem.redeeming') : t('redeem.redeemButton') }}
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -342,6 +340,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'

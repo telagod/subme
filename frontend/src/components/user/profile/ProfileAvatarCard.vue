@@ -53,25 +53,21 @@
             {{ t('profile.avatar.uploadAction') }}
           </label>
 
-          <button
+          <Button
             data-testid="profile-avatar-save"
             type="button"
-            class="btn btn-primary btn-sm"
-            :disabled="avatarSaving || !avatarDraft"
-            @click="handleAvatarSave"
-          >
+             size="sm" :disabled="avatarSaving || !avatarDraft"
+            @click="handleAvatarSave">
             {{ t('common.save') }}
-          </button>
+          </Button>
 
-          <button
+          <Button
             data-testid="profile-avatar-delete"
             type="button"
-            class="btn btn-secondary btn-sm"
-            :disabled="avatarSaving"
-            @click="handleAvatarDelete"
-          >
+             variant="secondary" size="sm" :disabled="avatarSaving"
+            @click="handleAvatarDelete">
             {{ t('common.delete') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -79,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { userAPI } from '@/api'

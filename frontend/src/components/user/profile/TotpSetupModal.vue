@@ -27,22 +27,19 @@
               <div>
                 <label class="input-label">{{ t('profile.totp.emailCode') }}</label>
                 <div class="flex gap-2">
-                  <input
+                  <Input
                     v-model="verifyForm.emailCode"
                     type="text"
                     maxlength="6"
                     inputmode="numeric"
-                    class="input flex-1"
-                    :placeholder="t('profile.totp.enterEmailCode')"
-                  />
-                  <button
+                     class="flex-1" :placeholder="t('profile.totp.enterEmailCode')" />
+                  <Button
                     type="button"
-                    class="btn btn-secondary whitespace-nowrap"
-                    :disabled="sendingCode || codeCooldown > 0"
+                     variant="secondary" class="whitespace-nowrap" :disabled="sendingCode || codeCooldown> 0"
                     @click="handleSendCode"
                   >
                     {{ codeCooldown > 0 ? `${codeCooldown}s` : (sendingCode ? t('common.sending') : t('profile.totp.sendCode')) }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -51,28 +48,24 @@
             <div v-else class="space-y-4">
               <div>
                 <label class="input-label">{{ t('profile.currentPassword') }}</label>
-                <input
+                <Input
                   v-model="verifyForm.password"
                   type="password"
                   autocomplete="current-password"
-                  class="input"
-                  :placeholder="t('profile.totp.enterPassword')"
-                />
+                   :placeholder="t('profile.totp.enterPassword')" />
               </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-4">
-              <button type="button" class="btn btn-secondary" @click="$emit('close')">
+              <Button type="button"  variant="secondary" @click="$emit('close')">
                 {{ t('common.cancel') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                class="btn btn-primary"
-                :disabled="!canProceedFromVerify || setupLoading"
-                @click="handleVerifyAndSetup"
-              >
+                 :disabled="!canProceedFromVerify || setupLoading"
+                @click="handleVerifyAndSetup">
                 {{ setupLoading ? t('common.loading') : t('common.next') }}
-              </button>
+              </Button>
             </div>
           </template>
         </div>
@@ -109,17 +102,15 @@
           </template>
 
           <div class="flex justify-end gap-3 pt-4">
-            <button type="button" class="btn btn-secondary" @click="$emit('close')">
+            <Button type="button"  variant="secondary" @click="$emit('close')">
               {{ t('common.cancel') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              class="btn btn-primary"
-              :disabled="!setupData"
-              @click="step = 2"
-            >
+               :disabled="!setupData"
+              @click="step = 2">
               {{ t('common.next') }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -148,16 +139,14 @@
             </div>
 
             <div class="flex justify-end gap-3">
-              <button type="button" class="btn btn-secondary" @click="step = 1">
+              <Button type="button"  variant="secondary" @click="step = 1">
                 {{ t('common.back') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                class="btn btn-primary"
-                :disabled="verifying || code.join('').length !== 6"
-              >
+                 :disabled="verifying || code.join('').length !== 6">
                 {{ verifying ? t('common.verifying') : t('profile.totp.verify') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -167,6 +156,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

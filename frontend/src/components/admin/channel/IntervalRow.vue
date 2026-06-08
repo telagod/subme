@@ -5,33 +5,33 @@
     <template v-if="mode === 'token'">
       <div class="w-20">
         <label class="text-xs text-muted-foreground">Min</label>
-        <input :value="interval.min_tokens" @input="emitField('min_tokens', toInt(($event.target as HTMLInputElement).value))"
-          type="number" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.min_tokens" @input="emitField('min_tokens', toInt(($event.target as HTMLInputElement).value))"
+          type="number" min="0"  class="mt-0.5 text-xs" />
       </div>
       <div class="w-20">
         <label class="text-xs text-muted-foreground">Max <span class="text-muted-foreground/60">(含)</span></label>
-        <input :value="interval.max_tokens ?? ''" @input="emitField('max_tokens', toIntOrNull(($event.target as HTMLInputElement).value))"
-          type="number" min="0" class="input mt-0.5 text-xs" :placeholder="'∞'" />
+        <Input :value="interval.max_tokens ?? ''" @input="emitField('max_tokens', toIntOrNull(($event.target as HTMLInputElement).value))"
+          type="number" min="0"  class="mt-0.5 text-xs" :placeholder="'∞'" />
       </div>
       <div class="flex-1">
         <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.inputPrice', '输入') }} <span v-if="isEmpty" class="text-red-400">*</span> <span class="text-muted-foreground/60">$/M</span></label>
-        <input :value="interval.input_price" @input="emitField('input_price', ($event.target as HTMLInputElement).value)"
-          type="number" step="any" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.input_price" @input="emitField('input_price', ($event.target as HTMLInputElement).value)"
+          type="number" step="any" min="0"  class="mt-0.5 text-xs" />
       </div>
       <div class="flex-1">
         <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.outputPrice', '输出') }} <span v-if="isEmpty" class="text-red-400">*</span> <span class="text-muted-foreground/60">$/M</span></label>
-        <input :value="interval.output_price" @input="emitField('output_price', ($event.target as HTMLInputElement).value)"
-          type="number" step="any" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.output_price" @input="emitField('output_price', ($event.target as HTMLInputElement).value)"
+          type="number" step="any" min="0"  class="mt-0.5 text-xs" />
       </div>
       <div class="flex-1">
         <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.cacheWritePrice', '缓存W') }} <span class="text-muted-foreground/60">$/M</span></label>
-        <input :value="interval.cache_write_price" @input="emitField('cache_write_price', ($event.target as HTMLInputElement).value)"
-          type="number" step="any" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.cache_write_price" @input="emitField('cache_write_price', ($event.target as HTMLInputElement).value)"
+          type="number" step="any" min="0"  class="mt-0.5 text-xs" />
       </div>
       <div class="flex-1">
         <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.cacheReadPrice', '缓存R') }} <span class="text-muted-foreground/60">$/M</span></label>
-        <input :value="interval.cache_read_price" @input="emitField('cache_read_price', ($event.target as HTMLInputElement).value)"
-          type="number" step="any" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.cache_read_price" @input="emitField('cache_read_price', ($event.target as HTMLInputElement).value)"
+          type="number" step="any" min="0"  class="mt-0.5 text-xs" />
       </div>
     </template>
 
@@ -41,23 +41,23 @@
         <label class="text-xs text-muted-foreground">
           {{ mode === 'image' ? t('admin.channels.form.resolution', '分辨率') : t('admin.channels.form.tierLabel', '层级') }}
         </label>
-        <input :value="interval.tier_label" @input="emitField('tier_label', ($event.target as HTMLInputElement).value)"
-          type="text" class="input mt-0.5 text-xs" :placeholder="mode === 'image' ? '1K / 2K / 4K' : ''" />
+        <Input :value="interval.tier_label" @input="emitField('tier_label', ($event.target as HTMLInputElement).value)"
+          type="text"  class="mt-0.5 text-xs" :placeholder="mode === 'image' ? '1K / 2K / 4K' : ''" />
       </div>
       <div class="w-20">
         <label class="text-xs text-muted-foreground">Min</label>
-        <input :value="interval.min_tokens" @input="emitField('min_tokens', toInt(($event.target as HTMLInputElement).value))"
-          type="number" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.min_tokens" @input="emitField('min_tokens', toInt(($event.target as HTMLInputElement).value))"
+          type="number" min="0"  class="mt-0.5 text-xs" />
       </div>
       <div class="w-20">
         <label class="text-xs text-muted-foreground">Max <span class="text-muted-foreground/60">(含)</span></label>
-        <input :value="interval.max_tokens ?? ''" @input="emitField('max_tokens', toIntOrNull(($event.target as HTMLInputElement).value))"
-          type="number" min="0" class="input mt-0.5 text-xs" :placeholder="'∞'" />
+        <Input :value="interval.max_tokens ?? ''" @input="emitField('max_tokens', toIntOrNull(($event.target as HTMLInputElement).value))"
+          type="number" min="0"  class="mt-0.5 text-xs" :placeholder="'∞'" />
       </div>
       <div class="flex-1">
         <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.perRequestPrice', '单次价格') }} <span v-if="isEmpty" class="text-red-400">*</span> <span class="text-muted-foreground/60">$</span></label>
-        <input :value="interval.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
-          type="number" step="any" min="0" class="input mt-0.5 text-xs" />
+        <Input :value="interval.per_request_price" @input="emitField('per_request_price', ($event.target as HTMLInputElement).value)"
+          type="number" step="any" min="0"  class="mt-0.5 text-xs" />
       </div>
     </template>
 
@@ -68,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'

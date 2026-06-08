@@ -22,15 +22,13 @@
         </h4>
         <div class="flex items-end gap-2">
           <div class="relative flex-1">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               autocomplete="off"
-              class="input w-full"
-              :placeholder="t('admin.groups.searchUserPlaceholder')"
+               class="w-full" :placeholder="t('admin.groups.searchUserPlaceholder')"
               @input="handleSearchUsers"
-              @focus="showDropdown = true"
-            />
+              @focus="showDropdown = true" />
             <div
               v-if="showDropdown && searchResults.length > 0"
               class="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover shadow-metal-lg"
@@ -59,14 +57,12 @@
               placeholder="100"
             />
           </div>
-          <button
+          <Button
             type="button"
-            class="btn btn-primary shrink-0"
-            :disabled="!selectedUser || newRpm == null || newRpm < 0"
-            @click="handleAddLocal"
-          >
+             class="shrink-0" :disabled="!selectedUser || newRpm == null || newRpm < 0"
+            @click="handleAddLocal">
             {{ t('common.add') }}
-          </button>
+          </Button>
         </div>
 
         <div v-if="localEntries.length > 0" class="mt-3 flex items-center justify-end border-t border-border pt-3">
@@ -186,19 +182,17 @@
           </button>
         </template>
         <div class="ml-auto flex items-center gap-3">
-          <button type="button" class="btn btn-sm px-4 py-1.5" @click="handleClose">
+          <Button variant="outline" type="button"  class="btn-sm px-4 py-1.5" @click="handleClose">
             {{ t('common.close') }}
-          </button>
-          <button
+          </Button>
+          <Button
             v-if="isDirty"
             type="button"
-            class="btn btn-primary btn-sm px-4 py-1.5"
-            :disabled="saving"
-            @click="handleSave"
-          >
+             size="sm" :disabled="saving"
+            @click="handleSave">
             <Icon v-if="saving" name="refresh" size="sm" class="mr-1 animate-spin" />
             {{ t('common.save') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -206,6 +200,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

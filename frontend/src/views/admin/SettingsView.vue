@@ -245,13 +245,12 @@
                     >
                       {{ t("admin.settings.overloadCooldown.cooldownMinutes") }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="overloadCooldownForm.cooldown_minutes"
                       type="number"
                       min="1"
                       max="120"
-                      class="input w-32"
-                    />
+                       class="w-32" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         t("admin.settings.overloadCooldown.cooldownMinutesHint")
@@ -348,13 +347,12 @@
                         )
                       }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="rateLimit429CooldownForm.cooldown_seconds"
                       type="number"
                       min="1"
                       max="7200"
-                      class="input w-32"
-                    />
+                       class="w-32" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         t(
@@ -481,13 +479,12 @@
                     >
                       {{ t("admin.settings.streamTimeout.tempUnschedMinutes") }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="streamTimeoutForm.temp_unsched_minutes"
                       type="number"
                       min="1"
                       max="60"
-                      class="input w-32"
-                    />
+                       class="w-32" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         t("admin.settings.streamTimeout.tempUnschedMinutesHint")
@@ -502,13 +499,12 @@
                     >
                       {{ t("admin.settings.streamTimeout.thresholdCount") }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="streamTimeoutForm.threshold_count"
                       type="number"
                       min="1"
                       max="10"
-                      class="input w-32"
-                    />
+                       class="w-32" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.streamTimeout.thresholdCountHint") }}
                     </p>
@@ -523,15 +519,14 @@
                         t("admin.settings.streamTimeout.thresholdWindowMinutes")
                       }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="
                         streamTimeoutForm.threshold_window_minutes
                       "
                       type="number"
                       min="1"
                       max="60"
-                      class="input w-32"
-                    />
+                       class="w-32" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         t(
@@ -699,14 +694,12 @@
                       :key="index"
                       class="flex items-center gap-2"
                     >
-                      <input
+                      <Input
                         v-model="rectifierForm.apikey_signature_patterns[index]"
                         type="text"
-                        class="input input-sm flex-1"
-                        :placeholder="
+                         class="input-sm flex-1" :placeholder="
                           t('admin.settings.rectifier.apikeyPatternPlaceholder')
-                        "
-                      />
+                        " />
                       <Button
                         type="button"
                         @click="
@@ -859,14 +852,12 @@
                     >
                       {{ t("admin.settings.betaPolicy.errorMessage") }}
                     </label>
-                    <input
+                    <Input
                       v-model="rule.error_message"
                       type="text"
-                      class="input"
-                      :placeholder="
+                       :placeholder="
                         t('admin.settings.betaPolicy.errorMessagePlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1 text-xs text-muted-foreground">
                       {{ t("admin.settings.betaPolicy.errorMessageHint") }}
                     </p>
@@ -909,14 +900,12 @@
                       :key="index"
                       class="mb-1.5 flex items-center gap-2"
                     >
-                      <input
+                      <Input
                         v-model="rule.model_whitelist![index]"
                         type="text"
-                        class="input input-sm flex-1"
-                        :placeholder="
+                         class="input-sm flex-1" :placeholder="
                           t('admin.settings.betaPolicy.modelPatternPlaceholder')
-                        "
-                      />
+                        " />
                       <button
                         type="button"
                         @click="rule.model_whitelist!.splice(index, 1)"
@@ -1002,16 +991,14 @@
                     </p>
                     <!-- Fallback Error Message (only when fallback_action=block) -->
                     <div v-if="rule.fallback_action === 'block'" class="mt-2">
-                      <input
+                      <Input
                         v-model="rule.fallback_error_message"
                         type="text"
-                        class="input"
-                        :placeholder="
+                         :placeholder="
                           t(
                             'admin.settings.betaPolicy.fallbackErrorMessagePlaceholder',
                           )
-                        "
-                      />
+                        " />
                       <p class="mt-1 text-xs text-muted-foreground">
                         {{ t("admin.settings.betaPolicy.errorMessageHint") }}
                       </p>
@@ -1178,16 +1165,14 @@
                   >
                     {{ t("admin.settings.openaiFastPolicy.errorMessage") }}
                   </label>
-                  <input
+                  <Input
                     v-model="rule.error_message"
                     type="text"
-                    class="input"
-                    :placeholder="
+                     :placeholder="
                       t(
                         'admin.settings.openaiFastPolicy.errorMessagePlaceholder',
                       )
-                    "
-                  />
+                    " />
                   <p class="mt-1 text-xs text-muted-foreground">
                     {{ t("admin.settings.openaiFastPolicy.errorMessageHint") }}
                   </p>
@@ -1210,16 +1195,14 @@
                     :key="patternIdx"
                     class="mb-1.5 flex items-center gap-2"
                   >
-                    <input
+                    <Input
                       v-model="rule.model_whitelist![patternIdx]"
                       type="text"
-                      class="input input-sm flex-1"
-                      :placeholder="
+                       class="input-sm flex-1" :placeholder="
                         t(
                           'admin.settings.openaiFastPolicy.modelPatternPlaceholder',
                         )
-                      "
-                    />
+                      " />
                     <button
                       type="button"
                       @click="
@@ -1292,16 +1275,14 @@
                     }}
                   </p>
                   <div v-if="rule.fallback_action === 'block'" class="mt-2">
-                    <input
+                    <Input
                       v-model="rule.fallback_error_message"
                       type="text"
-                      class="input"
-                      :placeholder="
+                       :placeholder="
                         t(
                           'admin.settings.openaiFastPolicy.fallbackErrorMessagePlaceholder',
                         )
-                      "
-                    />
+                      " />
                   </div>
                 </div>
               </div>
@@ -1503,14 +1484,12 @@
                 >
                   {{ t("admin.settings.registration.frontendUrl") }}
                 </label>
-                <input
+                <Input
                   v-model="form.frontend_url"
                   type="url"
-                  class="input"
-                  :placeholder="
+                   :placeholder="
                     t('admin.settings.registration.frontendUrlPlaceholder')
-                  "
-                />
+                  " />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.registration.frontendUrlHint") }}
                 </p>
@@ -1604,12 +1583,10 @@
                     >
                       {{ t("admin.settings.turnstile.siteKey") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.turnstile_site_key"
                       type="text"
-                      class="input font-mono text-sm"
-                      placeholder="0x4AAAAAAA..."
-                    />
+                       class="font-mono text-sm" placeholder="0x4AAAAAAA..." />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.turnstile.siteKeyHint") }}
                       <a
@@ -1628,12 +1605,10 @@
                     >
                       {{ t("admin.settings.turnstile.secretKey") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.turnstile_secret_key"
                       type="password"
-                      class="input font-mono text-sm"
-                      placeholder="0x4AAAAAAA..."
-                    />
+                       class="font-mono text-sm" placeholder="0x4AAAAAAA..." />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         form.turnstile_secret_key_configured
@@ -1683,14 +1658,12 @@
                     >
                       {{ t("admin.settings.linuxdo.clientId") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.linuxdo_connect_client_id"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.linuxdo.clientIdPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.linuxdo.clientIdHint") }}
                     </p>
@@ -1702,18 +1675,16 @@
                     >
                       {{ t("admin.settings.linuxdo.clientSecret") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.linuxdo_connect_client_secret"
                       type="password"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         form.linuxdo_connect_client_secret_configured
                           ? t(
                               'admin.settings.linuxdo.clientSecretConfiguredPlaceholder',
                             )
                           : t('admin.settings.linuxdo.clientSecretPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         form.linuxdo_connect_client_secret_configured
@@ -1731,14 +1702,12 @@
                     >
                       {{ t("admin.settings.linuxdo.redirectUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.linuxdo_connect_redirect_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.linuxdo.redirectUrlPlaceholder')
-                      "
-                    />
+                      " />
                     <div
                       class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
                     >
@@ -1829,25 +1798,21 @@
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <div>
                         <label class="mb-2 block text-sm font-medium text-foreground/85">Client ID</label>
-                        <input
+                        <Input
                           v-model="form.github_oauth_client_id"
                           type="text"
-                          class="input font-mono text-sm"
-                          placeholder="GitHub OAuth Client ID"
-                        />
+                           class="font-mono text-sm" placeholder="GitHub OAuth Client ID" />
                       </div>
                       <div>
                         <label class="mb-2 block text-sm font-medium text-foreground/85">Client Secret</label>
-                        <input
+                        <Input
                           v-model="form.github_oauth_client_secret"
                           type="password"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             form.github_oauth_client_secret_configured
                               ? localText('密钥已配置，留空以保留当前值。', 'Secret configured. Leave empty to keep the current value.')
                               : 'GitHub OAuth Client Secret'
-                          "
-                        />
+                          " />
                       </div>
                     </div>
 
@@ -1855,12 +1820,10 @@
                       <label class="mb-2 block text-sm font-medium text-foreground/85">
                         {{ localText("后端回调地址", "Backend Callback URL") }}
                       </label>
-                      <input
+                      <Input
                         v-model="form.github_oauth_redirect_url"
                         type="url"
-                        class="input font-mono text-sm"
-                        placeholder="https://your-domain.com/api/v1/auth/oauth/github/callback"
-                      />
+                         class="font-mono text-sm" placeholder="https://your-domain.com/api/v1/auth/oauth/github/callback" />
                       <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                         <Button
                           type="button"
@@ -1882,12 +1845,10 @@
                       <label class="mb-2 block text-sm font-medium text-foreground/85">
                         {{ localText("前端回跳地址", "Frontend Callback URL") }}
                       </label>
-                      <input
+                      <Input
                         v-model="form.github_oauth_frontend_redirect_url"
                         type="text"
-                        class="input font-mono text-sm"
-                        placeholder="/auth/oauth/callback"
-                      />
+                         class="font-mono text-sm" placeholder="/auth/oauth/callback" />
                     </div>
                   </div>
                 </div>
@@ -1923,25 +1884,21 @@
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <div>
                         <label class="mb-2 block text-sm font-medium text-foreground/85">Client ID</label>
-                        <input
+                        <Input
                           v-model="form.google_oauth_client_id"
                           type="text"
-                          class="input font-mono text-sm"
-                          placeholder="Google OAuth Client ID"
-                        />
+                           class="font-mono text-sm" placeholder="Google OAuth Client ID" />
                       </div>
                       <div>
                         <label class="mb-2 block text-sm font-medium text-foreground/85">Client Secret</label>
-                        <input
+                        <Input
                           v-model="form.google_oauth_client_secret"
                           type="password"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             form.google_oauth_client_secret_configured
                               ? localText('密钥已配置，留空以保留当前值。', 'Secret configured. Leave empty to keep the current value.')
                               : 'Google OAuth Client Secret'
-                          "
-                        />
+                          " />
                       </div>
                     </div>
 
@@ -1949,12 +1906,10 @@
                       <label class="mb-2 block text-sm font-medium text-foreground/85">
                         {{ localText("后端回调地址", "Backend Callback URL") }}
                       </label>
-                      <input
+                      <Input
                         v-model="form.google_oauth_redirect_url"
                         type="url"
-                        class="input font-mono text-sm"
-                        placeholder="https://your-domain.com/api/v1/auth/oauth/google/callback"
-                      />
+                         class="font-mono text-sm" placeholder="https://your-domain.com/api/v1/auth/oauth/google/callback" />
                       <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                         <Button
                           type="button"
@@ -1976,12 +1931,10 @@
                       <label class="mb-2 block text-sm font-medium text-foreground/85">
                         {{ localText("前端回跳地址", "Frontend Callback URL") }}
                       </label>
-                      <input
+                      <Input
                         v-model="form.google_oauth_frontend_redirect_url"
                         type="text"
-                        class="input font-mono text-sm"
-                        placeholder="/auth/oauth/callback"
-                      />
+                         class="font-mono text-sm" placeholder="/auth/oauth/callback" />
                     </div>
                   </div>
                 </div>
@@ -2053,18 +2006,16 @@
                         >
                           {{ localText("PC AppID", "PC App ID") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_open_app_id"
                           data-testid="wechat-connect-open-app-id"
                           type="text"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             localText(
                               '微信开放平台 PC 应用 AppID',
                               'WeChat Open Platform PC App ID',
                             )
-                          "
-                        />
+                          " />
                       </div>
                       <div>
                         <label
@@ -2072,12 +2023,11 @@
                         >
                           {{ localText("PC AppSecret", "PC App Secret") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_open_app_secret"
                           data-testid="wechat-connect-open-app-secret"
                           type="password"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             form.wechat_connect_open_app_secret_configured
                               ? localText(
                                   '密钥已配置，留空以保留当前值。',
@@ -2087,8 +2037,7 @@
                                   '微信开放平台 PC 应用 AppSecret',
                                   'WeChat Open Platform PC App Secret',
                                 )
-                          "
-                        />
+                          " />
                       </div>
                     </div>
                   </div>
@@ -2126,18 +2075,16 @@
                         >
                           {{ localText("公众号 AppID", "Official Account App ID") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_mp_app_id"
                           data-testid="wechat-connect-mp-app-id"
                           type="text"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             localText(
                               '公众号 AppID',
                               'Official Account App ID',
                             )
-                          "
-                        />
+                          " />
                       </div>
                       <div>
                         <label
@@ -2150,12 +2097,11 @@
                             )
                           }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_mp_app_secret"
                           data-testid="wechat-connect-mp-app-secret"
                           type="password"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             form.wechat_connect_mp_app_secret_configured
                               ? localText(
                                   '密钥已配置，留空以保留当前值。',
@@ -2165,8 +2111,7 @@
                                   '公众号 AppSecret',
                                   'Official Account App Secret',
                                 )
-                          "
-                        />
+                          " />
                       </div>
                     </div>
                   </div>
@@ -2204,18 +2149,16 @@
                         >
                           {{ localText("移动应用 AppID", "Mobile App ID") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_mobile_app_id"
                           data-testid="wechat-connect-mobile-app-id"
                           type="text"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             localText(
                               '移动应用 AppID',
                               'Mobile App ID',
                             )
-                          "
-                        />
+                          " />
                       </div>
                       <div>
                         <label
@@ -2223,12 +2166,11 @@
                         >
                           {{ localText("移动应用 AppSecret", "Mobile App Secret") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.wechat_connect_mobile_app_secret"
                           data-testid="wechat-connect-mobile-app-secret"
                           type="password"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             form.wechat_connect_mobile_app_secret_configured
                               ? localText(
                                   '密钥已配置，留空以保留当前值。',
@@ -2238,8 +2180,7 @@
                                   '移动应用 AppSecret',
                                   'Mobile App Secret',
                                 )
-                          "
-                        />
+                          " />
                       </div>
                     </div>
                   </div>
@@ -2273,13 +2214,11 @@
                         )
                       }}
                     </label>
-                    <input
+                    <Input
                       data-testid="wechat-connect-redirect-url"
                       v-model="form.wechat_connect_redirect_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="t('admin.settings.wechatConnect.redirectUrlPlaceholder')"
-                    />
+                       class="font-mono text-sm" :placeholder="t('admin.settings.wechatConnect.redirectUrlPlaceholder')" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         localText(
@@ -2314,13 +2253,11 @@
                   >
                     {{ t("admin.settings.wechatConnect.frontendRedirectUrlLabel") }}
                   </label>
-                  <input
+                  <Input
                     data-testid="wechat-connect-frontend-redirect-url"
                     v-model="form.wechat_connect_frontend_redirect_url"
                     type="text"
-                    class="input font-mono text-sm"
-                    :placeholder="t('admin.settings.wechatConnect.frontendRedirectUrlPlaceholder')"
-                  />
+                     class="font-mono text-sm" :placeholder="t('admin.settings.wechatConnect.frontendRedirectUrlPlaceholder')" />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.wechatConnect.frontendRedirectUrlHint") }}
                   </p>
@@ -2363,14 +2300,12 @@
                     >
                       {{ t("admin.settings.dingtalk.clientId") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.dingtalk_connect_client_id"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.dingtalk.clientIdPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.dingtalk.clientIdHint") }}
                     </p>
@@ -2382,18 +2317,16 @@
                     >
                       {{ t("admin.settings.dingtalk.clientSecret") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.dingtalk_connect_client_secret"
                       type="password"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         form.dingtalk_connect_client_secret_configured
                           ? t(
                               'admin.settings.dingtalk.clientSecretConfiguredPlaceholder',
                             )
                           : t('admin.settings.dingtalk.clientSecretPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         form.dingtalk_connect_client_secret_configured
@@ -2411,14 +2344,12 @@
                     >
                       {{ t("admin.settings.dingtalk.redirectUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.dingtalk_connect_redirect_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.dingtalk.redirectUrlPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.dingtalk.redirectUrlHint") }}
                     </p>
@@ -2495,23 +2426,21 @@
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncDisplayNameTarget") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_display_name_attr_key"
                           type="text"
                           placeholder="dingtalk_name"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                       <div class="flex items-center gap-2">
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncAttrDisplayName") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_display_name_attr_name"
                           type="text"
                           placeholder="钉钉姓名"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                     </div>
                     <p v-if="form.dingtalk_connect_sync_display_name" class="text-xs text-muted-foreground">
@@ -2541,23 +2470,21 @@
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncCorpEmailTarget") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_corp_email_attr_key"
                           type="text"
                           placeholder="dingtalk_email"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                       <div class="flex items-center gap-2">
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncAttrDisplayName") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_corp_email_attr_name"
                           type="text"
                           placeholder="钉钉企业邮箱"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                     </div>
                     <p v-if="form.dingtalk_connect_sync_corp_email" class="text-xs text-muted-foreground">
@@ -2587,23 +2514,21 @@
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncDeptTarget") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_dept_attr_key"
                           type="text"
                           placeholder="dingtalk_department"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                       <div class="flex items-center gap-2">
                         <label class="text-sm text-muted-foreground whitespace-nowrap min-w-[5rem]">
                           {{ t("admin.settings.dingtalk.syncAttrDisplayName") }}
                         </label>
-                        <input
+                        <Input
                           v-model="form.dingtalk_connect_sync_dept_attr_name"
                           type="text"
                           placeholder="钉钉部门"
-                          class="input text-sm flex-1 max-w-xs"
-                        />
+                           class="text-sm flex-1 max-w-xs" />
                       </div>
                     </div>
                     <p v-if="form.dingtalk_connect_sync_dept" class="text-xs text-muted-foreground">
@@ -2649,14 +2574,12 @@
                     >
                       {{ t("admin.settings.oidc.providerName") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_provider_name"
                       type="text"
-                      class="input"
-                      :placeholder="
+                       :placeholder="
                         t('admin.settings.oidc.providerNamePlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2665,14 +2588,12 @@
                     >
                       {{ t("admin.settings.oidc.clientId") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_client_id"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.clientIdPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2681,18 +2602,16 @@
                     >
                       {{ t("admin.settings.oidc.clientSecret") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_client_secret"
                       type="password"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         form.oidc_connect_client_secret_configured
                           ? t(
                               'admin.settings.oidc.clientSecretConfiguredPlaceholder',
                             )
                           : t('admin.settings.oidc.clientSecretPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{
                         form.oidc_connect_client_secret_configured
@@ -2710,14 +2629,12 @@
                     >
                       {{ t("admin.settings.oidc.issuerUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_issuer_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.issuerUrlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2726,14 +2643,12 @@
                     >
                       {{ t("admin.settings.oidc.discoveryUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_discovery_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.discoveryUrlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2742,14 +2657,12 @@
                     >
                       {{ t("admin.settings.oidc.authorizeUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_authorize_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.authorizeUrlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2758,14 +2671,12 @@
                     >
                       {{ t("admin.settings.oidc.tokenUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_token_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.tokenUrlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2774,14 +2685,12 @@
                     >
                       {{ t("admin.settings.oidc.userinfoUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_userinfo_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.userinfoUrlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2790,12 +2699,10 @@
                     >
                       {{ t("admin.settings.oidc.jwksUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_jwks_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="t('admin.settings.oidc.jwksUrlPlaceholder')"
-                    />
+                       class="font-mono text-sm" :placeholder="t('admin.settings.oidc.jwksUrlPlaceholder')" />
                   </div>
                 </div>
 
@@ -2806,12 +2713,10 @@
                     >
                       {{ t("admin.settings.oidc.scopes") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_scopes"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="t('admin.settings.oidc.scopesPlaceholder')"
-                    />
+                       class="font-mono text-sm" :placeholder="t('admin.settings.oidc.scopesPlaceholder')" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.oidc.scopesHint") }}
                     </p>
@@ -2823,14 +2728,12 @@
                     >
                       {{ t("admin.settings.oidc.redirectUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_redirect_url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.redirectUrlPlaceholder')
-                      "
-                    />
+                      " />
                     <div
                       class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
                     >
@@ -2859,14 +2762,12 @@
                     >
                       {{ t("admin.settings.oidc.frontendRedirectUrl") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_frontend_redirect_url"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.frontendRedirectUrlPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.oidc.frontendRedirectUrlHint") }}
                     </p>
@@ -2900,13 +2801,12 @@
                     >
                       {{ t("admin.settings.oidc.clockSkewSeconds") }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="form.oidc_connect_clock_skew_seconds"
                       type="number"
                       min="0"
                       max="600"
-                      class="input"
-                    />
+                       />
                   </div>
 
                   <div>
@@ -2915,14 +2815,12 @@
                     >
                       {{ t("admin.settings.oidc.allowedSigningAlgs") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_allowed_signing_algs"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.allowedSigningAlgsPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
                 </div>
 
@@ -2976,14 +2874,12 @@
                     >
                       {{ t("admin.settings.oidc.userinfoEmailPath") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_userinfo_email_path"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.userinfoEmailPathPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -2992,14 +2888,12 @@
                     >
                       {{ t("admin.settings.oidc.userinfoIdPath") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_userinfo_id_path"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.userinfoIdPathPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <div>
@@ -3008,14 +2902,12 @@
                     >
                       {{ t("admin.settings.oidc.userinfoUsernamePath") }}
                     </label>
-                    <input
+                    <Input
                       v-model="form.oidc_connect_userinfo_username_path"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.oidc.userinfoUsernamePathPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
                 </div>
               </div>
@@ -3044,14 +2936,12 @@
                   >
                     {{ t("admin.settings.defaults.defaultBalance") }}
                   </label>
-                  <input
+                  <Input
                     v-model.number="form.default_balance"
                     type="number"
                     step="0.01"
                     min="0"
-                    class="input"
-                    placeholder="0.00"
-                  />
+                     placeholder="0.00" />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.defaults.defaultBalanceHint") }}
                   </p>
@@ -3062,13 +2952,11 @@
                   >
                     {{ t("admin.settings.defaults.defaultConcurrency") }}
                   </label>
-                  <input
+                  <Input
                     v-model.number="form.default_concurrency"
                     type="number"
                     min="1"
-                    class="input"
-                    placeholder="1"
-                  />
+                     placeholder="1" />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.defaults.defaultConcurrencyHint") }}
                   </p>
@@ -3079,14 +2967,12 @@
                   >
                     {{ t("admin.settings.defaults.defaultUserRpmLimit") }}
                   </label>
-                  <input
+                  <Input
                     v-model.number="form.default_user_rpm_limit"
                     type="number"
                     min="0"
                     step="1"
-                    class="input"
-                    placeholder="0"
-                  />
+                     placeholder="0" />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.defaults.defaultUserRpmLimitHint") }}
                   </p>
@@ -3210,13 +3096,12 @@
                           t("admin.settings.defaults.subscriptionValidityDays")
                         }}
                       </label>
-                      <input
+                      <Input
                         v-model.number="item.validity_days"
                         type="number"
                         min="1"
                         max="36500"
-                        class="input h-[42px]"
-                      />
+                         class="h-[42px]" />
                     </div>
                     <div class="flex items-end">
                       <Button
@@ -3260,34 +3145,28 @@
                           <span class="font-mono text-xs text-foreground/85">{{ p }}</span>
                         </td>
                         <td class="pr-4 py-1">
-                          <input
+                          <Input
                             v-model.number="form.default_platform_quotas[p]!.daily"
                             type="number"
                             step="0.01"
                             min="0"
-                            class="input h-8 w-28 text-sm"
-                            :placeholder="t('admin.settings.platformQuota.placeholder')"
-                          />
+                             class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                         </td>
                         <td class="pr-4 py-1">
-                          <input
+                          <Input
                             v-model.number="form.default_platform_quotas[p]!.weekly"
                             type="number"
                             step="0.01"
                             min="0"
-                            class="input h-8 w-28 text-sm"
-                            :placeholder="t('admin.settings.platformQuota.placeholder')"
-                          />
+                             class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                         </td>
                         <td class="py-1">
-                          <input
+                          <Input
                             v-model.number="form.default_platform_quotas[p]!.monthly"
                             type="number"
                             step="0.01"
                             min="0"
-                            class="input h-8 w-28 text-sm"
-                            :placeholder="t('admin.settings.platformQuota.placeholder')"
-                          />
+                             class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                         </td>
                       </tr>
                     </tbody>
@@ -3361,16 +3240,14 @@
                         >
                           {{ t("admin.settings.defaults.defaultBalance") }}
                         </label>
-                        <input
+                        <Input
                           v-model.number="
                             authSourceDefaults[authSource.source].balance
                           "
                           type="number"
                           step="0.01"
                           min="0"
-                          class="input"
-                          placeholder="0.00"
-                        />
+                           placeholder="0.00" />
                       </div>
                       <div>
                         <label
@@ -3378,15 +3255,13 @@
                         >
                           {{ t("admin.settings.defaults.defaultConcurrency") }}
                         </label>
-                        <input
+                        <Input
                           v-model.number="
                             authSourceDefaults[authSource.source].concurrency
                           "
                           type="number"
                           min="1"
-                          class="input"
-                          placeholder="5"
-                        />
+                           placeholder="5" />
                       </div>
                     </div>
 
@@ -3542,13 +3417,12 @@
                               )
                             }}
                           </label>
-                          <input
+                          <Input
                             v-model.number="item.validity_days"
                             type="number"
                             min="1"
                             max="36500"
-                            class="input h-[42px]"
-                          />
+                             class="h-[42px]" />
                         </div>
                         <div class="flex items-end">
                           <Button
@@ -3593,34 +3467,28 @@
                                 <span class="font-mono text-xs text-foreground/85">{{ p }}</span>
                               </td>
                               <td class="pr-4 py-1">
-                                <input
+                                <Input
                                   v-model.number="authSourceDefaults[authSource.source].platform_quotas[p]!.daily"
                                   type="number"
                                   step="0.01"
                                   min="0"
-                                  class="input h-8 w-28 text-sm"
-                                  :placeholder="t('admin.settings.platformQuota.placeholder')"
-                                />
+                                   class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                               </td>
                               <td class="pr-4 py-1">
-                                <input
+                                <Input
                                   v-model.number="authSourceDefaults[authSource.source].platform_quotas[p]!.weekly"
                                   type="number"
                                   step="0.01"
                                   min="0"
-                                  class="input h-8 w-28 text-sm"
-                                  :placeholder="t('admin.settings.platformQuota.placeholder')"
-                                />
+                                   class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                               </td>
                               <td class="py-1">
-                                <input
+                                <Input
                                   v-model.number="authSourceDefaults[authSource.source].platform_quotas[p]!.monthly"
                                   type="number"
                                   step="0.01"
                                   min="0"
-                                  class="input h-8 w-28 text-sm"
-                                  :placeholder="t('admin.settings.platformQuota.placeholder')"
-                                />
+                                   class="h-8 w-28 text-sm" :placeholder="t('admin.settings.platformQuota.placeholder')" />
                               </td>
                             </tr>
                           </tbody>
@@ -3655,14 +3523,12 @@
                 >
                   {{ t("admin.settings.claudeCode.minVersion") }}
                 </label>
-                <input
+                <Input
                   v-model="form.min_claude_code_version"
                   type="text"
-                  class="input max-w-xs font-mono text-sm"
-                  :placeholder="
+                   class="max-w-xs font-mono text-sm" :placeholder="
                     t('admin.settings.claudeCode.minVersionPlaceholder')
-                  "
-                />
+                  " />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.claudeCode.minVersionHint") }}
                 </p>
@@ -3673,14 +3539,12 @@
                 >
                   {{ t("admin.settings.claudeCode.maxVersion") }}
                 </label>
-                <input
+                <Input
                   v-model="form.max_claude_code_version"
                   type="text"
-                  class="input max-w-xs font-mono text-sm"
-                  :placeholder="
+                   class="max-w-xs font-mono text-sm" :placeholder="
                     t('admin.settings.claudeCode.maxVersionPlaceholder')
-                  "
-                />
+                  " />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.claudeCode.maxVersionHint") }}
                 </p>
@@ -3860,16 +3724,14 @@
                     )
                   }}
                 </label>
-                <input
+                <Input
                   v-model="form.antigravity_user_agent_version"
                   type="text"
-                  class="input max-w-xs font-mono text-sm"
-                  :placeholder="
+                   class="max-w-xs font-mono text-sm" :placeholder="
                     t(
                       'admin.settings.gatewayForwarding.antigravityUserAgentVersionPlaceholder',
                     )
-                  "
-                />
+                  " />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{
                     t(
@@ -3890,16 +3752,14 @@
                     )
                   }}
                 </label>
-                <input
+                <Input
                   v-model="form.openai_codex_user_agent"
                   type="text"
-                  class="input w-full font-mono text-sm"
-                  :placeholder="
+                   class="w-full font-mono text-sm" :placeholder="
                     t(
                       'admin.settings.gatewayForwarding.openaiCodexUserAgentPlaceholder',
                     )
-                  "
-                />
+                  " />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{
                     t(
@@ -4053,11 +3913,10 @@
                         t("admin.settings.webSearchEmulation.apiKey")
                       }}</label>
                       <div class="relative">
-                        <input
+                        <Input
                           v-model="provider.api_key"
                           :type="apiKeyVisible[pIdx] ? 'text' : 'password'"
-                          class="input w-full text-sm"
-                          :class="
+                           class="w-full text-sm" :class="
                             provider.api_key || provider.api_key_configured
                               ? 'pr-16'
                               : ''
@@ -4068,8 +3927,7 @@
                               : t(
                                   'admin.settings.webSearchEmulation.apiKeyPlaceholder',
                                 )
-                          "
-                        />
+                          " />
                         <div
                           v-if="provider.api_key || provider.api_key_configured"
                           class="absolute inset-y-0 right-0 flex items-center pr-1.5"
@@ -4160,13 +4018,11 @@
                         <label class="text-xs text-muted-foreground">{{
                           t("admin.settings.webSearchEmulation.quotaLimit")
                         }}</label>
-                        <input
+                        <Input
                           v-model="provider.quota_limit"
                           type="number"
                           min="1"
-                          class="input text-sm"
-                          :placeholder="'∞'"
-                        />
+                           class="text-sm" :placeholder="'∞'" />
                         <p class="mt-0.5 text-xs text-muted-foreground">
                           {{
                             t(
@@ -4179,16 +4035,14 @@
                         <label class="text-xs text-muted-foreground">{{
                           t("admin.settings.webSearchEmulation.subscribedAt")
                         }}</label>
-                        <input
+                        <Input
                           :value="formatSubscribedAt(provider.subscribed_at)"
                           type="date"
-                          class="input text-sm"
-                          @input="
+                           class="text-sm" @input="
                             provider.subscribed_at = parseSubscribedAt(
                               ($event.target as HTMLInputElement).value,
                             )
-                          "
-                        />
+                          " />
                         <p class="mt-0.5 text-xs text-muted-foreground">
                           {{
                             t(
@@ -4289,15 +4143,13 @@
                 {{ t("admin.settings.webSearchEmulation.testResultTitle") }}
               </h3>
               <div class="flex items-center gap-2">
-                <input
+                <Input
                   v-model="wsTestQuery"
                   type="text"
-                  class="input flex-1 text-sm"
-                  :placeholder="
+                   class="flex-1 text-sm" :placeholder="
                     t('admin.settings.webSearchEmulation.testDefaultQuery')
                   "
-                  @keyup.enter="testWebSearchProvider()"
-                />
+                  @keyup.enter="testWebSearchProvider()" />
                 <Button
                   type="button"
                   size="sm"
@@ -4420,12 +4272,10 @@
                   >
                     {{ t("admin.settings.site.siteName") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.site_name"
                     type="text"
-                    class="input"
-                    :placeholder="t('admin.settings.site.siteNamePlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.site.siteNamePlaceholder')" />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.site.siteNameHint") }}
                   </p>
@@ -4436,14 +4286,12 @@
                   >
                     {{ t("admin.settings.site.siteSubtitle") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.site_subtitle"
                     type="text"
-                    class="input"
-                    :placeholder="
+                     :placeholder="
                       t('admin.settings.site.siteSubtitlePlaceholder')
-                    "
-                  />
+                    " />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ t("admin.settings.site.siteSubtitleHint") }}
                   </p>
@@ -4457,12 +4305,10 @@
                 >
                   {{ t("admin.settings.site.apiBaseUrl") }}
                 </label>
-                <input
+                <Input
                   v-model="form.api_base_url"
                   type="text"
-                  class="input font-mono text-sm"
-                  :placeholder="t('admin.settings.site.apiBaseUrlPlaceholder')"
-                />
+                   class="font-mono text-sm" :placeholder="t('admin.settings.site.apiBaseUrlPlaceholder')" />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.site.apiBaseUrlHint") }}
                 </p>
@@ -4483,14 +4329,13 @@
                     >
                       {{ t("admin.settings.site.tableDefaultPageSize") }}
                     </label>
-                    <input
+                    <Input
                       v-model.number="form.table_default_page_size"
                       type="number"
                       min="5"
                       max="1000"
                       step="1"
-                      class="input w-40"
-                    />
+                       class="w-40" />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.site.tableDefaultPageSizeHint") }}
                     </p>
@@ -4501,14 +4346,12 @@
                     >
                       {{ t("admin.settings.site.tablePageSizeOptions") }}
                     </label>
-                    <input
+                    <Input
                       v-model="tablePageSizeOptionsInput"
                       type="text"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.site.tablePageSizeOptionsPlaceholder')
-                      "
-                    />
+                      " />
                     <p class="mt-1.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.site.tablePageSizeOptionsHint") }}
                     </p>
@@ -4570,16 +4413,14 @@
                         >
                           {{ t("admin.settings.site.customEndpoints.name") }}
                         </label>
-                        <input
+                        <Input
                           v-model="ep.name"
                           type="text"
-                          class="input text-sm"
-                          :placeholder="
+                           class="text-sm" :placeholder="
                             t(
                               'admin.settings.site.customEndpoints.namePlaceholder',
                             )
-                          "
-                        />
+                          " />
                       </div>
                       <div>
                         <label
@@ -4589,16 +4430,14 @@
                             t("admin.settings.site.customEndpoints.endpointUrl")
                           }}
                         </label>
-                        <input
+                        <Input
                           v-model="ep.endpoint"
                           type="url"
-                          class="input font-mono text-sm"
-                          :placeholder="
+                           class="font-mono text-sm" :placeholder="
                             t(
                               'admin.settings.site.customEndpoints.endpointUrlPlaceholder',
                             )
-                          "
-                        />
+                          " />
                       </div>
                       <div class="sm:col-span-2">
                         <label
@@ -4610,16 +4449,14 @@
                             )
                           }}
                         </label>
-                        <input
+                        <Input
                           v-model="ep.description"
                           type="text"
-                          class="input text-sm"
-                          :placeholder="
+                           class="text-sm" :placeholder="
                             t(
                               'admin.settings.site.customEndpoints.descriptionPlaceholder',
                             )
-                          "
-                        />
+                          " />
                       </div>
                     </div>
                   </div>
@@ -4654,12 +4491,10 @@
                 >
                   {{ t("admin.settings.site.contactInfo") }}
                 </label>
-                <input
+                <Input
                   v-model="form.contact_info"
                   type="text"
-                  class="input"
-                  :placeholder="t('admin.settings.site.contactInfoPlaceholder')"
-                />
+                   :placeholder="t('admin.settings.site.contactInfoPlaceholder')" />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.site.contactInfoHint") }}
                 </p>
@@ -4672,12 +4507,10 @@
                 >
                   {{ t("admin.settings.site.docUrl") }}
                 </label>
-                <input
+                <Input
                   v-model="form.doc_url"
                   type="url"
-                  class="input font-mono text-sm"
-                  :placeholder="t('admin.settings.site.docUrlPlaceholder')"
-                />
+                   class="font-mono text-sm" :placeholder="t('admin.settings.site.docUrlPlaceholder')" />
                 <p class="mt-1.5 text-xs text-muted-foreground">
                   {{ t("admin.settings.site.docUrlHint") }}
                 </p>
@@ -4841,14 +4674,12 @@
                     >
                       {{ t("admin.settings.customMenu.name") }}
                     </label>
-                    <input
+                    <Input
                       v-model="item.label"
                       type="text"
-                      class="input text-sm"
-                      :placeholder="
+                       class="text-sm" :placeholder="
                         t('admin.settings.customMenu.namePlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <!-- Visibility -->
@@ -4875,14 +4706,12 @@
                     >
                       {{ t("admin.settings.customMenu.url") }}
                     </label>
-                    <input
+                    <Input
                       v-model="item.url"
                       type="url"
-                      class="input font-mono text-sm"
-                      :placeholder="
+                       class="font-mono text-sm" :placeholder="
                         t('admin.settings.customMenu.urlPlaceholder')
-                      "
-                    />
+                      " />
                   </div>
 
                   <!-- SVG Icon (full width) -->
@@ -5004,11 +4833,10 @@
                   <label class="mb-2 block text-sm font-medium text-foreground/85">
                     {{ localText("条款更新日期", "Updated date") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.login_agreement_updated_at"
                     type="date"
-                    class="input"
-                  />
+                     />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{ localText("日期或文档内容变化后，用户需要重新同意。", "Changing the date or content requires fresh consent.") }}
                   </p>
@@ -5089,12 +4917,10 @@
                         <label class="mb-1 block text-xs font-medium text-muted-foreground">
                           {{ localText("文档名称", "Document title") }}
                         </label>
-                        <input
+                        <Input
                           v-model="doc.title"
                           type="text"
-                          class="input text-sm"
-                          :placeholder="localText('例如：服务条款', 'Example: Terms of Service')"
-                        />
+                           class="text-sm" :placeholder="localText('例如：服务条款', 'Example: Terms of Service')" />
                       </div>
                       <div>
                         <label class="mb-1 block text-xs font-medium text-muted-foreground">
@@ -5171,13 +4997,12 @@
                 {{ t('admin.settings.features.channelMonitor.defaultInterval') }}
                 <span class="text-red-400">*</span>
               </label>
-              <input
+              <Input
                 v-model.number="form.channel_monitor_default_interval_seconds"
                 type="number"
                 min="15"
                 max="3600"
-                class="input"
-              />
+                 />
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.settings.features.channelMonitor.defaultIntervalHint') }}
               </p>
@@ -5280,15 +5105,13 @@
                   {{ t('admin.settings.features.affiliate.rebateRate') }}
                 </label>
                 <div class="relative">
-                  <input
+                  <Input
                     v-model.number="form.affiliate_rebate_rate"
                     type="number"
                     step="0.01"
                     min="0"
                     max="100"
-                    class="input pr-8"
-                    placeholder="20"
-                  />
+                     class="pr-8" placeholder="20" />
                   <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                 </div>
                 <p class="mt-1 text-xs text-muted-foreground">
@@ -5300,14 +5123,13 @@
                 <label class="input-label">
                   {{ t('admin.settings.features.affiliate.freezeHours') }}
                 </label>
-                <input
+                <Input
                   v-model.number="form.affiliate_rebate_freeze_hours"
                   type="number"
                   step="1"
                   min="0"
                   max="720"
-                  class="input"
-                />
+                   />
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t('admin.settings.features.affiliate.freezeHoursDesc') }}
                 </p>
@@ -5317,14 +5139,13 @@
                 <label class="input-label">
                   {{ t('admin.settings.features.affiliate.durationDays') }}
                 </label>
-                <input
+                <Input
                   v-model.number="form.affiliate_rebate_duration_days"
                   type="number"
                   step="1"
                   min="0"
                   max="3650"
-                  class="input"
-                />
+                   />
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t('admin.settings.features.affiliate.durationDaysDesc') }}
                 </p>
@@ -5334,13 +5155,12 @@
                 <label class="input-label">
                   {{ t('admin.settings.features.affiliate.perInviteeCap') }}
                 </label>
-                <input
+                <Input
                   v-model.number="form.affiliate_rebate_per_invitee_cap"
                   type="number"
                   step="0.01"
                   min="0"
-                  class="input"
-                />
+                   />
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t('admin.settings.features.affiliate.perInviteeCapDesc') }}
                 </p>
@@ -5367,13 +5187,11 @@
                 </div>
 
                 <div class="mb-3 flex items-center gap-2">
-                  <input
+                  <Input
                     v-model="affiliateState.search"
                     type="text"
-                    class="input flex-1"
-                    :placeholder="t('admin.settings.features.affiliate.customUsers.searchPlaceholder')"
-                    @input="onAffiliateSearchInput"
-                  />
+                     class="flex-1" :placeholder="t('admin.settings.features.affiliate.customUsers.searchPlaceholder')"
+                    @input="onAffiliateSearchInput" />
                   <Button
                     v-if="affiliateState.selected.length > 0"
                     type="button"
@@ -5515,13 +5333,11 @@
                 </div>
                 <!-- Search input + result dropdown — hidden once a selection is made -->
                 <template v-else>
-                  <input
+                  <Input
                     v-model="affiliateModal.userQuery"
                     type="text"
-                    class="input"
-                    :placeholder="t('admin.settings.features.affiliate.modal.userPlaceholder')"
-                    @input="onAffiliateUserSearchInput"
-                  />
+                     :placeholder="t('admin.settings.features.affiliate.modal.userPlaceholder')"
+                    @input="onAffiliateUserSearchInput" />
                   <div
                     v-if="affiliateModal.userResults.length > 0"
                     class="mt-1 max-h-40 overflow-y-auto rounded border border-border"
@@ -5540,23 +5356,19 @@
               </div>
               <div v-else>
                 <label class="input-label">{{ t('admin.settings.features.affiliate.modal.userLabel') }}</label>
-                <input
+                <Input
                   type="text"
-                  class="input"
-                  :value="affiliateModal.editingEntry ? affiliateModal.editingEntry.email : ''"
-                  disabled
-                />
+                   :value="affiliateModal.editingEntry ? affiliateModal.editingEntry.email : ''"
+                  disabled />
               </div>
 
               <div>
                 <label class="input-label">{{ t('admin.settings.features.affiliate.modal.codeLabel') }}</label>
-                <input
+                <Input
                   v-model="affiliateModal.code"
                   type="text"
-                  class="input font-mono"
-                  :placeholder="t('admin.settings.features.affiliate.modal.codePlaceholder')"
-                  maxlength="32"
-                />
+                   class="font-mono" :placeholder="t('admin.settings.features.affiliate.modal.codePlaceholder')"
+                  maxlength="32" />
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t('admin.settings.features.affiliate.modal.codeHint') }}
                 </p>
@@ -5565,15 +5377,13 @@
               <div>
                 <label class="input-label">{{ t('admin.settings.features.affiliate.modal.rateLabel') }}</label>
                 <div class="relative">
-                  <input
+                  <Input
                     v-model="affiliateModal.rate"
                     type="number"
                     step="0.01"
                     min="0"
                     max="100"
-                    class="input pr-8"
-                    :placeholder="t('admin.settings.features.affiliate.modal.ratePlaceholder')"
-                  />
+                     class="pr-8" :placeholder="t('admin.settings.features.affiliate.modal.ratePlaceholder')" />
                   <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
                 </div>
                 <p class="mt-1 text-xs text-muted-foreground">
@@ -5621,15 +5431,13 @@
               {{ t('admin.settings.features.affiliate.batchModal.hint') }}
             </p>
             <div class="relative">
-              <input
+              <Input
                 v-model="affiliateBatchModal.rate"
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
-                class="input pr-8"
-                :placeholder="t('admin.settings.features.affiliate.batchModal.placeholder')"
-              />
+                 class="pr-8" :placeholder="t('admin.settings.features.affiliate.batchModal.placeholder')" />
               <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
             </div>
             <p class="mt-2 text-xs text-muted-foreground">
@@ -5707,23 +5515,19 @@
                     <label class="input-label">{{
                       t("admin.settings.payment.productNamePrefix")
                     }}</label
-                    ><input
+                    ><Input
                       v-model="form.payment_product_name_prefix"
                       type="text"
-                      class="input"
-                      placeholder="subme"
-                    />
+                       placeholder="subme" />
                   </div>
                   <div>
                     <label class="input-label">{{
                       t("admin.settings.payment.productNameSuffix")
                     }}</label
-                    ><input
+                    ><Input
                       v-model="form.payment_product_name_suffix"
                       type="text"
-                      class="input"
-                      placeholder="CNY"
-                    />
+                       placeholder="CNY" />
                   </div>
                   <div>
                     <label class="input-label">{{
@@ -5746,7 +5550,7 @@
                     <label class="input-label">{{
                       t("admin.settings.payment.minAmount")
                     }}</label
-                    ><input
+                    ><Input
                       :value="form.payment_min_amount || ''"
                       @input="
                         form.payment_min_amount =
@@ -5757,15 +5561,13 @@
                       type="number"
                       step="0.01"
                       min="0"
-                      class="input"
-                      :placeholder="t('admin.settings.payment.noLimit')"
-                    />
+                       :placeholder="t('admin.settings.payment.noLimit')" />
                   </div>
                   <div>
                     <label class="input-label">{{
                       t("admin.settings.payment.maxAmount")
                     }}</label
-                    ><input
+                    ><Input
                       :value="form.payment_max_amount || ''"
                       @input="
                         form.payment_max_amount =
@@ -5776,15 +5578,13 @@
                       type="number"
                       step="0.01"
                       min="0"
-                      class="input"
-                      :placeholder="t('admin.settings.payment.noLimit')"
-                    />
+                       :placeholder="t('admin.settings.payment.noLimit')" />
                   </div>
                   <div>
                     <label class="input-label">{{
                       t("admin.settings.payment.dailyLimit")
                     }}</label
-                    ><input
+                    ><Input
                       :value="form.payment_daily_limit || ''"
                       @input="
                         form.payment_daily_limit =
@@ -5795,15 +5595,13 @@
                       type="number"
                       step="0.01"
                       min="0"
-                      class="input"
-                      :placeholder="t('admin.settings.payment.noLimit')"
-                    />
+                       :placeholder="t('admin.settings.payment.noLimit')" />
                   </div>
                   <div>
                     <label class="input-label">{{
                       t("admin.settings.payment.balanceRechargeMultiplier")
                     }}</label>
-                    <input
+                    <Input
                       :value="form.payment_balance_recharge_multiplier || ''"
                       @input="
                         form.payment_balance_recharge_multiplier =
@@ -5814,8 +5612,7 @@
                       type="number"
                       step="0.01"
                       min="0.01"
-                      class="input"
-                    />
+                       />
                     <p class="mt-0.5 text-xs text-muted-foreground">
                       {{
                         t(
@@ -5841,7 +5638,7 @@
                       t("admin.settings.payment.rechargeFeeRate")
                     }}</label>
                     <div class="relative">
-                      <input
+                      <Input
                         :value="form.payment_recharge_fee_rate ?? ''"
                         @input="
                           form.payment_recharge_fee_rate = Math.min(
@@ -5861,8 +5658,7 @@
                         step="0.01"
                         min="0"
                         max="100"
-                        class="input pr-8"
-                      />
+                         class="pr-8" />
                       <span
                         class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
                         >%</span
@@ -5888,13 +5684,11 @@
                     <label class="input-label"
                       >{{ t("admin.settings.payment.orderTimeout") }}
                       <span class="text-red-400">*</span></label
-                    ><input
+                    ><Input
                       v-model.number="form.payment_order_timeout_minutes"
                       type="number"
                       min="1"
-                      class="input"
-                      required
-                    />
+                       required />
                     <p class="mt-0.5 text-xs text-muted-foreground">
                       {{ t("admin.settings.payment.orderTimeoutHint") }}
                     </p>
@@ -5906,12 +5700,11 @@
                     <label class="input-label">{{
                       t("admin.settings.payment.maxPendingOrders")
                     }}</label
-                    ><input
+                    ><Input
                       v-model.number="form.payment_max_pending_orders"
                       type="number"
                       min="1"
-                      class="input"
-                    />
+                       />
                   </div>
                   <div>
                     <label class="input-label">{{
@@ -5967,14 +5760,12 @@
                           t("admin.settings.payment.cancelRateLimitEvery")
                         }}</span
                       >
-                      <input
+                      <Input
                         v-model.number="form.payment_cancel_rate_limit_window"
                         type="number"
                         min="1"
                         required
-                        class="input w-14 text-center"
-                        :disabled="!form.payment_cancel_rate_limit_enabled"
-                      />
+                         class="w-14 text-center" :disabled="!form.payment_cancel_rate_limit_enabled" />
                       <Select
                         v-model="form.payment_cancel_rate_limit_unit"
                         :options="cancelRateLimitUnitOptions"
@@ -5992,14 +5783,12 @@
                           t("admin.settings.payment.cancelRateLimitAllowMax")
                         }}</span
                       >
-                      <input
+                      <Input
                         v-model.number="form.payment_cancel_rate_limit_max"
                         type="number"
                         min="1"
                         required
-                        class="input w-14 text-center"
-                        :disabled="!form.payment_cancel_rate_limit_enabled"
-                      />
+                         class="w-14 text-center" :disabled="!form.payment_cancel_rate_limit_enabled" />
                       <span
                         :class="[
                           'text-sm whitespace-nowrap',
@@ -6218,12 +6007,10 @@
                   >
                     {{ t("admin.settings.smtp.host") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.smtp_host"
                     type="text"
-                    class="input"
-                    :placeholder="t('admin.settings.smtp.hostPlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.smtp.hostPlaceholder')" />
                 </div>
                 <div>
                   <label
@@ -6231,14 +6018,12 @@
                   >
                     {{ t("admin.settings.smtp.port") }}
                   </label>
-                  <input
+                  <Input
                     v-model.number="form.smtp_port"
                     type="number"
                     min="1"
                     max="65535"
-                    class="input"
-                    :placeholder="t('admin.settings.smtp.portPlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.smtp.portPlaceholder')" />
                 </div>
                 <div>
                   <label
@@ -6246,12 +6031,10 @@
                   >
                     {{ t("admin.settings.smtp.username") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.smtp_username"
                     type="text"
-                    class="input"
-                    :placeholder="t('admin.settings.smtp.usernamePlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.smtp.usernamePlaceholder')" />
                 </div>
                 <div>
                   <label
@@ -6259,11 +6042,10 @@
                   >
                     {{ t("admin.settings.smtp.password") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.smtp_password"
                     type="password"
-                    class="input"
-                    autocomplete="new-password"
+                     autocomplete="new-password"
                     autocapitalize="off"
                     spellcheck="false"
                     @keydown="smtpPasswordManuallyEdited = true"
@@ -6272,8 +6054,7 @@
                       form.smtp_password_configured
                         ? t('admin.settings.smtp.passwordConfiguredPlaceholder')
                         : t('admin.settings.smtp.passwordPlaceholder')
-                    "
-                  />
+                    " />
                   <p class="mt-1.5 text-xs text-muted-foreground">
                     {{
                       form.smtp_password_configured
@@ -6288,12 +6069,10 @@
                   >
                     {{ t("admin.settings.smtp.fromEmail") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.smtp_from_email"
                     type="email"
-                    class="input"
-                    :placeholder="t('admin.settings.smtp.fromEmailPlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.smtp.fromEmailPlaceholder')" />
                 </div>
                 <div>
                   <label
@@ -6301,12 +6080,10 @@
                   >
                     {{ t("admin.settings.smtp.fromName") }}
                   </label>
-                  <input
+                  <Input
                     v-model="form.smtp_from_name"
                     type="text"
-                    class="input"
-                    :placeholder="t('admin.settings.smtp.fromNamePlaceholder')"
-                  />
+                     :placeholder="t('admin.settings.smtp.fromNamePlaceholder')" />
                 </div>
               </div>
 
@@ -6345,14 +6122,12 @@
                   >
                     {{ t("admin.settings.testEmail.recipientEmail") }}
                   </label>
-                  <input
+                  <Input
                     v-model="testEmailAddress"
                     type="email"
-                    class="input"
-                    :placeholder="
+                     :placeholder="
                       t('admin.settings.testEmail.recipientEmailPlaceholder')
-                    "
-                  />
+                    " />
                 </div>
                 <Button
                   type="button"
@@ -6449,13 +6224,12 @@
                     class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                     >$</span
                   >
-                  <input
+                  <Input
                     v-model.number="form.balance_low_notify_threshold"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input pl-7"
-                  />
+                     class="pl-7" />
                 </div>
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t("admin.settings.balanceNotify.thresholdHint") }}
@@ -6466,12 +6240,10 @@
                   class="mb-2 block text-sm font-medium text-foreground/85"
                   >{{ t("admin.settings.balanceNotify.rechargeUrl") }}</label
                 >
-                <input
+                <Input
                   v-model="form.balance_low_notify_recharge_url"
                   type="url"
-                  class="input"
-                  :placeholder="currentOrigin"
-                />
+                   :placeholder="currentOrigin" />
                 <p class="mt-1 text-xs text-muted-foreground">
                   {{ t("admin.settings.balanceNotify.rechargeUrlHint") }}
                 </p>
@@ -6522,14 +6294,12 @@
                         class="w-9 h-5 bg-accent peer-focus:outline-none rounded-full peer dark:bg-accent peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:after:border-gray-500 peer-checked:bg-primary-600"
                       ></div>
                     </label>
-                    <input
+                    <Input
                       v-model="entry.email"
                       type="email"
-                      class="input flex-1"
-                      :placeholder="
+                       class="flex-1" :placeholder="
                         t('admin.settings.quotaNotify.emailPlaceholder')
-                      "
-                    />
+                      " />
                     <Button
                       @click="form.account_quota_notify_emails.splice(index, 1)"
                   variant="secondary" class="px-2"
@@ -6631,6 +6401,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { adminAPI } from "@/api";

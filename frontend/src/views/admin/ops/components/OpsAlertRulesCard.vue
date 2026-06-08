@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
@@ -395,9 +397,9 @@ function cancelDelete() {
       </div>
 
       <div class="flex items-center gap-2">
-        <button class="btn btn-sm btn-primary" :disabled="loading" @click="openCreate">
+        <Button variant="outline"  class="btn-sm btn-primary" :disabled="loading" @click="openCreate">
           {{ t('admin.ops.alertRules.create') }}
-        </button>
+        </Button>
         <button
           class="flex items-center gap-1.5 rounded-md bg-metal-raised border border-border px-3 py-1.5 text-xs font-bold text-foreground/85 transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
           :disabled="loading"
@@ -464,7 +466,7 @@ function cancelDelete() {
                 {{ row.enabled ? t('common.enabled') : t('common.disabled') }}
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right text-xs">
-                <button class="btn btn-sm btn-secondary" @click="openEdit(row)">{{ t('common.edit') }}</button>
+                <Button  variant="secondary" size="sm" @click="openEdit(row)">{{ t('common.edit') }}</Button>
                 <button class="ml-2 btn btn-sm btn-danger" @click="requestDelete(row)">{{ t('common.delete') }}</button>
               </td>
             </tr>
@@ -490,12 +492,12 @@ function cancelDelete() {
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div class="md:col-span-2">
             <label class="input-label">{{ t('admin.ops.alertRules.form.name') }}</label>
-            <input v-model="draft!.name" class="input" type="text" />
+            <Input v-model="draft!.name"  type="text" />
           </div>
 
           <div class="md:col-span-2">
             <label class="input-label">{{ t('admin.ops.alertRules.form.description') }}</label>
-            <input v-model="draft!.description" class="input" type="text" />
+            <Input v-model="draft!.description"  type="text" />
           </div>
 
           <div>
@@ -539,7 +541,7 @@ function cancelDelete() {
 
           <div>
             <label class="input-label">{{ t('admin.ops.alertRules.form.threshold') }}</label>
-            <input v-model.number="draft!.threshold" class="input" type="number" />
+            <Input v-model.number="draft!.threshold"  type="number" />
           </div>
 
           <div>
@@ -554,12 +556,12 @@ function cancelDelete() {
 
           <div>
             <label class="input-label">{{ t('admin.ops.alertRules.form.sustained') }}</label>
-            <input v-model.number="draft!.sustained_minutes" class="input" type="number" min="1" max="1440" />
+            <Input v-model.number="draft!.sustained_minutes"  type="number" min="1" max="1440" />
           </div>
 
           <div>
             <label class="input-label">{{ t('admin.ops.alertRules.form.cooldown') }}</label>
-            <input v-model.number="draft!.cooldown_minutes" class="input" type="number" min="0" max="1440" />
+            <Input v-model.number="draft!.cooldown_minutes"  type="number" min="0" max="1440" />
           </div>
 
           <div class="flex items-center justify-between rounded-md bg-muted px-4 py-3 md:col-span-2">
@@ -576,12 +578,12 @@ function cancelDelete() {
 
       <template #footer>
         <div class="flex items-center justify-end gap-2">
-          <button class="btn btn-secondary" :disabled="saving" @click="showEditor = false">
+          <Button  variant="secondary" :disabled="saving" @click="showEditor = false">
             {{ t('common.cancel') }}
-          </button>
-          <button class="btn btn-primary" :disabled="saving" @click="save">
+          </Button>
+          <Button  :disabled="saving" @click="save">
             {{ saving ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>

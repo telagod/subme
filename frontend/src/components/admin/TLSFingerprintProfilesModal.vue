@@ -11,10 +11,10 @@
         <p class="text-sm text-muted-foreground">
           {{ t('admin.tlsFingerprintProfiles.description') }}
         </p>
-        <button @click="showCreateModal = true" class="btn btn-primary btn-sm">
+        <Button @click="showCreateModal = true"  size="sm">
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.tlsFingerprintProfiles.createProfile') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Profiles Table -->
@@ -114,9 +114,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-secondary">
+        <Button @click="$emit('close')"  variant="secondary">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
 
@@ -140,9 +140,9 @@
             @paste="handleYamlPaste"
           />
           <div class="mt-1 flex items-center gap-2">
-            <button type="button" @click="parseYamlInput" class="btn btn-secondary btn-sm">
+            <Button type="button" @click="parseYamlInput"  variant="secondary" size="sm">
               {{ t('admin.tlsFingerprintProfiles.form.parseYaml') }}
-            </button>
+            </Button>
             <p class="text-xs text-muted-foreground">
               {{ t('admin.tlsFingerprintProfiles.form.pasteYamlHint') }}
               <a href="https://tls.sub2api.org" target="_blank" rel="noopener noreferrer" class="text-primary-200 hover:text-primary-100 underline">{{ t('admin.tlsFingerprintProfiles.form.openCollector') }}</a>
@@ -156,22 +156,18 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="input-label">{{ t('admin.tlsFingerprintProfiles.form.name') }}</label>
-            <input
+            <Input
               v-model="form.name"
               type="text"
               required
-              class="input"
-              :placeholder="t('admin.tlsFingerprintProfiles.form.namePlaceholder')"
-            />
+               :placeholder="t('admin.tlsFingerprintProfiles.form.namePlaceholder')" />
           </div>
           <div>
             <label class="input-label">{{ t('admin.tlsFingerprintProfiles.form.description') }}</label>
-            <input
+            <Input
               v-model="form.description"
               type="text"
-              class="input"
-              :placeholder="t('admin.tlsFingerprintProfiles.form.descriptionPlaceholder')"
-            />
+               :placeholder="t('admin.tlsFingerprintProfiles.form.descriptionPlaceholder')" />
           </div>
         </div>
 
@@ -301,13 +297,13 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeFormModal" type="button" class="btn btn-secondary">
+          <Button @click="closeFormModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button @click="handleSubmit" :disabled="submitting" class="btn btn-primary">
+          </Button>
+          <Button @click="handleSubmit" :disabled="submitting" >
             <Icon v-if="submitting" name="refresh" size="sm" class="mr-1 animate-spin" />
             {{ showEditModal ? t('common.update') : t('common.create') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -327,6 +323,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

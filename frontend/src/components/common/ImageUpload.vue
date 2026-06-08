@@ -52,15 +52,13 @@
           <Icon name="upload" size="sm" class="mr-1.5" :stroke-width="2" />
           {{ uploadLabel }}
         </label>
-        <button
+        <Button
           v-if="modelValue"
           type="button"
-          class="btn btn-secondary btn-sm text-red-400 hover:text-red-300"
-          @click="$emit('update:modelValue', '')"
-        >
+           variant="secondary" size="sm" @click="$emit('update:modelValue', '')">
           <Icon name="trash" size="sm" class="mr-1.5" :stroke-width="2" />
           {{ removeLabel }}
-        </button>
+        </Button>
       </div>
       <p v-if="hint" class="text-xs text-muted-foreground">{{ hint }}</p>
       <p v-if="error" class="text-xs text-red-400">{{ error }}</p>
@@ -69,6 +67,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
 import { sanitizeSvg } from '@/utils/sanitize'

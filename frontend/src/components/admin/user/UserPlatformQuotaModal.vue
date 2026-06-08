@@ -32,14 +32,12 @@
               <td class="px-3 py-2 font-mono text-foreground">{{ row.platform }}</td>
               <td class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.daily_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
-                    :placeholder="t('admin.users.platformQuota.placeholder')"
-                  />
+                     class="w-24" :placeholder="t('admin.users.platformQuota.placeholder')" />
                   <button
                     type="button"
                     class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
@@ -51,14 +49,12 @@
               </td>
               <td class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.weekly_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
-                    :placeholder="t('admin.users.platformQuota.placeholder')"
-                  />
+                     class="w-24" :placeholder="t('admin.users.platformQuota.placeholder')" />
                   <button
                     type="button"
                     class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
@@ -70,14 +66,12 @@
               </td>
               <td class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.monthly_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
-                    :placeholder="t('admin.users.platformQuota.placeholder')"
-                  />
+                     class="w-24" :placeholder="t('admin.users.platformQuota.placeholder')" />
                   <button
                     type="button"
                     class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
@@ -95,26 +89,28 @@
         </table>
         <p class="mt-3 text-xs text-muted-foreground">{{ t('admin.users.platformQuota.hint') }}</p>
         <div class="mt-3">
-          <button type="button" class="btn btn-secondary text-sm" @click="onClearAll">
+          <Button type="button"  variant="secondary" class="text-sm" @click="onClearAll">
             {{ t('admin.users.platformQuota.clearAll') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="$emit('close')">
+        <Button type="button"  variant="secondary" @click="$emit('close')">
           {{ t('admin.users.platformQuota.cancel') }}
-        </button>
-        <button type="button" class="btn btn-primary" :disabled="submitting || loading" @click="onSave">
+        </Button>
+        <Button type="button"  :disabled="submitting || loading" @click="onSave">
           {{ submitting ? t('admin.users.platformQuota.saving') : t('admin.users.platformQuota.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

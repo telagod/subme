@@ -6,10 +6,10 @@
         <p class="text-sm text-muted-foreground">
           {{ t('admin.users.attributes.description') }}
         </p>
-        <button @click="openCreateModal" class="btn btn-primary btn-sm">
+        <Button @click="openCreateModal"  size="sm">
           <Icon name="plus" size="sm" class="mr-1.5" :stroke-width="2" />
           {{ t('admin.users.attributes.addAttribute') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Loading State -->
@@ -89,9 +89,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="emit('close')" class="btn btn-secondary">
+        <Button @click="emit('close')"  variant="secondary">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -107,28 +107,24 @@
       <!-- Key -->
       <div>
         <label class="input-label">{{ t('admin.users.attributes.key') }}</label>
-        <input
+        <Input
           v-model="form.key"
           type="text"
           required
           pattern="^[a-zA-Z][a-zA-Z0-9_]*$"
-          class="input font-mono"
-          :placeholder="t('admin.users.attributes.keyHint')"
-          :disabled="!!editingAttribute"
-        />
+           class="font-mono" :placeholder="t('admin.users.attributes.keyHint')"
+          :disabled="!!editingAttribute" />
         <p class="input-hint">{{ t('admin.users.attributes.keyHint') }}</p>
       </div>
 
       <!-- Name -->
       <div>
         <label class="input-label">{{ t('admin.users.attributes.name') }}</label>
-        <input
+        <Input
           v-model="form.name"
           type="text"
           required
-          class="input"
-          :placeholder="t('admin.users.attributes.nameHint')"
-        />
+           :placeholder="t('admin.users.attributes.nameHint')" />
       </div>
 
       <!-- Type -->
@@ -144,20 +140,16 @@
       <div v-if="form.type === 'select' || form.type === 'multi_select'" class="space-y-2">
         <label class="input-label">{{ t('admin.users.attributes.options') }}</label>
         <div v-for="(option, index) in form.options" :key="getOptionKey(option)" class="flex items-center gap-2">
-          <input
+          <Input
             v-model="option.value"
             type="text"
-            class="input flex-1 font-mono text-sm"
-            :placeholder="t('admin.users.attributes.optionValue')"
-            required
-          />
-          <input
+             class="flex-1 font-mono text-sm" :placeholder="t('admin.users.attributes.optionValue')"
+            required />
+          <Input
             v-model="option.label"
             type="text"
-            class="input flex-1 text-sm"
-            :placeholder="t('admin.users.attributes.optionLabel')"
-            required
-          />
+             class="flex-1 text-sm" :placeholder="t('admin.users.attributes.optionLabel')"
+            required />
           <button
             type="button"
             @click="removeOption(index)"
@@ -166,32 +158,28 @@
             <Icon name="x" size="sm" :stroke-width="2" />
           </button>
         </div>
-        <button type="button" @click="addOption" class="btn btn-secondary btn-sm">
+        <Button type="button" @click="addOption"  variant="secondary" size="sm">
           <Icon name="plus" size="sm" class="mr-1" :stroke-width="2" />
           {{ t('admin.users.attributes.addOption') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Description -->
       <div>
         <label class="input-label">{{ t('admin.users.attributes.fieldDescription') }}</label>
-        <input
+        <Input
           v-model="form.description"
           type="text"
-          class="input"
-          :placeholder="t('admin.users.attributes.fieldDescriptionHint')"
-        />
+           :placeholder="t('admin.users.attributes.fieldDescriptionHint')" />
       </div>
 
       <!-- Placeholder -->
       <div>
         <label class="input-label">{{ t('admin.users.attributes.placeholder') }}</label>
-        <input
+        <Input
           v-model="form.placeholder"
           type="text"
-          class="input"
-          :placeholder="t('admin.users.attributes.placeholderHint')"
-        />
+           :placeholder="t('admin.users.attributes.placeholderHint')" />
       </div>
 
       <!-- Required & Enabled -->
@@ -209,16 +197,16 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="closeEditModal" type="button" class="btn btn-secondary">
+        <Button @click="closeEditModal" type="button"  variant="secondary">
           {{ t('common.cancel') }}
-        </button>
-        <button type="submit" form="attribute-form" :disabled="saving" class="btn btn-primary">
+        </Button>
+        <Button type="submit" form="attribute-form" :disabled="saving" >
           <svg v-if="saving" class="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
           {{ saving ? t('common.saving') : (editingAttribute ? t('common.update') : t('common.create')) }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -237,6 +225,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

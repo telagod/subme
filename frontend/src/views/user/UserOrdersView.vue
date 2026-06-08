@@ -6,10 +6,10 @@
         <div class="flex flex-wrap items-center gap-3">
           <Select v-model="currentFilter" :options="statusFilters" class="w-36" @change="fetchOrders" />
           <div class="flex flex-1 items-center justify-end gap-2">
-            <button @click="fetchOrders" :disabled="loading" class="btn btn-secondary" :title="t('common.refresh')">
+            <Button @click="fetchOrders" :disabled="loading"  variant="secondary" :title="t('common.refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button class="btn btn-primary" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+            </Button>
+            <Button  @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
           </div>
         </div>
       </div>
@@ -46,8 +46,8 @@
       <p class="text-sm text-foreground/85">{{ t('payment.confirmCancel') }}</p>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="btn btn-secondary" @click="cancelTargetId = null">{{ t('common.cancel') }}</button>
-          <button class="btn btn-danger" :disabled="actionLoading" @click="confirmCancel">{{ actionLoading ? t('common.processing') : t('payment.orders.cancel') }}</button>
+          <Button  variant="secondary" @click="cancelTargetId = null">{{ t('common.cancel') }}</Button>
+          <Button  variant="destructive" :disabled="actionLoading" @click="confirmCancel">{{ actionLoading ? t('common.processing') : t('payment.orders.cancel') }}</Button>
         </div>
       </template>
     </BaseDialog>
@@ -72,8 +72,8 @@
       </div>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button class="btn btn-secondary" @click="refundTarget = null">{{ t('common.cancel') }}</button>
-          <button class="btn btn-primary" :disabled="actionLoading || !refundReason.trim()" @click="confirmRefund">{{ actionLoading ? t('common.processing') : t('payment.orders.requestRefund') }}</button>
+          <Button  variant="secondary" @click="refundTarget = null">{{ t('common.cancel') }}</Button>
+          <Button  :disabled="actionLoading || !refundReason.trim()" @click="confirmRefund">{{ actionLoading ? t('common.processing') : t('payment.orders.requestRefund') }}</Button>
         </div>
       </template>
     </BaseDialog>
@@ -81,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

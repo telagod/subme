@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
@@ -544,16 +545,16 @@ const empty = computed(() => events.value.length === 0 && !loading.value)
                   class="w-[110px]"
                   @change="silenceDuration = String($event || '1h')"
                 />
-                <button type="button" class="btn btn-secondary btn-sm" :disabled="detailActionLoading" @click="silenceAlert">
+                <Button type="button"  variant="secondary" size="sm" :disabled="detailActionLoading" @click="silenceAlert">
                   <Icon name="ban" size="sm" />
                   {{ t('common.apply') }}
-                </button>
+                </Button>
               </div>
 
-              <button type="button" class="btn btn-secondary btn-sm" :disabled="detailActionLoading" @click="manualResolve">
+              <Button type="button"  variant="secondary" size="sm" :disabled="detailActionLoading" @click="manualResolve">
                 <Icon name="checkCircle" size="sm" />
                 {{ t('admin.ops.alertEvents.detail.manualResolve') }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -11,13 +11,11 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('admin.channels.searchChannels', 'Search channels...')"
-                class="input pl-10"
-                @input="handleSearch"
-              />
+                 class="pl-10" @input="handleSearch" />
             </div>
 
             <Select
@@ -31,18 +29,16 @@
 
           <!-- Right: Actions -->
           <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
+            <Button
               @click="loadChannels"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh', 'Refresh')"
-            >
+               variant="secondary" :title="t('common.refresh', 'Refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="openCreateDialog" class="btn btn-primary">
+            </Button>
+            <Button @click="openCreateDialog" >
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.channels.createChannel', 'Create Channel') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -178,13 +174,11 @@
             <!-- Name -->
             <div>
               <label class="input-label">{{ t('admin.channels.form.name', 'Name') }} <span class="text-red-400">*</span></label>
-              <input
+              <Input
                 v-model="form.name"
                 type="text"
                 required
-                class="input"
-                :placeholder="t('admin.channels.form.namePlaceholder', 'Enter channel name')"
-              />
+                 :placeholder="t('admin.channels.form.namePlaceholder', 'Enter channel name')" />
             </div>
 
             <!-- Description -->
@@ -389,23 +383,19 @@
                   :key="srcModel"
                   class="flex items-center gap-2"
                 >
-                  <input
+                  <Input
                     :value="srcModel"
                     type="text"
-                    class="input flex-1 text-xs"
-                    :class="platformTextClass(section.platform)"
+                     class="flex-1 text-xs" :class="platformTextClass(section.platform)"
                     :placeholder="t('admin.channels.form.mappingSource', 'Source model')"
-                    @change="renameMappingKey(sIdx, srcModel, ($event.target as HTMLInputElement).value)"
-                  />
+                    @change="renameMappingKey(sIdx, srcModel, ($event.target as HTMLInputElement).value)" />
                   <span class="text-muted-foreground text-xs">→</span>
-                  <input
+                  <Input
                     :value="section.model_mapping[srcModel]"
                     type="text"
-                    class="input flex-1 text-xs"
-                    :class="platformTextClass(section.platform)"
+                     class="flex-1 text-xs" :class="platformTextClass(section.platform)"
                     :placeholder="t('admin.channels.form.mappingTarget', 'Target model')"
-                    @input="section.model_mapping[srcModel] = ($event.target as HTMLInputElement).value"
-                  />
+                    @input="section.model_mapping[srcModel] = ($event.target as HTMLInputElement).value" />
                   <button
                     type="button"
                     @click="removeMappingEntry(sIdx, srcModel)"
@@ -529,14 +519,12 @@
                   </div>
                   <!-- Account search input -->
                   <div class="relative mt-1 rule-account-search-container">
-                    <input
+                    <Input
                       v-model="ruleAccountSearchKeyword[`${section.platform}-${ruleIndex}`]"
                       type="text"
-                      class="input text-sm"
-                      :placeholder="t('admin.channels.form.searchAccountPlaceholder')"
+                       class="text-sm" :placeholder="t('admin.channels.form.searchAccountPlaceholder')"
                       @input="onRuleAccountSearchInput(section.platform, ruleIndex)"
-                      @focus="onRuleAccountSearchFocus(section.platform, ruleIndex)"
-                    />
+                      @focus="onRuleAccountSearchFocus(section.platform, ruleIndex)" />
                     <!-- Search results dropdown -->
                     <div
                       v-if="showRuleAccountDropdown[`${section.platform}-${ruleIndex}`] && (ruleAccountSearchResults[`${section.platform}-${ruleIndex}`]?.length ?? 0) > 0"
@@ -590,22 +578,21 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeDialog" type="button" class="btn btn-secondary">
+          <Button @click="closeDialog" type="button"  variant="secondary">
             {{ t('common.cancel', 'Cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="channel-form"
             :disabled="submitting"
-            class="btn btn-primary"
-          >
+            >
             {{ submitting
               ? t('common.submitting', 'Submitting...')
               : editingChannel
                 ? t('common.update', 'Update')
                 : t('common.create', 'Create')
             }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -625,6 +612,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

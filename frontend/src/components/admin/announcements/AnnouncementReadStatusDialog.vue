@@ -8,17 +8,15 @@
     <div class="space-y-4">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex-1">
-          <input
+          <Input
             v-model="search"
             type="text"
-            class="input"
-            :placeholder="t('admin.announcements.searchUsers')"
-            @input="handleSearch"
-          />
+             :placeholder="t('admin.announcements.searchUsers')"
+            @input="handleSearch" />
         </div>
-        <button @click="load" :disabled="loading" class="btn btn-secondary" :title="t('common.refresh')">
+        <Button @click="load" :disabled="loading"  variant="secondary" :title="t('common.refresh')">
           <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-        </button>
+        </Button>
       </div>
 
       <DataTable
@@ -63,13 +61,15 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button type="button" class="btn btn-secondary" @click="handleClose">{{ t('common.close') }}</button>
+        <Button type="button"  variant="secondary" @click="handleClose">{{ t('common.close') }}</Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

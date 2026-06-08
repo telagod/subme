@@ -3,13 +3,11 @@
     <div class="card p-4">
       <div class="flex flex-wrap items-center gap-3">
         <div class="flex-1 sm:max-w-64">
-          <input
+          <Input
             v-model="searchQuery"
             type="text"
             :placeholder="t('payment.admin.searchOrders')"
-            class="input"
-            @input="handleSearch"
-          />
+             @input="handleSearch" />
         </div>
         <Select
           v-model="filters.status"
@@ -30,14 +28,12 @@
           @change="emitFiltersChanged"
         />
         <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-          <button
+          <Button
             @click="emit('refresh')"
             :disabled="loading"
-            class="btn btn-secondary"
-            :title="t('common.refresh')"
-          >
+             variant="secondary" :title="t('common.refresh')">
             <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -134,6 +130,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { PaymentOrder } from '@/types/payment'

@@ -5,13 +5,11 @@
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
           <div class="flex-1 sm:max-w-64">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.announcements.searchAnnouncements')"
-              class="input"
-              @input="handleSearch"
-            />
+               @input="handleSearch" />
           </div>
           <Select
             v-model="filters.status"
@@ -22,18 +20,16 @@
 
           <!-- Right: Action buttons -->
           <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-            <button
+            <Button
               @click="loadAnnouncements"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh')"
-            >
+               variant="secondary" :title="t('common.refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="openCreateDialog" class="btn btn-primary">
+            </Button>
+            <Button @click="openCreateDialog" >
               <Icon name="plus" size="md" class="mr-1" />
               {{ t('admin.announcements.createAnnouncement') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -171,7 +167,7 @@
       <form id="announcement-form" @submit.prevent="handleSave" class="space-y-4">
         <div>
           <label class="input-label">{{ t('admin.announcements.form.title') }}</label>
-          <input v-model="form.title" type="text" class="input" required />
+          <Input v-model="form.title" type="text"  required />
         </div>
 
         <div>
@@ -194,12 +190,12 @@
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label class="input-label">{{ t('admin.announcements.form.startsAt') }}</label>
-            <input v-model="form.starts_at_str" type="datetime-local" class="input" />
+            <Input v-model="form.starts_at_str" type="datetime-local"  />
             <p class="input-hint">{{ t('admin.announcements.form.startsAtHint') }}</p>
           </div>
           <div>
             <label class="input-label">{{ t('admin.announcements.form.endsAt') }}</label>
-            <input v-model="form.ends_at_str" type="datetime-local" class="input" />
+            <Input v-model="form.ends_at_str" type="datetime-local"  />
             <p class="input-hint">{{ t('admin.announcements.form.endsAtHint') }}</p>
           </div>
         </div>
@@ -212,12 +208,12 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="closeEdit" class="btn btn-secondary">
+          <Button type="button" @click="closeEdit"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="announcement-form" :disabled="saving" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="announcement-form" :disabled="saving" >
             {{ saving ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -244,6 +240,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

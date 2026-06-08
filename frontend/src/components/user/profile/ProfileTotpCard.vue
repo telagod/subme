@@ -48,13 +48,11 @@
             </p>
           </div>
         </div>
-        <button
+        <Button variant="outline"
           type="button"
-          class="btn btn-outline-danger"
-          @click="showDisableDialog = true"
-        >
+           class="btn-outline-danger" @click="showDisableDialog = true">
           {{ t('profile.totp.disable') }}
-        </button>
+        </Button>
       </div>
 
       <!-- 2FA Not Enabled -->
@@ -74,13 +72,11 @@
             </p>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          class="btn btn-primary"
-          @click="showSetupModal = true"
-        >
+           @click="showSetupModal = true">
           {{ t('profile.totp.enable') }}
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -101,6 +97,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { totpAPI } from '@/api'

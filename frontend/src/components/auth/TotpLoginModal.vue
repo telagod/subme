@@ -61,20 +61,19 @@
         </div>
 
         <!-- Cancel button only -->
-        <button
+        <Button
           type="button"
-          class="btn btn-secondary w-full"
-          :disabled="verifying"
-          @click="$emit('cancel')"
-        >
+           variant="secondary" class="w-full" :disabled="verifying"
+          @click="$emit('cancel')">
           {{ t('common.cancel') }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'

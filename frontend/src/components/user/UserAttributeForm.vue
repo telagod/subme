@@ -7,18 +7,16 @@
       </label>
 
       <!-- Text Input -->
-      <input
+      <Input
         v-if="attr.type === 'text' || attr.type === 'email' || attr.type === 'url'"
         v-model="localValues[attr.id]"
         :type="attr.type === 'text' ? 'text' : attr.type"
         :required="attr.required"
         :placeholder="attr.placeholder"
-        class="input"
-        @input="emitChange"
-      />
+         @input="emitChange" />
 
       <!-- Number Input -->
-      <input
+      <Input
         v-else-if="attr.type === 'number'"
         v-model.number="localValues[attr.id]"
         type="number"
@@ -26,19 +24,15 @@
         :placeholder="attr.placeholder"
         :min="attr.validation?.min"
         :max="attr.validation?.max"
-        class="input"
-        @input="emitChange"
-      />
+         @input="emitChange" />
 
       <!-- Date Input -->
-      <input
+      <Input
         v-else-if="attr.type === 'date'"
         v-model="localValues[attr.id]"
         type="date"
         :required="attr.required"
-        class="input"
-        @input="emitChange"
-      />
+         @input="emitChange" />
 
       <!-- Textarea -->
       <textarea
@@ -92,6 +86,7 @@
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { ref, watch, onMounted } from 'vue'
 import { adminAPI } from '@/api/admin'
 import type { UserAttributeDefinition, UserAttributeValuesMap } from '@/types'

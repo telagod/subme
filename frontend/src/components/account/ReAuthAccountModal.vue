@@ -138,16 +138,14 @@
 
     <template #footer>
       <div v-if="account" class="flex justify-between gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button"  variant="secondary" @click="handleClose">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           v-if="isManualInputMethod"
           type="button"
           :disabled="!canExchangeCode"
-          class="btn btn-primary"
-          @click="handleExchangeCode"
-        >
+           @click="handleExchangeCode">
           <svg
             v-if="currentLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -173,13 +171,14 @@
               ? t('admin.accounts.oauth.verifying')
               : t('admin.accounts.oauth.completeAuth')
           }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

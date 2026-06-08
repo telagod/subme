@@ -5,13 +5,11 @@
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
           <div class="flex-1 sm:max-w-64">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.promo.searchCodes')"
-              class="input"
-              @input="handleSearch"
-            />
+               @input="handleSearch" />
           </div>
           <Select
             v-model="filters.status"
@@ -22,18 +20,16 @@
 
           <!-- Right: Action buttons -->
           <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-            <button
+            <Button
               @click="loadCodes"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh')"
-            >
+               variant="secondary" :title="t('common.refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="showCreateDialog = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showCreateDialog = true" >
               <Icon name="plus" size="md" class="mr-1" />
               {{ t('admin.promo.createCode') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -169,46 +165,41 @@
             {{ t('admin.promo.code') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.autoGenerate') }})</span>
           </label>
-          <input
+          <Input
             v-model="createForm.code"
             type="text"
-            class="input font-mono uppercase"
-            :placeholder="t('admin.promo.codePlaceholder')"
-          />
+             class="font-mono uppercase" :placeholder="t('admin.promo.codePlaceholder')" />
         </div>
         <div>
           <label class="input-label">{{ t('admin.promo.bonusAmount') }}</label>
-          <input
+          <Input
             v-model.number="createForm.bonus_amount"
             type="number"
             step="0.01"
             min="0"
             required
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">
             {{ t('admin.promo.maxUses') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.zeroUnlimited') }})</span>
           </label>
-          <input
+          <Input
             v-model.number="createForm.max_uses"
             type="number"
             min="0"
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">
             {{ t('admin.promo.expiresAt') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
           </label>
-          <input
+          <Input
             v-model="createForm.expires_at_str"
             type="datetime-local"
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">
@@ -225,12 +216,12 @@
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="showCreateDialog = false" class="btn btn-secondary">
+          <Button type="button" @click="showCreateDialog = false"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="create-promo-form" :disabled="creating" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="create-promo-form" :disabled="creating" >
             {{ creating ? t('common.creating') : t('common.create') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -245,34 +236,31 @@
       <form id="edit-promo-form" @submit.prevent="handleUpdate" class="space-y-4">
         <div>
           <label class="input-label">{{ t('admin.promo.code') }}</label>
-          <input
+          <Input
             v-model="editForm.code"
             type="text"
-            class="input font-mono uppercase"
-          />
+             class="font-mono uppercase" />
         </div>
         <div>
           <label class="input-label">{{ t('admin.promo.bonusAmount') }}</label>
-          <input
+          <Input
             v-model.number="editForm.bonus_amount"
             type="number"
             step="0.01"
             min="0"
             required
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">
             {{ t('admin.promo.maxUses') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.zeroUnlimited') }})</span>
           </label>
-          <input
+          <Input
             v-model.number="editForm.max_uses"
             type="number"
             min="0"
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">{{ t('admin.promo.status') }}</label>
@@ -283,11 +271,10 @@
             {{ t('admin.promo.expiresAt') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
           </label>
-          <input
+          <Input
             v-model="editForm.expires_at_str"
             type="datetime-local"
-            class="input"
-          />
+             />
         </div>
         <div>
           <label class="input-label">
@@ -303,12 +290,12 @@
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="closeEditDialog" class="btn btn-secondary">
+          <Button type="button" @click="closeEditDialog"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="edit-promo-form" :disabled="updating" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="edit-promo-form" :disabled="updating" >
             {{ updating ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -364,9 +351,9 @@
       </div>
       <template #footer>
         <div class="flex justify-end">
-          <button type="button" @click="showUsagesDialog = false" class="btn btn-secondary">
+          <Button type="button" @click="showUsagesDialog = false"  variant="secondary">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -386,6 +373,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

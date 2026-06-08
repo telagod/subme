@@ -143,12 +143,10 @@
             </div>
 
             <!-- Validate Button -->
-            <button
+            <Button
               type="button"
-              class="btn btn-primary w-full"
-              :disabled="loading || !refreshTokenInput.trim()"
-              @click="handleValidateRefreshToken"
-            >
+               class="w-full" :disabled="loading || !refreshTokenInput.trim()"
+              @click="handleValidateRefreshToken">
               <svg
                 v-if="loading"
                 class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -175,7 +173,7 @@
                   ? t(getOAuthKey('validating'))
                   : t(getOAuthKey('validateAndCreate'))
               }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -222,12 +220,10 @@
               </p>
             </div>
 
-            <button
+            <Button
               type="button"
-              class="btn btn-primary w-full"
-              :disabled="loading || !codexSessionInput.trim()"
-              @click="handleImportCodexSession"
-            >
+               class="w-full" :disabled="loading || !codexSessionInput.trim()"
+              @click="handleImportCodexSession">
               <svg
                 v-if="loading"
                 class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -254,7 +250,7 @@
                   ? t('admin.accounts.oauth.openai.validating')
                   : t('admin.accounts.oauth.openai.codexSessionImportAndCreate')
               }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -354,12 +350,10 @@
             </div>
 
             <!-- Auth Button -->
-            <button
+            <Button
               type="button"
-              class="btn btn-primary w-full"
-              :disabled="loading || !sessionKeyInput.trim()"
-              @click="handleCookieAuth"
-            >
+               class="w-full" :disabled="loading || !sessionKeyInput.trim()"
+              @click="handleCookieAuth">
               <svg
                 v-if="loading"
                 class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -386,7 +380,7 @@
                   ? t('admin.accounts.oauth.authorizing')
                   : t('admin.accounts.oauth.startAutoAuth')
               }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -425,23 +419,19 @@
                       {{ t('admin.accounts.oauth.gemini.howToGetProjectId') }}
                     </a>
                   </label>
-                  <input
+                  <Input
                     v-model="projectId"
                     type="text"
-                    class="input w-full font-mono text-sm"
-                    :placeholder="t('admin.accounts.oauth.gemini.projectIdPlaceholder')"
-                  />
+                     class="w-full font-mono text-sm" :placeholder="t('admin.accounts.oauth.gemini.projectIdPlaceholder')" />
                   <p class="mt-1 text-xs text-muted-foreground">
                     {{ t('admin.accounts.oauth.gemini.projectIdHint') }}
                   </p>
                 </div>
-                <button
+                <Button
                   v-if="!authUrl"
                   type="button"
                   :disabled="loading"
-                  class="btn btn-primary text-sm"
-                  @click="handleGenerateUrl"
-                >
+                   class="text-sm" @click="handleGenerateUrl">
                   <svg
                     v-if="loading"
                     class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -464,21 +454,18 @@
                   </svg>
                   <Icon v-else name="link" size="sm" class="mr-2" />
                   {{ loading ? t('admin.accounts.oauth.generating') : oauthGenerateAuthUrl }}
-                </button>
+                </Button>
                 <div v-else class="space-y-3">
                   <div class="flex items-center gap-2">
-                    <input
+                    <Input
                       :value="authUrl"
                       readonly
                       type="text"
-                      class="input flex-1 bg-muted font-mono text-xs"
-                    />
-                    <button
+                       class="flex-1 bg-muted font-mono text-xs" />
+                    <Button
                       type="button"
-                      class="btn btn-secondary p-2"
-                      title="Copy URL"
-                      @click="handleCopyUrl"
-                    >
+                       variant="secondary" class="p-2" title="Copy URL"
+                      @click="handleCopyUrl">
                       <svg
                         v-if="!copied"
                         class="h-4 w-4"
@@ -500,7 +487,7 @@
                         class="text-emerald-400"
                         :stroke-width="2"
                       />
-                    </button>
+                    </Button>
                   </div>
                   <button
                     type="button"
@@ -629,6 +616,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClipboard } from '@/composables/useClipboard'

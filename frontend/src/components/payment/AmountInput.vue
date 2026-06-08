@@ -32,20 +32,19 @@
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
           $
         </span>
-        <input
+        <Input
           type="text"
           inputmode="decimal"
           :value="customText"
           :placeholder="placeholderText"
-          class="input w-full py-3 pl-8 pr-4"
-          @input="handleInput"
-        />
+           class="w-full py-3 pl-8 pr-4" @input="handleInput" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

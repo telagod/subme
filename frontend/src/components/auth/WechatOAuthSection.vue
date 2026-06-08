@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="buttonDisabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" :disabled="buttonDisabled"  variant="secondary" class="w-full" @click="startLogin">
       <span
         class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-metal-raised border border-border text-xs font-semibold text-primary-200 shadow-metal-edge"
       >
         W
       </span>
       {{ t('auth.oidc.signIn', { providerName }) }}
-    </button>
+    </Button>
 
     <p
       v-if="disabledHint"
@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'

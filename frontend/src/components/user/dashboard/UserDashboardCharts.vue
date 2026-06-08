@@ -7,9 +7,9 @@
           <span class="text-sm font-medium text-muted-foreground">{{ t('dashboard.timeRange') }}:</span>
           <DateRangePicker :start-date="startDate" :end-date="endDate" @update:startDate="$emit('update:startDate', $event)" @update:endDate="$emit('update:endDate', $event)" @change="$emit('dateRangeChange', $event)" />
         </div>
-        <button @click="$emit('refresh')" :disabled="loading" class="btn btn-secondary">
+        <Button @click="$emit('refresh')" :disabled="loading"  variant="secondary">
           {{ t('common.refresh') }}
-        </button>
+        </Button>
         <div class="ml-auto flex items-center gap-2">
           <span class="text-sm font-medium text-muted-foreground">{{ t('dashboard.granularity') }}:</span>
           <div class="w-28">
@@ -64,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'

@@ -19,19 +19,17 @@
           <label for="username" class="input-label">
             {{ t('profile.username') }}
           </label>
-          <input
+          <Input
             id="username"
             v-model="username"
             type="text"
-            class="input"
-            :placeholder="t('profile.enterUsername')"
-          />
+             :placeholder="t('profile.enterUsername')" />
         </div>
 
         <div class="flex justify-end pt-4">
-          <button type="submit" :disabled="loading" class="btn btn-primary">
+          <Button type="submit" :disabled="loading" >
             {{ loading ? t('profile.updating') : t('profile.updateProfile') }}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -39,6 +37,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { useI18n } from 'vue-i18n'
 import QuotaNotifyToggle from './QuotaNotifyToggle.vue'
 import type { QuotaThresholdType, QuotaResetMode } from '@/constants/account'
@@ -79,7 +80,7 @@ function getTimezoneOffsetLabel(tz: string): string {
     <div class="flex items-center gap-2">
       <div :class="['relative', quotaNotifyGlobalEnabled ? 'flex-1 min-w-0' : 'flex-1']">
         <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-        <input :value="limit" @input="onLimitInput" type="number" min="0" step="0.01" class="input pl-6 py-1.5 text-sm" :placeholder="t('admin.accounts.quotaLimitPlaceholder')" />
+        <Input :value="limit" @input="onLimitInput" type="number" min="0" step="0.01"  class="pl-6 py-1.5 text-sm" :placeholder="t('admin.accounts.quotaLimitPlaceholder')" />
       </div>
       <QuotaNotifyToggle
         v-if="quotaNotifyGlobalEnabled && limit && limit > 0"

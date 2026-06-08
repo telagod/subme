@@ -1,17 +1,18 @@
 <template>
   <div class="flex flex-wrap items-center gap-3">
     <slot name="before"></slot>
-    <button @click="$emit('refresh')" :disabled="loading" class="btn btn-secondary">
+    <Button @click="$emit('refresh')" :disabled="loading"  variant="secondary">
       <Icon name="refresh" size="md" :class="[loading ? 'animate-spin' : '']" />
-    </button>
+    </Button>
     <slot name="after"></slot>
     <slot name="beforeCreate"></slot>
-    <button @click="$emit('create')" class="btn btn-primary">{{ t('admin.accounts.createAccount') }}</button>
+    <Button @click="$emit('create')" >{{ t('admin.accounts.createAccount') }}</Button>
     <slot name="afterCreate"></slot>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 

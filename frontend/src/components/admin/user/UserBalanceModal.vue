@@ -8,8 +8,8 @@
       <div>
         <label class="input-label">{{ operation === 'add' ? t('admin.users.depositAmount') : t('admin.users.withdrawAmount') }}</label>
         <div class="relative flex gap-2">
-          <div class="relative flex-1"><div class="absolute left-3 top-1/2 -translate-y-1/2 font-medium text-muted-foreground">$</div><input v-model.number="form.amount" type="number" step="any" min="0" required class="input pl-8" /></div>
-          <button v-if="operation === 'subtract'" type="button" @click="fillAllBalance" class="btn btn-secondary whitespace-nowrap">{{ t('admin.users.withdrawAll') }}</button>
+          <div class="relative flex-1"><div class="absolute left-3 top-1/2 -translate-y-1/2 font-medium text-muted-foreground">$</div><Input v-model.number="form.amount" type="number" step="any" min="0" required  class="pl-8" /></div>
+          <Button v-if="operation === 'subtract'" type="button" @click="fillAllBalance"  variant="secondary" class="whitespace-nowrap">{{ t('admin.users.withdrawAll') }}</Button>
         </div>
       </div>
       <div><label class="input-label">{{ t('admin.users.notes') }}</label><textarea v-model="form.notes" rows="3" class="input"></textarea></div>
@@ -17,14 +17,16 @@
     </form>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" class="btn btn-secondary">{{ t('common.cancel') }}</button>
-        <button type="submit" form="balance-form" :disabled="submitting || !form.amount" class="btn" :class="operation === 'add' ? 'btn-primary' : 'btn-danger'">{{ submitting ? t('common.saving') : t('common.confirm') }}</button>
+        <Button @click="$emit('close')"  variant="secondary">{{ t('common.cancel') }}</Button>
+        <Button type="submit" form="balance-form" :disabled="submitting || !form.amount"  :class="operation === 'add' ? 'btn-primary' : 'btn-danger'">{{ submitting ? t('common.saving') : t('common.confirm') }}</Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

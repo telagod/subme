@@ -21,7 +21,7 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="mail" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="email"
               v-model="formData.email"
               type="email"
@@ -29,10 +29,8 @@
               autofocus
               autocomplete="email"
               :disabled="authActionDisabled"
-              class="input pl-11"
-              :class="{ 'input-error': errors.email }"
-              :placeholder="t('auth.emailPlaceholder')"
-            />
+               class="pl-11" :class="{ 'input-error': errors.email }"
+              :placeholder="t('auth.emailPlaceholder')" />
           </div>
         </div>
 
@@ -45,17 +43,15 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="lock" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="password"
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
               autocomplete="current-password"
               :disabled="authActionDisabled"
-              class="input pl-11 pr-11"
-              :class="{ 'input-error': errors.password }"
-              :placeholder="t('auth.passwordPlaceholder')"
-            />
+               class="pl-11 pr-11" :class="{ 'input-error': errors.password }"
+              :placeholder="t('auth.passwordPlaceholder')" />
             <button
               type="button"
               @click="showPassword = !showPassword"
@@ -90,11 +86,10 @@
         </div>
 
         <!-- Submit Button -->
-        <button
+        <Button
           type="submit"
           :disabled="authActionDisabled || (turnstileEnabled && !turnstileToken)"
-          class="btn btn-primary w-full"
-        >
+           class="w-full">
           <svg
             v-if="isLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
@@ -117,7 +112,7 @@
           </svg>
           <Icon v-else name="login" size="md" class="mr-2" />
           {{ isLoading ? t('auth.signingIn') : t('auth.signIn') }}
-        </button>
+        </Button>
 
         <LoginAgreementPrompt
           v-if="loginAgreementEnabled"
@@ -198,6 +193,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

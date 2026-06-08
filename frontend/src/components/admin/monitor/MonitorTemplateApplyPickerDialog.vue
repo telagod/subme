@@ -69,24 +69,23 @@
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <button class="btn btn-secondary" @click="$emit('close')">
+        <Button  variant="secondary" @click="$emit('close')">
           {{ t('common.cancel') }}
-        </button>
-        <button
-          class="btn btn-primary"
-          :disabled="submitting || selectedIds.length === 0"
-          @click="handleApply"
-        >
+        </Button>
+        <Button
+           :disabled="submitting || selectedIds.length === 0"
+          @click="handleApply">
           {{ submitting
             ? t('common.submitting')
             : t('admin.channelMonitor.template.applyPickerConfirm', { n: selectedIds.length }) }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

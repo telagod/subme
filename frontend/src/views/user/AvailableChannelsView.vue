@@ -10,24 +10,21 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('availableChannels.searchPlaceholder')"
-                class="input pl-10"
-              />
+                 class="pl-10" />
             </div>
           </div>
 
           <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
+            <Button
               @click="loadChannels"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh', 'Refresh')"
-            >
+               variant="secondary" :title="t('common.refresh', 'Refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -49,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'

@@ -16,14 +16,12 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="filterUserKeyword"
                 type="text"
                 :placeholder="t('admin.users.searchUsers')"
-                class="input pl-10 pr-8"
-                @input="debounceSearchFilterUsers"
-                @focus="showFilterUserDropdown = true"
-              />
+                 class="pl-10 pr-8" @input="debounceSearchFilterUsers"
+                @focus="showFilterUserDropdown = true" />
               <button
                 v-if="selectedFilterUser"
                 @click="clearFilterUser"
@@ -93,26 +91,22 @@
 
           <!-- Right: Actions -->
           <div class="ml-auto flex flex-wrap items-center justify-end gap-3">
-            <button
+            <Button
               @click="loadSubscriptions"
               :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh')"
-            >
+               variant="secondary" :title="t('common.refresh')">
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
+            </Button>
             <!-- Column Settings Dropdown -->
             <div class="relative" ref="columnDropdownRef">
-              <button
+              <Button
                 @click="showColumnDropdown = !showColumnDropdown"
-                class="btn btn-secondary px-2 md:px-3"
-                :title="t('admin.users.columnSettings')"
-              >
+                 variant="secondary" class="px-2 md:px-3" :title="t('admin.users.columnSettings')">
                 <svg class="h-4 w-4 md:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
                 <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-              </button>
+              </Button>
               <!-- Dropdown menu -->
               <div
                 v-if="showColumnDropdown"
@@ -152,17 +146,15 @@
                 </div>
               </div>
             </div>
-            <button
+            <Button
               @click="showGuideModal = true"
-              class="btn btn-secondary"
-              :title="t('admin.subscriptions.guide.showGuide')"
-            >
+               variant="secondary" :title="t('admin.subscriptions.guide.showGuide')">
               <Icon name="questionCircle" size="md" />
-            </button>
-            <button @click="showAssignModal = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showAssignModal = true" >
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.subscriptions.assignSubscription') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -446,14 +438,12 @@
         <div>
           <label class="input-label">{{ t('admin.subscriptions.form.user') }}</label>
           <div class="relative" data-assign-user-search>
-            <input
+            <Input
               v-model="userSearchKeyword"
               type="text"
-              class="input pr-8"
-              :placeholder="t('admin.usage.searchUserPlaceholder')"
+               class="pr-8" :placeholder="t('admin.usage.searchUserPlaceholder')"
               @input="debounceSearchUsers"
-              @focus="showUserDropdown = true"
-            />
+              @focus="showUserDropdown = true" />
             <button
               v-if="selectedUser"
               @click="clearUserSelection"
@@ -524,21 +514,20 @@
         </div>
         <div>
           <label class="input-label">{{ t('admin.subscriptions.form.validityDays') }}</label>
-          <input v-model.number="assignForm.validity_days" type="number" min="1" class="input" />
+          <Input v-model.number="assignForm.validity_days" type="number" min="1"  />
           <p class="input-hint">{{ t('admin.subscriptions.validityHint') }}</p>
         </div>
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeAssignModal" type="button" class="btn btn-secondary">
+          <Button @click="closeAssignModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="assign-subscription-form"
             :disabled="submitting"
-            class="btn btn-primary"
-          >
+            >
             <svg
               v-if="submitting"
               class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -560,7 +549,7 @@
               ></path>
             </svg>
             {{ submitting ? t('admin.subscriptions.assigning') : t('admin.subscriptions.assign') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -605,30 +594,27 @@
         <div>
           <label class="input-label">{{ t('admin.subscriptions.form.adjustDays') }}</label>
           <div class="flex items-center gap-2">
-            <input
+            <Input
               v-model.number="extendForm.days"
               type="number"
               required
-              class="input text-center"
-              :placeholder="t('admin.subscriptions.adjustDaysPlaceholder')"
-            />
+               class="text-center" :placeholder="t('admin.subscriptions.adjustDaysPlaceholder')" />
           </div>
           <p class="input-hint">{{ t('admin.subscriptions.adjustHint') }}</p>
         </div>
       </form>
       <template #footer>
         <div v-if="extendingSubscription" class="flex justify-end gap-3">
-          <button @click="closeExtendModal" type="button" class="btn btn-secondary">
+          <Button @click="closeExtendModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="extend-subscription-form"
             :disabled="submitting"
-            class="btn btn-primary"
-          >
+            >
             {{ submitting ? t('admin.subscriptions.adjusting') : t('admin.subscriptions.adjust') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -728,7 +714,7 @@
             </div>
 
             <div class="mt-4 text-right">
-              <button type="button" class="btn btn-primary btn-sm" @click="showGuideModal = false">{{ t('common.close') }}</button>
+              <Button type="button"  size="sm" @click="showGuideModal = false">{{ t('common.close') }}</Button>
             </div>
           </div>
         </div>
@@ -738,6 +724,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

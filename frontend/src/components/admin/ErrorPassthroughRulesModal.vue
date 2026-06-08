@@ -11,10 +11,10 @@
         <p class="text-sm text-muted-foreground">
           {{ t('admin.errorPassthrough.description') }}
         </p>
-        <button @click="showCreateModal = true" class="btn btn-primary btn-sm">
+        <Button @click="showCreateModal = true"  size="sm">
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.errorPassthrough.createRule') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Rules Table -->
@@ -202,9 +202,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-secondary">
+        <Button @click="$emit('close')"  variant="secondary">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
 
@@ -220,34 +220,29 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="input-label">{{ t('admin.errorPassthrough.form.name') }}</label>
-            <input
+            <Input
               v-model="form.name"
               type="text"
               required
-              class="input"
-              :placeholder="t('admin.errorPassthrough.form.namePlaceholder')"
-            />
+               :placeholder="t('admin.errorPassthrough.form.namePlaceholder')" />
           </div>
           <div>
             <label class="input-label">{{ t('admin.errorPassthrough.form.priority') }}</label>
-            <input
+            <Input
               v-model.number="form.priority"
               type="number"
               min="0"
-              class="input"
-            />
+               />
             <p class="input-hint">{{ t('admin.errorPassthrough.form.priorityHint') }}</p>
           </div>
         </div>
 
         <div>
           <label class="input-label">{{ t('admin.errorPassthrough.form.description') }}</label>
-          <input
+          <Input
             v-model="form.description"
             type="text"
-            class="input"
-            :placeholder="t('admin.errorPassthrough.form.descriptionPlaceholder')"
-          />
+             :placeholder="t('admin.errorPassthrough.form.descriptionPlaceholder')" />
         </div>
 
         <!-- Match Conditions -->
@@ -259,12 +254,10 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="input-label text-xs">{{ t('admin.errorPassthrough.form.errorCodes') }}</label>
-              <input
+              <Input
                 v-model="errorCodesInput"
                 type="text"
-                class="input text-sm"
-                :placeholder="t('admin.errorPassthrough.form.errorCodesPlaceholder')"
-              />
+                 class="text-sm" :placeholder="t('admin.errorPassthrough.form.errorCodesPlaceholder')" />
               <p class="input-hint text-xs">{{ t('admin.errorPassthrough.form.errorCodesHint') }}</p>
             </div>
             <div>
@@ -342,14 +335,12 @@
               </label>
               <div v-if="!form.passthrough_code" class="mt-2">
                 <label class="input-label text-xs">{{ t('admin.errorPassthrough.form.responseCode') }}</label>
-                <input
+                <Input
                   v-model.number="form.response_code"
                   type="number"
                   min="100"
                   max="599"
-                  class="input text-sm"
-                  placeholder="422"
-                />
+                   class="text-sm" placeholder="422" />
               </div>
             </div>
             <div>
@@ -365,12 +356,10 @@
               </label>
               <div v-if="!form.passthrough_body" class="mt-2">
                 <label class="input-label text-xs">{{ t('admin.errorPassthrough.form.customMessage') }}</label>
-                <input
+                <Input
                   v-model="form.custom_message"
                   type="text"
-                  class="input text-sm"
-                  :placeholder="t('admin.errorPassthrough.form.customMessagePlaceholder')"
-                />
+                   class="text-sm" :placeholder="t('admin.errorPassthrough.form.customMessagePlaceholder')" />
               </div>
             </div>
           </div>
@@ -404,13 +393,13 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeFormModal" type="button" class="btn btn-secondary">
+          <Button @click="closeFormModal" type="button"  variant="secondary">
             {{ t('common.cancel') }}
-          </button>
-          <button @click="handleSubmit" :disabled="submitting" class="btn btn-primary">
+          </Button>
+          <Button @click="handleSubmit" :disabled="submitting" >
             <Icon v-if="submitting" name="refresh" size="sm" class="mr-1 animate-spin" />
             {{ showEditModal ? t('common.update') : t('common.create') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -430,6 +419,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

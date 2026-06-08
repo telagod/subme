@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="disabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" :disabled="disabled"  variant="secondary" class="w-full" @click="startLogin">
       <span
         class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-metal-raised text-xs font-semibold text-primary-200 shadow-metal-edge"
       >
         {{ providerInitial }}
       </span>
       {{ t('auth.oidc.signIn', { providerName: normalizedProviderName }) }}
-    </button>
+    </Button>
 
     <div v-if="showDivider" class="flex items-center gap-3">
       <div class="h-px flex-1 bg-border"></div>
@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'

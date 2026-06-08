@@ -4,7 +4,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="input-label">{{ t('payment.admin.planName') }} <span class="text-red-400">*</span></label>
-          <input v-model="planForm.name" type="text" class="input" required />
+          <Input v-model="planForm.name" type="text"  required />
         </div>
         <div>
           <label class="input-label">{{ t('payment.admin.group') }} <span class="text-red-400">*</span></label>
@@ -35,15 +35,15 @@
 
       <div><label class="input-label">{{ t('payment.admin.planDescription') }} <span class="text-red-400">*</span></label><textarea v-model="planForm.description" rows="2" class="input" required></textarea></div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.price') }} <span class="text-red-400">*</span></label><input v-model.number="planForm.price" type="number" step="0.01" min="0.01" class="input" required /></div>
-        <div><label class="input-label">{{ t('payment.admin.originalPrice') }}</label><input v-model.number="planForm.original_price" type="number" step="0.01" min="0" class="input" /></div>
+        <div><label class="input-label">{{ t('payment.admin.price') }} <span class="text-red-400">*</span></label><Input v-model.number="planForm.price" type="number" step="0.01" min="0.01"  required /></div>
+        <div><label class="input-label">{{ t('payment.admin.originalPrice') }}</label><Input v-model.number="planForm.original_price" type="number" step="0.01" min="0"  /></div>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.validityDays') }} <span class="text-red-400">*</span></label><input v-model.number="planForm.validity_days" type="number" min="1" class="input" required /></div>
+        <div><label class="input-label">{{ t('payment.admin.validityDays') }} <span class="text-red-400">*</span></label><Input v-model.number="planForm.validity_days" type="number" min="1"  required /></div>
         <div><label class="input-label">{{ t('payment.admin.validityUnit') }} <span class="text-red-400">*</span></label><Select v-model="planForm.validity_unit" :options="validityUnitOptions" /></div>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.sortOrder') }}</label><input v-model.number="planForm.sort_order" type="number" min="0" class="input" /></div>
+        <div><label class="input-label">{{ t('payment.admin.sortOrder') }}</label><Input v-model.number="planForm.sort_order" type="number" min="0"  /></div>
       </div>
       <div>
         <label class="input-label">{{ t('payment.admin.features') }}</label>
@@ -69,14 +69,16 @@
     </form>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" @click="emit('close')" class="btn btn-secondary">{{ t('common.cancel') }}</button>
-        <button type="submit" form="plan-form" :disabled="saving" class="btn btn-primary">{{ saving ? t('common.saving') : t('common.save') }}</button>
+        <Button type="button" @click="emit('close')"  variant="secondary">{{ t('common.cancel') }}</Button>
+        <Button type="submit" form="plan-form" :disabled="saving" >{{ saving ? t('common.saving') : t('common.save') }}</Button>
       </div>
     </template>
   </BaseDialog>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

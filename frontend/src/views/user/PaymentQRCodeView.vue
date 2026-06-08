@@ -13,7 +13,7 @@
       </p>
       <div v-if="expired" class="text-center">
         <p class="text-lg font-medium text-red-400">{{ t('payment.qr.expired') }}</p>
-        <button class="btn btn-primary mt-4" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+        <Button  class="mt-4" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
       </div>
       <div v-else class="text-center">
         <p class="text-sm text-muted-foreground">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
@@ -25,14 +25,15 @@
         {{ t('payment.qr.openPayWindow') }}
       </a>
       <!-- Cancel button -->
-      <button v-if="!expired && orderId" class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
+      <Button v-if="!expired && orderId"  variant="secondary" class="w-full" :disabled="cancelling" @click="handleCancel">
         {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
-      </button>
+      </Button>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

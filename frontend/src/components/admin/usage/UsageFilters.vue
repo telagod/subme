@@ -7,14 +7,12 @@
         <!-- User Search -->
         <div ref="userSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
           <label class="input-label">{{ t('admin.usage.userFilter') }}</label>
-          <input
+          <Input
             v-model="userKeyword"
             type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchUserPlaceholder')"
+             class="pr-8" :placeholder="t('admin.usage.searchUserPlaceholder')"
             @input="debounceUserSearch"
-            @focus="showUserDropdown = true"
-          />
+            @focus="showUserDropdown = true" />
           <button
             v-if="filters.user_id"
             type="button"
@@ -44,14 +42,12 @@
         <!-- API Key Search -->
         <div ref="apiKeySearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
           <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
-          <input
+          <Input
             v-model="apiKeyKeyword"
             type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchApiKeyPlaceholder')"
+             class="pr-8" :placeholder="t('admin.usage.searchApiKeyPlaceholder')"
             @input="debounceApiKeySearch"
-            @focus="onApiKeyFocus"
-          />
+            @focus="onApiKeyFocus" />
           <button
             v-if="filters.api_key_id"
             type="button"
@@ -87,14 +83,12 @@
         <!-- Account Filter -->
         <div ref="accountSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[220px]">
           <label class="input-label">{{ t('admin.usage.account') }}</label>
-          <input
+          <Input
             v-model="accountKeyword"
             type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchAccountPlaceholder')"
+             class="pr-8" :placeholder="t('admin.usage.searchAccountPlaceholder')"
             @input="debounceAccountSearch"
-            @focus="showAccountDropdown = true"
-          />
+            @focus="showAccountDropdown = true" />
           <button
             v-if="filters.account_id"
             type="button"
@@ -149,25 +143,27 @@
 
       <!-- Right: actions -->
       <div v-if="showActions" class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
-        <button type="button" @click="$emit('refresh')" class="btn btn-secondary">
+        <Button type="button" @click="$emit('refresh')"  variant="secondary">
           {{ t('common.refresh') }}
-        </button>
-        <button type="button" @click="$emit('reset')" class="btn btn-secondary">
+        </Button>
+        <Button type="button" @click="$emit('reset')"  variant="secondary">
           {{ t('common.reset') }}
-        </button>
+        </Button>
         <slot name="after-reset" />
-        <button type="button" @click="$emit('cleanup')" class="btn btn-danger">
+        <Button type="button" @click="$emit('cleanup')"  variant="destructive">
           {{ t('admin.usage.cleanup.button') }}
-        </button>
-        <button type="button" @click="$emit('export')" :disabled="exporting" class="btn btn-primary">
+        </Button>
+        <Button type="button" @click="$emit('export')" :disabled="exporting" >
           {{ t('usage.exportExcel') }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref, onMounted, onUnmounted, toRef, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'

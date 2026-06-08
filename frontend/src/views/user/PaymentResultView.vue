@@ -88,8 +88,8 @@
         </div>
         <!-- Actions -->
         <div class="flex gap-3">
-          <button class="btn btn-secondary flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
-          <button class="btn btn-primary flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</button>
+          <Button  variant="secondary" class="flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
+          <Button  class="flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</Button>
         </div>
       </template>
     </div>
@@ -97,6 +97,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

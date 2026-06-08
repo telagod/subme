@@ -19,28 +19,26 @@
           <label for="old_password" class="input-label">
             {{ t('profile.currentPassword') }}
           </label>
-          <input
+          <Input
             id="old_password"
             v-model="form.old_password"
             type="password"
             required
             autocomplete="current-password"
-            class="input"
-          />
+             />
         </div>
 
         <div>
           <label for="new_password" class="input-label">
             {{ t('profile.newPassword') }}
           </label>
-          <input
+          <Input
             id="new_password"
             v-model="form.new_password"
             type="password"
             required
             autocomplete="new-password"
-            class="input"
-          />
+             />
           <p class="input-hint">
             {{ t('profile.passwordHint') }}
           </p>
@@ -50,20 +48,19 @@
           <label for="confirm_password" class="input-label">
             {{ t('profile.confirmNewPassword') }}
           </label>
-          <input
+          <Input
             id="confirm_password"
             v-model="form.confirm_password"
             type="password"
             required
             autocomplete="new-password"
-            class="input"
-          />
+             />
         </div>
 
         <div class="flex justify-end pt-4">
-          <button type="submit" :disabled="loading" class="btn btn-primary">
+          <Button type="submit" :disabled="loading" >
             {{ loading ? t('profile.changingPassword') : t('profile.changePasswordButton') }}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
@@ -71,6 +68,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

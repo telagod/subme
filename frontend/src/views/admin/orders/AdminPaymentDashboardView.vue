@@ -18,9 +18,9 @@
               {{ d }}{{ t('payment.admin.daySuffix') }}
             </button>
           </div>
-          <button @click="loadDashboard" :disabled="loading" class="btn btn-secondary" :title="t('common.refresh')">
+          <Button @click="loadDashboard" :disabled="loading"  variant="secondary" :title="t('common.refresh')">
             <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -68,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'

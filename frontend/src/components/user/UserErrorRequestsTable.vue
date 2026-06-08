@@ -32,10 +32,10 @@
             @change="apply"
           />
         </div>
-        <button class="btn btn-primary" @click="apply">
+        <Button  @click="apply">
           <Icon name="search" size="sm" />
           {{ t('common.search') }}
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -93,6 +93,7 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Pagination from '@/components/common/Pagination.vue'

@@ -37,7 +37,7 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="mail" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="email"
               v-model="formData.email"
               type="email"
@@ -45,10 +45,8 @@
               autofocus
               autocomplete="email"
               :disabled="registrationActionDisabled"
-              class="input pl-11"
-              :class="{ 'input-error': errors.email }"
-              :placeholder="t('auth.emailPlaceholder')"
-            />
+               class="pl-11" :class="{ 'input-error': errors.email }"
+              :placeholder="t('auth.emailPlaceholder')" />
           </div>
         </div>
 
@@ -61,17 +59,15 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="lock" size="md" class="text-muted-foreground" />
             </div>
-            <input
+            <Input
               id="password"
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
               autocomplete="new-password"
               :disabled="registrationActionDisabled"
-              class="input pl-11 pr-11"
-              :class="{ 'input-error': errors.password }"
-              :placeholder="t('auth.createPasswordPlaceholder')"
-            />
+               class="pl-11 pr-11" :class="{ 'input-error': errors.password }"
+              :placeholder="t('auth.createPasswordPlaceholder')" />
             <button
               type="button"
               :disabled="registrationActionDisabled"
@@ -96,19 +92,17 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="key" size="md" :class="invitationValidation.valid ? 'text-emerald-400' : 'text-gray-400 dark:text-dark-500'" />
             </div>
-            <input
+            <Input
               id="invitation_code"
               v-model="formData.invitation_code"
               type="text"
               :disabled="registrationActionDisabled"
-              class="input pl-11 pr-10"
-              :class="{
+               class="pl-11 pr-10" :class="{
                 'border-green-500 focus:border-green-500 focus:ring-green-500': invitationValidation.valid,
                 'border-red-500 focus:border-red-500 focus:ring-red-500': invitationValidation.invalid || errors.invitation_code
               }"
               :placeholder="t('auth.invitationCodePlaceholder')"
-              @input="handleInvitationCodeInput"
-            />
+              @input="handleInvitationCodeInput" />
             <!-- Validation indicator -->
             <div v-if="invitationValidating" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
               <svg class="h-4 w-4 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
@@ -144,19 +138,17 @@
             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
               <Icon name="gift" size="md" :class="promoValidation.valid ? 'text-emerald-400' : 'text-gray-400 dark:text-dark-500'" />
             </div>
-            <input
+            <Input
               id="promo_code"
               v-model="formData.promo_code"
               type="text"
               :disabled="registrationActionDisabled"
-              class="input pl-11 pr-10"
-              :class="{
+               class="pl-11 pr-10" :class="{
                 'border-green-500 focus:border-green-500 focus:ring-green-500': promoValidation.valid,
                 'border-red-500 focus:border-red-500 focus:ring-red-500': promoValidation.invalid
               }"
               :placeholder="t('auth.promoCodePlaceholder')"
-              @input="handlePromoCodeInput"
-            />
+              @input="handlePromoCodeInput" />
             <!-- Validation indicator -->
             <div v-if="promoValidating" class="absolute inset-y-0 right-0 flex items-center pr-3.5">
               <svg class="h-4 w-4 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
@@ -206,11 +198,10 @@
         />
 
         <!-- Submit Button -->
-        <button
+        <Button
           type="submit"
           :disabled="registrationActionDisabled || (turnstileEnabled && !turnstileToken)"
-          class="btn btn-primary w-full"
-        >
+           class="w-full">
           <svg
             v-if="isLoading"
             class="-ml-1 mr-2 h-4 w-4 animate-spin text-white"
@@ -239,7 +230,7 @@
                 ? t('auth.continue')
                 : t('auth.createAccount')
           }}
-        </button>
+        </Button>
 
       </form>
 
@@ -298,6 +289,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
