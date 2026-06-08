@@ -43,7 +43,7 @@
           class="pb-3"
           :style="{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start - cardScrollMargin}px)` }"
         >
-          <div class="rounded-md border border-border bg-card p-4">
+          <div :class="['rounded-md border border-border bg-card p-4', props.rowClass?.(sortedData[virtualRow.index], virtualRow.index)]">
             <div class="space-y-3">
               <div
                 v-for="column in dataColumns"
@@ -178,7 +178,10 @@
             :data-row-id="resolveRowKey(sortedData[virtualRow.index], virtualRow.index)"
             :data-index="virtualRow.index"
             :ref="measureElement"
-            class="transition-colors duration-75 hover:bg-accent/30"
+            :class="[
+              'transition-colors duration-75 hover:bg-accent/30',
+              props.rowClass?.(sortedData[virtualRow.index], virtualRow.index)
+            ]"
           >
             <td
               v-for="(column, colIndex) in columns"
@@ -406,6 +409,8 @@ interface Props {
   estimateRowHeight?: number
   /** Number of rows to render beyond the visible area (default 5) */
   overscan?: number
+  /** Per-row class function for selection highlights etc. */
+  rowClass?: (row: any, index: number) => string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -861,6 +866,11 @@ tbody .sticky-col {
 /* hover 状态保持 */
 tbody tr:hover .sticky-col {
   background-color: hsl(var(--accent) / 0.3);
+}
+
+/* 选中行 sticky 列背景 */
+tbody tr.bg-primary-900\/10 .sticky-col {
+  background-color: color-mix(in srgb, hsl(var(--card)), hsl(var(--primary)) 6%);
 }
 
 /* 阴影只在可滚动时显示 */

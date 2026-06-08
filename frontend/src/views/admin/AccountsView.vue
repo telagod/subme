@@ -197,6 +197,7 @@
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
           :estimate-row-height="72"
           :overscan="5"
+          :row-class="(row: any) => isSelected(row.id) ? 'bg-primary-900/10' : ''"
         >
           <template #header-select>
             <input

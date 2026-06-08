@@ -97,6 +97,7 @@
           default-sort-key="id"
           default-sort-order="desc"
           @sort="handleSort"
+          :row-class="(row: any) => isSelected(row.id) ? 'bg-primary-900/10' : ''"
         >
           <template #header-select>
             <input
