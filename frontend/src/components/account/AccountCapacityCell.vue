@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] font-medium font-mono tabular-nums">
-    <span :class="concurrencyClass" :title="t('admin.accounts.capacity.concurrency')">C{{ currentConcurrency }}/{{ account.concurrency }}</span>
+    <span :class="concurrencyClass" :title="`${t('admin.accounts.columns.capacity')}: ${currentConcurrency}/${account.concurrency}`">C{{ currentConcurrency }}/{{ account.concurrency }}</span>
     <template v-if="showWindowCost">
       <span class="text-muted-foreground/40">·</span>
       <span :class="windowCostClass" :title="windowCostTooltip">${{ fmtCost(currentWindowCost) }}/${{ fmtCost(account.window_cost_limit) }}</span>
@@ -15,15 +15,15 @@
     </template>
     <template v-if="showDailyQuota">
       <span class="text-muted-foreground/40">·</span>
-      <span :class="quotaClass(account.quota_daily_used, account.quota_daily_limit)" :title="t('admin.accounts.capacity.dailyQuota')">D${{ fmtCost(account.quota_daily_used) }}/${{ fmtCost(account.quota_daily_limit) }}</span>
+      <span :class="quotaClass(account.quota_daily_used, account.quota_daily_limit)" :title="`Daily: $${fmtCost(account.quota_daily_used)}/$${fmtCost(account.quota_daily_limit)}`">D${{ fmtCost(account.quota_daily_used) }}/${{ fmtCost(account.quota_daily_limit) }}</span>
     </template>
     <template v-if="showWeeklyQuota">
       <span class="text-muted-foreground/40">·</span>
-      <span :class="quotaClass(account.quota_weekly_used, account.quota_weekly_limit)" :title="t('admin.accounts.capacity.weeklyQuota')">W${{ fmtCost(account.quota_weekly_used) }}/${{ fmtCost(account.quota_weekly_limit) }}</span>
+      <span :class="quotaClass(account.quota_weekly_used, account.quota_weekly_limit)" :title="`Weekly: $${fmtCost(account.quota_weekly_used)}/$${fmtCost(account.quota_weekly_limit)}`">W${{ fmtCost(account.quota_weekly_used) }}/${{ fmtCost(account.quota_weekly_limit) }}</span>
     </template>
     <template v-if="showTotalQuota">
       <span class="text-muted-foreground/40">·</span>
-      <span :class="quotaClass(account.quota_used, account.quota_limit)" :title="t('admin.accounts.capacity.totalQuota')">${{ fmtCost(account.quota_used) }}/${{ fmtCost(account.quota_limit) }}</span>
+      <span :class="quotaClass(account.quota_used, account.quota_limit)" :title="`Total: $${fmtCost(account.quota_used)}/$${fmtCost(account.quota_limit)}`">${{ fmtCost(account.quota_used) }}/${{ fmtCost(account.quota_limit) }}</span>
     </template>
   </div>
 </template>
