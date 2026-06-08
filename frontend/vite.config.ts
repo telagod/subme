@@ -71,38 +71,13 @@ export default defineConfig(({ mode }) => {
          */
         manualChunks(id: string) {
           if (id.includes('node_modules')) {
-            // Vue 核心库
-            if (
-              id.includes('/vue/') ||
-              id.includes('/vue-router/') ||
-              id.includes('/pinia/') ||
-              id.includes('/@vue/')
-            ) {
-              return 'vendor-vue'
-            }
-
-            // shadcn-vue 底层(reka-ui)必须与 Vue 同 chunk,避免循环依赖导致白屏
-            if (id.includes('/reka-ui/') || id.includes('/@vueuse/')) {
-              return 'vendor-vue'
-            }
-
-            // 大型工具库单独分离
+            // xlsx 大且按需加载,单独分离
             if (id.includes('/xlsx/')) {
-              return 'vendor-ui'
+              return 'vendor-xlsx'
             }
-
-            // 图表库
-            if (id.includes('/chart.js/') || id.includes('/vue-chartjs/')) {
-              return 'vendor-chart'
-            }
-
-            // 国际化
-            if (id.includes('/vue-i18n/') || id.includes('/@intlify/')) {
-              return 'vendor-i18n'
-            }
-
-            // 其他小型第三方库合并
-            return 'vendor-misc'
+            // 所有其他 node_modules 合成单一 vendor chunk,
+            // 消除 chunk 间循环依赖(reka-ui/vueuse ↔ vue runtime)
+            return 'vendor'
           }
 
           // 应用代码：按入口点自动分包，不手动干预
