@@ -5,11 +5,10 @@
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
           <div class="flex-1 sm:max-w-64">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.redeem.searchCodes')"
-              class="input"
               @input="handleSearch"
             />
           </div>
@@ -28,29 +27,29 @@
 
           <!-- Right: Action buttons -->
           <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-            <button
+            <Button
+              variant="secondary"
               @click="loadCodes"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="handleExportCodes" class="btn btn-secondary">
+            </Button>
+            <Button variant="secondary" @click="handleExportCodes">
               {{ t('admin.redeem.exportCsv') }}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               data-test="batch-update-open"
               @click="openBatchUpdateDialog"
               :disabled="selectedCount === 0 || batchUpdating"
-              class="btn btn-secondary"
             >
               <Icon name="edit" size="md" class="mr-2" />
               {{ t('admin.redeem.batchUpdate') }}
-            </button>
-            <button @click="showGenerateDialog = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showGenerateDialog = true">
               {{ t('admin.redeem.generateCodes') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -220,13 +219,12 @@
             >
               {{ t('admin.redeem.clearSelection') }}
             </button>
-            <button
-              type="button"
-              class="btn btn-primary btn-sm"
+            <Button
+              size="sm"
               @click="openBatchUpdateDialog"
             >
               {{ t('admin.redeem.batchUpdate') }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -241,9 +239,9 @@
 
         <!-- Batch Actions -->
         <div v-if="filters.status === 'unused'" class="flex justify-end">
-          <button @click="showDeleteUnusedDialog = true" class="btn btn-danger">
+          <Button variant="destructive" @click="showDeleteUnusedDialog = true">
             {{ t('admin.redeem.deleteAllUnused') }}
-          </button>
+          </Button>
         </div>
       </template>
     </TablePageLayout>
@@ -296,13 +294,12 @@
                     : t('admin.redeem.columns.value')
                 }}
               </label>
-              <input
-                v-model.number="generateForm.value"
+              <Input
+                v-model="generateForm.value"
                 type="number"
                 :step="generateForm.type === 'balance' ? '0.01' : '1'"
                 :min="generateForm.type === 'balance' ? '0.01' : '1'"
                 required
-                class="input"
               />
             </div>
             <!-- 邀请码类型：显示提示信息 -->
@@ -346,13 +343,12 @@
               </div>
               <div>
                 <label class="input-label">{{ t('admin.redeem.validityDays') }}</label>
-                <input
-                  v-model.number="generateForm.validity_days"
+                <Input
+                  v-model="generateForm.validity_days"
                   type="number"
                   min="1"
                   max="365"
                   required
-                  class="input"
                 />
               </div>
             </template>
@@ -374,35 +370,34 @@
                   {{ option.label }}
                 </button>
               </div>
-              <input
+              <Input
                 v-if="generateForm.expiry_option === 'custom'"
-                v-model.number="generateForm.custom_expiry_days"
+                v-model="generateForm.custom_expiry_days"
                 type="number"
                 min="1"
                 max="3650"
                 required
-                class="input mt-2"
+                class="mt-2"
                 :placeholder="t('admin.redeem.customExpiryDays')"
               />
             </div>
             <div>
               <label class="input-label">{{ t('admin.redeem.count') }}</label>
-              <input
-                v-model.number="generateForm.count"
+              <Input
+                v-model="generateForm.count"
                 type="number"
                 min="1"
                 max="100"
                 required
-                class="input"
               />
             </div>
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="showGenerateDialog = false" class="btn btn-secondary">
+              <Button type="button" variant="secondary" @click="showGenerateDialog = false">
                 {{ t('common.cancel') }}
-              </button>
-              <button type="submit" :disabled="generating" class="btn btn-primary">
+              </Button>
+              <Button type="submit" :disabled="generating">
                 {{ generating ? t('admin.redeem.generating') : t('admin.redeem.generate') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -456,11 +451,10 @@
               </label>
               <template v-if="batchUpdateForm.update_expires_at">
                 <Select v-model="batchUpdateForm.expires_mode" :options="batchExpiryModeOptions" />
-                <input
+                <Input
                   v-if="batchUpdateForm.expires_mode === 'custom'"
                   v-model="batchUpdateForm.expires_at_local"
                   type="datetime-local"
-                  class="input"
                 />
               </template>
             </div>
@@ -503,17 +497,16 @@
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="closeBatchUpdateDialog" class="btn btn-secondary">
+              <Button type="button" variant="secondary" @click="closeBatchUpdateDialog">
                 {{ t('common.cancel') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 data-test="batch-update-submit"
                 type="submit"
                 :disabled="batchUpdating"
-                class="btn btn-primary"
               >
                 {{ batchUpdating ? t('common.submitting') : t('admin.redeem.batchUpdate') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -578,12 +571,10 @@
           <div
             class="flex justify-end gap-2 rounded-b-lg border-t border-border bg-muted px-5 py-4"
           >
-            <button
+            <Button
+              :variant="copiedAll ? 'default' : 'secondary'"
+              class="flex items-center gap-2 transition-all"
               @click="copyGeneratedCodes"
-              :class="[
-                'btn flex items-center gap-2 transition-all',
-                copiedAll ? 'btn-success' : 'btn-secondary'
-              ]"
             >
               <Icon v-if="!copiedAll" name="copy" size="sm" :stroke-width="2" />
               <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -595,11 +586,11 @@
                 />
               </svg>
               {{ copiedAll ? t('admin.redeem.copied') : t('admin.redeem.copyAll') }}
-            </button>
-            <button @click="downloadGeneratedCodes" class="btn btn-primary flex items-center gap-2">
+            </Button>
+            <Button class="flex items-center gap-2" @click="downloadGeneratedCodes">
               <Icon name="download" size="sm" :stroke-width="2" />
               {{ t('admin.redeem.download') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -634,6 +625,8 @@ import Select from '@/components/common/Select.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 const { t } = useI18n()
 const appStore = useAppStore()

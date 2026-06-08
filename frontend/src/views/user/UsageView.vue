@@ -4,106 +4,114 @@
       <template #actions>
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- Total Requests -->
-          <div class="card p-4">
-          <div class="flex items-center gap-3">
-            <div class="rounded-lg bg-sky-500/10 p-2">
-              <Icon name="document" size="md" class="text-sky-400" />
-            </div>
-            <div>
-              <p class="text-xs font-medium text-muted-foreground">
-                {{ t('usage.totalRequests') }}
-              </p>
-              <p class="text-xl font-bold text-foreground dark:text-white">
-                {{ usageStats?.total_requests?.toLocaleString() || '0' }}
-              </p>
-              <p class="text-xs text-muted-foreground">
-                {{ t('usage.inSelectedRange') }}
-              </p>
-            </div>
-          </div>
-        </div>
+          <Card>
+            <CardContent class="p-4">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg bg-sky-500/10 p-2">
+                  <Icon name="document" size="md" class="text-sky-400" />
+                </div>
+                <div>
+                  <p class="text-xs font-medium text-muted-foreground">
+                    {{ t('usage.totalRequests') }}
+                  </p>
+                  <p class="text-xl font-bold text-foreground dark:text-white">
+                    {{ usageStats?.total_requests?.toLocaleString() || '0' }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('usage.inSelectedRange') }}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
         <!-- Total Tokens -->
-        <div class="card p-4">
-          <div class="flex items-center gap-3">
-            <div class="rounded-lg bg-amber-500/10 p-2">
-              <Icon name="cube" size="md" class="text-amber-400" />
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-medium text-muted-foreground">
-                {{ t('usage.totalTokens') }}
-              </p>
-              <p class="text-xl font-bold text-foreground dark:text-white">
-                {{ formatTokens(usageStats?.total_tokens || 0) }}
-              </p>
-              <p class="text-xs text-muted-foreground">
-                <span>{{ t('usage.in') }} {{ formatTokens(usageStats?.total_input_tokens || 0) }}</span>
-                <span> · </span>
-                <span>{{ t('usage.out') }} {{ formatTokens(usageStats?.total_output_tokens || 0) }}</span>
-                <span> · </span>
-                <span class="text-sky-600 dark:text-sky-400">{{ t('usage.cacheHit') }} {{ formatTokens(usageStats?.total_cache_read_tokens || 0) }}</span>
-                <span> · </span>
-                <span class="text-amber-400">{{ t('usage.cacheCreate') }} {{ formatTokens(usageStats?.total_cache_creation_tokens || 0) }}</span>
-              </p>
-              <p class="text-xs text-muted-foreground">
-                {{ t('usage.cacheHitRate') }}:
-                <template v-if="cacheStats.totalInput > 0">
-                  <span class="text-sky-600 dark:text-sky-400">{{ formatTokens(cacheStats.cacheRead) }}</span>
-                  <span class="text-muted-foreground">/</span>
-                  <span class="text-foreground/75">{{ formatTokens(cacheStats.totalInput) }}</span>
-                  <span class="ml-1">{{ cacheStats.ratePercent }}</span>
-                </template>
-                <template v-else>-</template>
-              </p>
-            </div>
-          </div>
-        </div>
+          <Card>
+            <CardContent class="p-4">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg bg-amber-500/10 p-2">
+                  <Icon name="cube" size="md" class="text-amber-400" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-medium text-muted-foreground">
+                    {{ t('usage.totalTokens') }}
+                  </p>
+                  <p class="text-xl font-bold text-foreground dark:text-white">
+                    {{ formatTokens(usageStats?.total_tokens || 0) }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    <span>{{ t('usage.in') }} {{ formatTokens(usageStats?.total_input_tokens || 0) }}</span>
+                    <span> · </span>
+                    <span>{{ t('usage.out') }} {{ formatTokens(usageStats?.total_output_tokens || 0) }}</span>
+                    <span> · </span>
+                    <span class="text-sky-600 dark:text-sky-400">{{ t('usage.cacheHit') }} {{ formatTokens(usageStats?.total_cache_read_tokens || 0) }}</span>
+                    <span> · </span>
+                    <span class="text-amber-400">{{ t('usage.cacheCreate') }} {{ formatTokens(usageStats?.total_cache_creation_tokens || 0) }}</span>
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('usage.cacheHitRate') }}:
+                    <template v-if="cacheStats.totalInput > 0">
+                      <span class="text-sky-600 dark:text-sky-400">{{ formatTokens(cacheStats.cacheRead) }}</span>
+                      <span class="text-muted-foreground">/</span>
+                      <span class="text-foreground/75">{{ formatTokens(cacheStats.totalInput) }}</span>
+                      <span class="ml-1">{{ cacheStats.ratePercent }}</span>
+                    </template>
+                    <template v-else>-</template>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
         <!-- Total Cost -->
-        <div class="card p-4">
-          <div class="flex items-center gap-3">
-            <div class="rounded-lg bg-emerald-500/10 p-2">
-              <Icon name="dollar" size="md" class="text-emerald-400" />
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-medium text-muted-foreground">
-                {{ t('usage.totalCost') }}
-              </p>
-              <p class="text-xl font-bold text-emerald-400">
-                ${{ (usageStats?.total_actual_cost || 0).toFixed(4) }}
-              </p>
-              <p class="text-xs text-muted-foreground">
-                {{ t('usage.actualCost') }} /
-                <span class="line-through">${{ (usageStats?.total_cost || 0).toFixed(4) }}</span>
-                {{ t('usage.standardCost') }}
-              </p>
-            </div>
-          </div>
-        </div>
+          <Card>
+            <CardContent class="p-4">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg bg-emerald-500/10 p-2">
+                  <Icon name="dollar" size="md" class="text-emerald-400" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-medium text-muted-foreground">
+                    {{ t('usage.totalCost') }}
+                  </p>
+                  <p class="text-xl font-bold text-emerald-400">
+                    ${{ (usageStats?.total_actual_cost || 0).toFixed(4) }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ t('usage.actualCost') }} /
+                    <span class="line-through">${{ (usageStats?.total_cost || 0).toFixed(4) }}</span>
+                    {{ t('usage.standardCost') }}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
         <!-- Average Duration -->
-        <div class="card p-4">
-          <div class="flex items-center gap-3">
-            <div class="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30">
-              <Icon name="clock" size="md" class="text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <p class="text-xs font-medium text-muted-foreground">
-                {{ t('usage.avgDuration') }}
-              </p>
-              <p class="text-xl font-bold text-foreground dark:text-white">
-                {{ formatDuration(usageStats?.average_duration_ms || 0) }}
-              </p>
-              <p class="text-xs text-muted-foreground">{{ t('usage.perRequest') }}</p>
-            </div>
-          </div>
-        </div>
+          <Card>
+            <CardContent class="p-4">
+              <div class="flex items-center gap-3">
+                <div class="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/30">
+                  <Icon name="clock" size="md" class="text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p class="text-xs font-medium text-muted-foreground">
+                    {{ t('usage.avgDuration') }}
+                  </p>
+                  <p class="text-xl font-bold text-foreground dark:text-white">
+                    {{ formatDuration(usageStats?.average_duration_ms || 0) }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">{{ t('usage.perRequest') }}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </template>
 
       <template #filters>
-        <div class="card">
-          <div class="px-6 py-4">
+        <Card>
+          <CardContent class="px-6 py-4">
           <div class="flex flex-wrap items-end gap-4">
             <!-- API Key Filter -->
             <div class="min-w-[180px]">
@@ -128,13 +136,13 @@
 
             <!-- Actions -->
             <div class="ml-auto flex items-center gap-3">
-              <button @click="applyFilters" :disabled="loading" class="btn btn-secondary">
+              <Button variant="secondary" @click="applyFilters" :disabled="loading">
                 {{ t('common.refresh') }}
-              </button>
-              <button @click="resetFilters" class="btn btn-secondary">
+              </Button>
+              <Button variant="secondary" @click="resetFilters">
                 {{ t('common.reset') }}
-              </button>
-              <button @click="exportToCSV" :disabled="exporting" class="btn btn-primary">
+              </Button>
+              <Button @click="exportToCSV" :disabled="exporting">
                 <svg
                   v-if="exporting"
                   class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -156,11 +164,11 @@
                   ></path>
                 </svg>
                 {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-        </div>
+        </CardContent>
+        </Card>
       </template>
 
       <template #table>
@@ -620,6 +628,8 @@ import Select from '@/components/common/Select.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Icon from '@/components/icons/Icon.vue'
 import UserErrorRequestsTable from '@/components/user/UserErrorRequestsTable.vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import type { UsageLog, ApiKey, UsageQueryParams, UsageStatsResponse, UserErrorRequest } from '@/types'
 import type { Column } from '@/components/common/types'
 import { formatDateTime, formatReasoningEffort } from '@/utils/format'
