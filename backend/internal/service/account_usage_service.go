@@ -14,6 +14,7 @@ import (
 	"time"
 
 	httppool "github.com/Wei-Shaw/sub2api/internal/pkg/httpclient"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/syncmapreaper"
 	openaipkg "github.com/Wei-Shaw/sub2api/internal/pkg/openai"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/timezone"
@@ -84,11 +85,18 @@ type accountWindowStatsBatchReader interface {
 }
 
 // apiUsageCache 缓存从 Anthropic API 获取的使用率数据（utilization, resets_at）
-// 同时支持缓存错误响应（负缓存），防止 429 等错误导致的重试风暴
 type apiUsageCache struct {
 	response  *ClaudeUsageResponse
-	err       error // 非 nil 表示缓存的错误（负缓存）
+	err       error
 	timestamp time.Time
+}
+
+func (c *apiUsageCache) ExpiredAt(now time.Time) bool {
+	ttl := apiCacheTTL
+	if c.err != nil {
+		ttl = apiErrorCacheTTL
+	}
+	return now.Sub(c.timestamp) > ttl*2
 }
 
 // windowStatsCache 缓存从本地数据库查询的窗口统计（requests, tokens, cost）
@@ -97,10 +105,18 @@ type windowStatsCache struct {
 	timestamp time.Time
 }
 
+func (c *windowStatsCache) ExpiredAt(now time.Time) bool {
+	return now.Sub(c.timestamp) > windowStatsCacheTTL*2
+}
+
 // antigravityUsageCache 缓存 Antigravity 额度数据
 type antigravityUsageCache struct {
 	usageInfo *UsageInfo
 	timestamp time.Time
+}
+
+func (c *antigravityUsageCache) ExpiredAt(now time.Time) bool {
+	return now.Sub(c.timestamp) > apiCacheTTL*2
 }
 
 const (
@@ -123,9 +139,17 @@ type UsageCache struct {
 	openAIProbeCache  sync.Map           // accountID -> time.Time
 }
 
-// NewUsageCache 创建 UsageCache 实例
+// NewUsageCache 创建 UsageCache 实例，启动后台缓存清扫
 func NewUsageCache() *UsageCache {
-	return &UsageCache{}
+	c := &UsageCache{}
+	// 后台定期清扫过期 entry，防止 sync.Map 无限增长
+	// 使用 nil stop channel — reaper 随进程退出
+	never := make(chan struct{})
+	syncmapreaper.StartReaper(&c.apiCache, 5*time.Minute, never)
+	syncmapreaper.StartReaper(&c.windowStatsCache, 2*time.Minute, never)
+	syncmapreaper.StartReaper(&c.antigravityCache, 5*time.Minute, never)
+	syncmapreaper.StartTimeReaper(&c.openAIProbeCache, openAIProbeCacheTTL*2, 10*time.Minute, never)
+	return c
 }
 
 // WindowStats 窗口期统计
