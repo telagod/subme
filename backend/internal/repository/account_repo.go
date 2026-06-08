@@ -155,6 +155,92 @@ func (r *accountRepository) Create(ctx context.Context, account *service.Account
 	return nil
 }
 
+func (r *accountRepository) BulkCreate(ctx context.Context, accounts []*service.Account, groupIDsPerAccount [][]int64) error {
+	if len(accounts) == 0 {
+		return nil
+	}
+	builders := make([]*dbent.AccountCreate, 0, len(accounts))
+	for _, account := range accounts {
+		encCredentials, encErr := r.cipher.EncryptMap(normalizeJSONMap(account.Credentials))
+		if encErr != nil {
+			return encErr
+		}
+		b := r.client.Account.Create().
+			SetName(account.Name).
+			SetNillableNotes(account.Notes).
+			SetPlatform(account.Platform).
+			SetType(account.Type).
+			SetCredentials(encCredentials).
+			SetExtra(normalizeJSONMap(account.Extra)).
+			SetConcurrency(account.Concurrency).
+			SetPriority(account.Priority).
+			SetStatus(account.Status).
+			SetSchedulable(account.Schedulable).
+			SetAutoPauseOnExpired(account.AutoPauseOnExpired)
+		if account.RateMultiplier != nil {
+			b.SetRateMultiplier(*account.RateMultiplier)
+		}
+		if account.LoadFactor != nil {
+			b.SetLoadFactor(*account.LoadFactor)
+		}
+		if account.ProxyID != nil {
+			b.SetProxyID(*account.ProxyID)
+		}
+		if account.ExpiresAt != nil {
+			b.SetExpiresAt(*account.ExpiresAt)
+		}
+		builders = append(builders, b)
+	}
+
+	created, err := r.client.Account.CreateBulk(builders...).Save(ctx)
+	if err != nil {
+		return translatePersistenceError(err, service.ErrAccountNotFound, nil)
+	}
+
+	for i, ent := range created {
+		accounts[i].ID = ent.ID
+		accounts[i].CreatedAt = ent.CreatedAt
+		accounts[i].UpdatedAt = ent.UpdatedAt
+	}
+
+	// Bulk group bindings
+	var groupBuilders []*dbent.AccountGroupCreate
+	for i, groupIDs := range groupIDsPerAccount {
+		for pri, gid := range groupIDs {
+			groupBuilders = append(groupBuilders, r.client.AccountGroup.Create().
+				SetAccountID(accounts[i].ID).
+				SetGroupID(gid).
+				SetPriority(pri+1))
+		}
+	}
+	if len(groupBuilders) > 0 {
+		if _, err := r.client.AccountGroup.CreateBulk(groupBuilders...).Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Single bulk outbox event
+	ids := make([]int64, len(accounts))
+	allGroupIDs := make(map[int64]struct{})
+	for i, acc := range accounts {
+		ids[i] = acc.ID
+		for _, gids := range groupIDsPerAccount {
+			for _, gid := range gids {
+				allGroupIDs[gid] = struct{}{}
+			}
+		}
+	}
+	gidSlice := make([]int64, 0, len(allGroupIDs))
+	for gid := range allGroupIDs {
+		gidSlice = append(gidSlice, gid)
+	}
+	payload := map[string]any{"account_ids": ids, "group_ids": gidSlice}
+	if err := enqueueSchedulerOutbox(ctx, r.sql, service.SchedulerOutboxEventAccountBulkChanged, nil, nil, payload); err != nil {
+		logger.LegacyPrintf("repository.account", "[SchedulerOutbox] enqueue bulk create failed: count=%d err=%v", len(accounts), err)
+	}
+	return nil
+}
+
 func (r *accountRepository) GetByID(ctx context.Context, id int64) (*service.Account, error) {
 	m, err := r.client.Account.Query().Where(dbaccount.IDEQ(id)).Only(ctx)
 	if err != nil {

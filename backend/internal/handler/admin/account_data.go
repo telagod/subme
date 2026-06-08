@@ -370,18 +370,16 @@ func (h *AccountHandler) importData(ctx context.Context, req DataImportRequest) 
 		}
 	}
 
-	// 收集需要异步设置隐私的 Antigravity OAuth 账号
-	var privacyAccounts []*service.Account
+	// Phase 1: 验证全部 + 构建批量输入（纯 CPU，零 DB）
+	var validAccounts []*service.Account
+	var groupIDsPerAccount [][]int64
+	defaultGroupCache := make(map[string][]int64)
 
 	for i := range dataPayload.Accounts {
 		item := dataPayload.Accounts[i]
 		if err := validateDataAccount(item); err != nil {
 			result.AccountFailed++
-			result.Errors = append(result.Errors, DataImportError{
-				Kind:    "account",
-				Name:    item.Name,
-				Message: err.Error(),
-			})
+			result.Errors = append(result.Errors, DataImportError{Kind: "account", Name: item.Name, Message: err.Error()})
 			continue
 		}
 
@@ -391,50 +389,79 @@ func (h *AccountHandler) importData(ctx context.Context, req DataImportRequest) 
 				proxyID = &id
 			} else {
 				result.AccountFailed++
-				result.Errors = append(result.Errors, DataImportError{
-					Kind:     "account",
-					Name:     item.Name,
-					ProxyKey: *item.ProxyKey,
-					Message:  "proxy_key not found",
-				})
+				result.Errors = append(result.Errors, DataImportError{Kind: "account", Name: item.Name, ProxyKey: *item.ProxyKey, Message: "proxy_key not found"})
 				continue
 			}
 		}
 
 		enrichCredentialsFromIDToken(&item)
 
-		accountInput := &service.CreateAccountInput{
-			Name:                 item.Name,
-			Notes:                item.Notes,
-			Platform:             item.Platform,
-			Type:                 item.Type,
-			Credentials:          item.Credentials,
-			Extra:                item.Extra,
-			ProxyID:              proxyID,
-			Concurrency:          item.Concurrency,
-			Priority:             item.Priority,
-			RateMultiplier:       item.RateMultiplier,
-			GroupIDs:             nil,
-			ExpiresAt:            item.ExpiresAt,
-			AutoPauseOnExpired:   item.AutoPauseOnExpired,
-			SkipDefaultGroupBind: skipDefaultGroupBind,
+		account := &service.Account{
+			Name:        item.Name,
+			Notes:       item.Notes,
+			Platform:    item.Platform,
+			Type:        item.Type,
+			Credentials: item.Credentials,
+			Extra:       item.Extra,
+			ProxyID:     proxyID,
+			Concurrency: item.Concurrency,
+			Priority:    item.Priority,
+			Status:      service.StatusActive,
+			Schedulable: true,
+		}
+		if item.RateMultiplier != nil {
+			account.RateMultiplier = item.RateMultiplier
+		}
+		if item.ExpiresAt != nil && *item.ExpiresAt > 0 {
+			t := time.Unix(*item.ExpiresAt, 0)
+			account.ExpiresAt = &t
+		}
+		if item.AutoPauseOnExpired != nil {
+			account.AutoPauseOnExpired = *item.AutoPauseOnExpired
+		} else {
+			account.AutoPauseOnExpired = true
+		}
+		if account.Extra != nil {
+			service.ComputeQuotaResetAt(account.Extra)
+			service.NormalizeFixedQuotaWindows(account.Extra)
 		}
 
-		created, err := h.adminService.CreateAccount(ctx, accountInput)
-		if err != nil {
-			result.AccountFailed++
-			result.Errors = append(result.Errors, DataImportError{
-				Kind:    "account",
-				Name:    item.Name,
-				Message: err.Error(),
-			})
-			continue
+		// 解析默认分组
+		var gids []int64
+		if !skipDefaultGroupBind {
+			if cached, ok := defaultGroupCache[account.Platform]; ok {
+				gids = cached
+			} else {
+				groups, gErr := h.adminService.GetAllGroupsByPlatform(ctx, account.Platform)
+				if gErr == nil {
+					defaultName := account.Platform + "-default"
+					for _, g := range groups {
+						if g.Name == defaultName {
+							gids = []int64{g.ID}
+							break
+						}
+					}
+				}
+				defaultGroupCache[account.Platform] = gids
+			}
 		}
-		// 收集 Antigravity OAuth 账号，稍后异步设置隐私
-		if created.Platform == service.PlatformAntigravity && created.Type == service.AccountTypeOAuth {
-			privacyAccounts = append(privacyAccounts, created)
+
+		validAccounts = append(validAccounts, account)
+		groupIDsPerAccount = append(groupIDsPerAccount, gids)
+	}
+
+	// Phase 2: 批量 INSERT（1 条 SQL for accounts + 1 条 for groups + 1 条 outbox）
+	var privacyAccounts []*service.Account
+	if len(validAccounts) > 0 {
+		if err := h.adminService.BulkCreateAccounts(ctx, validAccounts, groupIDsPerAccount); err != nil {
+			return result, fmt.Errorf("bulk create accounts: %w", err)
 		}
-		result.AccountCreated++
+		result.AccountCreated = len(validAccounts)
+		for _, acc := range validAccounts {
+			if acc.Platform == service.PlatformAntigravity && acc.Type == service.AccountTypeOAuth {
+				privacyAccounts = append(privacyAccounts, acc)
+			}
+		}
 	}
 
 	// 异步设置 Antigravity 隐私，避免大量导入时阻塞请求
