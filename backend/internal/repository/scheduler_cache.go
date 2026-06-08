@@ -283,28 +283,6 @@ func (c *schedulerCache) UpdateLastUsed(ctx context.Context, updates map[int64]t
 	return err
 }
 
-func (c *schedulerCache) PatchAccountInSnapshot(ctx context.Context, bucket service.SchedulerBucket, accountID int64, belongs bool, priority int) (bool, error) {
-	activeKey := schedulerBucketKey(schedulerActivePrefix, bucket)
-	activeVal, err := c.rdb.Get(ctx, activeKey).Result()
-	if err != nil {
-		return false, nil
-	}
-	snapshotKey := schedulerSnapshotKey(bucket, activeVal)
-	exists, err := c.rdb.Exists(ctx, snapshotKey).Result()
-	if err != nil || exists == 0 {
-		return false, nil
-	}
-	member := strconv.FormatInt(accountID, 10)
-	if belongs {
-		err = c.rdb.ZAdd(ctx, snapshotKey, redis.Z{Score: float64(priority), Member: member}).Err()
-	} else {
-		err = c.rdb.ZRem(ctx, snapshotKey, member).Err()
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
 
 func (c *schedulerCache) TryLockBucket(ctx context.Context, bucket service.SchedulerBucket, ttl time.Duration) (bool, error) {
 	key := schedulerBucketKey(schedulerLockPrefix, bucket)

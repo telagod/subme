@@ -66,7 +66,7 @@ const formatResetTime = computed(() => {
 
 const statsTooltip = computed(() => {
   const s = props.windowStats
-  if (!s || (s.requests === 0 && s.tokens === 0)) return undefined
+  if (!s || (s.requests === 0 && s.tokens === 0)) return ''
   const parts = [
     `${formatCompactNumber(s.requests, { allowBillions: false })} req`,
     `${formatCompactNumber(s.tokens)} tok`,

@@ -1,6 +1,13 @@
 import { ref, onUnmounted } from 'vue'
 
-const cache = new Map<string, { value: ReturnType<typeof ref<boolean>>, mql: MediaQueryList, count: number }>()
+type CacheEntry = {
+  value: ReturnType<typeof ref<boolean>>
+  mql: MediaQueryList
+  handler: (e: MediaQueryListEvent) => void
+  count: number
+}
+
+const cache = new Map<string, CacheEntry>()
 
 export function useMediaQuery(query: string) {
   let entry = cache.get(query)
@@ -10,7 +17,7 @@ export function useMediaQuery(query: string) {
     const value = ref(mql?.matches ?? false)
     const handler = (e: MediaQueryListEvent) => { value.value = e.matches }
     mql?.addEventListener('change', handler)
-    entry = { value, mql: mql!, count: 0 }
+    entry = { value, mql: mql!, handler, count: 0 }
     cache.set(query, entry)
   }
 
@@ -19,12 +26,11 @@ export function useMediaQuery(query: string) {
 
   onUnmounted(() => {
     const e = cache.get(query)
-    if (e) {
-      e.count--
-      if (e.count <= 0) {
-        e.mql?.removeEventListener('change', () => {})
-        cache.delete(query)
-      }
+    if (!e) return
+    e.count--
+    if (e.count <= 0) {
+      e.mql?.removeEventListener('change', e.handler)
+      cache.delete(query)
     }
   })
 

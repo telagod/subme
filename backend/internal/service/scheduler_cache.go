@@ -57,9 +57,6 @@ type SchedulerCache interface {
 	DeleteAccount(ctx context.Context, accountID int64) error
 	// UpdateLastUsed 批量更新账号的最后使用时间。
 	UpdateLastUsed(ctx context.Context, updates map[int64]time.Time) error
-	// PatchAccountInSnapshot 增量更新快照：属于 bucket 则 ZADD，不属于则 ZREM。
-	// 返回 false 表示快照尚未就绪（应回退到全量 rebuild）。
-	PatchAccountInSnapshot(ctx context.Context, bucket SchedulerBucket, accountID int64, belongs bool, priority int) (bool, error)
 	// TryLockBucket 尝试获取分桶重建锁。
 	TryLockBucket(ctx context.Context, bucket SchedulerBucket, ttl time.Duration) (bool, error)
 	// UnlockBucket 释放分桶重建锁。

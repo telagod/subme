@@ -461,13 +461,6 @@ func (s *SchedulerSnapshotService) rebuildByAccount(ctx context.Context, account
 		return nil
 	}
 
-	// 尝试增量更新：对每个 bucket 做 ZADD/ZREM 而非全量重建
-	if s.cache != nil && s.tryPatchBuckets(ctx, account, groupIDs, seen) {
-		slog.Debug("[Scheduler] incremental patch ok", "account", account.ID, "reason", reason)
-		return nil
-	}
-
-	// 回退到全量重建
 	var firstErr error
 	if err := s.rebuildBucketsForPlatform(ctx, account.Platform, groupIDs, reason, seen); err != nil && firstErr == nil {
 		firstErr = err
@@ -483,47 +476,6 @@ func (s *SchedulerSnapshotService) rebuildByAccount(ctx context.Context, account
 	return firstErr
 }
 
-func (s *SchedulerSnapshotService) tryPatchBuckets(ctx context.Context, account *Account, groupIDs []int64, seen map[batchSeenKey]struct{}) bool {
-	schedulable := account.IsSchedulable()
-	platforms := []string{account.Platform}
-	if account.Platform == PlatformAntigravity && account.IsMixedSchedulingEnabled() {
-		platforms = append(platforms, PlatformAnthropic, PlatformGemini)
-	}
-
-	inGroup := make(map[int64]bool, len(account.GroupIDs))
-	for _, gid := range account.GroupIDs {
-		inGroup[gid] = true
-	}
-
-	for _, platform := range platforms {
-		for _, gid := range groupIDs {
-			if seen != nil {
-				key := batchSeenKey{gid, platform}
-				if _, exists := seen[key]; exists {
-					continue
-				}
-			}
-			belongs := schedulable && inGroup[gid] &&
-				(account.Platform == platform || (account.Platform == PlatformAntigravity && account.IsMixedSchedulingEnabled()))
-
-			modes := []string{SchedulerModeSingle, SchedulerModeForced}
-			if platform == PlatformAnthropic || platform == PlatformGemini {
-				modes = append(modes, SchedulerModeMixed)
-			}
-			for _, mode := range modes {
-				bucket := SchedulerBucket{GroupID: gid, Platform: platform, Mode: mode}
-				ok, err := s.cache.PatchAccountInSnapshot(ctx, bucket, account.ID, belongs, account.Priority)
-				if err != nil || !ok {
-					return false
-				}
-			}
-			if seen != nil {
-				seen[batchSeenKey{gid, platform}] = struct{}{}
-			}
-		}
-	}
-	return true
-}
 
 func (s *SchedulerSnapshotService) rebuildByGroupIDs(ctx context.Context, groupIDs []int64, reason string, seen map[batchSeenKey]struct{}) error {
 	groupIDs = s.normalizeGroupIDs(groupIDs)

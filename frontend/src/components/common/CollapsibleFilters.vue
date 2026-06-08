@@ -39,8 +39,8 @@
       enter-active-class="transition-all duration-200 ease-out"
       leave-active-class="transition-all duration-150 ease-in"
       enter-from-class="opacity-0 -translate-y-1 max-h-0"
-      enter-to-class="opacity-100 translate-y-0 max-h-60"
-      leave-from-class="opacity-100 translate-y-0 max-h-60"
+      enter-to-class="opacity-100 translate-y-0 max-h-96"
+      leave-from-class="opacity-100 translate-y-0 max-h-96"
       leave-to-class="opacity-0 -translate-y-1 max-h-0"
     >
       <div v-show="expanded" class="overflow-hidden">
@@ -83,7 +83,7 @@ defineEmits<{
 
 const hasFilters = computed(() => !!slots.filters)
 
-const stored = props.storageKey
+const stored = props.storageKey && typeof window !== 'undefined'
   ? localStorage.getItem(`filter-expanded:${props.storageKey}`)
   : null
 const expanded = ref(stored === 'true')

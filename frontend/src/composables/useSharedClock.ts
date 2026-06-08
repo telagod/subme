@@ -8,7 +8,7 @@ function startClock() {
   if (intervalId) return
   intervalId = setInterval(() => {
     sharedNow.value = new Date()
-  }, 60_000)
+  }, 1_000)
 }
 
 function stopClock() {

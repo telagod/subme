@@ -349,7 +349,7 @@ func (h *AccountHandler) List(c *gin.Context) {
 	for i := range accounts {
 		acc := &accounts[i]
 		item := AccountWithConcurrency{
-			Account:            dto.AccountFromServiceShallow(acc),
+			Account:            dto.AccountFromService(acc),
 			CurrentConcurrency: concurrencyCounts[acc.ID],
 		}
 
@@ -401,7 +401,7 @@ func buildAccountsListETag(
 	fmt.Fprintf(h, "%d:%d:%d:%s:%s:%s:%s:%v:", total, page, pageSize, platform, accountType, status, search, lite)
 	for i := range items {
 		a := items[i].Account
-		fmt.Fprintf(h, "%d:%s:%s:%v:%d", a.ID, a.Status, a.ErrorMessage, a.Schedulable, items[i].CurrentConcurrency)
+		fmt.Fprintf(h, "%d:%s:%s:%s:%s:%v:%d:%d:%s", a.ID, a.Name, a.Platform, a.Type, a.Status, a.Schedulable, a.Concurrency, items[i].CurrentConcurrency, a.ErrorMessage)
 		if items[i].CurrentWindowCost != nil {
 			fmt.Fprintf(h, ":w%.2f", *items[i].CurrentWindowCost)
 		}

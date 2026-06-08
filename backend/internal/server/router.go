@@ -56,7 +56,7 @@ func SetupRouter(
 		"/v1/",        // OpenAI gateway (streaming)
 		"/v1beta/",    // Gemini gateway
 		"/chat/",      // direct chat endpoint
-		"/responses",  // responses API (streaming/websocket)
+		"/responses/", // responses API (streaming/websocket)
 		"/backend-api/", // Codex direct
 	})))
 	r.Use(middleware2.RequestLogger())
