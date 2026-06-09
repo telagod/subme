@@ -20,15 +20,15 @@ func TestParseCodexSessionImportEntriesSupportsRawTokenJSONAndArray(t *testing.T
 		Content: fmt.Sprintf("%s\n{\"accessToken\":%q}\n[%q]", token1, token2, token3),
 	}
 
-	entries, err := parseCodexSessionImportEntries(req)
+	entries, err := collectImportEntries(req)
 	if err != nil {
-		t.Fatalf("parseCodexSessionImportEntries error = %v", err)
+		t.Fatalf("collectImportEntries error = %v", err)
 	}
 	if len(entries) != 3 {
 		t.Fatalf("len(entries) = %d, want 3", len(entries))
 	}
 
-	first, err := normalizeCodexImportEntry(entries[0])
+	first, err := normalizeImportEntry(entries[0])
 	if err != nil {
 		t.Fatalf("normalize raw token error = %v", err)
 	}
@@ -36,7 +36,7 @@ func TestParseCodexSessionImportEntriesSupportsRawTokenJSONAndArray(t *testing.T
 		t.Fatalf("raw token access_token = %v, want %s", first.Credentials["access_token"], token1)
 	}
 
-	second, err := normalizeCodexImportEntry(entries[1])
+	second, err := normalizeImportEntry(entries[1])
 	if err != nil {
 		t.Fatalf("normalize json token error = %v", err)
 	}
@@ -44,7 +44,7 @@ func TestParseCodexSessionImportEntriesSupportsRawTokenJSONAndArray(t *testing.T
 		t.Fatalf("email = %q, want json@example.com", second.Email)
 	}
 
-	third, err := normalizeCodexImportEntry(entries[2])
+	third, err := normalizeImportEntry(entries[2])
 	if err != nil {
 		t.Fatalf("normalize array token error = %v", err)
 	}
@@ -58,15 +58,15 @@ func TestParseCodexSessionImportEntriesFallsBackToLineModeForMixedJSONAndToken(t
 		Content: "{\"accessToken\":\"json-line-token\"}\nraw-line-token",
 	}
 
-	entries, err := parseCodexSessionImportEntries(req)
+	entries, err := collectImportEntries(req)
 	if err != nil {
-		t.Fatalf("parseCodexSessionImportEntries error = %v", err)
+		t.Fatalf("collectImportEntries error = %v", err)
 	}
 	if len(entries) != 2 {
 		t.Fatalf("len(entries) = %d, want 2", len(entries))
 	}
 
-	first, err := normalizeCodexImportEntry(entries[0])
+	first, err := normalizeImportEntry(entries[0])
 	if err != nil {
 		t.Fatalf("normalize json line error = %v", err)
 	}
@@ -74,7 +74,7 @@ func TestParseCodexSessionImportEntriesFallsBackToLineModeForMixedJSONAndToken(t
 		t.Fatalf("json line access_token = %v, want json-line-token", first.Credentials["access_token"])
 	}
 
-	second, err := normalizeCodexImportEntry(entries[1])
+	second, err := normalizeImportEntry(entries[1])
 	if err != nil {
 		t.Fatalf("normalize raw line error = %v", err)
 	}
@@ -109,9 +109,9 @@ func TestNormalizeCodexSessionJSONExtractsCredentialsAndIgnoresSessionToken(t *t
 		"expires":      "2026-08-05T13:40:42.836Z",
 	}
 
-	item, err := normalizeCodexImportEntry(codexImportEntry{Index: 1, Value: raw})
+	item, err := normalizeImportEntry(codexImportEntry{Index: 1, Value: raw})
 	if err != nil {
-		t.Fatalf("normalizeCodexImportEntry error = %v", err)
+		t.Fatalf("normalizeImportEntry error = %v", err)
 	}
 	if item.Credentials["access_token"] != accessToken {
 		t.Fatalf("access_token not stored")
@@ -161,7 +161,7 @@ func TestMergeCodexImportCredentialsClearsStaleRefreshFieldsWhenIncomingHasNoRef
 		AccessToken: "new-access-token",
 	}
 
-	merged := mergeCodexImportCredentials(existing, incoming, item)
+	merged := mergeAccountCredentials(existing, incoming, item)
 
 	if merged["access_token"] != "new-access-token" {
 		t.Fatalf("access_token = %v, want new-access-token", merged["access_token"])
@@ -204,7 +204,7 @@ func TestMergeCodexImportCredentialsKeepsRefreshFieldsWhenIncomingHasRefreshToke
 		IDToken:      "new-id-token",
 	}
 
-	merged := mergeCodexImportCredentials(existing, incoming, item)
+	merged := mergeAccountCredentials(existing, incoming, item)
 
 	if merged["refresh_token"] != "new-refresh-token" {
 		t.Fatalf("refresh_token = %v, want new-refresh-token", merged["refresh_token"])
@@ -220,9 +220,9 @@ func TestMergeCodexImportCredentialsKeepsRefreshFieldsWhenIncomingHasRefreshToke
 func TestNormalizeCodexImportRejectsExpiredAccessToken(t *testing.T) {
 	expiredToken := buildCodexImportTestJWT(t, time.Now().Add(-time.Hour), map[string]any{})
 
-	_, err := normalizeCodexImportEntry(codexImportEntry{Index: 1, Value: expiredToken})
+	_, err := normalizeImportEntry(codexImportEntry{Index: 1, Value: expiredToken})
 	if err == nil {
-		t.Fatal("normalizeCodexImportEntry error = nil, want expired token error")
+		t.Fatal("normalizeImportEntry error = nil, want expired token error")
 	}
 	if !strings.Contains(err.Error(), "已过期") {
 		t.Fatalf("error = %v, want expired token message", err)
@@ -240,9 +240,9 @@ func TestResolveCodexImportExpiryForNoRefreshTokenUsesTokenExpiry(t *testing.T) 
 	disabled := false
 	req := CodexSessionImportRequest{AutoPauseOnExpired: &disabled}
 
-	accountExpiresAt, credentialExpiresAt, autoPause, warnings, err := resolveCodexImportExpiry(req, item)
+	accountExpiresAt, credentialExpiresAt, autoPause, warnings, err := computeImportExpiry(req, item)
 	if err != nil {
-		t.Fatalf("resolveCodexImportExpiry error = %v", err)
+		t.Fatalf("computeImportExpiry error = %v", err)
 	}
 	if accountExpiresAt == nil || *accountExpiresAt != tokenExpiresAt.Unix() {
 		t.Fatalf("account expires_at = %v, want %d", accountExpiresAt, tokenExpiresAt.Unix())
@@ -265,9 +265,9 @@ func TestResolveCodexImportExpiryForNoRefreshTokenRequiresExpiry(t *testing.T) {
 		WarningTexts: []string{},
 	}
 
-	_, _, _, _, err := resolveCodexImportExpiry(CodexSessionImportRequest{}, item)
+	_, _, _, _, err := computeImportExpiry(CodexSessionImportRequest{}, item)
 	if err == nil {
-		t.Fatal("resolveCodexImportExpiry error = nil, want missing expiry error")
+		t.Fatal("computeImportExpiry error = nil, want missing expiry error")
 	}
 	if !strings.Contains(err.Error(), "无法解析 accessToken 过期时间") {
 		t.Fatalf("error = %v, want missing expiry message", err)
@@ -286,9 +286,9 @@ func TestResolveCodexImportExpiryForNoRefreshTokenUsesEarlierRequestExpiry(t *te
 	reqUnix := requestExpiresAt.Unix()
 	req := CodexSessionImportRequest{ExpiresAt: &reqUnix}
 
-	accountExpiresAt, credentialExpiresAt, _, _, err := resolveCodexImportExpiry(req, item)
+	accountExpiresAt, credentialExpiresAt, _, _, err := computeImportExpiry(req, item)
 	if err != nil {
-		t.Fatalf("resolveCodexImportExpiry error = %v", err)
+		t.Fatalf("computeImportExpiry error = %v", err)
 	}
 	if accountExpiresAt == nil || *accountExpiresAt != requestExpiresAt.Unix() {
 		t.Fatalf("account expires_at = %v, want %d", accountExpiresAt, requestExpiresAt.Unix())
@@ -299,14 +299,14 @@ func TestResolveCodexImportExpiryForNoRefreshTokenUsesEarlierRequestExpiry(t *te
 }
 
 func TestCodexIdentityKeysPreferStrongIdentifiers(t *testing.T) {
-	keys := buildCodexIdentityKeys("acct-1", "user-1", "same@example.com", "token")
+	keys := assembleIdentityKeys("acct-1", "user-1", "same@example.com", "token")
 	for _, key := range keys {
 		if strings.HasPrefix(key, "email:") {
 			t.Fatalf("strong identity should not include email fallback: %v", keys)
 		}
 	}
 
-	keys = buildCodexIdentityKeys("", "", "same@example.com", "token")
+	keys = assembleIdentityKeys("", "", "same@example.com", "token")
 	hasEmail := false
 	for _, key := range keys {
 		if key == "email:same@example.com" {

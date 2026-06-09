@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/telagod/subme/internal/pkg/openai"
 	"github.com/telagod/subme/internal/pkg/response"
 	"github.com/telagod/subme/internal/service"
-	"github.com/gin-gonic/gin"
 )
 
 const codexImportClockSkewSeconds int64 = 120
@@ -350,11 +350,6 @@ func (h *AccountHandler) executeCodexImport(ctx context.Context, payload CodexSe
 	return report, nil
 }
 
-// importCodexSessions is retained for backward compat.
-func (h *AccountHandler) importCodexSessions(ctx context.Context, req CodexSessionImportRequest, entries []codexImportEntry) (CodexSessionImportResult, error) {
-	return h.executeCodexImport(ctx, req, entries)
-}
-
 func collectImportEntries(payload CodexSessionImportRequest) ([]codexImportEntry, error) {
 	rawContents := make([]string, 0, 1+len(payload.Contents))
 	if strings.TrimSpace(payload.Content) != "" {
@@ -382,11 +377,6 @@ func collectImportEntries(payload CodexSessionImportRequest) ([]codexImportEntry
 	return result, nil
 }
 
-// parseCodexSessionImportEntries is retained for backward compat.
-func parseCodexSessionImportEntries(req CodexSessionImportRequest) ([]codexImportEntry, error) {
-	return collectImportEntries(req)
-}
-
 func parseImportContent(raw string) ([]any, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {
@@ -409,11 +399,6 @@ func parseImportContent(raw string) ([]any, error) {
 	return parseImportByLines(trimmed)
 }
 
-// parseCodexSessionImportContent is retained for backward compat.
-func parseCodexSessionImportContent(content string) ([]any, error) {
-	return parseImportContent(content)
-}
-
 func parseImportByLines(raw string) ([]any, error) {
 	collected := make([]any, 0)
 	for _, ln := range strings.Split(raw, "\n") {
@@ -432,11 +417,6 @@ func parseImportByLines(raw string) ([]any, error) {
 		collected = append(collected, ln)
 	}
 	return collected, nil
-}
-
-// parseCodexSessionImportLines is retained for backward compat.
-func parseCodexSessionImportLines(content string) ([]any, error) {
-	return parseImportByLines(content)
 }
 
 func decodeJSONStream(raw string) ([]any, error) {
@@ -460,11 +440,6 @@ func decodeJSONStream(raw string) ([]any, error) {
 	return vals, nil
 }
 
-// decodeCodexJSONStream is retained for backward compat.
-func decodeCodexJSONStream(content string) ([]any, error) {
-	return decodeJSONStream(content)
-}
-
 func flattenImportValues(vals []any) []any {
 	flat := make([]any, 0, len(vals))
 	var recurse func(any)
@@ -481,11 +456,6 @@ func flattenImportValues(vals []any) []any {
 		recurse(v)
 	}
 	return flat
-}
-
-// flattenCodexImportValues is retained for backward compat.
-func flattenCodexImportValues(values []any) []any {
-	return flattenImportValues(values)
 }
 
 func normalizeImportEntry(entry codexImportEntry) (*codexImportAccount, error) {
@@ -618,11 +588,6 @@ func normalizeImportEntry(entry codexImportEntry) (*codexImportAccount, error) {
 	return acct, nil
 }
 
-// normalizeCodexImportEntry is retained for backward compat.
-func normalizeCodexImportEntry(entry codexImportEntry) (*codexImportAccount, error) {
-	return normalizeImportEntry(entry)
-}
-
 func enrichFromJWT(acct *codexImportAccount, token string, checkExpiry bool, now time.Time) error {
 	claims, decErr := decodeJWTPayload(token)
 	if decErr != nil {
@@ -680,11 +645,6 @@ func enrichFromJWT(acct *codexImportAccount, token string, checkExpiry bool, now
 	return nil
 }
 
-// enrichCodexImportAccountFromJWT is retained for backward compat.
-func enrichCodexImportAccountFromJWT(item *codexImportAccount, token string, validateExpiry bool, now time.Time) error {
-	return enrichFromJWT(item, token, validateExpiry, now)
-}
-
 func decodeJWTPayload(token string) (*codexJWTClaims, error) {
 	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
@@ -699,11 +659,6 @@ func decodeJWTPayload(token string) (*codexJWTClaims, error) {
 		return nil, unmarshalErr
 	}
 	return &claims, nil
-}
-
-// decodeCodexJWTClaims is retained for backward compat.
-func decodeCodexJWTClaims(token string) (*codexJWTClaims, error) {
-	return decodeJWTPayload(token)
 }
 
 func decodeBase64Segment(seg string) ([]byte, error) {
@@ -723,11 +678,6 @@ func decodeBase64Segment(seg string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(padded)
 }
 
-// decodeCodexJWTSegment is retained for backward compat.
-func decodeCodexJWTSegment(segment string) ([]byte, error) {
-	return decodeBase64Segment(segment)
-}
-
 func deriveImportAccountName(acct *codexImportAccount, index int) string {
 	candidates := []string{acct.Name, acct.Email, acct.AccountID, acct.UserID}
 	for _, c := range candidates {
@@ -737,11 +687,6 @@ func deriveImportAccountName(acct *codexImportAccount, index int) string {
 		}
 	}
 	return fmt.Sprintf("Codex Import Account %d", index)
-}
-
-// buildCodexImportAccountName is retained for backward compat.
-func buildCodexImportAccountName(item *codexImportAccount, index int) string {
-	return deriveImportAccountName(item, index)
 }
 
 func deriveAccountDisplayName(baseName string, acct *codexImportAccount, index, totalCount int) string {
@@ -756,11 +701,6 @@ func deriveAccountDisplayName(baseName string, acct *codexImportAccount, index, 
 		return fmt.Sprintf("%s #%d", baseName, index)
 	}
 	return baseName
-}
-
-// buildCodexCreateAccountName is retained for backward compat.
-func buildCodexCreateAccountName(base string, item *codexImportAccount, index, total int) string {
-	return deriveAccountDisplayName(base, item, index, total)
 }
 
 func computeImportExpiry(payload CodexSessionImportRequest, acct *codexImportAccount) (*int64, *time.Time, *bool, []string, error) {
@@ -817,11 +757,6 @@ func computeImportExpiry(payload CodexSessionImportRequest, acct *codexImportAcc
 	return expiryEpoch, credExpiry, payload.AutoPauseOnExpired, warnings, nil
 }
 
-// resolveCodexImportExpiry is retained for backward compat.
-func resolveCodexImportExpiry(req CodexSessionImportRequest, item *codexImportAccount) (*int64, *time.Time, *bool, []string, error) {
-	return computeImportExpiry(req, item)
-}
-
 func pickEarlierTime(a, b *time.Time) *time.Time {
 	if b == nil {
 		return a
@@ -832,11 +767,6 @@ func pickEarlierTime(a, b *time.Time) *time.Time {
 	}
 	t := a.UTC()
 	return &t
-}
-
-// earlierCodexTime is retained for backward compat.
-func earlierCodexTime(current, candidate *time.Time) *time.Time {
-	return pickEarlierTime(current, candidate)
 }
 
 func filterProtectedCredentialKeys(input map[string]any) map[string]any {
@@ -872,11 +802,6 @@ func filterProtectedCredentialKeys(input map[string]any) map[string]any {
 	return filtered
 }
 
-// sanitizeCodexImportCredentialExtras is retained for backward compat.
-func sanitizeCodexImportCredentialExtras(input map[string]any) map[string]any {
-	return filterProtectedCredentialKeys(input)
-}
-
 func assembleIdentityKeys(accountID, userID, email, accessToken string) []string {
 	keys := make([]string, 0, 4)
 	accountID = strings.TrimSpace(accountID)
@@ -898,22 +823,12 @@ func assembleIdentityKeys(accountID, userID, email, accessToken string) []string
 	return keys
 }
 
-// buildCodexIdentityKeys is retained for backward compat.
-func buildCodexIdentityKeys(accountID, userID, email, accessToken string) []string {
-	return assembleIdentityKeys(accountID, userID, email, accessToken)
-}
-
 func newAccountIndex(accounts []service.Account) *codexAccountIndex {
 	idx := &codexAccountIndex{accountsByKey: map[string]service.Account{}}
 	for _, a := range accounts {
 		idx.Add(a)
 	}
 	return idx
-}
-
-// buildCodexAccountIndex is retained for backward compat.
-func buildCodexAccountIndex(accounts []service.Account) *codexAccountIndex {
-	return newAccountIndex(accounts)
 }
 
 func (ci *codexAccountIndex) Add(account service.Account) {
@@ -955,20 +870,10 @@ func findFirstSeenIdentity(visited map[string]int, keys []string) (int, bool) {
 	return 0, false
 }
 
-// firstSeenCodexIdentity is retained for backward compat.
-func firstSeenCodexIdentity(seen map[string]int, keys []string) (int, bool) {
-	return findFirstSeenIdentity(seen, keys)
-}
-
 func recordSeenIdentity(visited map[string]int, keys []string, index int) {
 	for _, k := range keys {
 		visited[k] = index
 	}
-}
-
-// markCodexIdentitySeen is retained for backward compat.
-func markCodexIdentitySeen(seen map[string]int, keys []string, index int) {
-	recordSeenIdentity(seen, keys, index)
 }
 
 func combineMaps(base, overlay map[string]any) map[string]any {
@@ -980,11 +885,6 @@ func combineMaps(base, overlay map[string]any) map[string]any {
 		merged[k] = v
 	}
 	return merged
-}
-
-// mergeCodexImportMap is retained for backward compat.
-func mergeCodexImportMap(existing, incoming map[string]any) map[string]any {
-	return combineMaps(existing, incoming)
 }
 
 func mergeAccountCredentials(existing, incoming map[string]any, acct *codexImportAccount) map[string]any {
@@ -1002,11 +902,6 @@ func mergeAccountCredentials(existing, incoming map[string]any, acct *codexImpor
 	return merged
 }
 
-// mergeCodexImportCredentials is retained for backward compat.
-func mergeCodexImportCredentials(existing, incoming map[string]any, item *codexImportAccount) map[string]any {
-	return mergeAccountCredentials(existing, incoming, item)
-}
-
 func credentialStr(creds map[string]any, key string) string {
 	if creds == nil {
 		return ""
@@ -1014,19 +909,9 @@ func credentialStr(creds map[string]any, key string) string {
 	return anyToString(creds[key])
 }
 
-// codexCredentialString is retained for backward compat.
-func codexCredentialString(credentials map[string]any, key string) string {
-	return credentialStr(credentials, key)
-}
-
 func computeTokenFingerprint(token string) string {
 	digest := sha256.Sum256([]byte(strings.TrimSpace(token)))
 	return hex.EncodeToString(digest[:])
-}
-
-// codexTokenFingerprint is retained for backward compat.
-func codexTokenFingerprint(token string) string {
-	return computeTokenFingerprint(token)
 }
 
 func startsWithJSON(raw string) bool {
@@ -1041,11 +926,6 @@ func startsWithJSON(raw string) bool {
 	}
 }
 
-// looksLikeJSON is retained for backward compat.
-func looksLikeJSON(content string) bool {
-	return startsWithJSON(content)
-}
-
 func extractNestedString(obj map[string]any, paths ...[]string) string {
 	for _, path := range paths {
 		if val, ok := walkPath(obj, path); ok {
@@ -1057,21 +937,11 @@ func extractNestedString(obj map[string]any, paths ...[]string) string {
 	return ""
 }
 
-// firstCodexString is retained for backward compat.
-func firstCodexString(obj map[string]any, paths ...[]string) string {
-	return extractNestedString(obj, paths...)
-}
-
 func copyExtraString(obj map[string]any, extra map[string]any, key string, path []string) {
 	val := extractNestedString(obj, path)
 	if val != "" {
 		extra[key] = val
 	}
-}
-
-// copyCodexExtraString is retained for backward compat.
-func copyCodexExtraString(obj map[string]any, extra map[string]any, key string, path []string) {
-	copyExtraString(obj, extra, key, path)
 }
 
 func resolveFirstTime(obj map[string]any, paths ...[]string) (time.Time, bool) {
@@ -1083,22 +953,12 @@ func resolveFirstTime(obj map[string]any, paths ...[]string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// firstCodexTime is retained for backward compat.
-func firstCodexTime(obj map[string]any, paths ...[]string) (time.Time, bool) {
-	return resolveFirstTime(obj, paths...)
-}
-
 func resolveTimeAtPath(obj map[string]any, path []string) (time.Time, bool) {
 	val, ok := walkPath(obj, path)
 	if !ok {
 		return time.Time{}, false
 	}
 	return interpretTimeValue(val)
-}
-
-// codexTimeAt is retained for backward compat.
-func codexTimeAt(obj map[string]any, path []string) (time.Time, bool) {
-	return resolveTimeAtPath(obj, path)
 }
 
 func walkPath(obj map[string]any, path []string) (any, bool) {
@@ -1115,11 +975,6 @@ func walkPath(obj map[string]any, path []string) (any, bool) {
 		cursor = val
 	}
 	return cursor, true
-}
-
-// codexPathValue is retained for backward compat.
-func codexPathValue(obj map[string]any, path []string) (any, bool) {
-	return walkPath(obj, path)
 }
 
 func anyToString(val any) string {
@@ -1143,21 +998,11 @@ func anyToString(val any) string {
 	}
 }
 
-// codexStringValue is retained for backward compat.
-func codexStringValue(value any) string {
-	return anyToString(value)
-}
-
 func setCredentialIfPresent(creds map[string]any, key, val string) {
 	val = strings.TrimSpace(val)
 	if val != "" {
 		creds[key] = val
 	}
-}
-
-// setCodexCredentialIfNotEmpty is retained for backward compat.
-func setCodexCredentialIfNotEmpty(credentials map[string]any, key, value string) {
-	setCredentialIfPresent(credentials, key, value)
 }
 
 func interpretTimeValue(val any) (time.Time, bool) {
@@ -1190,19 +1035,9 @@ func interpretTimeValue(val any) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// parseCodexTimeValue is retained for backward compat.
-func parseCodexTimeValue(value any) (time.Time, bool) {
-	return interpretTimeValue(value)
-}
-
 func normalizeEpoch(val int64) time.Time {
 	if val > 1_000_000_000_000 {
 		return time.UnixMilli(val).UTC()
 	}
 	return time.Unix(val, 0).UTC()
-}
-
-// codexUnixTime is retained for backward compat.
-func codexUnixTime(value int64) time.Time {
-	return normalizeEpoch(value)
 }

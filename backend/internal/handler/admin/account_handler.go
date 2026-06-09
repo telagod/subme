@@ -422,7 +422,7 @@ func buildAccountsListETag(
 		if a.LastUsedAt != nil {
 			fmt.Fprintf(h, ":u%d", a.LastUsedAt.Unix())
 		}
-		h.Write([]byte{';'})
+		_, _ = h.Write([]byte{';'})
 	}
 	sum := h.Sum(nil)
 	return "\"" + hex.EncodeToString(sum) + "\""
