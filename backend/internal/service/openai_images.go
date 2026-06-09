@@ -19,10 +19,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/telagod/subme/internal/pkg/logger"
-	"github.com/telagod/subme/internal/util/responseheaders"
 	"github.com/gin-gonic/gin"
 	"github.com/imroc/req/v3"
+	"github.com/telagod/subme/internal/pkg/logger"
+	"github.com/telagod/subme/internal/util/responseheaders"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -472,9 +472,6 @@ func checkImagesModel(model string) error {
 }
 
 // validateOpenAIImagesModel is the exported validation entry point.
-func validateOpenAIImagesModel(model string) error {
-	return checkImagesModel(model)
-}
 
 func resolveImagesEndpointPath(urlPath string) string {
 	cleaned := strings.TrimSpace(urlPath)
@@ -489,9 +486,6 @@ func resolveImagesEndpointPath(urlPath string) string {
 }
 
 // normalizeOpenAIImagesEndpointPath keeps backward compat with callers.
-func normalizeOpenAIImagesEndpointPath(path string) string {
-	return resolveImagesEndpointPath(path)
-}
 
 func determineImagesCapability(req *OpenAIImagesRequest) OpenAIImagesCapability {
 	if req == nil {
@@ -517,9 +511,6 @@ func determineImagesCapability(req *OpenAIImagesRequest) OpenAIImagesCapability 
 }
 
 // classifyOpenAIImagesCapability is retained for external callers.
-func classifyOpenAIImagesCapability(req *OpenAIImagesRequest) OpenAIImagesCapability {
-	return determineImagesCapability(req)
-}
 
 func probeNativeImageFields(existsFn func(path string) bool) bool {
 	fieldPaths := []string{
@@ -541,9 +532,6 @@ func probeNativeImageFields(existsFn func(path string) bool) bool {
 }
 
 // hasOpenAINativeImageOptions is retained for external callers.
-func hasOpenAINativeImageOptions(exists func(path string) bool) bool {
-	return probeNativeImageFields(exists)
-}
 
 func matchesNativeImageFieldName(name string) bool {
 	switch strings.TrimSpace(strings.ToLower(name)) {
@@ -555,9 +543,6 @@ func matchesNativeImageFieldName(name string) bool {
 }
 
 // isOpenAINativeImageOption is retained for external callers.
-func isOpenAINativeImageOption(name string) bool {
-	return matchesNativeImageFieldName(name)
-}
 
 func deriveImageSizeTier(size string) string {
 	return NormalizeImageBillingTierOrDefault(size)
@@ -753,16 +738,6 @@ func (s *OpenAIGatewayService) dispatchImagesViaAPIKey(
 }
 
 // forwardOpenAIImagesAPIKey is kept as an alias for backward compat.
-func (s *OpenAIGatewayService) forwardOpenAIImagesAPIKey(
-	ctx context.Context,
-	c *gin.Context,
-	account *Account,
-	body []byte,
-	parsed *OpenAIImagesRequest,
-	channelMappedModel string,
-) (*OpenAIForwardResult, error) {
-	return s.dispatchImagesViaAPIKey(ctx, c, account, body, parsed, channelMappedModel)
-}
 
 func (s *OpenAIGatewayService) assembleImagesHTTPRequest(
 	ctx context.Context,
@@ -810,17 +785,6 @@ func (s *OpenAIGatewayService) assembleImagesHTTPRequest(
 }
 
 // buildOpenAIImagesRequest is kept as an alias for backward compat.
-func (s *OpenAIGatewayService) buildOpenAIImagesRequest(
-	ctx context.Context,
-	c *gin.Context,
-	account *Account,
-	body []byte,
-	contentType string,
-	token string,
-	endpoint string,
-) (*http.Request, error) {
-	return s.assembleImagesHTTPRequest(ctx, c, account, body, contentType, token, endpoint)
-}
 
 func constructImagesFullURL(baseURL string, endpoint string) string {
 	return buildOpenAIEndpointURL(baseURL, endpoint)
@@ -848,9 +812,6 @@ func recomposeImagesModelField(body []byte, contentType string, model string) ([
 }
 
 // rewriteOpenAIImagesModel is kept as an alias for backward compat.
-func rewriteOpenAIImagesModel(body []byte, contentType string, model string) ([]byte, string, error) {
-	return recomposeImagesModelField(body, contentType, model)
-}
 
 func patchMultipartModelField(body []byte, contentType string, model string) ([]byte, string, error) {
 	_, mediaParams, parseErr := mime.ParseMediaType(contentType)
@@ -912,9 +873,6 @@ func patchMultipartModelField(body []byte, contentType string, model string) ([]
 }
 
 // rewriteOpenAIImagesMultipartModel is kept for backward compat.
-func rewriteOpenAIImagesMultipartModel(body []byte, contentType string, model string) ([]byte, string, error) {
-	return patchMultipartModelField(body, contentType, model)
-}
 
 func duplicateMIMEHeader(orig textproto.MIMEHeader) textproto.MIMEHeader {
 	dup := make(textproto.MIMEHeader, len(orig))
@@ -927,9 +885,6 @@ func duplicateMIMEHeader(orig textproto.MIMEHeader) textproto.MIMEHeader {
 }
 
 // cloneMultipartHeader is kept for backward compat.
-func cloneMultipartHeader(src textproto.MIMEHeader) textproto.MIMEHeader {
-	return duplicateMIMEHeader(src)
-}
 
 func (s *OpenAIGatewayService) relayImagesBodyToClient(resp *http.Response, c *gin.Context) (OpenAIUsage, int, []string, error) {
 	respData, readErr := ReadUpstreamResponseBody(resp.Body, s.cfg, c, openAITooLargeError)
@@ -950,9 +905,6 @@ func (s *OpenAIGatewayService) relayImagesBodyToClient(resp *http.Response, c *g
 }
 
 // handleOpenAIImagesNonStreamingResponse is kept for backward compat.
-func (s *OpenAIGatewayService) handleOpenAIImagesNonStreamingResponse(resp *http.Response, c *gin.Context) (OpenAIUsage, int, []string, error) {
-	return s.relayImagesBodyToClient(resp, c)
-}
 
 func (s *OpenAIGatewayService) relayImagesStreamToClient(
 	resp *http.Response,
@@ -1160,13 +1112,6 @@ func (s *OpenAIGatewayService) relayImagesStreamToClient(
 }
 
 // handleOpenAIImagesStreamingResponse is kept for backward compat.
-func (s *OpenAIGatewayService) handleOpenAIImagesStreamingResponse(
-	resp *http.Response,
-	c *gin.Context,
-	startTime time.Time,
-) (OpenAIUsage, int, []string, *int, error) {
-	return s.relayImagesStreamToClient(resp, c, startTime)
-}
 
 func (s *OpenAIGatewayService) openAIImageStreamDataInterval() time.Duration {
 	if s == nil || s.cfg == nil || s.cfg.Gateway.ImageStreamDataIntervalTimeout <= 0 {
@@ -1230,9 +1175,6 @@ func tallyImageOutputCount(body []byte) int {
 }
 
 // extractOpenAIImageCountFromJSONBytes is retained for backward compat.
-func extractOpenAIImageCountFromJSONBytes(body []byte) int {
-	return tallyImageOutputCount(body)
-}
 
 type openAIImagePointerInfo struct {
 	Pointer     string
@@ -1296,9 +1238,6 @@ func scanImagePointerStrings(body []byte) []string {
 }
 
 // openAIImagePointerMatches is retained for backward compat.
-func openAIImagePointerMatches(body []byte) []string {
-	return scanImagePointerStrings(body)
-}
 
 func reconcileImagePointerLists(base []openAIImagePointerInfo, extra []openAIImagePointerInfo) []openAIImagePointerInfo {
 	if len(extra) == 0 {
@@ -1337,9 +1276,6 @@ func reconcileImagePointerLists(base []openAIImagePointerInfo, extra []openAIIma
 }
 
 // mergeOpenAIImagePointerInfos is retained for backward compat.
-func mergeOpenAIImagePointerInfos(existing []openAIImagePointerInfo, next []openAIImagePointerInfo) []openAIImagePointerInfo {
-	return reconcileImagePointerLists(existing, next)
-}
 
 func (info openAIImagePointerInfo) identityKey() string {
 	switch {
@@ -1379,9 +1315,6 @@ func blendPointerInfo(base, overlay openAIImagePointerInfo) openAIImagePointerIn
 }
 
 // mergeOpenAIImagePointerInfo is retained for backward compat.
-func mergeOpenAIImagePointerInfo(existing, next openAIImagePointerInfo) openAIImagePointerInfo {
-	return blendPointerInfo(existing, next)
-}
 
 func resolveOpenAIImageBytes(
 	ctx context.Context,
@@ -1430,9 +1363,6 @@ func sanitizeBase64ImageData(raw string) string {
 }
 
 // normalizeOpenAIImageBase64 is retained for backward compat.
-func normalizeOpenAIImageBase64(raw string) string {
-	return sanitizeBase64ImageData(raw)
-}
 
 func extractInlineImageAssets(body []byte, fallbackPrompt string) []openAIImagePointerInfo {
 	if len(body) == 0 || !gjson.ValidBytes(body) {
@@ -1448,9 +1378,6 @@ func extractInlineImageAssets(body []byte, fallbackPrompt string) []openAIImageP
 }
 
 // collectOpenAIImageInlineAssets is retained for backward compat.
-func collectOpenAIImageInlineAssets(body []byte, fallbackPrompt string) []openAIImagePointerInfo {
-	return extractInlineImageAssets(body, fallbackPrompt)
-}
 
 func traverseForImageAssets(node any, promptContext string, out *[]openAIImagePointerInfo) {
 	switch val := node.(type) {
@@ -1487,9 +1414,6 @@ func traverseForImageAssets(node any, promptContext string, out *[]openAIImagePo
 }
 
 // walkOpenAIImageInlineAssets is retained for backward compat.
-func walkOpenAIImageInlineAssets(node any, prompt string, out *[]openAIImagePointerInfo) {
-	traverseForImageAssets(node, prompt, out)
-}
 
 func firstNonEmptyString(values ...any) string {
 	for _, v := range values {
@@ -1520,9 +1444,6 @@ func looksLikeImageDownloadURL(raw string) bool {
 }
 
 // isLikelyOpenAIImageDownloadURL is retained for backward compat.
-func isLikelyOpenAIImageDownloadURL(raw string) bool {
-	return looksLikeImageDownloadURL(raw)
-}
 
 func resolveImageDownloadLink(
 	ctx context.Context,
@@ -1588,16 +1509,6 @@ func resolveImageDownloadLink(
 }
 
 // fetchOpenAIImageDownloadURL is retained for backward compat.
-func fetchOpenAIImageDownloadURL(
-	ctx context.Context,
-	client *req.Client,
-	headers http.Header,
-	conversationID string,
-	pointer string,
-	errorBodyReadLimit int64,
-) (string, error) {
-	return resolveImageDownloadLink(ctx, client, headers, conversationID, pointer, errorBodyReadLimit)
-}
 
 func fetchImageBytesFromURL(ctx context.Context, client *req.Client, headers http.Header, downloadURL string, errorBodyReadLimit int64) ([]byte, error) {
 	r := client.R().
@@ -1633,9 +1544,6 @@ func fetchImageBytesFromURL(ctx context.Context, client *req.Client, headers htt
 }
 
 // downloadOpenAIImageBytes is retained for backward compat.
-func downloadOpenAIImageBytes(ctx context.Context, client *req.Client, headers http.Header, downloadURL string, errorBodyReadLimit int64) ([]byte, error) {
-	return fetchImageBytesFromURL(ctx, client, headers, downloadURL, errorBodyReadLimit)
-}
 
 type openAIImageStatusError struct {
 	StatusCode      int
@@ -1732,9 +1640,6 @@ func isTransientConversationNotFound(err error) bool {
 }
 
 // isOpenAIImageTransientConversationNotFoundError is retained for backward compat.
-func isOpenAIImageTransientConversationNotFoundError(err error) bool {
-	return isTransientConversationNotFound(err)
-}
 
 func copyHTTPHeaders(src http.Header) http.Header {
 	dup := make(http.Header, len(src))
@@ -1747,9 +1652,6 @@ func copyHTTPHeaders(src http.Header) http.Header {
 }
 
 // cloneHTTPHeader is retained for backward compat.
-func cloneHTTPHeader(src http.Header) http.Header {
-	return copyHTTPHeaders(src)
-}
 
 func flattenHTTPHeader(hdr http.Header) map[string]string {
 	if len(hdr) == 0 {
@@ -1766,9 +1668,6 @@ func flattenHTTPHeader(hdr http.Header) map[string]string {
 }
 
 // headerToMap is retained for backward compat.
-func headerToMap(header http.Header) map[string]string {
-	return flattenHTTPHeader(header)
-}
 
 func removeDuplicateStrings(items []string) []string {
 	if len(items) == 0 {
@@ -1787,9 +1686,6 @@ func removeDuplicateStrings(items []string) []string {
 }
 
 // dedupeStrings is retained for backward compat.
-func dedupeStrings(values []string) []string {
-	return removeDuplicateStrings(values)
-}
 
 // gatherResponseImageSizes is a helper wrapping the upstream counter.
 func gatherResponseImageSizes(body []byte) []string {

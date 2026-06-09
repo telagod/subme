@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/telagod/subme/internal/pkg/logger"
 	"github.com/telagod/subme/internal/util/responseheaders"
-	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -100,9 +100,6 @@ func imageResultDedupKey(itemID string, img openAIResponsesImageResult) string {
 }
 
 // openAIResponsesImageResultKey is retained for backward compat.
-func openAIResponsesImageResultKey(itemID string, result openAIResponsesImageResult) string {
-	return imageResultDedupKey(itemID, result)
-}
 
 func appendImageResultIfUnique(results *[]openAIResponsesImageResult, visited map[string]struct{}, itemID string, img openAIResponsesImageResult) bool {
 	if results == nil {
@@ -120,9 +117,6 @@ func appendImageResultIfUnique(results *[]openAIResponsesImageResult, visited ma
 }
 
 // appendOpenAIResponsesImageResultDedup is retained for backward compat.
-func appendOpenAIResponsesImageResultDedup(results *[]openAIResponsesImageResult, seen map[string]struct{}, itemID string, result openAIResponsesImageResult) bool {
-	return appendImageResultIfUnique(results, seen, itemID, result)
-}
 
 func overlayImageMeta(dst *openAIResponsesImageResult, src openAIResponsesImageResult) {
 	if dst == nil {
@@ -146,9 +140,6 @@ func overlayImageMeta(dst *openAIResponsesImageResult, src openAIResponsesImageR
 }
 
 // mergeOpenAIResponsesImageMeta is retained for backward compat.
-func mergeOpenAIResponsesImageMeta(dst *openAIResponsesImageResult, src openAIResponsesImageResult) {
-	overlayImageMeta(dst, src)
-}
 
 func collectImageResultSizes(imgs []openAIResponsesImageResult) []string {
 	if len(imgs) == 0 {
@@ -167,9 +158,6 @@ func collectImageResultSizes(imgs []openAIResponsesImageResult) []string {
 }
 
 // openAIResponsesImageResultSizes is retained for backward compat.
-func openAIResponsesImageResultSizes(results []openAIResponsesImageResult) []string {
-	return collectImageResultSizes(results)
-}
 
 func parseImageMetaFromLifecycleEvent(payload []byte) (openAIResponsesImageResult, int64, bool) {
 	evType := gjson.GetBytes(payload, "type").String()
@@ -196,9 +184,6 @@ func parseImageMetaFromLifecycleEvent(payload []byte) (openAIResponsesImageResul
 }
 
 // extractOpenAIResponsesImageMetaFromLifecycleEvent is retained for backward compat.
-func extractOpenAIResponsesImageMetaFromLifecycleEvent(payload []byte) (openAIResponsesImageResult, int64, bool) {
-	return parseImageMetaFromLifecycleEvent(payload)
-}
 
 func buildOpenAIImagesStreamPartialPayload(
 	eventType string,
@@ -313,9 +298,6 @@ func convertUploadToDataURL(upload OpenAIImagesUpload) (string, error) {
 }
 
 // openAIImageUploadToDataURL is retained for backward compat.
-func openAIImageUploadToDataURL(upload OpenAIImagesUpload) (string, error) {
-	return convertUploadToDataURL(upload)
-}
 
 func buildOpenAIImagesResponsesRequest(parsed *OpenAIImagesRequest, toolModel string) ([]byte, error) {
 	if parsed == nil {
@@ -415,9 +397,6 @@ func shouldEmitImagesN(model string, count int) bool {
 }
 
 // shouldPassOpenAIImagesN is retained for backward compat.
-func shouldPassOpenAIImagesN(model string, n int) bool {
-	return shouldEmitImagesN(model, n)
-}
 
 func extractOpenAIImagesFromResponsesCompleted(payload []byte) ([]openAIResponsesImageResult, int64, []byte, openAIResponsesImageResult, error) {
 	if gjson.GetBytes(payload, "type").String() != "response.completed" {
@@ -430,8 +409,8 @@ func extractOpenAIImagesFromResponsesCompleted(payload []byte) ([]openAIResponse
 	}
 
 	var (
-		images    []openAIResponsesImageResult
-		leadMeta  openAIResponsesImageResult
+		images   []openAIResponsesImageResult
+		leadMeta openAIResponsesImageResult
 	)
 	outputArr := gjson.GetBytes(payload, "response.output")
 	if outputArr.IsArray() {
@@ -599,9 +578,6 @@ func parseUpstreamErrorFromSSE(data []byte) *OpenAIImagesUpstreamError {
 }
 
 // openAIImagesUpstreamErrorFromSSEPayload is retained for backward compat.
-func openAIImagesUpstreamErrorFromSSEPayload(payload []byte) *OpenAIImagesUpstreamError {
-	return parseUpstreamErrorFromSSE(payload)
-}
 
 func buildUpstreamErrorFromGJSON(errNode gjson.Result, upstreamReqID string) *OpenAIImagesUpstreamError {
 	if !errNode.Exists() {

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/telagod/subme/internal/domain"
 	"github.com/telagod/subme/internal/pkg/antigravity"
 	"github.com/telagod/subme/internal/pkg/gemini"
@@ -21,7 +22,6 @@ import (
 	"github.com/telagod/subme/internal/pkg/logger"
 	"github.com/telagod/subme/internal/server/middleware"
 	"github.com/telagod/subme/internal/service"
-	"github.com/google/uuid"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

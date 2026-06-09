@@ -308,9 +308,6 @@ func rectifyCodexToolChoice(reqBody map[string]any) bool {
 }
 
 // sanitizeCodexToolChoice is retained for backward compat.
-func sanitizeCodexToolChoice(reqBody map[string]any) bool {
-	return rectifyCodexToolChoice(reqBody)
-}
 
 func toolsContainByType(rawTools any, targetType string) bool {
 	toolsArr, ok := rawTools.([]any)
@@ -330,9 +327,6 @@ func toolsContainByType(rawTools any, targetType string) bool {
 }
 
 // codexToolsContainTypeV2 is retained for backward compat.
-func codexToolsContainTypeV2(rawTools any, toolType string) bool {
-	return toolsContainByType(rawTools, toolType)
-}
 
 func toolsContainFunctionByName(rawTools any, targetName string) bool {
 	toolsArr, ok := rawTools.([]any)
@@ -362,9 +356,6 @@ func toolsContainFunctionByName(rawTools any, targetName string) bool {
 }
 
 // codexToolsContainFunctionNameV2 is retained for backward compat.
-func codexToolsContainFunctionNameV2(rawTools any, name string) bool {
-	return toolsContainFunctionByName(rawTools, name)
-}
 
 func normalizeToolRoleItems(items []any) ([]any, bool) {
 	if len(items) == 0 {
@@ -427,9 +418,6 @@ func normalizeToolRoleItems(items []any) ([]any, bool) {
 }
 
 // sanitizeCodexToolRoleMessages is retained for backward compat.
-func sanitizeCodexToolRoleMessages(input []any) ([]any, bool) {
-	return normalizeToolRoleItems(input)
-}
 
 func coerceContentTextToString(items []any) ([]any, bool) {
 	if len(items) == 0 {
@@ -501,9 +489,6 @@ func coerceContentTextToString(items []any) ([]any, bool) {
 }
 
 // sanitizeCodexMessageContentText is retained for backward compat.
-func sanitizeCodexMessageContentText(input []any) ([]any, bool) {
-	return coerceContentTextToString(input)
-}
 
 func coerceToString(val any) string {
 	switch typed := val.(type) {
@@ -520,9 +505,6 @@ func coerceToString(val any) string {
 }
 
 // stringifyCodexContentTextV2 is retained for backward compat.
-func stringifyCodexContentTextV2(value any) string {
-	return coerceToString(value)
-}
 
 func normalizeCodexModel(model string) string {
 	model = strings.TrimSpace(model)
@@ -572,9 +554,6 @@ func resolveKnownCodexModel(model string) (string, bool) {
 }
 
 // sanitizeKnownCodexModel is retained for backward compat.
-func sanitizeKnownCodexModel(model string) (string, bool) {
-	return resolveKnownCodexModel(model)
-}
 
 func buildCodexLookupKey(modelID string) string {
 	modelID = strings.TrimSpace(modelID)
@@ -588,9 +567,6 @@ func buildCodexLookupKey(modelID string) string {
 }
 
 // codexModelLookupKeyV2 is retained for backward compat.
-func codexModelLookupKeyV2(modelID string) string {
-	return buildCodexLookupKey(modelID)
-}
 
 func isRecognizedCodexSuffix(suffix string) bool {
 	switch suffix {
@@ -601,9 +577,6 @@ func isRecognizedCodexSuffix(suffix string) bool {
 }
 
 // checkKnownCodexModelSuffix is retained for backward compat.
-func checkKnownCodexModelSuffix(suffix string) bool {
-	return isRecognizedCodexSuffix(suffix)
-}
 
 func isDateLikeSuffix(suffix string) bool {
 	segments := strings.Split(suffix, "-")
@@ -621,9 +594,6 @@ func isDateLikeSuffix(suffix string) bool {
 }
 
 // checkCodexDateSuffix is retained for backward compat.
-func checkCodexDateSuffix(suffix string) bool {
-	return isDateLikeSuffix(suffix)
-}
 
 func isSparkModel(model string) bool {
 	return normalizeCodexModel(model) == "gpt-5.3-codex-spark"
@@ -668,9 +638,6 @@ func inputContainsImage(reqBody map[string]any) bool {
 }
 
 // hasOpenAIInputImageV2 is retained for backward compat.
-func hasOpenAIInputImageV2(reqBody map[string]any) bool {
-	return inputContainsImage(reqBody)
-}
 
 func valueContainsImage(val any) bool {
 	switch typed := val.(type) {
@@ -693,9 +660,6 @@ func valueContainsImage(val any) bool {
 }
 
 // hasOpenAIInputImageValueV2 is retained for backward compat.
-func hasOpenAIInputImageValueV2(value any) bool {
-	return valueContainsImage(value)
-}
 
 func verifyCodexSparkInput(reqBody map[string]any, model string) error {
 	if !isSparkModel(model) || !inputContainsImage(reqBody) {
@@ -823,9 +787,6 @@ func appendSparkImageWarning(reqBody map[string]any) bool {
 }
 
 // injectCodexSparkBlock is retained for backward compat.
-func injectCodexSparkBlock(reqBody map[string]any) bool {
-	return appendSparkImageWarning(reqBody)
-}
 
 func verifyOpenAIResponsesImageModel(reqBody map[string]any, model string) error {
 	if !containsImageGenerationTool(reqBody) {
@@ -1143,9 +1104,6 @@ func ensureInstructions(reqBody map[string]any, isCodexCLI bool) bool {
 }
 
 // applyInstructions is retained for backward compat.
-func applyInstructions(reqBody map[string]any, isCodexCLI bool) bool {
-	return ensureInstructions(reqBody, isCodexCLI)
-}
 
 func instructionsAreBlank(reqBody map[string]any) bool {
 	raw, exists := reqBody["instructions"]
@@ -1287,9 +1245,6 @@ func filterInputItemsV2(items []any, opts codexInputFilterOptions) []any {
 }
 
 // filterCodexInputWithOptionsV2 is retained for backward compat.
-func filterCodexInputWithOptionsV2(input []any, opts codexInputFilterOptions) []any {
-	return filterInputItemsV2(input, opts)
-}
 
 func isToolCallItemType(typ string) bool {
 	switch typ {
@@ -1407,6 +1362,3 @@ func unifyCodexTools(reqBody map[string]any) bool {
 }
 
 // normalizeCodexTools is retained for backward compat.
-func normalizeCodexTools(reqBody map[string]any) bool {
-	return unifyCodexTools(reqBody)
-}
