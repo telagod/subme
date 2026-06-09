@@ -101,6 +101,7 @@
       <template #table>
         <AccountBulkActionsBar
           :selected-ids="selIds"
+          :progress="bulkDeleteProgress"
           @delete="handleBulkDelete"
           @delete-filtered="handleBulkDeleteFiltered"
           @reset-status="handleBulkResetStatus"
@@ -438,6 +439,7 @@ const scheduleModelOptions = ref<SelectOption[]>([])
 const togglingSchedulable = ref<number | null>(null)
 const menu = reactive<{show:boolean, acc:Account|null, pos:{top:number, left:number}|null}>({ show: false, acc: null, pos: null })
 const exportingData = ref(false)
+const bulkDeleteProgress = ref<{ current: number; total: number } | null>(null)
 
 // Account tools dropdown
 const showAccountToolsDropdown = ref(false)
@@ -1200,22 +1202,34 @@ const handleBulkDeleteFiltered = async () => {
     }
     if (!confirm(t('admin.accounts.bulkActions.deleteFilteredConfirm', { count: totalCount }))) return
     const allIds: number[] = []
-    const pageSize = 500
-    const totalPages = Math.ceil(totalCount / pageSize)
-    for (let page = 1; page <= totalPages; page++) {
-      const result = await adminAPI.accounts.list(page, pageSize, filters)
+    const fetchPageSize = 500
+    const fetchPages = Math.ceil(totalCount / fetchPageSize)
+    for (let page = 1; page <= fetchPages; page++) {
+      const result = await adminAPI.accounts.list(page, fetchPageSize, filters)
       allIds.push(...result.items.map((a: any) => a.id))
     }
     if (allIds.length === 0) return
-    const result = await adminAPI.accounts.batchDelete(allIds)
-    if (result.failed > 0) {
-      appStore.showError(t('admin.accounts.bulkActions.partialSuccess', { success: result.success, failed: result.failed }))
+    const batchSize = 50
+    let totalSuccess = 0
+    let totalFailed = 0
+    bulkDeleteProgress.value = { current: 0, total: allIds.length }
+    for (let i = 0; i < allIds.length; i += batchSize) {
+      const chunk = allIds.slice(i, i + batchSize)
+      const result = await adminAPI.accounts.batchDelete(chunk)
+      totalSuccess += result.success ?? 0
+      totalFailed += result.failed ?? 0
+      bulkDeleteProgress.value = { current: Math.min(i + batchSize, allIds.length), total: allIds.length }
+    }
+    bulkDeleteProgress.value = null
+    if (totalFailed > 0) {
+      appStore.showError(t('admin.accounts.bulkActions.partialSuccess', { success: totalSuccess, failed: totalFailed }))
     } else {
-      appStore.showSuccess(t('admin.accounts.bulkActions.deleteSuccess', { count: result.success }))
+      appStore.showSuccess(t('admin.accounts.bulkActions.deleteSuccess', { count: totalSuccess }))
     }
     clearSelection()
     reload()
   } catch (error) {
+    bulkDeleteProgress.value = null
     console.error('Failed to bulk delete filtered accounts:', error)
     appStore.showError(String(error))
   }
