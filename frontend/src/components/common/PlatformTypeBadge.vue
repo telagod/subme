@@ -1,5 +1,13 @@
 <template>
-  <div class="inline-flex flex-col gap-0.5 text-xs font-medium">
+  <!-- Compact mode: single-line tiny pills -->
+  <div v-if="compact" class="inline-flex items-center gap-0.5 flex-wrap">
+    <span :class="['inline-block text-[9px] leading-tight font-medium px-1 py-0 rounded', compactPlatformClass]">{{ compactPlatformLabel }}</span>
+    <span :class="['inline-block text-[9px] leading-tight font-medium px-1 py-0 rounded', compactTypeClass]">{{ compactTypeLabel }}</span>
+    <span v-if="planLabel" :class="['inline-block text-[9px] leading-tight font-medium px-1 py-0 rounded', compactPlanClass]">{{ planLabel }}</span>
+    <span v-if="privacyBadge" class="text-[9px] leading-tight" :title="privacyBadge.title">🔒</span>
+  </div>
+  <!-- Full mode: existing two-row badge blocks -->
+  <div v-else class="inline-flex flex-col gap-0.5 text-xs font-medium">
     <!-- Row 1: Platform + Type -->
     <div class="inline-flex items-center overflow-hidden rounded-md">
       <span :class="['inline-flex items-center gap-1 px-2 py-1', platformClass]">
@@ -68,15 +76,56 @@ interface Props {
   planType?: string
   privacyMode?: string
   subscriptionExpiresAt?: string
+  compact?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  compact: false
+})
 
 const platformLabel = computed(() => {
   if (props.platform === 'anthropic') return 'Anthropic'
   if (props.platform === 'openai') return 'OpenAI'
   if (props.platform === 'antigravity') return 'Antigravity'
   return 'Gemini'
+})
+
+// Compact mode: abbreviated labels
+const compactPlatformLabel = computed(() => {
+  if (props.platform === 'anthropic') return 'ANT'
+  if (props.platform === 'openai') return 'OAI'
+  if (props.platform === 'antigravity') return 'AG'
+  return 'GEM'
+})
+
+const compactTypeLabel = computed(() => {
+  switch (props.type) {
+    case 'oauth': return 'OAuth'
+    case 'setup-token': return 'ST'
+    case 'apikey': return 'Key'
+    case 'bedrock': return 'BR'
+    case 'service_account': return 'SA'
+    default: return props.type
+  }
+})
+
+const compactPlatformClass = computed(() => {
+  if (props.platform === 'anthropic') return 'bg-orange-900/30 text-orange-400'
+  if (props.platform === 'openai') return 'bg-emerald-500/10 text-emerald-400'
+  if (props.platform === 'antigravity') return 'bg-purple-900/30 text-purple-400'
+  return 'bg-sky-500/10 text-sky-400'
+})
+
+const compactTypeClass = computed(() => {
+  if (props.platform === 'anthropic') return 'bg-orange-900/20 text-orange-300'
+  if (props.platform === 'openai') return 'bg-emerald-500/10 text-emerald-300'
+  if (props.platform === 'antigravity') return 'bg-purple-900/20 text-purple-300'
+  return 'bg-sky-500/10 text-sky-300'
+})
+
+const compactPlanClass = computed(() => {
+  if (props.planType && props.planType.toLowerCase() === 'abnormal') return 'bg-red-500/10 text-red-400'
+  return compactTypeClass.value
 })
 
 const typeLabel = computed(() => {

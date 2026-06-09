@@ -1,24 +1,17 @@
 <template>
-  <div>
-    <div class="flex items-center gap-1">
-      <span :class="['w-[28px] shrink-0 rounded px-1 text-center text-[10px] font-medium', labelClass]">{{ label }}</span>
-      <span
-        :class="['text-xs font-mono font-medium tabular-nums', percentClass]"
-        :title="statsTooltip"
-      >{{ displayPercent }}</span>
-      <span v-if="shouldShowResetTime" class="text-[11px] text-muted-foreground tabular-nums">{{ formatResetTime }}</span>
+  <div class="flex items-center gap-1 flex-wrap">
+    <span :class="['w-[24px] shrink-0 rounded px-0.5 text-center text-[9px] font-semibold leading-tight', labelClass]">{{ label }}</span>
+    <div class="w-[40px] shrink-0 h-[5px] rounded-full bg-muted/60 overflow-hidden">
+      <div :class="['h-full rounded-full transition-all', barFillClass]" :style="{ width: barWidth }" />
     </div>
-    <div v-if="hasInlineStats" class="ml-[32px] flex items-center gap-1 text-[9px] tabular-nums leading-tight">
-      <span class="text-foreground/70">{{ inlineRequests }}r</span>
-      <span class="text-muted-foreground/40">·</span>
-      <span class="text-foreground/70">{{ inlineTokens }}</span>
-      <span class="text-muted-foreground/40">·</span>
-      <span class="text-emerald-400/90">${{ inlineCost }}</span>
-      <template v-if="windowStats?.user_cost != null">
-        <span class="text-muted-foreground/40">·</span>
-        <span class="text-muted-foreground">u${{ inlineUserCost }}</span>
-      </template>
-    </div>
+    <span
+      :class="['text-[11px] font-mono font-semibold tabular-nums leading-tight', percentClass]"
+      :title="statsTooltip"
+    >{{ displayPercent }}</span>
+    <span v-if="shouldShowResetTime" class="text-[10px] text-muted-foreground/70 tabular-nums leading-tight">{{ formatResetTime }}</span>
+    <template v-if="hasInlineStats">
+      <span class="text-[9px] text-muted-foreground/50 tabular-nums leading-tight">{{ inlineRequests }}r·{{ inlineTokens }}·${{ inlineCost }}</span>
+    </template>
   </div>
 </template>
 
@@ -53,6 +46,21 @@ const percentClass = computed(() => {
   if (props.utilization >= 80) return 'text-amber-400'
   if (props.utilization >= 50) return 'text-foreground/85'
   return 'text-muted-foreground'
+})
+
+const barFillClass = computed(() => {
+  if (props.utilization >= 100) return 'bg-red-500'
+  return {
+    indigo: 'bg-indigo-500',
+    emerald: 'bg-emerald-500',
+    purple: 'bg-purple-500',
+    amber: 'bg-amber-500'
+  }[props.color]
+})
+
+const barWidth = computed(() => {
+  const clamped = Math.min(100, Math.max(0, props.utilization))
+  return `${clamped}%`
 })
 
 const displayPercent = computed(() => {
@@ -109,8 +117,4 @@ const inlineCost = computed(() => {
   return props.windowStats.cost.toFixed(2)
 })
 
-const inlineUserCost = computed(() => {
-  if (!props.windowStats?.user_cost) return '0'
-  return props.windowStats.user_cost.toFixed(2)
-})
 </script>
