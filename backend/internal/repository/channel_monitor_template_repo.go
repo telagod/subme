@@ -11,14 +11,14 @@ import (
 	"github.com/telagod/subme/internal/service"
 )
 
-// channelMonitorRequestTemplateRepository 实现 service.ChannelMonitorRequestTemplateRepository。
-// 与 channelMonitorRepository 分开一个文件，职责清晰。
+// channelMonitorRequestTemplateRepository implements service.ChannelMonitorRequestTemplateRepository.
+// Kept in a separate file from channelMonitorRepository for clarity.
 type channelMonitorRequestTemplateRepository struct {
 	client *dbent.Client
 	db     *sql.DB
 }
 
-// NewChannelMonitorRequestTemplateRepository 创建模板仓储实例。
+// NewChannelMonitorRequestTemplateRepository creates a new template repository instance.
 func NewChannelMonitorRequestTemplateRepository(client *dbent.Client, db *sql.DB) service.ChannelMonitorRequestTemplateRepository {
 	return &channelMonitorRequestTemplateRepository{client: client, db: db}
 }
@@ -26,104 +26,114 @@ func NewChannelMonitorRequestTemplateRepository(client *dbent.Client, db *sql.DB
 // ---------- CRUD ----------
 
 func (r *channelMonitorRequestTemplateRepository) Create(ctx context.Context, t *service.ChannelMonitorRequestTemplate) error {
-	client := clientFromContext(ctx, r.client)
-	builder := client.ChannelMonitorRequestTemplate.Create().
+	entClient := clientFromContext(ctx, r.client)
+
+	mutation := entClient.ChannelMonitorRequestTemplate.Create().
 		SetName(t.Name).
 		SetProvider(channelmonitorrequesttemplate.Provider(t.Provider)).
 		SetAPIMode(defaultAPIModeRepo(t.APIMode)).
 		SetDescription(t.Description).
 		SetExtraHeaders(emptyHeadersIfNilRepo(t.ExtraHeaders)).
 		SetBodyOverrideMode(defaultBodyModeRepo(t.BodyOverrideMode))
+
 	if t.BodyOverride != nil {
-		builder = builder.SetBodyOverride(t.BodyOverride)
+		mutation = mutation.SetBodyOverride(t.BodyOverride)
 	}
 
-	created, err := builder.Save(ctx)
-	if err != nil {
-		return translatePersistenceError(err, service.ErrChannelMonitorTemplateNotFound, nil)
+	saved, saveErr := mutation.Save(ctx)
+	if saveErr != nil {
+		return translatePersistenceError(saveErr, service.ErrChannelMonitorTemplateNotFound, nil)
 	}
-	t.ID = created.ID
-	t.CreatedAt = created.CreatedAt
-	t.UpdatedAt = created.UpdatedAt
+	t.ID = saved.ID
+	t.CreatedAt = saved.CreatedAt
+	t.UpdatedAt = saved.UpdatedAt
 	return nil
 }
 
 func (r *channelMonitorRequestTemplateRepository) GetByID(ctx context.Context, id int64) (*service.ChannelMonitorRequestTemplate, error) {
-	row, err := r.client.ChannelMonitorRequestTemplate.Query().
+	found, findErr := r.client.ChannelMonitorRequestTemplate.Query().
 		Where(channelmonitorrequesttemplate.IDEQ(id)).
 		Only(ctx)
-	if err != nil {
-		return nil, translatePersistenceError(err, service.ErrChannelMonitorTemplateNotFound, nil)
+	if findErr != nil {
+		return nil, translatePersistenceError(findErr, service.ErrChannelMonitorTemplateNotFound, nil)
 	}
-	return entToServiceTemplate(row), nil
+	return convertEntToTemplate(found), nil
 }
 
 func (r *channelMonitorRequestTemplateRepository) Update(ctx context.Context, t *service.ChannelMonitorRequestTemplate) error {
-	client := clientFromContext(ctx, r.client)
-	updater := client.ChannelMonitorRequestTemplate.UpdateOneID(t.ID).
+	entClient := clientFromContext(ctx, r.client)
+
+	mutation := entClient.ChannelMonitorRequestTemplate.UpdateOneID(t.ID).
 		SetName(t.Name).
 		SetAPIMode(defaultAPIModeRepo(t.APIMode)).
 		SetDescription(t.Description).
 		SetExtraHeaders(emptyHeadersIfNilRepo(t.ExtraHeaders)).
 		SetBodyOverrideMode(defaultBodyModeRepo(t.BodyOverrideMode))
+
 	if t.BodyOverride != nil {
-		updater = updater.SetBodyOverride(t.BodyOverride)
+		mutation = mutation.SetBodyOverride(t.BodyOverride)
 	} else {
-		updater = updater.ClearBodyOverride()
+		mutation = mutation.ClearBodyOverride()
 	}
-	updated, err := updater.Save(ctx)
-	if err != nil {
-		return translatePersistenceError(err, service.ErrChannelMonitorTemplateNotFound, nil)
+
+	saved, saveErr := mutation.Save(ctx)
+	if saveErr != nil {
+		return translatePersistenceError(saveErr, service.ErrChannelMonitorTemplateNotFound, nil)
 	}
-	t.UpdatedAt = updated.UpdatedAt
+	t.UpdatedAt = saved.UpdatedAt
 	return nil
 }
 
 func (r *channelMonitorRequestTemplateRepository) Delete(ctx context.Context, id int64) error {
-	client := clientFromContext(ctx, r.client)
-	if err := client.ChannelMonitorRequestTemplate.DeleteOneID(id).Exec(ctx); err != nil {
-		return translatePersistenceError(err, service.ErrChannelMonitorTemplateNotFound, nil)
+	entClient := clientFromContext(ctx, r.client)
+	if delErr := entClient.ChannelMonitorRequestTemplate.DeleteOneID(id).Exec(ctx); delErr != nil {
+		return translatePersistenceError(delErr, service.ErrChannelMonitorTemplateNotFound, nil)
 	}
 	return nil
 }
 
 func (r *channelMonitorRequestTemplateRepository) List(ctx context.Context, params service.ChannelMonitorRequestTemplateListParams) ([]*service.ChannelMonitorRequestTemplate, error) {
-	q := r.client.ChannelMonitorRequestTemplate.Query()
+	query := r.client.ChannelMonitorRequestTemplate.Query()
+
 	if params.Provider != "" {
-		q = q.Where(channelmonitorrequesttemplate.ProviderEQ(channelmonitorrequesttemplate.Provider(params.Provider)))
+		query = query.Where(channelmonitorrequesttemplate.ProviderEQ(channelmonitorrequesttemplate.Provider(params.Provider)))
 	}
 	if params.APIMode != "" {
-		q = q.Where(channelmonitorrequesttemplate.APIModeEQ(defaultAPIModeRepo(params.APIMode)))
+		query = query.Where(channelmonitorrequesttemplate.APIModeEQ(defaultAPIModeRepo(params.APIMode)))
 	}
-	rows, err := q.
+
+	results, listErr := query.
 		Order(dbent.Asc(channelmonitorrequesttemplate.FieldProvider), dbent.Asc(channelmonitorrequesttemplate.FieldAPIMode), dbent.Asc(channelmonitorrequesttemplate.FieldName)).
 		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("list monitor templates: %w", err)
+	if listErr != nil {
+		return nil, fmt.Errorf("listing monitor request templates: %w", listErr)
 	}
-	out := make([]*service.ChannelMonitorRequestTemplate, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, entToServiceTemplate(row))
+
+	templates := make([]*service.ChannelMonitorRequestTemplate, 0, len(results))
+	for _, row := range results {
+		templates = append(templates, convertEntToTemplate(row))
 	}
-	return out, nil
+	return templates, nil
 }
 
-// ApplyToMonitors 把模板当前配置覆盖到 monitorIDs 列表里的关联监控。
-// WHERE 双重过滤：template_id = id AND id IN (monitorIDs)，防止用户传了未关联本模板的 id
-// 就被覆盖。走 ent UpdateMany 保留 hooks。
+// ApplyToMonitors propagates the current template config to the specified monitor IDs.
+// The WHERE clause requires both template_id match and ID-in-list, preventing accidental
+// overwrites of monitors not associated with this template. Uses ent UpdateMany to preserve hooks.
 func (r *channelMonitorRequestTemplateRepository) ApplyToMonitors(ctx context.Context, id int64, monitorIDs []int64) (int64, error) {
 	if len(monitorIDs) == 0 {
 		return 0, nil
 	}
-	client := clientFromContext(ctx, r.client)
-	tpl, err := client.ChannelMonitorRequestTemplate.Query().
+
+	entClient := clientFromContext(ctx, r.client)
+
+	tpl, lookupErr := entClient.ChannelMonitorRequestTemplate.Query().
 		Where(channelmonitorrequesttemplate.IDEQ(id)).
 		Only(ctx)
-	if err != nil {
-		return 0, translatePersistenceError(err, service.ErrChannelMonitorTemplateNotFound, nil)
+	if lookupErr != nil {
+		return 0, translatePersistenceError(lookupErr, service.ErrChannelMonitorTemplateNotFound, nil)
 	}
 
-	updater := client.ChannelMonitor.Update().
+	bulk := entClient.ChannelMonitor.Update().
 		Where(
 			channelmonitor.TemplateIDEQ(id),
 			channelmonitor.IDIn(monitorIDs...),
@@ -133,62 +143,64 @@ func (r *channelMonitorRequestTemplateRepository) ApplyToMonitors(ctx context.Co
 		SetAPIMode(defaultAPIModeRepo(tpl.APIMode)).
 		SetExtraHeaders(emptyHeadersIfNilRepo(tpl.ExtraHeaders)).
 		SetBodyOverrideMode(defaultBodyModeRepo(tpl.BodyOverrideMode))
+
 	if tpl.BodyOverride != nil {
-		updater = updater.SetBodyOverride(tpl.BodyOverride)
+		bulk = bulk.SetBodyOverride(tpl.BodyOverride)
 	} else {
-		updater = updater.ClearBodyOverride()
+		bulk = bulk.ClearBodyOverride()
 	}
 
-	affected, err := updater.Save(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("apply template to monitors: %w", err)
+	changed, applyErr := bulk.Save(ctx)
+	if applyErr != nil {
+		return 0, fmt.Errorf("propagating template to associated monitors: %w", applyErr)
 	}
-	return int64(affected), nil
+	return int64(changed), nil
 }
 
-// CountAssociatedMonitors 统计关联监控数（UI 展示「N 个配置」用）。
+// CountAssociatedMonitors returns the number of monitors linked to a template (for UI display).
 func (r *channelMonitorRequestTemplateRepository) CountAssociatedMonitors(ctx context.Context, id int64) (int64, error) {
-	count, err := r.client.ChannelMonitor.Query().
+	n, countErr := r.client.ChannelMonitor.Query().
 		Where(channelmonitor.TemplateIDEQ(id)).
 		Count(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("count monitors for template %d: %w", id, err)
+	if countErr != nil {
+		return 0, fmt.Errorf("counting monitors associated with template %d: %w", id, countErr)
 	}
-	return int64(count), nil
+	return int64(n), nil
 }
 
-// ListAssociatedMonitors 列出模板关联的所有监控简略字段。
-// ORDER BY name 稳定输出方便前端展示。
+// ListAssociatedMonitors returns brief info for monitors linked to a template.
+// Results are ordered by name for stable frontend rendering.
 func (r *channelMonitorRequestTemplateRepository) ListAssociatedMonitors(ctx context.Context, id int64) ([]*service.AssociatedMonitorBrief, error) {
-	rows, err := r.client.ChannelMonitor.Query().
+	monitors, queryErr := r.client.ChannelMonitor.Query().
 		Where(channelmonitor.TemplateIDEQ(id)).
 		Order(dbent.Asc(channelmonitor.FieldName)).
 		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("list associated monitors for template %d: %w", id, err)
+	if queryErr != nil {
+		return nil, fmt.Errorf("listing monitors associated with template %d: %w", id, queryErr)
 	}
-	out := make([]*service.AssociatedMonitorBrief, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, &service.AssociatedMonitorBrief{
-			ID:       row.ID,
-			Name:     row.Name,
-			Provider: string(row.Provider),
-			APIMode:  defaultAPIModeRepo(row.APIMode),
-			Enabled:  row.Enabled,
+
+	briefs := make([]*service.AssociatedMonitorBrief, 0, len(monitors))
+	for _, m := range monitors {
+		briefs = append(briefs, &service.AssociatedMonitorBrief{
+			ID:       m.ID,
+			Name:     m.Name,
+			Provider: string(m.Provider),
+			APIMode:  defaultAPIModeRepo(m.APIMode),
+			Enabled:  m.Enabled,
 		})
 	}
-	return out, nil
+	return briefs, nil
 }
 
 // ---------- helpers ----------
 
-func entToServiceTemplate(row *dbent.ChannelMonitorRequestTemplate) *service.ChannelMonitorRequestTemplate {
+func convertEntToTemplate(row *dbent.ChannelMonitorRequestTemplate) *service.ChannelMonitorRequestTemplate {
 	if row == nil {
 		return nil
 	}
-	headers := row.ExtraHeaders
-	if headers == nil {
-		headers = map[string]string{}
+	hdrs := row.ExtraHeaders
+	if hdrs == nil {
+		hdrs = map[string]string{}
 	}
 	return &service.ChannelMonitorRequestTemplate{
 		ID:               row.ID,
@@ -196,7 +208,7 @@ func entToServiceTemplate(row *dbent.ChannelMonitorRequestTemplate) *service.Cha
 		Provider:         string(row.Provider),
 		APIMode:          defaultAPIModeRepo(row.APIMode),
 		Description:      row.Description,
-		ExtraHeaders:     headers,
+		ExtraHeaders:     hdrs,
 		BodyOverrideMode: row.BodyOverrideMode,
 		BodyOverride:     row.BodyOverride,
 		CreatedAt:        row.CreatedAt,

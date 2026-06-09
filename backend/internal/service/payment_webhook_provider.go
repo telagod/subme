@@ -16,14 +16,14 @@ import (
 // It resolves the original provider instance from the order whenever possible and
 // only falls back to a registry provider for legacy/single-instance scenarios.
 func (s *PaymentService) GetWebhookProvider(ctx context.Context, providerKey, outTradeNo string) (payment.Provider, error) {
-	providers, err := s.GetWebhookProviders(ctx, providerKey, outTradeNo)
-	if err != nil {
-		return nil, err
+	candidates, lookupErr := s.GetWebhookProviders(ctx, providerKey, outTradeNo)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
-	if len(providers) == 0 {
+	if len(candidates) == 0 {
 		return nil, payment.ErrProviderNotFound
 	}
-	return providers[0], nil
+	return candidates[0], nil
 }
 
 // GetWebhookProviders returns provider candidates that can verify the webhook.
@@ -31,43 +31,43 @@ func (s *PaymentService) GetWebhookProvider(ctx context.Context, providerKey, ou
 // cannot be bound to a merchant before decryption.
 func (s *PaymentService) GetWebhookProviders(ctx context.Context, providerKey, outTradeNo string) ([]payment.Provider, error) {
 	if outTradeNo != "" {
-		order, err := s.entClient.PaymentOrder.Query().Where(paymentorder.OutTradeNo(outTradeNo)).Only(ctx)
-		if err == nil {
-			if psHasPinnedProviderInstance(order) {
-				prov, err := s.getPinnedOrderProvider(ctx, order)
-				if err != nil {
-					return nil, err
+		row, queryErr := s.entClient.PaymentOrder.Query().Where(paymentorder.OutTradeNo(outTradeNo)).Only(ctx)
+		if queryErr == nil {
+			if orderHasPinnedInstance(row) {
+				pinned, pinErr := s.loadPinnedOrderProvider(ctx, row)
+				if pinErr != nil {
+					return nil, pinErr
 				}
-				return []payment.Provider{prov}, nil
+				return []payment.Provider{pinned}, nil
 			}
-			inst, err := s.getOrderProviderInstance(ctx, order)
-			if err != nil {
-				return nil, fmt.Errorf("load order provider instance: %w", err)
+			inst, instErr := s.getOrderProviderInstance(ctx, row)
+			if instErr != nil {
+				return nil, fmt.Errorf("unable to load order provider instance: %w", instErr)
 			}
 			if inst != nil {
-				prov, err := s.createProviderFromInstance(ctx, inst)
-				if err != nil {
-					return nil, err
+				prov, provErr := s.createProviderFromInstance(ctx, inst)
+				if provErr != nil {
+					return nil, provErr
 				}
 				return []payment.Provider{prov}, nil
 			}
 			if strings.TrimSpace(providerKey) == payment.TypeWxpay {
-				return s.getEnabledWebhookProvidersByKey(ctx, providerKey)
+				return s.listEnabledWebhookProviders(ctx, providerKey)
 			}
 			if !s.webhookRegistryFallbackAllowed(ctx, providerKey) {
 				return nil, fmt.Errorf("webhook provider fallback is ambiguous for %s", providerKey)
 			}
 			s.EnsureProviders(ctx)
-			prov, err := s.registry.GetProviderByKey(providerKey)
-			if err != nil {
-				return nil, err
+			prov, regErr := s.registry.GetProviderByKey(providerKey)
+			if regErr != nil {
+				return nil, regErr
 			}
 			return []payment.Provider{prov}, nil
 		}
 	}
 
 	if strings.TrimSpace(providerKey) == payment.TypeWxpay {
-		return s.getEnabledWebhookProvidersByKey(ctx, providerKey)
+		return s.listEnabledWebhookProviders(ctx, providerKey)
 	}
 
 	if !s.webhookRegistryFallbackAllowed(ctx, providerKey) {
@@ -75,74 +75,74 @@ func (s *PaymentService) GetWebhookProviders(ctx context.Context, providerKey, o
 	}
 
 	s.EnsureProviders(ctx)
-	prov, err := s.registry.GetProviderByKey(providerKey)
-	if err != nil {
-		return nil, err
+	prov, regErr := s.registry.GetProviderByKey(providerKey)
+	if regErr != nil {
+		return nil, regErr
 	}
 	return []payment.Provider{prov}, nil
 }
 
-func (s *PaymentService) getPinnedOrderProvider(ctx context.Context, o *dbent.PaymentOrder) (payment.Provider, error) {
-	inst, err := s.getOrderProviderInstance(ctx, o)
-	if err != nil {
-		return nil, fmt.Errorf("load order provider instance: %w", err)
+func (s *PaymentService) loadPinnedOrderProvider(ctx context.Context, order *dbent.PaymentOrder) (payment.Provider, error) {
+	inst, instErr := s.getOrderProviderInstance(ctx, order)
+	if instErr != nil {
+		return nil, fmt.Errorf("unable to load order provider instance: %w", instErr)
 	}
 	if inst == nil {
-		return nil, fmt.Errorf("order %d provider instance is missing", o.ID)
+		return nil, fmt.Errorf("order %d provider instance not found", order.ID)
 	}
 	return s.createProviderFromInstance(ctx, inst)
 }
 
 func (s *PaymentService) webhookRegistryFallbackAllowed(ctx context.Context, providerKey string) bool {
-	providerKey = strings.TrimSpace(providerKey)
-	if providerKey == "" || s == nil || s.entClient == nil {
+	trimmed := strings.TrimSpace(providerKey)
+	if trimmed == "" || s == nil || s.entClient == nil {
 		return false
 	}
 
-	count, err := s.entClient.PaymentProviderInstance.Query().
+	total, countErr := s.entClient.PaymentProviderInstance.Query().
 		Where(
-			paymentproviderinstance.ProviderKeyEQ(providerKey),
+			paymentproviderinstance.ProviderKeyEQ(trimmed),
 			paymentproviderinstance.EnabledEQ(true),
 		).
 		Count(ctx)
-	if err != nil {
-		slog.Warn("payment webhook fallback instance count failed", "provider", providerKey, "error", err)
+	if countErr != nil {
+		slog.Warn("payment webhook fallback instance count failed", "provider", trimmed, "error", countErr)
 		return false
 	}
-	return count <= 1
+	return total <= 1
 }
 
-func psHasPinnedProviderInstance(order *dbent.PaymentOrder) bool {
+func orderHasPinnedInstance(order *dbent.PaymentOrder) bool {
 	return order != nil && (psOrderProviderSnapshot(order) != nil || (order.ProviderInstanceID != nil && strings.TrimSpace(*order.ProviderInstanceID) != ""))
 }
 
-func (s *PaymentService) getEnabledWebhookProvidersByKey(ctx context.Context, providerKey string) ([]payment.Provider, error) {
-	providerKey = strings.TrimSpace(providerKey)
-	instances, err := s.entClient.PaymentProviderInstance.Query().
+func (s *PaymentService) listEnabledWebhookProviders(ctx context.Context, providerKey string) ([]payment.Provider, error) {
+	trimmed := strings.TrimSpace(providerKey)
+	rows, queryErr := s.entClient.PaymentProviderInstance.Query().
 		Where(
-			paymentproviderinstance.ProviderKeyEQ(providerKey),
+			paymentproviderinstance.ProviderKeyEQ(trimmed),
 			paymentproviderinstance.EnabledEQ(true),
 		).
 		Order(dbent.Asc(paymentproviderinstance.FieldSortOrder)).
 		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("query webhook provider instances: %w", err)
+	if queryErr != nil {
+		return nil, fmt.Errorf("unable to query webhook provider instances: %w", queryErr)
 	}
-	if len(instances) == 0 {
+	if len(rows) == 0 {
 		return nil, payment.ErrProviderNotFound
 	}
 
-	providers := make([]payment.Provider, 0, len(instances))
-	for _, inst := range instances {
-		prov, provErr := s.createProviderFromInstance(ctx, inst)
-		if provErr != nil {
-			slog.Warn("skip webhook provider instance", "provider", providerKey, "instanceID", inst.ID, "error", provErr)
+	result := make([]payment.Provider, 0, len(rows))
+	for _, row := range rows {
+		prov, buildErr := s.createProviderFromInstance(ctx, row)
+		if buildErr != nil {
+			slog.Warn("skipping webhook provider instance", "provider", trimmed, "instanceID", row.ID, "error", buildErr)
 			continue
 		}
-		providers = append(providers, prov)
+		result = append(result, prov)
 	}
-	if len(providers) == 0 {
+	if len(result) == 0 {
 		return nil, payment.ErrProviderNotFound
 	}
-	return providers, nil
+	return result, nil
 }

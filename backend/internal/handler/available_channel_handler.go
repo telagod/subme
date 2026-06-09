@@ -10,23 +10,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AvailableChannelHandler 处理用户侧「可用渠道」查询。
+// AvailableChannelHandler serves the user-facing "available channels" query.
 //
-// 用户侧接口委托 ChannelService.ListAvailable，并在返回前做三层过滤：
-//  1. 行过滤：只保留状态为 Active 且与当前用户可访问分组有交集的渠道；
-//  2. 分组过滤：渠道的 Groups 只保留用户可访问的那些；
-//  3. 平台过滤：渠道的 SupportedModels 只保留平台在用户可见 Groups 中出现过的模型，
-//     防止"渠道同时挂在 antigravity / anthropic 两个平台的分组上，用户只访问
-//     antigravity，却看到 anthropic 模型"这类跨平台信息泄漏；
-//  4. 字段白名单：仅返回用户需要的字段（省略 BillingModelSource / RestrictModels
-//     / 内部 ID / Status 等管理字段）。
+// The user-side endpoint delegates to ChannelService.ListAvailable and applies
+// three filtering layers before returning:
+//  1. Row filter: only channels whose status is Active and whose groups
+//     intersect with the current user's accessible groups are kept.
+//  2. Group filter: each channel's Groups are trimmed to only those the user
+//     can access.
+//  3. Platform filter: each channel's SupportedModels are trimmed to models
+//     whose platform appears in the user's visible groups, preventing cross-
+//     platform information leakage (e.g. a channel attached to both antigravity
+//     and anthropic groups should not expose anthropic models to a user who
+//     only has access to antigravity).
+//  4. Field whitelist: only user-relevant fields are returned (internal IDs,
+//     BillingModelSource, RestrictModels, Status, etc. are omitted).
 type AvailableChannelHandler struct {
 	channelService *service.ChannelService
 	apiKeyService  *service.APIKeyService
 	settingService *service.SettingService
 }
 
-// NewAvailableChannelHandler 创建用户侧可用渠道 handler。
+// NewAvailableChannelHandler constructs a new user-side available-channel handler.
 func NewAvailableChannelHandler(
 	channelService *service.ChannelService,
 	apiKeyService *service.APIKeyService,
@@ -39,7 +44,7 @@ func NewAvailableChannelHandler(
 	}
 }
 
-// featureEnabled 返回 available-channels 开关是否启用。默认关闭（opt-in）。
+// featureEnabled returns whether the available-channels feature toggle is on. Defaults to off (opt-in).
 func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) bool {
 	if h.settingService == nil {
 		return false
@@ -47,11 +52,11 @@ func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) bool {
 	return h.settingService.GetAvailableChannelsRuntime(c.Request.Context()).Enabled
 }
 
-// userAvailableGroup 用户可见的分组概要（白名单字段）。
+// userAvailableGroup is a whitelisted summary of a group visible to the user.
 //
-// 前端据此区分专属 vs 公开分组（IsExclusive）、订阅 vs 标准分组（SubscriptionType，
-// 订阅视觉加深），并用 RateMultiplier 作为默认倍率；用户专属倍率前端走
-// /groups/rates，和 API 密钥页面保持一致。
+// The frontend uses this to distinguish exclusive vs. public groups (IsExclusive),
+// subscription vs. standard groups (SubscriptionType with deeper styling),
+// and the default rate multiplier; per-user rates come from /groups/rates.
 type userAvailableGroup struct {
 	ID               int64   `json:"id"`
 	Name             string  `json:"name"`
@@ -61,7 +66,7 @@ type userAvailableGroup struct {
 	IsExclusive      bool    `json:"is_exclusive"`
 }
 
-// userSupportedModelPricing 用户可见的定价字段白名单。
+// userSupportedModelPricing contains whitelisted pricing fields visible to the user.
 type userSupportedModelPricing struct {
 	BillingMode      string                   `json:"billing_mode"`
 	InputPrice       *float64                 `json:"input_price"`
@@ -73,7 +78,7 @@ type userSupportedModelPricing struct {
 	Intervals        []userPricingIntervalDTO `json:"intervals"`
 }
 
-// userPricingIntervalDTO 定价区间白名单（去掉内部 ID、SortOrder 等前端不渲染的字段）。
+// userPricingIntervalDTO is a whitelisted pricing interval (internal IDs and SortOrder are omitted).
 type userPricingIntervalDTO struct {
 	MinTokens       int      `json:"min_tokens"`
 	MaxTokens       *int     `json:"max_tokens"`
@@ -85,177 +90,180 @@ type userPricingIntervalDTO struct {
 	PerRequestPrice *float64 `json:"per_request_price"`
 }
 
-// userSupportedModel 用户可见的支持模型条目。
+// userSupportedModel is a whitelisted supported-model entry visible to the user.
 type userSupportedModel struct {
 	Name     string                     `json:"name"`
 	Platform string                     `json:"platform"`
 	Pricing  *userSupportedModelPricing `json:"pricing"`
 }
 
-// userChannelPlatformSection 单渠道内某个平台的子视图：用户可见的分组 + 该平台
-// 支持的模型。按 platform 聚合后让前端可以把渠道名作为 row-group 一次渲染，
-// 后面的平台行按 sections 顺序铺开。
+// userChannelPlatformSection represents a single platform's sub-view within a
+// channel: the user-visible groups and the supported models for that platform.
+// Grouping by platform lets the frontend render channel name as a row-group
+// header with platform sections underneath.
 type userChannelPlatformSection struct {
 	Platform        string               `json:"platform"`
 	Groups          []userAvailableGroup `json:"groups"`
 	SupportedModels []userSupportedModel `json:"supported_models"`
 }
 
-// userAvailableChannel 用户可见的渠道条目（白名单字段）。
+// userAvailableChannel is the whitelisted channel entry visible to the user.
 //
-// 每个渠道聚合为一条记录，内嵌 platforms 子数组：每个 section 对应一个平台，
-// 包含该平台的 groups 和 supported_models。
+// Each channel is aggregated into a single record with an embedded platforms
+// array: each section corresponds to one platform and contains that platform's
+// groups and supported_models.
 type userAvailableChannel struct {
 	Name        string                       `json:"name"`
 	Description string                       `json:"description"`
 	Platforms   []userChannelPlatformSection `json:"platforms"`
 }
 
-// List 列出当前用户可见的「可用渠道」。
+// List returns available channels visible to the current user.
 // GET /api/v1/channels/available
 func (h *AvailableChannelHandler) List(c *gin.Context) {
-	subject, ok := middleware.GetAuthSubjectFromContext(c)
-	if !ok {
-		response.Unauthorized(c, "User not authenticated")
+	authSubject, authenticated := middleware.GetAuthSubjectFromContext(c)
+	if !authenticated {
+		response.Unauthorized(c, "Authentication required")
 		return
 	}
 
-	// Feature 未启用时返回空数组（不暴露渠道信息）。检查放在认证之后，
-	// 保持与未开关前的 401 行为一致：未登录先 401，登录后再按开关决定。
+	// When the feature is disabled, return an empty array without exposing
+	// channel data. The check is placed after auth so unauthenticated
+	// callers still receive 401 rather than an empty 200.
 	if !h.featureEnabled(c) {
 		response.Success(c, []userAvailableChannel{})
 		return
 	}
 
-	userGroups, err := h.apiKeyService.GetAvailableGroups(c.Request.Context(), subject.UserID)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	accessibleGroups, grpErr := h.apiKeyService.GetAvailableGroups(c.Request.Context(), authSubject.UserID)
+	if grpErr != nil {
+		response.ErrorFrom(c, grpErr)
 		return
 	}
-	allowedGroupIDs := make(map[int64]struct{}, len(userGroups))
-	for i := range userGroups {
-		allowedGroupIDs[userGroups[i].ID] = struct{}{}
+	permittedIDs := make(map[int64]struct{}, len(accessibleGroups))
+	for idx := range accessibleGroups {
+		permittedIDs[accessibleGroups[idx].ID] = struct{}{}
 	}
 
-	channels, err := h.channelService.ListAvailable(c.Request.Context())
-	if err != nil {
-		response.ErrorFrom(c, err)
+	allChannels, chErr := h.channelService.ListAvailable(c.Request.Context())
+	if chErr != nil {
+		response.ErrorFrom(c, chErr)
 		return
 	}
 
-	out := make([]userAvailableChannel, 0, len(channels))
-	for _, ch := range channels {
+	result := make([]userAvailableChannel, 0, len(allChannels))
+	for _, ch := range allChannels {
 		if ch.Status != service.StatusActive {
 			continue
 		}
-		visibleGroups := filterUserVisibleGroups(ch.Groups, allowedGroupIDs)
-		if len(visibleGroups) == 0 {
+		visibleGrps := retainAccessibleGroups(ch.Groups, permittedIDs)
+		if len(visibleGrps) == 0 {
 			continue
 		}
-		sections := buildPlatformSections(ch, visibleGroups)
-		if len(sections) == 0 {
+		platformParts := assemblePlatformSections(ch, visibleGrps)
+		if len(platformParts) == 0 {
 			continue
 		}
-		out = append(out, userAvailableChannel{
+		result = append(result, userAvailableChannel{
 			Name:        ch.Name,
 			Description: ch.Description,
-			Platforms:   sections,
+			Platforms:   platformParts,
 		})
 	}
 
-	response.Success(c, out)
+	response.Success(c, result)
 }
 
-// buildPlatformSections 把一个渠道按 visibleGroups 的平台集合拆成有序的 section 列表：
-// 每个 section 对应一个平台，只包含该平台的 groups 和 supported_models。
-// 输出按 platform 字母序稳定排序，便于前端等效比较与回归测试。
-func buildPlatformSections(
+// assemblePlatformSections splits a channel into ordered platform sections based on
+// the visible groups. Each section contains one platform's groups and supported models.
+// Output is sorted alphabetically by platform for stable comparison and regression testing.
+func assemblePlatformSections(
 	ch service.AvailableChannel,
-	visibleGroups []userAvailableGroup,
+	visibleGrps []userAvailableGroup,
 ) []userChannelPlatformSection {
-	groupsByPlatform := make(map[string][]userAvailableGroup, 4)
-	for _, g := range visibleGroups {
-		if g.Platform == "" {
+	byPlatform := make(map[string][]userAvailableGroup, 4)
+	for _, grp := range visibleGrps {
+		if grp.Platform == "" {
 			continue
 		}
-		groupsByPlatform[g.Platform] = append(groupsByPlatform[g.Platform], g)
+		byPlatform[grp.Platform] = append(byPlatform[grp.Platform], grp)
 	}
-	if len(groupsByPlatform) == 0 {
+	if len(byPlatform) == 0 {
 		return nil
 	}
 
-	platforms := make([]string, 0, len(groupsByPlatform))
-	for p := range groupsByPlatform {
-		platforms = append(platforms, p)
+	sortedPlatforms := make([]string, 0, len(byPlatform))
+	for p := range byPlatform {
+		sortedPlatforms = append(sortedPlatforms, p)
 	}
-	sort.Strings(platforms)
+	sort.Strings(sortedPlatforms)
 
-	sections := make([]userChannelPlatformSection, 0, len(platforms))
-	for _, platform := range platforms {
-		platformSet := map[string]struct{}{platform: {}}
-		sections = append(sections, userChannelPlatformSection{
-			Platform:        platform,
-			Groups:          groupsByPlatform[platform],
-			SupportedModels: toUserSupportedModels(ch.SupportedModels, platformSet),
+	parts := make([]userChannelPlatformSection, 0, len(sortedPlatforms))
+	for _, plat := range sortedPlatforms {
+		allowed := map[string]struct{}{plat: {}}
+		parts = append(parts, userChannelPlatformSection{
+			Platform:        plat,
+			Groups:          byPlatform[plat],
+			SupportedModels: convertSupportedModels(ch.SupportedModels, allowed),
 		})
 	}
-	return sections
+	return parts
 }
 
-// filterUserVisibleGroups 仅保留用户可访问的分组。
-func filterUserVisibleGroups(
-	groups []service.AvailableGroupRef,
-	allowed map[int64]struct{},
+// retainAccessibleGroups keeps only the groups the user is permitted to see.
+func retainAccessibleGroups(
+	allGroups []service.AvailableGroupRef,
+	permitted map[int64]struct{},
 ) []userAvailableGroup {
-	visible := make([]userAvailableGroup, 0, len(groups))
-	for _, g := range groups {
-		if _, ok := allowed[g.ID]; !ok {
+	kept := make([]userAvailableGroup, 0, len(allGroups))
+	for _, grp := range allGroups {
+		if _, ok := permitted[grp.ID]; !ok {
 			continue
 		}
-		visible = append(visible, userAvailableGroup{
-			ID:               g.ID,
-			Name:             g.Name,
-			Platform:         g.Platform,
-			SubscriptionType: g.SubscriptionType,
-			RateMultiplier:   g.RateMultiplier,
-			IsExclusive:      g.IsExclusive,
+		kept = append(kept, userAvailableGroup{
+			ID:               grp.ID,
+			Name:             grp.Name,
+			Platform:         grp.Platform,
+			SubscriptionType: grp.SubscriptionType,
+			RateMultiplier:   grp.RateMultiplier,
+			IsExclusive:      grp.IsExclusive,
 		})
 	}
-	return visible
+	return kept
 }
 
-// toUserSupportedModels 将 service 层支持模型转换为用户 DTO（字段白名单）。
-// 仅保留平台在 allowedPlatforms 中的条目，防止跨平台模型信息泄漏。
-// allowedPlatforms 为 nil 时不做平台过滤（保留全部，供测试或明确无过滤场景使用）。
-func toUserSupportedModels(
-	src []service.SupportedModel,
+// convertSupportedModels transforms service-layer models into user DTOs (whitelisted fields).
+// Only models whose platform is in allowedPlatforms are included, preventing cross-platform leakage.
+// When allowedPlatforms is nil no platform filtering is applied (useful for tests or explicit no-filter scenarios).
+func convertSupportedModels(
+	models []service.SupportedModel,
 	allowedPlatforms map[string]struct{},
 ) []userSupportedModel {
-	out := make([]userSupportedModel, 0, len(src))
-	for i := range src {
-		m := src[i]
+	converted := make([]userSupportedModel, 0, len(models))
+	for idx := range models {
+		mdl := models[idx]
 		if allowedPlatforms != nil {
-			if _, ok := allowedPlatforms[m.Platform]; !ok {
+			if _, ok := allowedPlatforms[mdl.Platform]; !ok {
 				continue
 			}
 		}
-		out = append(out, userSupportedModel{
-			Name:     m.Name,
-			Platform: m.Platform,
-			Pricing:  toUserPricing(m.Pricing),
+		converted = append(converted, userSupportedModel{
+			Name:     mdl.Name,
+			Platform: mdl.Platform,
+			Pricing:  convertPricing(mdl.Pricing),
 		})
 	}
-	return out
+	return converted
 }
 
-// toUserPricing 将 service 层定价转换为用户 DTO；入参为 nil 时返回 nil。
-func toUserPricing(p *service.ChannelModelPricing) *userSupportedModelPricing {
-	if p == nil {
+// convertPricing transforms a service-layer pricing struct into a user DTO; returns nil when input is nil.
+func convertPricing(src *service.ChannelModelPricing) *userSupportedModelPricing {
+	if src == nil {
 		return nil
 	}
-	intervals := make([]userPricingIntervalDTO, 0, len(p.Intervals))
-	for _, iv := range p.Intervals {
-		intervals = append(intervals, userPricingIntervalDTO{
+	tiers := make([]userPricingIntervalDTO, 0, len(src.Intervals))
+	for _, iv := range src.Intervals {
+		tiers = append(tiers, userPricingIntervalDTO{
 			MinTokens:       iv.MinTokens,
 			MaxTokens:       iv.MaxTokens,
 			TierLabel:       iv.TierLabel,
@@ -266,18 +274,18 @@ func toUserPricing(p *service.ChannelModelPricing) *userSupportedModelPricing {
 			PerRequestPrice: iv.PerRequestPrice,
 		})
 	}
-	billingMode := string(p.BillingMode)
-	if billingMode == "" {
-		billingMode = string(service.BillingModeToken)
+	mode := string(src.BillingMode)
+	if mode == "" {
+		mode = string(service.BillingModeToken)
 	}
 	return &userSupportedModelPricing{
-		BillingMode:      billingMode,
-		InputPrice:       p.InputPrice,
-		OutputPrice:      p.OutputPrice,
-		CacheWritePrice:  p.CacheWritePrice,
-		CacheReadPrice:   p.CacheReadPrice,
-		ImageOutputPrice: p.ImageOutputPrice,
-		PerRequestPrice:  p.PerRequestPrice,
-		Intervals:        intervals,
+		BillingMode:      mode,
+		InputPrice:       src.InputPrice,
+		OutputPrice:      src.OutputPrice,
+		CacheWritePrice:  src.CacheWritePrice,
+		CacheReadPrice:   src.CacheReadPrice,
+		ImageOutputPrice: src.ImageOutputPrice,
+		PerRequestPrice:  src.PerRequestPrice,
+		Intervals:        tiers,
 	}
 }

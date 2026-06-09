@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AffiliateHandler handles admin affiliate (邀请返利) management:
+// AffiliateHandler handles admin affiliate (invite-rebate) management:
 // listing users with custom settings, updating per-user invite codes
 // and exclusive rebate rates, and batch operations.
 type AffiliateHandler struct {
@@ -31,19 +31,19 @@ func NewAffiliateHandler(affiliateService *service.AffiliateService, adminServic
 // ListUsers returns paginated users with custom affiliate settings.
 // GET /api/v1/admin/affiliates/users
 func (h *AffiliateHandler) ListUsers(c *gin.Context) {
-	page, pageSize := response.ParsePagination(c)
-	search := c.Query("search")
+	pg, pgSize := response.ParsePagination(c)
+	keyword := c.Query("search")
 
-	entries, total, err := h.affiliateService.AdminListCustomUsers(c.Request.Context(), service.AffiliateAdminFilter{
-		Search:   search,
-		Page:     page,
-		PageSize: pageSize,
+	rows, totalCount, svcErr := h.affiliateService.AdminListCustomUsers(c.Request.Context(), service.AffiliateAdminFilter{
+		Search:   keyword,
+		Page:     pg,
+		PageSize: pgSize,
 	})
-	if err != nil {
-		response.ErrorFrom(c, err)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Paginated(c, entries, total, page, pageSize)
+	response.Paginated(c, rows, totalCount, pg, pgSize)
 }
 
 // UpdateUserSettings updates a user's affiliate settings.
@@ -59,41 +59,41 @@ type UpdateAffiliateUserRequest struct {
 }
 
 func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if err != nil || userID <= 0 {
-		response.BadRequest(c, "Invalid user_id")
+	uid, convErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if convErr != nil || uid <= 0 {
+		response.BadRequest(c, "user_id is not valid")
 		return
 	}
 
-	var req UpdateAffiliateUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+	var payload UpdateAffiliateUserRequest
+	if bindErr := c.ShouldBindJSON(&payload); bindErr != nil {
+		response.BadRequest(c, "Malformed request body: "+bindErr.Error())
 		return
 	}
 
-	if req.AffCode != nil {
-		if err := h.affiliateService.AdminUpdateUserAffCode(c.Request.Context(), userID, *req.AffCode); err != nil {
-			response.ErrorFrom(c, err)
+	if payload.AffCode != nil {
+		if svcErr := h.affiliateService.AdminUpdateUserAffCode(c.Request.Context(), uid, *payload.AffCode); svcErr != nil {
+			response.ErrorFrom(c, svcErr)
 			return
 		}
 	}
 
-	if req.ClearRebateRate {
-		if err := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), userID, nil); err != nil {
-			response.ErrorFrom(c, err)
+	if payload.ClearRebateRate {
+		if svcErr := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), uid, nil); svcErr != nil {
+			response.ErrorFrom(c, svcErr)
 			return
 		}
-	} else if req.AffRebateRatePercent != nil {
-		if err := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), userID, req.AffRebateRatePercent); err != nil {
-			response.ErrorFrom(c, err)
+	} else if payload.AffRebateRatePercent != nil {
+		if svcErr := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), uid, payload.AffRebateRatePercent); svcErr != nil {
+			response.ErrorFrom(c, svcErr)
 			return
 		}
 	}
 
-	response.Success(c, gin.H{"user_id": userID})
+	response.Success(c, gin.H{"user_id": uid})
 }
 
-// ClearUserSettings removes ALL of a user's custom affiliate settings — clears
+// ClearUserSettings removes ALL of a user's custom affiliate settings -- clears
 // the exclusive rebate rate AND regenerates the invite code as a new system
 // random one. Conceptually this "removes the user from the custom list".
 //
@@ -101,20 +101,20 @@ func (h *AffiliateHandler) UpdateUserSettings(c *gin.Context) {
 // but the operation is idempotent so the admin can re-run it safely.
 // DELETE /api/v1/admin/affiliates/users/:user_id
 func (h *AffiliateHandler) ClearUserSettings(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if err != nil || userID <= 0 {
-		response.BadRequest(c, "Invalid user_id")
+	uid, convErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if convErr != nil || uid <= 0 {
+		response.BadRequest(c, "user_id is not valid")
 		return
 	}
-	if err := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), userID, nil); err != nil {
-		response.ErrorFrom(c, err)
+	if svcErr := h.affiliateService.AdminSetUserRebateRate(c.Request.Context(), uid, nil); svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	if _, err := h.affiliateService.AdminResetUserAffCode(c.Request.Context(), userID); err != nil {
-		response.ErrorFrom(c, err)
+	if _, svcErr := h.affiliateService.AdminResetUserAffCode(c.Request.Context(), uid); svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, gin.H{"user_id": userID})
+	response.Success(c, gin.H{"user_id": uid})
 }
 
 // BatchSetRate applies the same rebate rate (or clears it) to multiple users.
@@ -133,28 +133,28 @@ type BatchSetRateRequest struct {
 }
 
 func (h *AffiliateHandler) BatchSetRate(c *gin.Context) {
-	var req BatchSetRateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+	var payload BatchSetRateRequest
+	if bindErr := c.ShouldBindJSON(&payload); bindErr != nil {
+		response.BadRequest(c, "Malformed request body: "+bindErr.Error())
 		return
 	}
-	if len(req.UserIDs) == 0 {
-		response.BadRequest(c, "user_ids cannot be empty")
+	if len(payload.UserIDs) == 0 {
+		response.BadRequest(c, "user_ids must not be empty")
 		return
 	}
-	if !req.Clear && req.AffRebateRatePercent == nil {
-		response.BadRequest(c, "aff_rebate_rate_percent is required unless clear=true")
+	if !payload.Clear && payload.AffRebateRatePercent == nil {
+		response.BadRequest(c, "aff_rebate_rate_percent is required when clear is false")
 		return
 	}
-	rate := req.AffRebateRatePercent
-	if req.Clear {
-		rate = nil
+	targetRate := payload.AffRebateRatePercent
+	if payload.Clear {
+		targetRate = nil
 	}
-	if err := h.affiliateService.AdminBatchSetUserRebateRate(c.Request.Context(), req.UserIDs, rate); err != nil {
-		response.ErrorFrom(c, err)
+	if svcErr := h.affiliateService.AdminBatchSetUserRebateRate(c.Request.Context(), payload.UserIDs, targetRate); svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, gin.H{"affected": len(req.UserIDs)})
+	response.Success(c, gin.H{"affected": len(payload.UserIDs)})
 }
 
 // AffiliateUserSummary is the minimal user shape returned by LookupUsers,
@@ -168,34 +168,34 @@ type AffiliateUserSummary struct {
 // LookupUsers searches users by email/username for the "add custom user" modal.
 // GET /api/v1/admin/affiliates/users/lookup?q=
 func (h *AffiliateHandler) LookupUsers(c *gin.Context) {
-	keyword := c.Query("q")
-	if keyword == "" {
+	query := c.Query("q")
+	if query == "" {
 		response.Success(c, []AffiliateUserSummary{})
 		return
 	}
-	users, _, err := h.adminService.ListUsers(c.Request.Context(), 1, 20, service.UserListFilters{Search: keyword}, "email", "asc")
-	if err != nil {
-		response.ErrorFrom(c, err)
+	matchedUsers, _, svcErr := h.adminService.ListUsers(c.Request.Context(), 1, 20, service.UserListFilters{Search: query}, "email", "asc")
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	result := make([]AffiliateUserSummary, len(users))
-	for i, u := range users {
-		result[i] = AffiliateUserSummary{ID: u.ID, Email: u.Email, Username: u.Username}
+	summaries := make([]AffiliateUserSummary, len(matchedUsers))
+	for idx, usr := range matchedUsers {
+		summaries[idx] = AffiliateUserSummary{ID: usr.ID, Email: usr.Email, Username: usr.Username}
 	}
-	response.Success(c, result)
+	response.Success(c, summaries)
 }
 
 // GetUserOverview returns one user's affiliate overview.
 // GET /api/v1/admin/affiliates/users/:user_id/overview
 func (h *AffiliateHandler) GetUserOverview(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
-	if err != nil || userID <= 0 {
-		response.BadRequest(c, "Invalid user_id")
+	uid, convErr := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if convErr != nil || uid <= 0 {
+		response.BadRequest(c, "user_id is not valid")
 		return
 	}
-	overview, err := h.affiliateService.AdminGetUserOverview(c.Request.Context(), userID)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	overview, svcErr := h.affiliateService.AdminGetUserOverview(c.Request.Context(), uid)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
 	response.Success(c, overview)
@@ -204,88 +204,88 @@ func (h *AffiliateHandler) GetUserOverview(c *gin.Context) {
 // ListInviteRecords returns all inviter-invitee relationships.
 // GET /api/v1/admin/affiliates/invites
 func (h *AffiliateHandler) ListInviteRecords(c *gin.Context) {
-	page, pageSize := response.ParsePagination(c)
-	filter := parseAffiliateRecordFilter(c, page, pageSize)
-	items, total, err := h.affiliateService.AdminListInviteRecords(c.Request.Context(), filter)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	pg, pgSize := response.ParsePagination(c)
+	recFilter := buildAffiliateRecordFilter(c, pg, pgSize)
+	rows, totalCount, svcErr := h.affiliateService.AdminListInviteRecords(c.Request.Context(), recFilter)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Paginated(c, items, total, filter.Page, filter.PageSize)
+	response.Paginated(c, rows, totalCount, recFilter.Page, recFilter.PageSize)
 }
 
 // ListRebateRecords returns all order-level affiliate rebate records.
 // GET /api/v1/admin/affiliates/rebates
 func (h *AffiliateHandler) ListRebateRecords(c *gin.Context) {
-	page, pageSize := response.ParsePagination(c)
-	filter := parseAffiliateRecordFilter(c, page, pageSize)
-	items, total, err := h.affiliateService.AdminListRebateRecords(c.Request.Context(), filter)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	pg, pgSize := response.ParsePagination(c)
+	recFilter := buildAffiliateRecordFilter(c, pg, pgSize)
+	rows, totalCount, svcErr := h.affiliateService.AdminListRebateRecords(c.Request.Context(), recFilter)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Paginated(c, items, total, filter.Page, filter.PageSize)
+	response.Paginated(c, rows, totalCount, recFilter.Page, recFilter.PageSize)
 }
 
 // ListTransferRecords returns all affiliate quota-to-balance transfer records.
 // GET /api/v1/admin/affiliates/transfers
 func (h *AffiliateHandler) ListTransferRecords(c *gin.Context) {
-	page, pageSize := response.ParsePagination(c)
-	filter := parseAffiliateRecordFilter(c, page, pageSize)
-	items, total, err := h.affiliateService.AdminListTransferRecords(c.Request.Context(), filter)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	pg, pgSize := response.ParsePagination(c)
+	recFilter := buildAffiliateRecordFilter(c, pg, pgSize)
+	rows, totalCount, svcErr := h.affiliateService.AdminListTransferRecords(c.Request.Context(), recFilter)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Paginated(c, items, total, filter.Page, filter.PageSize)
+	response.Paginated(c, rows, totalCount, recFilter.Page, recFilter.PageSize)
 }
 
-func parseAffiliateRecordFilter(c *gin.Context, page, pageSize int) service.AffiliateRecordFilter {
-	filter := service.AffiliateRecordFilter{
+func buildAffiliateRecordFilter(c *gin.Context, pg, pgSize int) service.AffiliateRecordFilter {
+	f := service.AffiliateRecordFilter{
 		Search:   c.Query("search"),
-		Page:     page,
-		PageSize: pageSize,
+		Page:     pg,
+		PageSize: pgSize,
 		SortBy:   c.Query("sort_by"),
 		SortDesc: c.Query("sort_order") != "asc",
 	}
-	if filter.PageSize > 100 {
-		filter.PageSize = 100
+	if f.PageSize > 100 {
+		f.PageSize = 100
 	}
-	userTZ := c.Query("timezone")
-	if t := parseAffiliateRecordStartTime(c.Query("start_at"), userTZ); t != nil {
-		filter.StartAt = t
+	clientTZ := c.Query("timezone")
+	if ts := interpretAffiliateStartTime(c.Query("start_at"), clientTZ); ts != nil {
+		f.StartAt = ts
 	}
-	if t := parseAffiliateRecordEndTime(c.Query("end_at"), userTZ); t != nil {
-		filter.EndAt = t
+	if ts := interpretAffiliateEndTime(c.Query("end_at"), clientTZ); ts != nil {
+		f.EndAt = ts
 	}
-	return filter
+	return f
 }
 
-func parseAffiliateRecordStartTime(raw string, userTZ string) *time.Time {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
+func interpretAffiliateStartTime(raw string, clientTZ string) *time.Time {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
 		return nil
 	}
-	if parsed, err := time.Parse(time.RFC3339, raw); err == nil {
-		return &parsed
+	if ts, err := time.Parse(time.RFC3339, trimmed); err == nil {
+		return &ts
 	}
-	if parsed, err := timezone.ParseInUserLocation("2006-01-02", raw, userTZ); err == nil {
-		return &parsed
+	if ts, err := timezone.ParseInUserLocation("2006-01-02", trimmed, clientTZ); err == nil {
+		return &ts
 	}
 	return nil
 }
 
-func parseAffiliateRecordEndTime(raw string, userTZ string) *time.Time {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
+func interpretAffiliateEndTime(raw string, clientTZ string) *time.Time {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
 		return nil
 	}
-	if parsed, err := time.Parse(time.RFC3339, raw); err == nil {
-		return &parsed
+	if ts, err := time.Parse(time.RFC3339, trimmed); err == nil {
+		return &ts
 	}
-	if parsed, err := timezone.ParseInUserLocation("2006-01-02", raw, userTZ); err == nil {
-		end := parsed.AddDate(0, 0, 1).Add(-time.Nanosecond)
-		return &end
+	if ts, err := timezone.ParseInUserLocation("2006-01-02", trimmed, clientTZ); err == nil {
+		endOfDay := ts.AddDate(0, 0, 1).Add(-time.Nanosecond)
+		return &endOfDay
 	}
 	return nil
 }

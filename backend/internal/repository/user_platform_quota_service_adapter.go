@@ -9,212 +9,213 @@ import (
 	"github.com/telagod/subme/internal/service"
 )
 
-// userPlatformQuotaServiceAdapter 将 repository 层的 userPlatformQuotaRepository
-// 适配为 service.UserPlatformQuotaRepository 接口（返回 *service.UserPlatformQuotaRecord）。
+// userPlatformQuotaServiceAdapter bridges the repository-layer userPlatformQuotaRepository
+// to the service.UserPlatformQuotaRepository interface (returns *service.UserPlatformQuotaRecord).
 type userPlatformQuotaServiceAdapter struct {
 	inner *userPlatformQuotaRepository
 }
 
-// NewUserPlatformQuotaServiceAdapter 将 UserPlatformQuotaRepository 实现包装为
-// 满足 service.UserPlatformQuotaRepository 接口的适配器。
+// NewUserPlatformQuotaServiceAdapter wraps a UserPlatformQuotaRepository implementation
+// to satisfy the service.UserPlatformQuotaRepository interface.
 func NewUserPlatformQuotaServiceAdapter(repo UserPlatformQuotaRepository) service.UserPlatformQuotaRepository {
-	impl, ok := repo.(*userPlatformQuotaRepository)
+	concrete, ok := repo.(*userPlatformQuotaRepository)
 	if !ok {
-		// 非标准实现（如测试 fake），通过通用适配器包装
+		// Non-standard implementation (e.g. test fake) — use the generic adapter path.
 		return &genericUserPlatformQuotaAdapter{inner: repo}
 	}
-	return &userPlatformQuotaServiceAdapter{inner: impl}
+	return &userPlatformQuotaServiceAdapter{inner: concrete}
 }
 
 func (a *userPlatformQuotaServiceAdapter) GetByUserPlatform(ctx context.Context, userID int64, platform string) (*service.UserPlatformQuotaRecord, error) {
-	rec, err := a.inner.GetByUserPlatform(ctx, userID, platform)
-	if err != nil || rec == nil {
-		return nil, err
+	row, fetchErr := a.inner.GetByUserPlatform(ctx, userID, platform)
+	if fetchErr != nil || row == nil {
+		return nil, fetchErr
 	}
-	return toServiceRecord(rec), nil
+	return repoRecordToService(row), nil
 }
 
-// IncrementUsageWithReset 原子累加 cost 到 (user, platform) 三个窗口的用量。
+// IncrementUsageWithReset atomically adds cost to all three usage windows for (user, platform).
 func (a *userPlatformQuotaServiceAdapter) IncrementUsageWithReset(ctx context.Context, userID int64, platform string, cost float64, now time.Time) error {
 	return a.inner.IncrementUsageWithReset(ctx, userID, platform, cost, now)
 }
 
-// ListByUser 查询用户的所有平台配额记录。
+// ListByUser retrieves all platform quota records for a given user.
 func (a *userPlatformQuotaServiceAdapter) ListByUser(ctx context.Context, userID int64) ([]service.UserPlatformQuotaRecord, error) {
-	rows, err := a.inner.ListByUser(ctx, userID)
-	if err != nil {
-		return nil, err
+	rows, fetchErr := a.inner.ListByUser(ctx, userID)
+	if fetchErr != nil {
+		return nil, fetchErr
 	}
-	out := make([]service.UserPlatformQuotaRecord, len(rows))
-	for i, r := range rows {
-		out[i] = service.UserPlatformQuotaRecord{
-			UserID:             r.UserID,
-			Platform:           r.Platform,
-			DailyLimitUSD:      r.DailyLimitUSD,
-			WeeklyLimitUSD:     r.WeeklyLimitUSD,
-			MonthlyLimitUSD:    r.MonthlyLimitUSD,
-			DailyUsageUSD:      r.DailyUsageUSD,
-			WeeklyUsageUSD:     r.WeeklyUsageUSD,
-			MonthlyUsageUSD:    r.MonthlyUsageUSD,
-			DailyWindowStart:   r.DailyWindowStart,
-			WeeklyWindowStart:  r.WeeklyWindowStart,
-			MonthlyWindowStart: r.MonthlyWindowStart,
+	svcRecords := make([]service.UserPlatformQuotaRecord, len(rows))
+	for idx, rec := range rows {
+		svcRecords[idx] = service.UserPlatformQuotaRecord{
+			UserID:             rec.UserID,
+			Platform:           rec.Platform,
+			DailyLimitUSD:      rec.DailyLimitUSD,
+			WeeklyLimitUSD:     rec.WeeklyLimitUSD,
+			MonthlyLimitUSD:    rec.MonthlyLimitUSD,
+			DailyUsageUSD:      rec.DailyUsageUSD,
+			WeeklyUsageUSD:     rec.WeeklyUsageUSD,
+			MonthlyUsageUSD:    rec.MonthlyUsageUSD,
+			DailyWindowStart:   rec.DailyWindowStart,
+			WeeklyWindowStart:  rec.WeeklyWindowStart,
+			MonthlyWindowStart: rec.MonthlyWindowStart,
 		}
 	}
-	return out, nil
+	return svcRecords, nil
 }
 
-// BulkInsertInitial 将 service.UserPlatformQuotaRecord 切片转换后调用底层 repo。
+// BulkInsertInitial converts service records and delegates to the underlying repo.
 func (a *userPlatformQuotaServiceAdapter) BulkInsertInitial(ctx context.Context, records []service.UserPlatformQuotaRecord) error {
-	repoRecords := make([]UserPlatformQuotaRecord, len(records))
-	for i, r := range records {
-		repoRecords[i] = UserPlatformQuotaRecord{
-			UserID:          r.UserID,
-			Platform:        r.Platform,
-			DailyLimitUSD:   r.DailyLimitUSD,
-			WeeklyLimitUSD:  r.WeeklyLimitUSD,
-			MonthlyLimitUSD: r.MonthlyLimitUSD,
+	mapped := make([]UserPlatformQuotaRecord, len(records))
+	for idx, rec := range records {
+		mapped[idx] = UserPlatformQuotaRecord{
+			UserID:          rec.UserID,
+			Platform:        rec.Platform,
+			DailyLimitUSD:   rec.DailyLimitUSD,
+			WeeklyLimitUSD:  rec.WeeklyLimitUSD,
+			MonthlyLimitUSD: rec.MonthlyLimitUSD,
 		}
 	}
-	return a.inner.BulkInsertInitial(ctx, repoRecords)
+	return a.inner.BulkInsertInitial(ctx, mapped)
 }
 
-// UpsertForUser 全量替换该用户所有平台限额。
+// UpsertForUser replaces all platform quotas for the given user.
 func (a *userPlatformQuotaServiceAdapter) UpsertForUser(ctx context.Context, userID int64, records []service.UserPlatformQuotaRecord) error {
-	repoRecords := toRepoRecords(records)
-	return a.inner.UpsertForUser(ctx, userID, repoRecords)
+	mapped := serviceToRepoRecords(records)
+	return a.inner.UpsertForUser(ctx, userID, mapped)
 }
 
-// ResetExpiredWindow 转发至 repository.ResetExpiredWindow，并将 repository sentinel 包装为 service sentinel。
+// ResetExpiredWindow forwards to the repository and wraps the sentinel error for the service layer.
 func (a *userPlatformQuotaServiceAdapter) ResetExpiredWindow(ctx context.Context, userID int64, platform string, window string, newStart time.Time) error {
-	err := a.inner.ResetExpiredWindow(ctx, userID, platform, window, newStart)
-	if errors.Is(err, ErrUserPlatformQuotaNotFound) {
-		return fmt.Errorf("%w: %w", service.ErrUserPlatformQuotaNotFound, err)
+	resetErr := a.inner.ResetExpiredWindow(ctx, userID, platform, window, newStart)
+	if errors.Is(resetErr, ErrUserPlatformQuotaNotFound) {
+		return fmt.Errorf("%w: %w", service.ErrUserPlatformQuotaNotFound, resetErr)
 	}
-	return err
+	return resetErr
 }
 
-// BatchSnapshotUsage 转换 []service.UserPlatformQuotaSnapshot → []UserPlatformQuotaSnapshot，
-// 调底层 repo，并将 repository FK sentinel 包装为 service sentinel。
+// BatchSnapshotUsage converts service snapshots to repo snapshots, delegates the call,
+// and wraps FK violation sentinel errors for the service layer.
 func (a *userPlatformQuotaServiceAdapter) BatchSnapshotUsage(ctx context.Context, snapshots []service.UserPlatformQuotaSnapshot, now time.Time) error {
-	repoSnaps := make([]UserPlatformQuotaSnapshot, len(snapshots))
-	for i, s := range snapshots {
-		repoSnaps[i] = UserPlatformQuotaSnapshot{
-			UserID:             s.UserID,
-			Platform:           s.Platform,
-			DailyUsageUSD:      s.DailyUsageUSD,
-			WeeklyUsageUSD:     s.WeeklyUsageUSD,
-			MonthlyUsageUSD:    s.MonthlyUsageUSD,
-			DailyWindowStart:   s.DailyWindowStart,
-			WeeklyWindowStart:  s.WeeklyWindowStart,
-			MonthlyWindowStart: s.MonthlyWindowStart,
+	mapped := make([]UserPlatformQuotaSnapshot, len(snapshots))
+	for idx, snap := range snapshots {
+		mapped[idx] = UserPlatformQuotaSnapshot{
+			UserID:             snap.UserID,
+			Platform:           snap.Platform,
+			DailyUsageUSD:      snap.DailyUsageUSD,
+			WeeklyUsageUSD:     snap.WeeklyUsageUSD,
+			MonthlyUsageUSD:    snap.MonthlyUsageUSD,
+			DailyWindowStart:   snap.DailyWindowStart,
+			WeeklyWindowStart:  snap.WeeklyWindowStart,
+			MonthlyWindowStart: snap.MonthlyWindowStart,
 		}
 	}
-	err := a.inner.BatchSnapshotUsage(ctx, repoSnaps, now)
-	if errors.Is(err, ErrUserPlatformQuotaFKViolation) {
-		return fmt.Errorf("%w: %v", service.ErrUserPlatformQuotaFKViolation, err)
+	batchErr := a.inner.BatchSnapshotUsage(ctx, mapped, now)
+	if errors.Is(batchErr, ErrUserPlatformQuotaFKViolation) {
+		return fmt.Errorf("%w: %v", service.ErrUserPlatformQuotaFKViolation, batchErr)
 	}
-	return err
+	return batchErr
 }
 
-// genericUserPlatformQuotaAdapter 通过通用接口适配（用于测试 fake 或非标准实现）。
+// genericUserPlatformQuotaAdapter wraps any UserPlatformQuotaRepository through
+// the generic interface (used for test fakes or non-standard implementations).
 type genericUserPlatformQuotaAdapter struct {
 	inner UserPlatformQuotaRepository
 }
 
 func (a *genericUserPlatformQuotaAdapter) GetByUserPlatform(ctx context.Context, userID int64, platform string) (*service.UserPlatformQuotaRecord, error) {
-	rec, err := a.inner.GetByUserPlatform(ctx, userID, platform)
-	if err != nil || rec == nil {
-		return nil, err
+	row, fetchErr := a.inner.GetByUserPlatform(ctx, userID, platform)
+	if fetchErr != nil || row == nil {
+		return nil, fetchErr
 	}
-	return toServiceRecord(rec), nil
+	return repoRecordToService(row), nil
 }
 
-// IncrementUsageWithReset 原子累加 cost（通用 adapter 实现）。
+// IncrementUsageWithReset atomically adds cost (generic adapter path).
 func (a *genericUserPlatformQuotaAdapter) IncrementUsageWithReset(ctx context.Context, userID int64, platform string, cost float64, now time.Time) error {
 	return a.inner.IncrementUsageWithReset(ctx, userID, platform, cost, now)
 }
 
-// ListByUser 查询用户的所有平台配额记录（通用 adapter 实现）。
+// ListByUser retrieves all platform quota records for a user (generic adapter path).
 func (a *genericUserPlatformQuotaAdapter) ListByUser(ctx context.Context, userID int64) ([]service.UserPlatformQuotaRecord, error) {
-	rows, err := a.inner.ListByUser(ctx, userID)
-	if err != nil {
-		return nil, err
+	rows, fetchErr := a.inner.ListByUser(ctx, userID)
+	if fetchErr != nil {
+		return nil, fetchErr
 	}
-	out := make([]service.UserPlatformQuotaRecord, len(rows))
-	for i, r := range rows {
-		out[i] = service.UserPlatformQuotaRecord{
-			UserID:             r.UserID,
-			Platform:           r.Platform,
-			DailyLimitUSD:      r.DailyLimitUSD,
-			WeeklyLimitUSD:     r.WeeklyLimitUSD,
-			MonthlyLimitUSD:    r.MonthlyLimitUSD,
-			DailyUsageUSD:      r.DailyUsageUSD,
-			WeeklyUsageUSD:     r.WeeklyUsageUSD,
-			MonthlyUsageUSD:    r.MonthlyUsageUSD,
-			DailyWindowStart:   r.DailyWindowStart,
-			WeeklyWindowStart:  r.WeeklyWindowStart,
-			MonthlyWindowStart: r.MonthlyWindowStart,
+	svcRecords := make([]service.UserPlatformQuotaRecord, len(rows))
+	for idx, rec := range rows {
+		svcRecords[idx] = service.UserPlatformQuotaRecord{
+			UserID:             rec.UserID,
+			Platform:           rec.Platform,
+			DailyLimitUSD:      rec.DailyLimitUSD,
+			WeeklyLimitUSD:     rec.WeeklyLimitUSD,
+			MonthlyLimitUSD:    rec.MonthlyLimitUSD,
+			DailyUsageUSD:      rec.DailyUsageUSD,
+			WeeklyUsageUSD:     rec.WeeklyUsageUSD,
+			MonthlyUsageUSD:    rec.MonthlyUsageUSD,
+			DailyWindowStart:   rec.DailyWindowStart,
+			WeeklyWindowStart:  rec.WeeklyWindowStart,
+			MonthlyWindowStart: rec.MonthlyWindowStart,
 		}
 	}
-	return out, nil
+	return svcRecords, nil
 }
 
-// BulkInsertInitial 将 service.UserPlatformQuotaRecord 切片转换后调用底层 generic repo。
+// BulkInsertInitial converts and delegates to the generic repo (for test fakes).
 func (a *genericUserPlatformQuotaAdapter) BulkInsertInitial(ctx context.Context, records []service.UserPlatformQuotaRecord) error {
-	repoRecords := make([]UserPlatformQuotaRecord, len(records))
-	for i, r := range records {
-		repoRecords[i] = UserPlatformQuotaRecord{
-			UserID:          r.UserID,
-			Platform:        r.Platform,
-			DailyLimitUSD:   r.DailyLimitUSD,
-			WeeklyLimitUSD:  r.WeeklyLimitUSD,
-			MonthlyLimitUSD: r.MonthlyLimitUSD,
+	mapped := make([]UserPlatformQuotaRecord, len(records))
+	for idx, rec := range records {
+		mapped[idx] = UserPlatformQuotaRecord{
+			UserID:          rec.UserID,
+			Platform:        rec.Platform,
+			DailyLimitUSD:   rec.DailyLimitUSD,
+			WeeklyLimitUSD:  rec.WeeklyLimitUSD,
+			MonthlyLimitUSD: rec.MonthlyLimitUSD,
 		}
 	}
-	return a.inner.BulkInsertInitial(ctx, repoRecords)
+	return a.inner.BulkInsertInitial(ctx, mapped)
 }
 
-// UpsertForUser 全量替换（通用 adapter 实现）。
+// UpsertForUser replaces all platform quotas (generic adapter path).
 func (a *genericUserPlatformQuotaAdapter) UpsertForUser(ctx context.Context, userID int64, records []service.UserPlatformQuotaRecord) error {
-	repoRecords := toRepoRecords(records)
-	return a.inner.UpsertForUser(ctx, userID, repoRecords)
+	mapped := serviceToRepoRecords(records)
+	return a.inner.UpsertForUser(ctx, userID, mapped)
 }
 
-// ResetExpiredWindow 转发至 repository.ResetExpiredWindow（通用 adapter），并包装 sentinel。
+// ResetExpiredWindow forwards to the generic repo and wraps the sentinel error.
 func (a *genericUserPlatformQuotaAdapter) ResetExpiredWindow(ctx context.Context, userID int64, platform string, window string, newStart time.Time) error {
-	err := a.inner.ResetExpiredWindow(ctx, userID, platform, window, newStart)
-	if errors.Is(err, ErrUserPlatformQuotaNotFound) {
-		return fmt.Errorf("%w: %w", service.ErrUserPlatformQuotaNotFound, err)
+	resetErr := a.inner.ResetExpiredWindow(ctx, userID, platform, window, newStart)
+	if errors.Is(resetErr, ErrUserPlatformQuotaNotFound) {
+		return fmt.Errorf("%w: %w", service.ErrUserPlatformQuotaNotFound, resetErr)
 	}
-	return err
+	return resetErr
 }
 
-// BatchSnapshotUsage 转换 []service.UserPlatformQuotaSnapshot → []UserPlatformQuotaSnapshot（通用 adapter），
-// 并将 repository FK sentinel 包装为 service sentinel。
+// BatchSnapshotUsage converts and delegates snapshots (generic adapter path),
+// wrapping FK violation sentinel errors for the service layer.
 func (a *genericUserPlatformQuotaAdapter) BatchSnapshotUsage(ctx context.Context, snapshots []service.UserPlatformQuotaSnapshot, now time.Time) error {
-	repoSnaps := make([]UserPlatformQuotaSnapshot, len(snapshots))
-	for i, s := range snapshots {
-		repoSnaps[i] = UserPlatformQuotaSnapshot{
-			UserID:             s.UserID,
-			Platform:           s.Platform,
-			DailyUsageUSD:      s.DailyUsageUSD,
-			WeeklyUsageUSD:     s.WeeklyUsageUSD,
-			MonthlyUsageUSD:    s.MonthlyUsageUSD,
-			DailyWindowStart:   s.DailyWindowStart,
-			WeeklyWindowStart:  s.WeeklyWindowStart,
-			MonthlyWindowStart: s.MonthlyWindowStart,
+	mapped := make([]UserPlatformQuotaSnapshot, len(snapshots))
+	for idx, snap := range snapshots {
+		mapped[idx] = UserPlatformQuotaSnapshot{
+			UserID:             snap.UserID,
+			Platform:           snap.Platform,
+			DailyUsageUSD:      snap.DailyUsageUSD,
+			WeeklyUsageUSD:     snap.WeeklyUsageUSD,
+			MonthlyUsageUSD:    snap.MonthlyUsageUSD,
+			DailyWindowStart:   snap.DailyWindowStart,
+			WeeklyWindowStart:  snap.WeeklyWindowStart,
+			MonthlyWindowStart: snap.MonthlyWindowStart,
 		}
 	}
-	err := a.inner.BatchSnapshotUsage(ctx, repoSnaps, now)
-	if errors.Is(err, ErrUserPlatformQuotaFKViolation) {
-		return fmt.Errorf("%w: %v", service.ErrUserPlatformQuotaFKViolation, err)
+	batchErr := a.inner.BatchSnapshotUsage(ctx, mapped, now)
+	if errors.Is(batchErr, ErrUserPlatformQuotaFKViolation) {
+		return fmt.Errorf("%w: %v", service.ErrUserPlatformQuotaFKViolation, batchErr)
 	}
-	return err
+	return batchErr
 }
 
-// toServiceRecord 将 repository.UserPlatformQuotaRecord 转换为 service.UserPlatformQuotaRecord。
-func toServiceRecord(rec *UserPlatformQuotaRecord) *service.UserPlatformQuotaRecord {
+// repoRecordToService converts a repository-layer quota record to its service-layer counterpart.
+func repoRecordToService(rec *UserPlatformQuotaRecord) *service.UserPlatformQuotaRecord {
 	return &service.UserPlatformQuotaRecord{
 		UserID:             rec.UserID,
 		Platform:           rec.Platform,
@@ -230,23 +231,24 @@ func toServiceRecord(rec *UserPlatformQuotaRecord) *service.UserPlatformQuotaRec
 	}
 }
 
-// toRepoRecords 将 service.UserPlatformQuotaRecord 切片转换为 repository.UserPlatformQuotaRecord（含 limit 字段，含 usage/window_start）。
-func toRepoRecords(records []service.UserPlatformQuotaRecord) []UserPlatformQuotaRecord {
-	out := make([]UserPlatformQuotaRecord, len(records))
-	for i, r := range records {
-		out[i] = UserPlatformQuotaRecord{
-			UserID:             r.UserID,
-			Platform:           r.Platform,
-			DailyLimitUSD:      r.DailyLimitUSD,
-			WeeklyLimitUSD:     r.WeeklyLimitUSD,
-			MonthlyLimitUSD:    r.MonthlyLimitUSD,
-			DailyUsageUSD:      r.DailyUsageUSD,
-			WeeklyUsageUSD:     r.WeeklyUsageUSD,
-			MonthlyUsageUSD:    r.MonthlyUsageUSD,
-			DailyWindowStart:   r.DailyWindowStart,
-			WeeklyWindowStart:  r.WeeklyWindowStart,
-			MonthlyWindowStart: r.MonthlyWindowStart,
+// serviceToRepoRecords converts a slice of service quota records to repository records,
+// including usage and window_start fields.
+func serviceToRepoRecords(records []service.UserPlatformQuotaRecord) []UserPlatformQuotaRecord {
+	mapped := make([]UserPlatformQuotaRecord, len(records))
+	for idx, rec := range records {
+		mapped[idx] = UserPlatformQuotaRecord{
+			UserID:             rec.UserID,
+			Platform:           rec.Platform,
+			DailyLimitUSD:      rec.DailyLimitUSD,
+			WeeklyLimitUSD:     rec.WeeklyLimitUSD,
+			MonthlyLimitUSD:    rec.MonthlyLimitUSD,
+			DailyUsageUSD:      rec.DailyUsageUSD,
+			WeeklyUsageUSD:     rec.WeeklyUsageUSD,
+			MonthlyUsageUSD:    rec.MonthlyUsageUSD,
+			DailyWindowStart:   rec.DailyWindowStart,
+			WeeklyWindowStart:  rec.WeeklyWindowStart,
+			MonthlyWindowStart: rec.MonthlyWindowStart,
 		}
 	}
-	return out
+	return mapped
 }

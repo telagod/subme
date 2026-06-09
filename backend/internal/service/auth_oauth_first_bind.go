@@ -26,17 +26,17 @@ func (s *AuthService) ApplyProviderDefaultSettingsOnFirstBind(
 		return s.applyProviderDefaultSettingsOnFirstBind(ctx, userID, providerType)
 	}
 
-	tx, err := s.entClient.Tx(ctx)
-	if err != nil {
-		return fmt.Errorf("begin first bind defaults transaction: %w", err)
+	newTx, txErr := s.entClient.Tx(ctx)
+	if txErr != nil {
+		return fmt.Errorf("unable to begin first-bind defaults transaction: %w", txErr)
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = newTx.Rollback() }()
 
-	txCtx := dbent.NewTxContext(ctx, tx)
-	if err := s.applyProviderDefaultSettingsOnFirstBind(txCtx, userID, providerType); err != nil {
-		return err
+	txCtx := dbent.NewTxContext(ctx, newTx)
+	if applyErr := s.applyProviderDefaultSettingsOnFirstBind(txCtx, userID, providerType); applyErr != nil {
+		return applyErr
 	}
-	return tx.Commit()
+	return newTx.Commit()
 }
 
 func (s *AuthService) applyProviderDefaultSettingsOnFirstBind(
@@ -44,58 +44,58 @@ func (s *AuthService) applyProviderDefaultSettingsOnFirstBind(
 	userID int64,
 	providerType string,
 ) error {
-	providerDefaults, enabled, err := s.settingService.ResolveAuthSourceGrantSettings(ctx, providerType, true)
-	if err != nil {
-		return fmt.Errorf("load auth source defaults: %w", err)
+	defaults, active, resolveErr := s.settingService.ResolveAuthSourceGrantSettings(ctx, providerType, true)
+	if resolveErr != nil {
+		return fmt.Errorf("unable to load auth source defaults: %w", resolveErr)
 	}
-	if !enabled {
+	if !active {
 		return nil
 	}
 
-	client := s.entClient
-	if tx := dbent.TxFromContext(ctx); tx != nil {
-		client = tx.Client()
+	dbClient := s.entClient
+	if activeTx := dbent.TxFromContext(ctx); activeTx != nil {
+		dbClient = activeTx.Client()
 	}
 
-	var result entsql.Result
-	if err := client.Driver().Exec(
+	var sqlResult entsql.Result
+	if execErr := dbClient.Driver().Exec(
 		ctx,
 		`INSERT INTO user_provider_default_grants (user_id, provider_type, grant_reason)
 VALUES ($1, $2, $3)
 ON CONFLICT (user_id, provider_type, grant_reason) DO NOTHING`,
 		[]any{userID, strings.TrimSpace(providerType), "first_bind"},
-		&result,
-	); err != nil {
-		return fmt.Errorf("record first bind provider grant: %w", err)
+		&sqlResult,
+	); execErr != nil {
+		return fmt.Errorf("unable to record first-bind provider grant: %w", execErr)
 	}
 
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("read first bind provider grant result: %w", err)
+	rowsChanged, countErr := sqlResult.RowsAffected()
+	if countErr != nil {
+		return fmt.Errorf("unable to read first-bind provider grant result: %w", countErr)
 	}
-	if affected == 0 {
+	if rowsChanged == 0 {
 		return nil
 	}
 
-	if providerDefaults.Balance != 0 {
-		if err := client.User.UpdateOneID(userID).AddBalance(providerDefaults.Balance).Exec(ctx); err != nil {
-			return fmt.Errorf("apply first bind balance default: %w", err)
+	if defaults.Balance != 0 {
+		if updErr := dbClient.User.UpdateOneID(userID).AddBalance(defaults.Balance).Exec(ctx); updErr != nil {
+			return fmt.Errorf("unable to apply first-bind balance default: %w", updErr)
 		}
 	}
-	if providerDefaults.Concurrency != 0 {
-		if err := client.User.UpdateOneID(userID).AddConcurrency(providerDefaults.Concurrency).Exec(ctx); err != nil {
-			return fmt.Errorf("apply first bind concurrency default: %w", err)
+	if defaults.Concurrency != 0 {
+		if updErr := dbClient.User.UpdateOneID(userID).AddConcurrency(defaults.Concurrency).Exec(ctx); updErr != nil {
+			return fmt.Errorf("unable to apply first-bind concurrency default: %w", updErr)
 		}
 	}
 	if s.defaultSubAssigner != nil {
-		for _, item := range providerDefaults.Subscriptions {
-			if _, _, err := s.defaultSubAssigner.AssignOrExtendSubscription(ctx, &AssignSubscriptionInput{
+		for _, item := range defaults.Subscriptions {
+			if _, _, assignErr := s.defaultSubAssigner.AssignOrExtendSubscription(ctx, &AssignSubscriptionInput{
 				UserID:       userID,
 				GroupID:      item.GroupID,
 				ValidityDays: item.ValidityDays,
 				Notes:        "auto assigned by first bind defaults",
-			}); err != nil {
-				return fmt.Errorf("apply first bind subscription default: %w", err)
+			}); assignErr != nil {
+				return fmt.Errorf("unable to apply first-bind subscription default: %w", assignErr)
 			}
 		}
 	}

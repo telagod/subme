@@ -66,181 +66,183 @@ type contentModerationHashRequest struct {
 }
 
 func (h *ContentModerationHandler) GetConfig(c *gin.Context) {
-	cfg, err := h.service.GetConfig(c.Request.Context())
-	if err != nil {
-		response.ErrorFrom(c, err)
+	cfg, svcErr := h.service.GetConfig(c.Request.Context())
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
 	response.Success(c, cfg)
 }
 
 func (h *ContentModerationHandler) UpdateConfig(c *gin.Context) {
-	var req contentModerationConfigRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+	var payload contentModerationConfigRequest
+	if bindErr := c.ShouldBindJSON(&payload); bindErr != nil {
+		response.BadRequest(c, "Malformed request body: "+bindErr.Error())
 		return
 	}
-	cfg, err := h.service.UpdateConfig(c.Request.Context(), service.UpdateContentModerationConfigInput{
-		Enabled:              req.Enabled,
-		Mode:                 req.Mode,
-		BaseURL:              req.BaseURL,
-		Model:                req.Model,
-		APIKey:               req.APIKey,
-		APIKeys:              req.APIKeys,
-		APIKeysMode:          req.APIKeysMode,
-		DeleteAPIKeyHashes:   req.DeleteAPIKeyHashes,
-		ClearAPIKey:          req.ClearAPIKey,
-		TimeoutMS:            req.TimeoutMS,
-		SampleRate:           req.SampleRate,
-		AllGroups:            req.AllGroups,
-		GroupIDs:             req.GroupIDs,
-		RecordNonHits:        req.RecordNonHits,
-		Thresholds:           req.Thresholds,
-		WorkerCount:          req.WorkerCount,
-		QueueSize:            req.QueueSize,
-		BlockStatus:          req.BlockStatus,
-		BlockMessage:         req.BlockMessage,
-		EmailOnHit:           req.EmailOnHit,
-		AutoBanEnabled:       req.AutoBanEnabled,
-		BanThreshold:         req.BanThreshold,
-		ViolationWindowHours: req.ViolationWindowHours,
-		RetryCount:           req.RetryCount,
-		HitRetentionDays:     req.HitRetentionDays,
-		NonHitRetentionDays:  req.NonHitRetentionDays,
-		PreHashCheckEnabled:  req.PreHashCheckEnabled,
-		BlockedKeywords:      req.BlockedKeywords,
-		KeywordBlockingMode:  req.KeywordBlockingMode,
-		ModelFilter:          req.ModelFilter,
+	cfg, svcErr := h.service.UpdateConfig(c.Request.Context(), service.UpdateContentModerationConfigInput{
+		Enabled:              payload.Enabled,
+		Mode:                 payload.Mode,
+		BaseURL:              payload.BaseURL,
+		Model:                payload.Model,
+		APIKey:               payload.APIKey,
+		APIKeys:              payload.APIKeys,
+		APIKeysMode:          payload.APIKeysMode,
+		DeleteAPIKeyHashes:   payload.DeleteAPIKeyHashes,
+		ClearAPIKey:          payload.ClearAPIKey,
+		TimeoutMS:            payload.TimeoutMS,
+		SampleRate:           payload.SampleRate,
+		AllGroups:            payload.AllGroups,
+		GroupIDs:             payload.GroupIDs,
+		RecordNonHits:        payload.RecordNonHits,
+		Thresholds:           payload.Thresholds,
+		WorkerCount:          payload.WorkerCount,
+		QueueSize:            payload.QueueSize,
+		BlockStatus:          payload.BlockStatus,
+		BlockMessage:         payload.BlockMessage,
+		EmailOnHit:           payload.EmailOnHit,
+		AutoBanEnabled:       payload.AutoBanEnabled,
+		BanThreshold:         payload.BanThreshold,
+		ViolationWindowHours: payload.ViolationWindowHours,
+		RetryCount:           payload.RetryCount,
+		HitRetentionDays:     payload.HitRetentionDays,
+		NonHitRetentionDays:  payload.NonHitRetentionDays,
+		PreHashCheckEnabled:  payload.PreHashCheckEnabled,
+		BlockedKeywords:      payload.BlockedKeywords,
+		KeywordBlockingMode:  payload.KeywordBlockingMode,
+		ModelFilter:          payload.ModelFilter,
 	})
-	if err != nil {
-		response.ErrorFrom(c, err)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
 	response.Success(c, cfg)
 }
 
 func (h *ContentModerationHandler) TestAPIKeys(c *gin.Context) {
-	var req contentModerationAPIKeyTestRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+	var payload contentModerationAPIKeyTestRequest
+	if bindErr := c.ShouldBindJSON(&payload); bindErr != nil {
+		response.BadRequest(c, "Malformed request body: "+bindErr.Error())
 		return
 	}
-	result, err := h.service.TestAPIKeys(c.Request.Context(), service.TestContentModerationAPIKeysInput{
-		APIKeys:   req.APIKeys,
-		BaseURL:   req.BaseURL,
-		Model:     req.Model,
-		TimeoutMS: req.TimeoutMS,
-		Prompt:    req.Prompt,
-		Images:    req.Images,
+	testResult, svcErr := h.service.TestAPIKeys(c.Request.Context(), service.TestContentModerationAPIKeysInput{
+		APIKeys:   payload.APIKeys,
+		BaseURL:   payload.BaseURL,
+		Model:     payload.Model,
+		TimeoutMS: payload.TimeoutMS,
+		Prompt:    payload.Prompt,
+		Images:    payload.Images,
 	})
-	if err != nil {
-		response.ErrorFrom(c, err)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, result)
+	response.Success(c, testResult)
 }
 
 func (h *ContentModerationHandler) GetStatus(c *gin.Context) {
-	status, err := h.service.GetStatus(c.Request.Context())
-	if err != nil {
-		response.ErrorFrom(c, err)
+	statusInfo, svcErr := h.service.GetStatus(c.Request.Context())
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, status)
+	response.Success(c, statusInfo)
 }
 
 func (h *ContentModerationHandler) ListLogs(c *gin.Context) {
-	page, pageSize := response.ParsePagination(c)
-	filter := service.ContentModerationLogFilter{
+	pg, pgSize := response.ParsePagination(c)
+	logFilter := service.ContentModerationLogFilter{
 		Pagination: pagination.PaginationParams{
-			Page:      page,
-			PageSize:  pageSize,
+			Page:      pg,
+			PageSize:  pgSize,
 			SortOrder: pagination.SortOrderDesc,
 		},
 		Result:   c.Query("result"),
 		Endpoint: c.Query("endpoint"),
 		Search:   c.Query("search"),
 	}
-	if raw := strings.TrimSpace(c.Query("group_id")); raw != "" {
-		groupID, err := strconv.ParseInt(raw, 10, 64)
-		if err != nil || groupID <= 0 {
-			response.BadRequest(c, "Invalid group_id")
+	if rawGroup := strings.TrimSpace(c.Query("group_id")); rawGroup != "" {
+		gid, convErr := strconv.ParseInt(rawGroup, 10, 64)
+		if convErr != nil || gid <= 0 {
+			response.BadRequest(c, "group_id is not valid")
 			return
 		}
-		filter.GroupID = &groupID
+		logFilter.GroupID = &gid
 	}
-	if raw := strings.TrimSpace(c.Query("from")); raw != "" {
-		t, _, err := parseContentModerationDate(raw)
-		if err != nil {
-			response.BadRequest(c, "Invalid from")
+	if rawFrom := strings.TrimSpace(c.Query("from")); rawFrom != "" {
+		fromTime, _, parseErr := interpretModerationDate(rawFrom)
+		if parseErr != nil {
+			response.BadRequest(c, "from date is not valid")
 			return
 		}
-		filter.From = &t
+		logFilter.From = &fromTime
 	}
-	if raw := strings.TrimSpace(c.Query("to")); raw != "" {
-		t, dateOnly, err := parseContentModerationDate(raw)
-		if err != nil {
-			response.BadRequest(c, "Invalid to")
+	if rawTo := strings.TrimSpace(c.Query("to")); rawTo != "" {
+		toTime, isDateOnly, parseErr := interpretModerationDate(rawTo)
+		if parseErr != nil {
+			response.BadRequest(c, "to date is not valid")
 			return
 		}
-		if dateOnly {
-			t = t.Add(24*time.Hour - time.Nanosecond)
+		if isDateOnly {
+			toTime = toTime.Add(24*time.Hour - time.Nanosecond)
 		}
-		filter.To = &t
+		logFilter.To = &toTime
 	}
-	items, pageResult, err := h.service.ListLogs(c.Request.Context(), filter)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	logEntries, pgResult, svcErr := h.service.ListLogs(c.Request.Context(), logFilter)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Paginated(c, items, pageResult.Total, pageResult.Page, pageResult.PageSize)
+	response.Paginated(c, logEntries, pgResult.Total, pgResult.Page, pgResult.PageSize)
 }
 
 func (h *ContentModerationHandler) UnbanUser(c *gin.Context) {
-	userID, err := strconv.ParseInt(strings.TrimSpace(c.Param("user_id")), 10, 64)
-	if err != nil || userID <= 0 {
-		response.BadRequest(c, "Invalid user_id")
+	uid, convErr := strconv.ParseInt(strings.TrimSpace(c.Param("user_id")), 10, 64)
+	if convErr != nil || uid <= 0 {
+		response.BadRequest(c, "user_id is not valid")
 		return
 	}
-	result, err := h.service.UnbanUser(c.Request.Context(), userID)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	unbanResult, svcErr := h.service.UnbanUser(c.Request.Context(), uid)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, result)
+	response.Success(c, unbanResult)
 }
 
 func (h *ContentModerationHandler) DeleteFlaggedHash(c *gin.Context) {
-	var req contentModerationHashRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
+	var payload contentModerationHashRequest
+	if bindErr := c.ShouldBindJSON(&payload); bindErr != nil {
+		response.BadRequest(c, "Malformed request body: "+bindErr.Error())
 		return
 	}
-	result, err := h.service.DeleteFlaggedInputHash(c.Request.Context(), req.InputHash)
-	if err != nil {
-		response.ErrorFrom(c, err)
+	deleteResult, svcErr := h.service.DeleteFlaggedInputHash(c.Request.Context(), payload.InputHash)
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, result)
+	response.Success(c, deleteResult)
 }
 
 func (h *ContentModerationHandler) ClearFlaggedHashes(c *gin.Context) {
-	result, err := h.service.ClearFlaggedInputHashes(c.Request.Context())
-	if err != nil {
-		response.ErrorFrom(c, err)
+	clearResult, svcErr := h.service.ClearFlaggedInputHashes(c.Request.Context())
+	if svcErr != nil {
+		response.ErrorFrom(c, svcErr)
 		return
 	}
-	response.Success(c, result)
+	response.Success(c, clearResult)
 }
 
-func parseContentModerationDate(raw string) (time.Time, bool, error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
+// interpretModerationDate attempts to parse a date string first as RFC3339 then as a bare date.
+// Returns (time, isDateOnly, error).
+func interpretModerationDate(raw string) (time.Time, bool, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
 		return time.Time{}, false, nil
 	}
-	if t, err := time.Parse(time.RFC3339, raw); err == nil {
-		return t, false, nil
+	if ts, err := time.Parse(time.RFC3339, trimmed); err == nil {
+		return ts, false, nil
 	}
-	t, err := time.Parse("2006-01-02", raw)
-	return t, err == nil, err
+	ts, parseErr := time.Parse("2006-01-02", trimmed)
+	return ts, parseErr == nil, parseErr
 }

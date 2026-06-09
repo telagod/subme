@@ -80,120 +80,118 @@ type AuthPendingIdentityService struct {
 	entClient *dbent.Client
 }
 
-var authPendingIdentityScopedKeyLocks = newAuthPendingIdentityScopedKeyLockRegistry()
+var pendingIdentityScopedLockStore = initPendingIdentityScopedLockStore()
 
-type authPendingIdentityScopedKeyLockRegistry struct {
-	mu    sync.Mutex
-	locks map[string]*authPendingIdentityScopedKeyLockEntry
+type pendingIdentityScopedLockStore_t struct {
+	guard   sync.Mutex
+	entries map[string]*pendingIdentityLockSlot
 }
 
-type authPendingIdentityScopedKeyLockEntry struct {
-	mu   sync.Mutex
-	refs int
+type pendingIdentityLockSlot struct {
+	mu       sync.Mutex
+	refCount int
 }
 
-func newAuthPendingIdentityScopedKeyLockRegistry() *authPendingIdentityScopedKeyLockRegistry {
-	return &authPendingIdentityScopedKeyLockRegistry{
-		locks: make(map[string]*authPendingIdentityScopedKeyLockEntry),
+func initPendingIdentityScopedLockStore() *pendingIdentityScopedLockStore_t {
+	return &pendingIdentityScopedLockStore_t{
+		entries: make(map[string]*pendingIdentityLockSlot),
 	}
 }
 
-func (r *authPendingIdentityScopedKeyLockRegistry) lock(keys ...string) func() {
-	normalized := normalizeAuthPendingIdentityLockKeys(keys...)
-	if len(normalized) == 0 {
+func (store *pendingIdentityScopedLockStore_t) acquire(keys ...string) func() {
+	sorted := deduplicateAndSortLockKeys(keys...)
+	if len(sorted) == 0 {
 		return func() {}
 	}
 
-	entries := make([]*authPendingIdentityScopedKeyLockEntry, 0, len(normalized))
-	r.mu.Lock()
-	for _, key := range normalized {
-		entry := r.locks[key]
-		if entry == nil {
-			entry = &authPendingIdentityScopedKeyLockEntry{}
-			r.locks[key] = entry
+	slots := make([]*pendingIdentityLockSlot, 0, len(sorted))
+	store.guard.Lock()
+	for _, k := range sorted {
+		slot, found := store.entries[k]
+		if !found {
+			slot = &pendingIdentityLockSlot{}
+			store.entries[k] = slot
 		}
-		entry.refs++
-		entries = append(entries, entry)
+		slot.refCount++
+		slots = append(slots, slot)
 	}
-	r.mu.Unlock()
+	store.guard.Unlock()
 
-	for _, entry := range entries {
-		entry.mu.Lock()
+	for _, slot := range slots {
+		slot.mu.Lock()
 	}
 
 	return func() {
-		for i := len(entries) - 1; i >= 0; i-- {
-			entries[i].mu.Unlock()
+		for idx := len(slots) - 1; idx >= 0; idx-- {
+			slots[idx].mu.Unlock()
 		}
 
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		for idx, key := range normalized {
-			entry := entries[idx]
-			entry.refs--
-			if entry.refs == 0 {
-				delete(r.locks, key)
+		store.guard.Lock()
+		defer store.guard.Unlock()
+		for i, k := range sorted {
+			slots[i].refCount--
+			if slots[i].refCount == 0 {
+				delete(store.entries, k)
 			}
 		}
 	}
 }
 
-func normalizeAuthPendingIdentityLockKeys(keys ...string) []string {
+func deduplicateAndSortLockKeys(keys ...string) []string {
 	if len(keys) == 0 {
 		return nil
 	}
 
-	deduped := make(map[string]struct{}, len(keys))
-	for _, key := range keys {
-		trimmed := strings.TrimSpace(key)
-		if trimmed == "" {
-			continue
+	unique := make(map[string]struct{}, len(keys))
+	for _, k := range keys {
+		trimmed := strings.TrimSpace(k)
+		if trimmed != "" {
+			unique[trimmed] = struct{}{}
 		}
-		deduped[trimmed] = struct{}{}
 	}
-	if len(deduped) == 0 {
+	if len(unique) == 0 {
 		return nil
 	}
 
-	normalized := make([]string, 0, len(deduped))
-	for key := range deduped {
-		normalized = append(normalized, key)
+	sorted := make([]string, 0, len(unique))
+	for k := range unique {
+		sorted = append(sorted, k)
 	}
-	sort.Strings(normalized)
-	return normalized
+	sort.Strings(sorted)
+	return sorted
 }
 
-func authPendingIdentityAdvisoryLockHash(key string) int64 {
-	hasher := fnv.New64a()
-	_, _ = hasher.Write([]byte(key))
-	return int64(hasher.Sum64())
+func computeAdvisoryLockHash(key string) int64 {
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(key))
+	return int64(h.Sum64())
 }
 
-func lockAuthPendingIdentityKeys(ctx context.Context, client *dbent.Client, keys ...string) (func(), error) {
-	release := authPendingIdentityScopedKeyLocks.lock(keys...)
-	normalized := normalizeAuthPendingIdentityLockKeys(keys...)
-	if len(normalized) == 0 || client == nil || client.Driver().Dialect() != dialect.Postgres {
-		return release, nil
+func acquirePendingIdentityDBLocks(ctx context.Context, client *dbent.Client, keys ...string) (func(), error) {
+	releaseLocal := pendingIdentityScopedLockStore.acquire(keys...)
+	sorted := deduplicateAndSortLockKeys(keys...)
+	if len(sorted) == 0 || client == nil || client.Driver().Dialect() != dialect.Postgres {
+		return releaseLocal, nil
 	}
 
-	for _, key := range normalized {
-		var rows entsql.Rows
-		if err := client.Driver().Query(ctx, "SELECT pg_advisory_xact_lock($1)", []any{authPendingIdentityAdvisoryLockHash(key)}, &rows); err != nil {
-			release()
-			return nil, err
+	for _, k := range sorted {
+		var resultRows entsql.Rows
+		if queryErr := client.Driver().Query(ctx, "SELECT pg_advisory_xact_lock($1)", []any{computeAdvisoryLockHash(k)}, &resultRows); queryErr != nil {
+			releaseLocal()
+			return nil, queryErr
 		}
-		_ = rows.Close()
+		_ = resultRows.Close()
 	}
 
-	return release, nil
+	return releaseLocal, nil
 }
 
-func pendingIdentityAdoptionLockKeys(pendingAuthSessionID int64, identityID *int64) []string {
-	keys := []string{fmt.Sprintf("pending-auth-adoption:pending:%d", pendingAuthSessionID)}
+func buildAdoptionLockKeys(pendingSessionID int64, identityID *int64) []string {
+	result := []string{fmt.Sprintf("pending-auth-adoption:pending:%d", pendingSessionID)}
 	if identityID != nil && *identityID > 0 {
-		keys = append(keys, fmt.Sprintf("pending-auth-adoption:identity:%d", *identityID))
+		result = append(result, fmt.Sprintf("pending-auth-adoption:identity:%d", *identityID))
 	}
-	return keys
+	return result
 }
 
 func NewAuthPendingIdentityService(entClient *dbent.Client) *AuthPendingIdentityService {
@@ -205,22 +203,22 @@ func (s *AuthPendingIdentityService) CreatePendingSession(ctx context.Context, i
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	sessionToken := strings.TrimSpace(input.SessionToken)
-	if sessionToken == "" {
-		var err error
-		sessionToken, err = randomOpaqueToken(24)
-		if err != nil {
-			return nil, err
+	token := strings.TrimSpace(input.SessionToken)
+	if token == "" {
+		generated, genErr := randomOpaqueToken(24)
+		if genErr != nil {
+			return nil, genErr
 		}
+		token = generated
 	}
 
-	expiresAt := input.ExpiresAt.UTC()
-	if expiresAt.IsZero() {
-		expiresAt = time.Now().UTC().Add(defaultPendingAuthTTL)
+	deadline := input.ExpiresAt.UTC()
+	if deadline.IsZero() {
+		deadline = time.Now().UTC().Add(defaultPendingAuthTTL)
 	}
 
-	create := s.entClient.PendingAuthSession.Create().
-		SetSessionToken(sessionToken).
+	builder := s.entClient.PendingAuthSession.Create().
+		SetSessionToken(token).
 		SetIntent(strings.TrimSpace(input.Intent)).
 		SetProviderType(strings.TrimSpace(input.Identity.ProviderType)).
 		SetProviderKey(strings.TrimSpace(input.Identity.ProviderKey)).
@@ -229,13 +227,13 @@ func (s *AuthPendingIdentityService) CreatePendingSession(ctx context.Context, i
 		SetResolvedEmail(strings.TrimSpace(input.ResolvedEmail)).
 		SetRegistrationPasswordHash(strings.TrimSpace(input.RegistrationPasswordHash)).
 		SetBrowserSessionKey(strings.TrimSpace(input.BrowserSessionKey)).
-		SetUpstreamIdentityClaims(copyPendingMap(input.UpstreamIdentityClaims)).
-		SetLocalFlowState(copyPendingMap(input.LocalFlowState)).
-		SetExpiresAt(expiresAt)
+		SetUpstreamIdentityClaims(cloneMapShallow(input.UpstreamIdentityClaims)).
+		SetLocalFlowState(cloneMapShallow(input.LocalFlowState)).
+		SetExpiresAt(deadline)
 	if input.TargetUserID != nil {
-		create = create.SetTargetUserID(*input.TargetUserID)
+		builder = builder.SetTargetUserID(*input.TargetUserID)
 	}
-	return create.Save(ctx)
+	return builder.Save(ctx)
 }
 
 func (s *AuthPendingIdentityService) IssueCompletionCode(ctx context.Context, input IssuePendingAuthCompletionCodeInput) (*IssuePendingAuthCompletionCodeResult, error) {
@@ -243,37 +241,37 @@ func (s *AuthPendingIdentityService) IssueCompletionCode(ctx context.Context, in
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	session, err := s.entClient.PendingAuthSession.Get(ctx, input.PendingAuthSessionID)
-	if err != nil {
-		if dbent.IsNotFound(err) {
+	sess, getErr := s.entClient.PendingAuthSession.Get(ctx, input.PendingAuthSessionID)
+	if getErr != nil {
+		if dbent.IsNotFound(getErr) {
 			return nil, ErrPendingAuthSessionNotFound
 		}
-		return nil, err
+		return nil, getErr
 	}
 
-	code, err := randomOpaqueToken(24)
-	if err != nil {
-		return nil, err
+	opaqueCode, genErr := randomOpaqueToken(24)
+	if genErr != nil {
+		return nil, genErr
 	}
-	ttl := input.TTL
-	if ttl <= 0 {
-		ttl = defaultPendingAuthCompletionTTL
+	duration := input.TTL
+	if duration <= 0 {
+		duration = defaultPendingAuthCompletionTTL
 	}
-	expiresAt := time.Now().UTC().Add(ttl)
+	deadline := time.Now().UTC().Add(duration)
 
-	update := s.entClient.PendingAuthSession.UpdateOneID(session.ID).
-		SetCompletionCodeHash(hashPendingAuthCode(code)).
-		SetCompletionCodeExpiresAt(expiresAt)
+	mut := s.entClient.PendingAuthSession.UpdateOneID(sess.ID).
+		SetCompletionCodeHash(digestPendingAuthCode(opaqueCode)).
+		SetCompletionCodeExpiresAt(deadline)
 	if strings.TrimSpace(input.BrowserSessionKey) != "" {
-		update = update.SetBrowserSessionKey(strings.TrimSpace(input.BrowserSessionKey))
+		mut = mut.SetBrowserSessionKey(strings.TrimSpace(input.BrowserSessionKey))
 	}
-	if _, err := update.Save(ctx); err != nil {
-		return nil, err
+	if _, saveErr := mut.Save(ctx); saveErr != nil {
+		return nil, saveErr
 	}
 
 	return &IssuePendingAuthCompletionCodeResult{
-		Code:      code,
-		ExpiresAt: expiresAt,
+		Code:      opaqueCode,
+		ExpiresAt: deadline,
 	}, nil
 }
 
@@ -282,18 +280,18 @@ func (s *AuthPendingIdentityService) ConsumeCompletionCode(ctx context.Context, 
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	codeHash := hashPendingAuthCode(strings.TrimSpace(rawCode))
-	session, err := s.entClient.PendingAuthSession.Query().
-		Where(pendingauthsession.CompletionCodeHashEQ(codeHash)).
+	digest := digestPendingAuthCode(strings.TrimSpace(rawCode))
+	sess, queryErr := s.entClient.PendingAuthSession.Query().
+		Where(pendingauthsession.CompletionCodeHashEQ(digest)).
 		Only(ctx)
-	if err != nil {
-		if dbent.IsNotFound(err) {
+	if queryErr != nil {
+		if dbent.IsNotFound(queryErr) {
 			return nil, ErrPendingAuthCodeInvalid
 		}
-		return nil, err
+		return nil, queryErr
 	}
 
-	return s.consumeSession(ctx, session, browserSessionKey, ErrPendingAuthCodeExpired, ErrPendingAuthCodeConsumed)
+	return s.markSessionConsumed(ctx, sess, browserSessionKey, ErrPendingAuthCodeExpired, ErrPendingAuthCodeConsumed)
 }
 
 func (s *AuthPendingIdentityService) ConsumeBrowserSession(ctx context.Context, sessionToken, browserSessionKey string) (*dbent.PendingAuthSession, error) {
@@ -301,12 +299,12 @@ func (s *AuthPendingIdentityService) ConsumeBrowserSession(ctx context.Context, 
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	session, err := s.getBrowserSession(ctx, sessionToken)
-	if err != nil {
-		return nil, err
+	sess, lookupErr := s.lookupBrowserSession(ctx, sessionToken)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
 
-	return s.consumeSession(ctx, session, browserSessionKey, ErrPendingAuthSessionExpired, ErrPendingAuthSessionConsumed)
+	return s.markSessionConsumed(ctx, sess, browserSessionKey, ErrPendingAuthSessionExpired, ErrPendingAuthSessionConsumed)
 }
 
 func (s *AuthPendingIdentityService) GetBrowserSession(ctx context.Context, sessionToken, browserSessionKey string) (*dbent.PendingAuthSession, error) {
@@ -314,52 +312,52 @@ func (s *AuthPendingIdentityService) GetBrowserSession(ctx context.Context, sess
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	session, err := s.getBrowserSession(ctx, sessionToken)
-	if err != nil {
-		return nil, err
+	sess, lookupErr := s.lookupBrowserSession(ctx, sessionToken)
+	if lookupErr != nil {
+		return nil, lookupErr
 	}
-	if err := validatePendingSessionState(session, browserSessionKey, ErrPendingAuthSessionExpired, ErrPendingAuthSessionConsumed); err != nil {
-		return nil, err
+	if stateErr := checkPendingSessionValidity(sess, browserSessionKey, ErrPendingAuthSessionExpired, ErrPendingAuthSessionConsumed); stateErr != nil {
+		return nil, stateErr
 	}
-	return session, nil
+	return sess, nil
 }
 
-func (s *AuthPendingIdentityService) getBrowserSession(ctx context.Context, sessionToken string) (*dbent.PendingAuthSession, error) {
+func (s *AuthPendingIdentityService) lookupBrowserSession(ctx context.Context, sessionToken string) (*dbent.PendingAuthSession, error) {
 	if s == nil || s.entClient == nil {
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	sessionToken = strings.TrimSpace(sessionToken)
-	if sessionToken == "" {
+	token := strings.TrimSpace(sessionToken)
+	if token == "" {
 		return nil, ErrPendingAuthSessionNotFound
 	}
 
-	session, err := s.entClient.PendingAuthSession.Query().
-		Where(pendingauthsession.SessionTokenEQ(sessionToken)).
+	sess, queryErr := s.entClient.PendingAuthSession.Query().
+		Where(pendingauthsession.SessionTokenEQ(token)).
 		Only(ctx)
-	if err != nil {
-		if dbent.IsNotFound(err) {
+	if queryErr != nil {
+		if dbent.IsNotFound(queryErr) {
 			return nil, ErrPendingAuthSessionNotFound
 		}
-		return nil, err
+		return nil, queryErr
 	}
-	return session, nil
+	return sess, nil
 }
 
-func (s *AuthPendingIdentityService) consumeSession(
+func (s *AuthPendingIdentityService) markSessionConsumed(
 	ctx context.Context,
-	session *dbent.PendingAuthSession,
+	sess *dbent.PendingAuthSession,
 	browserSessionKey string,
 	expiredErr error,
 	consumedErr error,
 ) (*dbent.PendingAuthSession, error) {
-	if err := validatePendingSessionState(session, browserSessionKey, expiredErr, consumedErr); err != nil {
-		return nil, err
+	if stateErr := checkPendingSessionValidity(sess, browserSessionKey, expiredErr, consumedErr); stateErr != nil {
+		return nil, stateErr
 	}
 
-	sanitizedLocalFlowState := sanitizePendingAuthLocalFlowState(session.LocalFlowState)
+	cleanedState := stripSensitiveFlowState(sess.LocalFlowState)
 	now := time.Now().UTC()
-	update := s.entClient.PendingAuthSession.UpdateOneID(session.ID).
+	mut := s.entClient.PendingAuthSession.UpdateOneID(sess.ID).
 		Where(
 			pendingauthsession.ConsumedAtIsNil(),
 			pendingauthsession.ExpiresAtGTE(now),
@@ -369,72 +367,73 @@ func (s *AuthPendingIdentityService) consumeSession(
 			),
 		).
 		SetConsumedAt(now).
-		SetLocalFlowState(sanitizedLocalFlowState).
+		SetLocalFlowState(cleanedState).
 		SetCompletionCodeHash("").
 		ClearCompletionCodeExpiresAt()
-	if expectedBrowserSessionKey := strings.TrimSpace(session.BrowserSessionKey); expectedBrowserSessionKey != "" {
-		update = update.Where(pendingauthsession.BrowserSessionKeyEQ(expectedBrowserSessionKey))
+	if expectedKey := strings.TrimSpace(sess.BrowserSessionKey); expectedKey != "" {
+		mut = mut.Where(pendingauthsession.BrowserSessionKeyEQ(expectedKey))
 	}
-	updated, err := update.Save(ctx)
-	if err == nil {
-		return updated, nil
+	saved, saveErr := mut.Save(ctx)
+	if saveErr == nil {
+		return saved, nil
 	}
-	if !dbent.IsNotFound(err) {
-		return nil, err
+	if !dbent.IsNotFound(saveErr) {
+		return nil, saveErr
 	}
 
-	current, currentErr := s.entClient.PendingAuthSession.Get(ctx, session.ID)
-	if currentErr != nil {
-		if dbent.IsNotFound(currentErr) {
+	refreshed, refreshErr := s.entClient.PendingAuthSession.Get(ctx, sess.ID)
+	if refreshErr != nil {
+		if dbent.IsNotFound(refreshErr) {
 			return nil, ErrPendingAuthSessionNotFound
 		}
-		return nil, currentErr
+		return nil, refreshErr
 	}
-	if err := validatePendingSessionState(current, browserSessionKey, expiredErr, consumedErr); err != nil {
-		return nil, err
+	if stateErr := checkPendingSessionValidity(refreshed, browserSessionKey, expiredErr, consumedErr); stateErr != nil {
+		return nil, stateErr
 	}
 	return nil, consumedErr
 }
 
-func sanitizePendingAuthLocalFlowState(localFlowState map[string]any) map[string]any {
-	sanitized := copyPendingMap(localFlowState)
-	if len(sanitized) == 0 {
-		return sanitized
+func stripSensitiveFlowState(flowState map[string]any) map[string]any {
+	cleaned := cloneMapShallow(flowState)
+	if len(cleaned) == 0 {
+		return cleaned
 	}
 
-	rawCompletion, ok := sanitized["completion_response"]
-	if !ok {
-		return sanitized
+	rawCompletion, exists := cleaned["completion_response"]
+	if !exists {
+		return cleaned
 	}
-	completion, ok := rawCompletion.(map[string]any)
+	completionMap, ok := rawCompletion.(map[string]any)
 	if !ok {
-		return sanitized
+		return cleaned
 	}
 
-	cleanedCompletion := copyPendingMap(completion)
-	for _, key := range []string{"access_token", "refresh_token", "expires_in", "token_type"} {
-		delete(cleanedCompletion, key)
+	redacted := cloneMapShallow(completionMap)
+	sensitiveKeys := []string{"access_token", "refresh_token", "expires_in", "token_type"}
+	for _, sk := range sensitiveKeys {
+		delete(redacted, sk)
 	}
-	sanitized["completion_response"] = cleanedCompletion
-	return sanitized
+	cleaned["completion_response"] = redacted
+	return cleaned
 }
 
-func validatePendingSessionState(session *dbent.PendingAuthSession, browserSessionKey string, expiredErr error, consumedErr error) error {
-	if session == nil {
+func checkPendingSessionValidity(sess *dbent.PendingAuthSession, browserSessionKey string, expiredErr error, consumedErr error) error {
+	if sess == nil {
 		return ErrPendingAuthSessionNotFound
 	}
 
 	now := time.Now().UTC()
-	if session.ConsumedAt != nil {
+	if sess.ConsumedAt != nil {
 		return consumedErr
 	}
-	if !session.ExpiresAt.IsZero() && now.After(session.ExpiresAt) {
+	if !sess.ExpiresAt.IsZero() && now.After(sess.ExpiresAt) {
 		return expiredErr
 	}
-	if session.CompletionCodeExpiresAt != nil && now.After(*session.CompletionCodeExpiresAt) {
+	if sess.CompletionCodeExpiresAt != nil && now.After(*sess.CompletionCodeExpiresAt) {
 		return expiredErr
 	}
-	if strings.TrimSpace(session.BrowserSessionKey) != "" && strings.TrimSpace(browserSessionKey) != strings.TrimSpace(session.BrowserSessionKey) {
+	if strings.TrimSpace(sess.BrowserSessionKey) != "" && strings.TrimSpace(browserSessionKey) != strings.TrimSpace(sess.BrowserSessionKey) {
 		return ErrPendingAuthBrowserMismatch
 	}
 	return nil
@@ -445,29 +444,29 @@ func (s *AuthPendingIdentityService) UpsertAdoptionDecision(ctx context.Context,
 		return nil, fmt.Errorf("pending auth ent client is not configured")
 	}
 
-	tx, err := s.entClient.Tx(ctx)
-	if err != nil && !errors.Is(err, dbent.ErrTxStarted) {
-		return nil, err
+	newTx, txErr := s.entClient.Tx(ctx)
+	if txErr != nil && !errors.Is(txErr, dbent.ErrTxStarted) {
+		return nil, txErr
 	}
 
-	client := s.entClient
+	dbClient := s.entClient
 	txCtx := ctx
-	if err == nil {
-		defer func() { _ = tx.Rollback() }()
-		client = tx.Client()
-		txCtx = dbent.NewTxContext(ctx, tx)
-	} else if existingTx := dbent.TxFromContext(ctx); existingTx != nil {
-		client = existingTx.Client()
+	if txErr == nil {
+		defer func() { _ = newTx.Rollback() }()
+		dbClient = newTx.Client()
+		txCtx = dbent.NewTxContext(ctx, newTx)
+	} else if activeTx := dbent.TxFromContext(ctx); activeTx != nil {
+		dbClient = activeTx.Client()
 	}
 
-	releaseLocks, err := lockAuthPendingIdentityKeys(txCtx, client, pendingIdentityAdoptionLockKeys(input.PendingAuthSessionID, input.IdentityID)...)
-	if err != nil {
-		return nil, err
+	releaseLocks, lockErr := acquirePendingIdentityDBLocks(txCtx, dbClient, buildAdoptionLockKeys(input.PendingAuthSessionID, input.IdentityID)...)
+	if lockErr != nil {
+		return nil, lockErr
 	}
 	defer releaseLocks()
 
 	if input.IdentityID != nil && *input.IdentityID > 0 {
-		if _, err := client.IdentityAdoptionDecision.Update().
+		if _, clearErr := dbClient.IdentityAdoptionDecision.Update().
 			Where(
 				identityadoptiondecision.IdentityIDEQ(*input.IdentityID),
 				dbpredicate.IdentityAdoptionDecision(func(s *entsql.Selector) {
@@ -479,65 +478,65 @@ func (s *AuthPendingIdentityService) UpsertAdoptionDecision(ctx context.Context,
 				}),
 			).
 			ClearIdentityID().
-			Save(txCtx); err != nil {
-			return nil, err
+			Save(txCtx); clearErr != nil {
+			return nil, clearErr
 		}
 	}
 
-	create := client.IdentityAdoptionDecision.Create().
+	builder := dbClient.IdentityAdoptionDecision.Create().
 		SetPendingAuthSessionID(input.PendingAuthSessionID).
 		SetAdoptDisplayName(input.AdoptDisplayName).
 		SetAdoptAvatar(input.AdoptAvatar).
 		SetDecidedAt(time.Now().UTC())
 	if input.IdentityID != nil && *input.IdentityID > 0 {
-		create = create.SetIdentityID(*input.IdentityID)
+		builder = builder.SetIdentityID(*input.IdentityID)
 	}
 
-	decisionID, err := create.
+	rowID, upsertErr := builder.
 		OnConflictColumns(identityadoptiondecision.FieldPendingAuthSessionID).
 		UpdateNewValues().
 		ID(txCtx)
-	if err != nil {
-		return nil, err
+	if upsertErr != nil {
+		return nil, upsertErr
 	}
 
-	decision, err := client.IdentityAdoptionDecision.Get(txCtx, decisionID)
-	if err != nil {
-		return nil, err
+	decision, getErr := dbClient.IdentityAdoptionDecision.Get(txCtx, rowID)
+	if getErr != nil {
+		return nil, getErr
 	}
 
-	if tx != nil {
-		if err := tx.Commit(); err != nil {
-			return nil, err
+	if newTx != nil {
+		if commitErr := newTx.Commit(); commitErr != nil {
+			return nil, commitErr
 		}
 	}
 
 	return decision, nil
 }
 
-func copyPendingMap(in map[string]any) map[string]any {
-	if len(in) == 0 {
+func cloneMapShallow(src map[string]any) map[string]any {
+	if len(src) == 0 {
 		return map[string]any{}
 	}
-	out := make(map[string]any, len(in))
-	for k, v := range in {
-		out[k] = v
+	dst := make(map[string]any, len(src))
+	for k, v := range src {
+		dst[k] = v
 	}
-	return out
+	return dst
 }
 
 func randomOpaqueToken(byteLen int) (string, error) {
 	if byteLen <= 0 {
 		byteLen = 16
 	}
-	buf := make([]byte, byteLen)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
+	raw := make([]byte, byteLen)
+	if _, readErr := rand.Read(raw); readErr != nil {
+		return "", readErr
 	}
-	return hex.EncodeToString(buf), nil
+	return hex.EncodeToString(raw), nil
 }
 
-func hashPendingAuthCode(code string) string {
-	sum := sha256.Sum256([]byte(code))
-	return hex.EncodeToString(sum[:])
+func digestPendingAuthCode(code string) string {
+	digest := sha256.Sum256([]byte(code))
+	return hex.EncodeToString(digest[:])
 }

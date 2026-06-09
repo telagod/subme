@@ -13,60 +13,60 @@ import (
 )
 
 func enabledVisibleMethodsForProvider(providerKey, supportedTypes string) []string {
-	methodSet := make(map[string]struct{}, 2)
-	addMethod := func(method string) {
-		method = NormalizeVisibleMethod(method)
-		switch method {
-		case payment.TypeAlipay, payment.TypeWxpay:
-			methodSet[method] = struct{}{}
+	collected := make(map[string]struct{}, 2)
+	register := func(m string) {
+		norm := NormalizeVisibleMethod(m)
+		if norm == payment.TypeAlipay || norm == payment.TypeWxpay {
+			collected[norm] = struct{}{}
 		}
 	}
 
-	switch strings.TrimSpace(providerKey) {
+	trimmedKey := strings.TrimSpace(providerKey)
+	switch trimmedKey {
 	case payment.TypeAlipay:
 		if strings.TrimSpace(supportedTypes) == "" {
-			addMethod(payment.TypeAlipay)
-			break
-		}
-		for _, supportedType := range splitTypes(supportedTypes) {
-			if NormalizeVisibleMethod(supportedType) == payment.TypeAlipay {
-				addMethod(payment.TypeAlipay)
-				break
+			register(payment.TypeAlipay)
+		} else {
+			for _, st := range splitTypes(supportedTypes) {
+				if NormalizeVisibleMethod(st) == payment.TypeAlipay {
+					register(payment.TypeAlipay)
+					break
+				}
 			}
 		}
 	case payment.TypeWxpay:
 		if strings.TrimSpace(supportedTypes) == "" {
-			addMethod(payment.TypeWxpay)
-			break
-		}
-		for _, supportedType := range splitTypes(supportedTypes) {
-			if NormalizeVisibleMethod(supportedType) == payment.TypeWxpay {
-				addMethod(payment.TypeWxpay)
-				break
+			register(payment.TypeWxpay)
+		} else {
+			for _, st := range splitTypes(supportedTypes) {
+				if NormalizeVisibleMethod(st) == payment.TypeWxpay {
+					register(payment.TypeWxpay)
+					break
+				}
 			}
 		}
 	case payment.TypeEasyPay:
-		for _, supportedType := range splitTypes(supportedTypes) {
-			addMethod(supportedType)
+		for _, st := range splitTypes(supportedTypes) {
+			register(st)
 		}
 	}
 
-	methods := make([]string, 0, len(methodSet))
-	for _, method := range []string{payment.TypeAlipay, payment.TypeWxpay} {
-		if _, ok := methodSet[method]; ok {
-			methods = append(methods, method)
+	ordered := make([]string, 0, len(collected))
+	for _, candidate := range []string{payment.TypeAlipay, payment.TypeWxpay} {
+		if _, present := collected[candidate]; present {
+			ordered = append(ordered, candidate)
 		}
 	}
-	return methods
+	return ordered
 }
 
 func providerSupportsVisibleMethod(inst *dbent.PaymentProviderInstance, method string) bool {
 	if inst == nil || !inst.Enabled {
 		return false
 	}
-	method = NormalizeVisibleMethod(method)
-	for _, candidate := range enabledVisibleMethodsForProvider(inst.ProviderKey, inst.SupportedTypes) {
-		if candidate == method {
+	norm := NormalizeVisibleMethod(method)
+	for _, supported := range enabledVisibleMethodsForProvider(inst.ProviderKey, inst.SupportedTypes) {
+		if supported == norm {
 			return true
 		}
 	}
@@ -74,17 +74,17 @@ func providerSupportsVisibleMethod(inst *dbent.PaymentProviderInstance, method s
 }
 
 func filterEnabledVisibleMethodInstances(instances []*dbent.PaymentProviderInstance, method string) []*dbent.PaymentProviderInstance {
-	filtered := make([]*dbent.PaymentProviderInstance, 0, len(instances))
+	matching := make([]*dbent.PaymentProviderInstance, 0, len(instances))
 	for _, inst := range instances {
 		if providerSupportsVisibleMethod(inst, method) {
-			filtered = append(filtered, inst)
+			matching = append(matching, inst)
 		}
 	}
-	return filtered
+	return matching
 }
 
 func filterVisibleMethodInstancesByProviderKey(instances []*dbent.PaymentProviderInstance, method string, providerKey string) []*dbent.PaymentProviderInstance {
-	filtered := make([]*dbent.PaymentProviderInstance, 0, len(instances))
+	matching := make([]*dbent.PaymentProviderInstance, 0, len(instances))
 	for _, inst := range instances {
 		if !providerSupportsVisibleMethod(inst, method) {
 			continue
@@ -92,39 +92,39 @@ func filterVisibleMethodInstancesByProviderKey(instances []*dbent.PaymentProvide
 		if !strings.EqualFold(strings.TrimSpace(inst.ProviderKey), strings.TrimSpace(providerKey)) {
 			continue
 		}
-		filtered = append(filtered, inst)
+		matching = append(matching, inst)
 	}
-	return filtered
+	return matching
 }
 
 func distinctVisibleMethodProviderKeys(instances []*dbent.PaymentProviderInstance) []string {
-	seen := make(map[string]struct{}, len(instances))
-	keys := make([]string, 0, len(instances))
+	visited := make(map[string]struct{}, len(instances))
+	result := make([]string, 0, len(instances))
 	for _, inst := range instances {
 		if inst == nil {
 			continue
 		}
-		key := strings.TrimSpace(inst.ProviderKey)
-		if key == "" {
+		trimmed := strings.TrimSpace(inst.ProviderKey)
+		if trimmed == "" {
 			continue
 		}
-		normalized := strings.ToLower(key)
-		if _, ok := seen[normalized]; ok {
+		lowered := strings.ToLower(trimmed)
+		if _, already := visited[lowered]; already {
 			continue
 		}
-		seen[normalized] = struct{}{}
-		keys = append(keys, key)
+		visited[lowered] = struct{}{}
+		result = append(result, trimmed)
 	}
-	return keys
+	return result
 }
 
 func selectVisibleMethodInstanceByProviderKey(instances []*dbent.PaymentProviderInstance, providerKey string) *dbent.PaymentProviderInstance {
-	providerKey = strings.TrimSpace(providerKey)
-	if providerKey == "" {
+	target := strings.TrimSpace(providerKey)
+	if target == "" {
 		return nil
 	}
 	for _, inst := range instances {
-		if strings.EqualFold(strings.TrimSpace(inst.ProviderKey), providerKey) {
+		if strings.EqualFold(strings.TrimSpace(inst.ProviderKey), target) {
 			return inst
 		}
 	}
@@ -146,35 +146,35 @@ func (s *PaymentConfigService) validateVisibleMethodEnablementConflicts(
 }
 
 func (s *PaymentConfigService) resolveVisibleMethodSourceProviderKey(ctx context.Context, method string) (string, error) {
-	method = NormalizeVisibleMethod(method)
-	sourceKey := visibleMethodSourceSettingKey(method)
+	norm := NormalizeVisibleMethod(method)
+	settingKey := visibleMethodSourceSettingKey(norm)
 	rawSource := ""
-	if s != nil && s.settingRepo != nil && sourceKey != "" {
-		value, err := s.settingRepo.GetValue(ctx, sourceKey)
-		if err != nil {
-			if !errors.Is(err, ErrSettingNotFound) {
-				return "", fmt.Errorf("get %s: %w", sourceKey, err)
+	if s != nil && s.settingRepo != nil && settingKey != "" {
+		val, getErr := s.settingRepo.GetValue(ctx, settingKey)
+		if getErr != nil {
+			if !errors.Is(getErr, ErrSettingNotFound) {
+				return "", fmt.Errorf("unable to get %s: %w", settingKey, getErr)
 			}
 		} else {
-			rawSource = value
+			rawSource = val
 		}
 	}
 
-	normalizedSource, err := normalizeVisibleMethodSettingSource(method, rawSource, true)
-	if err != nil {
-		return "", err
+	normalizedSrc, normErr := normalizeVisibleMethodSettingSource(norm, rawSource, true)
+	if normErr != nil {
+		return "", normErr
 	}
-	if normalizedSource == "" {
+	if normalizedSrc == "" {
 		return "", nil
 	}
-	providerKey, ok := VisibleMethodProviderKeyForSource(method, normalizedSource)
-	if !ok {
+	pKey, valid := VisibleMethodProviderKeyForSource(norm, normalizedSrc)
+	if !valid {
 		return "", infraerrors.BadRequest(
 			"INVALID_PAYMENT_VISIBLE_METHOD_SOURCE",
-			fmt.Sprintf("%s source must be one of the supported payment providers", method),
+			fmt.Sprintf("%s source must be one of the supported payment providers", norm),
 		)
 	}
-	return providerKey, nil
+	return pKey, nil
 }
 
 func (s *PaymentConfigService) resolveVisibleMethodProviderKey(
@@ -182,27 +182,28 @@ func (s *PaymentConfigService) resolveVisibleMethodProviderKey(
 	method string,
 	matching []*dbent.PaymentProviderInstance,
 ) (string, error) {
-	switch providerKeys := distinctVisibleMethodProviderKeys(matching); len(providerKeys) {
+	pKeys := distinctVisibleMethodProviderKeys(matching)
+	switch len(pKeys) {
 	case 0:
 		return "", nil
 	case 1:
-		return strings.TrimSpace(providerKeys[0]), nil
+		return strings.TrimSpace(pKeys[0]), nil
 	default:
-		providerKey, err := s.resolveVisibleMethodSourceProviderKey(ctx, method)
-		if err != nil {
-			return "", err
+		resolved, resolveErr := s.resolveVisibleMethodSourceProviderKey(ctx, method)
+		if resolveErr != nil {
+			return "", resolveErr
 		}
-		if providerKey == "" {
+		if resolved == "" {
 			return "", nil
 		}
-		selected := selectVisibleMethodInstanceByProviderKey(matching, providerKey)
-		if selected == nil {
+		picked := selectVisibleMethodInstanceByProviderKey(matching, resolved)
+		if picked == nil {
 			return "", infraerrors.BadRequest(
 				"INVALID_PAYMENT_VISIBLE_METHOD_SOURCE",
 				fmt.Sprintf("%s source has no enabled provider instance", method),
 			)
 		}
-		return strings.TrimSpace(selected.ProviderKey), nil
+		return strings.TrimSpace(picked.ProviderKey), nil
 	}
 }
 
@@ -214,29 +215,29 @@ func (s *PaymentConfigService) resolveEnabledVisibleMethodInstance(
 		return nil, nil
 	}
 
-	method = NormalizeVisibleMethod(method)
-	if method != payment.TypeAlipay && method != payment.TypeWxpay {
+	norm := NormalizeVisibleMethod(method)
+	if norm != payment.TypeAlipay && norm != payment.TypeWxpay {
 		return nil, nil
 	}
 
-	instances, err := s.entClient.PaymentProviderInstance.Query().
+	allEnabled, queryErr := s.entClient.PaymentProviderInstance.Query().
 		Where(paymentproviderinstance.EnabledEQ(true)).
 		Order(paymentproviderinstance.BySortOrder()).
 		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("query enabled payment providers: %w", err)
+	if queryErr != nil {
+		return nil, fmt.Errorf("unable to query enabled payment providers: %w", queryErr)
 	}
 
-	matching := filterEnabledVisibleMethodInstances(instances, method)
-	providerKey, err := s.resolveVisibleMethodProviderKey(ctx, method, matching)
-	if err != nil {
-		return nil, err
+	candidates := filterEnabledVisibleMethodInstances(allEnabled, norm)
+	pKey, resolveErr := s.resolveVisibleMethodProviderKey(ctx, norm, candidates)
+	if resolveErr != nil {
+		return nil, resolveErr
 	}
-	if providerKey == "" {
-		if len(matching) == 0 {
+	if pKey == "" {
+		if len(candidates) == 0 {
 			return nil, nil
 		}
 		return &dbent.PaymentProviderInstance{ProviderKey: ""}, nil
 	}
-	return selectVisibleMethodInstanceByProviderKey(matching, providerKey), nil
+	return selectVisibleMethodInstanceByProviderKey(candidates, pKey), nil
 }

@@ -25,51 +25,48 @@ func psOrderProviderSnapshot(order *dbent.PaymentOrder) *paymentOrderProviderSna
 		return nil
 	}
 
-	snapshot := &paymentOrderProviderSnapshot{
-		SchemaVersion:      psSnapshotIntValue(order.ProviderSnapshot["schema_version"]),
-		ProviderInstanceID: psSnapshotStringValue(order.ProviderSnapshot["provider_instance_id"]),
-		ProviderKey:        psSnapshotStringValue(order.ProviderSnapshot["provider_key"]),
-		PaymentMode:        psSnapshotStringValue(order.ProviderSnapshot["payment_mode"]),
-		MerchantAppID:      psSnapshotStringValue(order.ProviderSnapshot["merchant_app_id"]),
-		MerchantID:         psSnapshotStringValue(order.ProviderSnapshot["merchant_id"]),
-		Currency:           psSnapshotStringValue(order.ProviderSnapshot["currency"]),
+	snap := &paymentOrderProviderSnapshot{
+		SchemaVersion:      extractSnapshotInt(order.ProviderSnapshot["schema_version"]),
+		ProviderInstanceID: extractSnapshotString(order.ProviderSnapshot["provider_instance_id"]),
+		ProviderKey:        extractSnapshotString(order.ProviderSnapshot["provider_key"]),
+		PaymentMode:        extractSnapshotString(order.ProviderSnapshot["payment_mode"]),
+		MerchantAppID:      extractSnapshotString(order.ProviderSnapshot["merchant_app_id"]),
+		MerchantID:         extractSnapshotString(order.ProviderSnapshot["merchant_id"]),
+		Currency:           extractSnapshotString(order.ProviderSnapshot["currency"]),
 	}
-	if snapshot.SchemaVersion == 0 &&
-		snapshot.ProviderInstanceID == "" &&
-		snapshot.ProviderKey == "" &&
-		snapshot.PaymentMode == "" &&
-		snapshot.MerchantAppID == "" &&
-		snapshot.MerchantID == "" &&
-		snapshot.Currency == "" {
+	if snap.SchemaVersion == 0 &&
+		snap.ProviderInstanceID == "" &&
+		snap.ProviderKey == "" &&
+		snap.PaymentMode == "" &&
+		snap.MerchantAppID == "" &&
+		snap.MerchantID == "" &&
+		snap.Currency == "" {
 		return nil
 	}
-	return snapshot
+	return snap
 }
 
-func psSnapshotStringValue(value any) string {
-	switch typed := value.(type) {
-	case string:
-		return strings.TrimSpace(typed)
-	default:
-		return ""
+func extractSnapshotString(val any) string {
+	if s, ok := val.(string); ok {
+		return strings.TrimSpace(s)
 	}
+	return ""
 }
 
-func psSnapshotIntValue(value any) int {
-	switch typed := value.(type) {
+func extractSnapshotInt(val any) int {
+	switch v := val.(type) {
 	case int:
-		return typed
+		return v
 	case int32:
-		return int(typed)
+		return int(v)
 	case int64:
-		return int(typed)
+		return int(v)
 	case float32:
-		return int(typed)
+		return int(v)
 	case float64:
-		return int(typed)
+		return int(v)
 	case string:
-		n, err := strconv.Atoi(strings.TrimSpace(typed))
-		if err == nil {
+		if n, convErr := strconv.Atoi(strings.TrimSpace(v)); convErr == nil {
 			return n
 		}
 	}
@@ -81,33 +78,33 @@ func (s *PaymentService) resolveSnapshotOrderProviderInstance(ctx context.Contex
 		return nil, nil
 	}
 
-	snapshotInstanceID := strings.TrimSpace(snapshot.ProviderInstanceID)
-	columnInstanceID := strings.TrimSpace(psStringValueV2(order.ProviderInstanceID))
-	if snapshotInstanceID == "" {
-		snapshotInstanceID = columnInstanceID
+	snapInstID := strings.TrimSpace(snapshot.ProviderInstanceID)
+	colInstID := strings.TrimSpace(psStringValueV2(order.ProviderInstanceID))
+	if snapInstID == "" {
+		snapInstID = colInstID
 	}
-	if snapshotInstanceID == "" {
-		return nil, fmt.Errorf("order %d provider snapshot is missing provider_instance_id", order.ID)
+	if snapInstID == "" {
+		return nil, fmt.Errorf("order %d provider snapshot lacks provider_instance_id", order.ID)
 	}
-	if columnInstanceID != "" && snapshot.ProviderInstanceID != "" && !strings.EqualFold(columnInstanceID, snapshot.ProviderInstanceID) {
-		return nil, fmt.Errorf("order %d provider snapshot instance mismatch: snapshot=%s order=%s", order.ID, snapshot.ProviderInstanceID, columnInstanceID)
-	}
-
-	instID, err := strconv.ParseInt(snapshotInstanceID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("order %d provider snapshot instance id is invalid: %s", order.ID, snapshotInstanceID)
+	if colInstID != "" && snapshot.ProviderInstanceID != "" && !strings.EqualFold(colInstID, snapshot.ProviderInstanceID) {
+		return nil, fmt.Errorf("order %d provider instance mismatch: snapshot=%s column=%s", order.ID, snapshot.ProviderInstanceID, colInstID)
 	}
 
-	inst, err := s.entClient.PaymentProviderInstance.Get(ctx, instID)
-	if err != nil {
-		if dbent.IsNotFound(err) {
-			return nil, fmt.Errorf("order %d provider snapshot instance %s is missing", order.ID, snapshotInstanceID)
+	numericID, parseErr := strconv.ParseInt(snapInstID, 10, 64)
+	if parseErr != nil {
+		return nil, fmt.Errorf("order %d provider snapshot instance id is not valid: %s", order.ID, snapInstID)
+	}
+
+	inst, getErr := s.entClient.PaymentProviderInstance.Get(ctx, numericID)
+	if getErr != nil {
+		if dbent.IsNotFound(getErr) {
+			return nil, fmt.Errorf("order %d provider snapshot instance %s not found", order.ID, snapInstID)
 		}
-		return nil, err
+		return nil, getErr
 	}
 
 	if snapshot.ProviderKey != "" && !strings.EqualFold(strings.TrimSpace(inst.ProviderKey), snapshot.ProviderKey) {
-		return nil, fmt.Errorf("order %d provider snapshot key mismatch: snapshot=%s instance=%s", order.ID, snapshot.ProviderKey, inst.ProviderKey)
+		return nil, fmt.Errorf("order %d provider key mismatch: snapshot=%s instance=%s", order.ID, snapshot.ProviderKey, inst.ProviderKey)
 	}
 
 	return inst, nil
@@ -118,12 +115,12 @@ func expectedNotificationProviderKeyForOrder(registry *payment.Registry, order *
 		return strings.TrimSpace(instanceProviderKey)
 	}
 
-	orderProviderKey := psStringValueV2(order.ProviderKey)
-	if snapshot := psOrderProviderSnapshot(order); snapshot != nil && snapshot.ProviderKey != "" {
-		orderProviderKey = snapshot.ProviderKey
+	orderPKey := psStringValueV2(order.ProviderKey)
+	if snap := psOrderProviderSnapshot(order); snap != nil && snap.ProviderKey != "" {
+		orderPKey = snap.ProviderKey
 	}
 
-	return expectedNotificationProviderKeyV2(registry, order.PaymentType, orderProviderKey, instanceProviderKey)
+	return expectedNotificationProviderKeyV2(registry, order.PaymentType, orderPKey, instanceProviderKey)
 }
 
 func validateProviderSnapshotMetadata(order *dbent.PaymentOrder, providerKey string, metadata map[string]string) error {
@@ -131,94 +128,95 @@ func validateProviderSnapshotMetadata(order *dbent.PaymentOrder, providerKey str
 		return nil
 	}
 
-	snapshot := psOrderProviderSnapshot(order)
-	if snapshot == nil {
+	snap := psOrderProviderSnapshot(order)
+	if snap == nil {
 		return nil
 	}
 
-	switch strings.TrimSpace(providerKey) {
+	trimmedKey := strings.TrimSpace(providerKey)
+	switch trimmedKey {
 	case payment.TypeWxpay:
-		if expected := strings.TrimSpace(snapshot.MerchantAppID); expected != "" {
-			actual := strings.TrimSpace(metadata["appid"])
-			if actual == "" {
-				return fmt.Errorf("wxpay notification missing appid")
+		if want := strings.TrimSpace(snap.MerchantAppID); want != "" {
+			got := strings.TrimSpace(metadata["appid"])
+			if got == "" {
+				return fmt.Errorf("wxpay callback missing appid")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("wxpay appid mismatch: expected %s, got %s", expected, actual)
-			}
-		}
-		if expected := strings.TrimSpace(snapshot.MerchantID); expected != "" {
-			actual := strings.TrimSpace(metadata["mchid"])
-			if actual == "" {
-				return fmt.Errorf("wxpay notification missing mchid")
-			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("wxpay mchid mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("wxpay appid mismatch: want %s, got %s", want, got)
 			}
 		}
-		if expected := strings.TrimSpace(snapshot.Currency); expected != "" {
-			actual := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
-			if actual == "" {
-				return fmt.Errorf("wxpay notification missing currency")
+		if want := strings.TrimSpace(snap.MerchantID); want != "" {
+			got := strings.TrimSpace(metadata["mchid"])
+			if got == "" {
+				return fmt.Errorf("wxpay callback missing mchid")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("wxpay currency mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("wxpay mchid mismatch: want %s, got %s", want, got)
 			}
 		}
-		if actual := strings.TrimSpace(metadata["trade_state"]); actual != "" && !strings.EqualFold(actual, "SUCCESS") {
-			return fmt.Errorf("wxpay trade_state mismatch: expected SUCCESS, got %s", actual)
+		if want := strings.TrimSpace(snap.Currency); want != "" {
+			got := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
+			if got == "" {
+				return fmt.Errorf("wxpay callback missing currency")
+			}
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("wxpay currency mismatch: want %s, got %s", want, got)
+			}
+		}
+		if state := strings.TrimSpace(metadata["trade_state"]); state != "" && !strings.EqualFold(state, "SUCCESS") {
+			return fmt.Errorf("wxpay trade_state unexpected: want SUCCESS, got %s", state)
 		}
 	case payment.TypeAlipay:
-		if expected := strings.TrimSpace(snapshot.MerchantAppID); expected != "" {
-			actual := strings.TrimSpace(metadata["app_id"])
-			if actual == "" {
-				return fmt.Errorf("alipay app_id missing")
+		if want := strings.TrimSpace(snap.MerchantAppID); want != "" {
+			got := strings.TrimSpace(metadata["app_id"])
+			if got == "" {
+				return fmt.Errorf("alipay callback missing app_id")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("alipay app_id mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("alipay app_id mismatch: want %s, got %s", want, got)
 			}
 		}
 	case payment.TypeEasyPay:
-		if expected := strings.TrimSpace(snapshot.MerchantID); expected != "" {
-			actual := strings.TrimSpace(metadata["pid"])
-			if actual == "" {
-				return fmt.Errorf("easypay pid missing")
+		if want := strings.TrimSpace(snap.MerchantID); want != "" {
+			got := strings.TrimSpace(metadata["pid"])
+			if got == "" {
+				return fmt.Errorf("easypay callback missing pid")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("easypay pid mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("easypay pid mismatch: want %s, got %s", want, got)
 			}
 		}
 	case payment.TypeStripe:
-		if expected := strings.TrimSpace(snapshot.Currency); expected != "" {
-			actual := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
-			if actual == "" {
-				return fmt.Errorf("stripe notification missing currency")
+		if want := strings.TrimSpace(snap.Currency); want != "" {
+			got := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
+			if got == "" {
+				return fmt.Errorf("stripe callback missing currency")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("stripe currency mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("stripe currency mismatch: want %s, got %s", want, got)
 			}
 		}
 	case payment.TypeAirwallex:
-		if expected := strings.TrimSpace(snapshot.MerchantID); expected != "" {
-			actual := strings.TrimSpace(metadata["account_id"])
-			if actual == "" {
-				return fmt.Errorf("airwallex account_id missing")
+		if want := strings.TrimSpace(snap.MerchantID); want != "" {
+			got := strings.TrimSpace(metadata["account_id"])
+			if got == "" {
+				return fmt.Errorf("airwallex callback missing account_id")
 			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("airwallex account_id mismatch: expected %s, got %s", expected, actual)
-			}
-		}
-		if expected := strings.TrimSpace(snapshot.Currency); expected != "" {
-			actual := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
-			if actual == "" {
-				return fmt.Errorf("airwallex notification missing currency")
-			}
-			if !strings.EqualFold(expected, actual) {
-				return fmt.Errorf("airwallex currency mismatch: expected %s, got %s", expected, actual)
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("airwallex account_id mismatch: want %s, got %s", want, got)
 			}
 		}
-		if actual := strings.TrimSpace(metadata["status"]); actual != "" && !strings.EqualFold(actual, "SUCCEEDED") {
-			return fmt.Errorf("airwallex status mismatch: expected SUCCEEDED, got %s", actual)
+		if want := strings.TrimSpace(snap.Currency); want != "" {
+			got := strings.ToUpper(strings.TrimSpace(metadata["currency"]))
+			if got == "" {
+				return fmt.Errorf("airwallex callback missing currency")
+			}
+			if !strings.EqualFold(want, got) {
+				return fmt.Errorf("airwallex currency mismatch: want %s, got %s", want, got)
+			}
+		}
+		if status := strings.TrimSpace(metadata["status"]); status != "" && !strings.EqualFold(status, "SUCCEEDED") {
+			return fmt.Errorf("airwallex status unexpected: want SUCCEEDED, got %s", status)
 		}
 	}
 

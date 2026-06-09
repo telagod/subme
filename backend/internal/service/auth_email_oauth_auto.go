@@ -48,229 +48,231 @@ func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 		return nil, nil, ErrServiceUnavailable
 	}
 
-	providerType := normalizeOAuthSignupSource(input.ProviderType)
-	if providerType != "github" && providerType != "google" && providerType != "oidc" {
+	provider := normalizeOAuthSignupSource(input.ProviderType)
+	if provider != "github" && provider != "google" && provider != "oidc" {
 		return nil, nil, infraerrors.BadRequest("OAUTH_PROVIDER_INVALID", "oauth provider is invalid")
 	}
-	providerKey := strings.TrimSpace(input.ProviderKey)
-	if providerKey == "" {
-		providerKey = providerType
+	pKey := strings.TrimSpace(input.ProviderKey)
+	if pKey == "" {
+		pKey = provider
 	}
-	providerSubject := strings.TrimSpace(input.ProviderSubject)
-	if providerSubject == "" {
+	pSubject := strings.TrimSpace(input.ProviderSubject)
+	if pSubject == "" {
 		return nil, nil, infraerrors.BadRequest("OAUTH_SUBJECT_MISSING", "oauth subject is missing")
 	}
 	if !input.EmailVerified {
 		return nil, nil, infraerrors.Forbidden("OAUTH_EMAIL_NOT_VERIFIED", "oauth email is not verified")
 	}
 
-	email := strings.TrimSpace(strings.ToLower(input.Email))
-	if email == "" || len(email) > 255 {
+	addr := strings.ToLower(strings.TrimSpace(input.Email))
+	if addr == "" || len(addr) > 255 {
 		return nil, nil, infraerrors.BadRequest("INVALID_EMAIL", "invalid email")
 	}
-	if _, err := mail.ParseAddress(email); err != nil {
+	if _, parseErr := mail.ParseAddress(addr); parseErr != nil {
 		return nil, nil, infraerrors.BadRequest("INVALID_EMAIL", "invalid email")
 	}
-	if isReservedEmail(email) {
+	if isReservedEmail(addr) {
 		return nil, nil, ErrEmailReserved
 	}
-	if err := s.validateRegistrationEmailPolicy(ctx, email); err != nil {
-		return nil, nil, err
+	if policyErr := s.validateRegistrationEmailPolicy(ctx, addr); policyErr != nil {
+		return nil, nil, policyErr
 	}
 
-	identityUser, err := s.findEmailOAuthIdentityOwner(ctx, providerType, providerKey, providerSubject)
-	if err != nil {
-		return nil, nil, err
+	owner, ownerErr := s.findEmailOAuthIdentityOwner(ctx, provider, pKey, pSubject)
+	if ownerErr != nil {
+		return nil, nil, ownerErr
 	}
-	if identityUser != nil && !strings.EqualFold(strings.TrimSpace(identityUser.Email), email) {
+	if owner != nil && !strings.EqualFold(strings.TrimSpace(owner.Email), addr) {
 		return nil, nil, infraerrors.Conflict("AUTH_IDENTITY_EMAIL_MISMATCH", "oauth identity belongs to a different email")
 	}
 
-	user := identityUser
-	created := false
-	if user == nil {
-		user, err = s.userRepo.GetByEmail(ctx, email)
-		if err != nil {
-			if errors.Is(err, ErrUserNotFound) {
-				user, err = s.createEmailOAuthUser(ctx, email, input.Username, providerType, invitationCode, affiliateCode)
-				if err != nil {
-					return nil, nil, err
-				}
-				created = true
-			} else {
-				logger.LegacyPrintf("service.auth", "[Auth] Database error during %s oauth login: %v", providerType, err)
+	resolvedUser := owner
+	isNewUser := false
+	if resolvedUser == nil {
+		found, lookupErr := s.userRepo.GetByEmail(ctx, addr)
+		if lookupErr != nil {
+			if !errors.Is(lookupErr, ErrUserNotFound) {
+				logger.LegacyPrintf("service.auth", "[Auth] Database error during %s oauth login: %v", provider, lookupErr)
 				return nil, nil, ErrServiceUnavailable
 			}
+			created, createErr := s.createEmailOAuthUser(ctx, addr, input.Username, provider, invitationCode, affiliateCode)
+			if createErr != nil {
+				return nil, nil, createErr
+			}
+			resolvedUser = created
+			isNewUser = true
+		} else {
+			resolvedUser = found
 		}
 	}
 
-	if !user.IsActive() {
+	if !resolvedUser.IsActive() {
 		return nil, nil, ErrUserNotActive
 	}
-	if err := s.ensureEmailOAuthIdentity(ctx, user.ID, EmailOAuthIdentityInput{
-		ProviderType:     providerType,
-		ProviderKey:      providerKey,
-		ProviderSubject:  providerSubject,
-		Email:            email,
+	if identErr := s.ensureEmailOAuthIdentity(ctx, resolvedUser.ID, EmailOAuthIdentityInput{
+		ProviderType:     provider,
+		ProviderKey:      pKey,
+		ProviderSubject:  pSubject,
+		Email:            addr,
 		EmailVerified:    input.EmailVerified,
 		Username:         input.Username,
 		DisplayName:      input.DisplayName,
 		AvatarURL:        input.AvatarURL,
 		UpstreamMetadata: input.UpstreamMetadata,
-	}); err != nil {
-		return nil, nil, err
+	}); identErr != nil {
+		return nil, nil, identErr
 	}
 
-	if user.Username == "" && strings.TrimSpace(input.Username) != "" {
-		user.Username = strings.TrimSpace(input.Username)
-		if err := s.userRepo.Update(ctx, user); err != nil {
-			logger.LegacyPrintf("service.auth", "[Auth] Failed to update username after %s oauth login: %v", providerType, err)
+	if resolvedUser.Username == "" && strings.TrimSpace(input.Username) != "" {
+		resolvedUser.Username = strings.TrimSpace(input.Username)
+		if updErr := s.userRepo.Update(ctx, resolvedUser); updErr != nil {
+			logger.LegacyPrintf("service.auth", "[Auth] Failed to update username after %s oauth login: %v", provider, updErr)
 		}
 	}
-	if !created {
-		if err := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, user.ID, providerType); err != nil {
-			logger.LegacyPrintf("service.auth", "[Auth] Failed to apply %s first bind defaults: %v", providerType, err)
+	if !isNewUser {
+		if bindErr := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, resolvedUser.ID, provider); bindErr != nil {
+			logger.LegacyPrintf("service.auth", "[Auth] Failed to apply %s first bind defaults: %v", provider, bindErr)
 		}
 	}
-	s.RecordSuccessfulLogin(ctx, user.ID)
+	s.RecordSuccessfulLogin(ctx, resolvedUser.ID)
 
-	tokenPair, err := s.GenerateTokenPair(ctx, user, "")
-	if err != nil {
-		return nil, nil, fmt.Errorf("generate token pair: %w", err)
+	tokens, tokenErr := s.GenerateTokenPair(ctx, resolvedUser, "")
+	if tokenErr != nil {
+		return nil, nil, fmt.Errorf("unable to generate token pair: %w", tokenErr)
 	}
-	return tokenPair, user, nil
+	return tokens, resolvedUser, nil
 }
 
 func (s *AuthService) createEmailOAuthUser(ctx context.Context, email, username, providerType, invitationCode, affiliateCode string) (*User, error) {
 	if s.settingService == nil || !s.settingService.IsRegistrationEnabled(ctx) {
 		return nil, ErrRegDisabled
 	}
-	invitationRedeemCode, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode)
-	if err != nil {
-		if errors.Is(err, ErrInvitationCodeRequired) {
+	invRedeemCode, invErr := s.validateOAuthRegistrationInvitation(ctx, invitationCode)
+	if invErr != nil {
+		if errors.Is(invErr, ErrInvitationCodeRequired) {
 			return nil, ErrOAuthInvitationRequired
 		}
-		return nil, err
+		return nil, invErr
 	}
 
-	randomPassword, err := randomHexString(32)
-	if err != nil {
+	randomPW, randErr := randomHexString(32)
+	if randErr != nil {
 		return nil, ErrServiceUnavailable
 	}
-	hashedPassword, err := s.HashPassword(randomPassword)
-	if err != nil {
-		return nil, fmt.Errorf("hash password: %w", err)
+	pwHash, hashErr := s.HashPassword(randomPW)
+	if hashErr != nil {
+		return nil, fmt.Errorf("unable to hash password: %w", hashErr)
 	}
-	grantPlan := s.resolveSignupGrantPlan(ctx, providerType)
-	var defaultRPMLimit int
+	grant := s.resolveSignupGrantPlan(ctx, providerType)
+	rpmCap := 0
 	if s.settingService != nil {
-		defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
+		rpmCap = s.settingService.GetDefaultUserRPMLimit(ctx)
 	}
-	user := &User{
+	newUser := &User{
 		Email:        email,
 		Username:     strings.TrimSpace(username),
-		PasswordHash: hashedPassword,
+		PasswordHash: pwHash,
 		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		RPMLimit:     defaultRPMLimit,
+		Balance:      grant.Balance,
+		Concurrency:  grant.Concurrency,
+		RPMLimit:     rpmCap,
 		Status:       StatusActive,
 		SignupSource: providerType,
 	}
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		if errors.Is(err, ErrEmailExists) {
-			existing, loadErr := s.userRepo.GetByEmail(ctx, email)
-			if loadErr != nil {
+	if createErr := s.userRepo.Create(ctx, newUser); createErr != nil {
+		if errors.Is(createErr, ErrEmailExists) {
+			fallback, fallbackErr := s.userRepo.GetByEmail(ctx, email)
+			if fallbackErr != nil {
 				return nil, ErrServiceUnavailable
 			}
-			return existing, nil
+			return fallback, nil
 		}
 		return nil, ErrServiceUnavailable
 	}
-	s.postAuthUserBootstrap(ctx, user, providerType, false)
-	s.assignSubscriptions(ctx, user.ID, grantPlan.Subscriptions, "auto assigned by signup defaults")
-	// snapshot user × platform quota（fail-open）
-	_ = s.snapshotPlatformQuotaDefaults(ctx, user.ID, &grantPlan)
-	s.bindOAuthAffiliate(ctx, user.ID, affiliateCode)
-	if invitationRedeemCode != nil {
-		if err := s.useOAuthRegistrationInvitation(ctx, invitationRedeemCode.ID, user.ID); err != nil {
-			_ = s.RollbackOAuthEmailAccountCreation(ctx, user.ID, invitationCode)
+	s.postAuthUserBootstrap(ctx, newUser, providerType, false)
+	s.assignSubscriptions(ctx, newUser.ID, grant.Subscriptions, "auto assigned by signup defaults")
+	// snapshot user x platform quota (fail-open)
+	_ = s.snapshotPlatformQuotaDefaults(ctx, newUser.ID, &grant)
+	s.bindOAuthAffiliate(ctx, newUser.ID, affiliateCode)
+	if invRedeemCode != nil {
+		if useErr := s.useOAuthRegistrationInvitation(ctx, invRedeemCode.ID, newUser.ID); useErr != nil {
+			_ = s.RollbackOAuthEmailAccountCreation(ctx, newUser.ID, invitationCode)
 			return nil, ErrInvitationCodeInvalid
 		}
 	}
-	return user, nil
+	return newUser, nil
 }
 
 func (s *AuthService) findEmailOAuthIdentityOwner(ctx context.Context, providerType, providerKey, providerSubject string) (*User, error) {
-	identity, err := s.entClient.AuthIdentity.Query().
+	row, queryErr := s.entClient.AuthIdentity.Query().
 		Where(
 			authidentity.ProviderTypeEQ(providerType),
 			authidentity.ProviderKeyEQ(providerKey),
 			authidentity.ProviderSubjectEQ(providerSubject),
 		).
 		Only(ctx)
-	if err != nil {
-		if dbent.IsNotFound(err) {
+	if queryErr != nil {
+		if dbent.IsNotFound(queryErr) {
 			return nil, nil
 		}
-		return nil, infraerrors.InternalServer("AUTH_IDENTITY_LOOKUP_FAILED", "failed to inspect auth identity ownership").WithCause(err)
+		return nil, infraerrors.InternalServer("AUTH_IDENTITY_LOOKUP_FAILED", "failed to inspect auth identity ownership").WithCause(queryErr)
 	}
-	user, err := s.userRepo.GetByID(ctx, identity.UserID)
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+	found, lookupErr := s.userRepo.GetByID(ctx, row.UserID)
+	if lookupErr != nil {
+		if errors.Is(lookupErr, ErrUserNotFound) {
 			return nil, nil
 		}
 		return nil, ErrServiceUnavailable
 	}
-	return user, nil
+	return found, nil
 }
 
 func (s *AuthService) ensureEmailOAuthIdentity(ctx context.Context, userID int64, input EmailOAuthIdentityInput) error {
-	metadata := map[string]any{
-		"email":          strings.TrimSpace(strings.ToLower(input.Email)),
+	meta := map[string]any{
+		"email":          strings.ToLower(strings.TrimSpace(input.Email)),
 		"email_verified": input.EmailVerified,
 	}
-	for key, value := range input.UpstreamMetadata {
-		metadata[key] = value
+	for k, v := range input.UpstreamMetadata {
+		meta[k] = v
 	}
-	if strings.TrimSpace(input.Username) != "" {
-		metadata["username"] = strings.TrimSpace(input.Username)
+	if trimmedName := strings.TrimSpace(input.Username); trimmedName != "" {
+		meta["username"] = trimmedName
 	}
-	if strings.TrimSpace(input.DisplayName) != "" {
-		metadata["display_name"] = strings.TrimSpace(input.DisplayName)
+	if trimmedDisplay := strings.TrimSpace(input.DisplayName); trimmedDisplay != "" {
+		meta["display_name"] = trimmedDisplay
 	}
-	if strings.TrimSpace(input.AvatarURL) != "" {
-		metadata["avatar_url"] = strings.TrimSpace(input.AvatarURL)
+	if trimmedAvatar := strings.TrimSpace(input.AvatarURL); trimmedAvatar != "" {
+		meta["avatar_url"] = trimmedAvatar
 	}
 
-	providerType := normalizeOAuthSignupSource(input.ProviderType)
-	providerKey := strings.TrimSpace(input.ProviderKey)
-	providerSubject := strings.TrimSpace(input.ProviderSubject)
-	identity, err := s.entClient.AuthIdentity.Query().
+	provider := normalizeOAuthSignupSource(input.ProviderType)
+	pKey := strings.TrimSpace(input.ProviderKey)
+	pSubject := strings.TrimSpace(input.ProviderSubject)
+	existing, queryErr := s.entClient.AuthIdentity.Query().
 		Where(
-			authidentity.ProviderTypeEQ(providerType),
-			authidentity.ProviderKeyEQ(providerKey),
-			authidentity.ProviderSubjectEQ(providerSubject),
+			authidentity.ProviderTypeEQ(provider),
+			authidentity.ProviderKeyEQ(pKey),
+			authidentity.ProviderSubjectEQ(pSubject),
 		).
 		Only(ctx)
-	if err != nil && !dbent.IsNotFound(err) {
-		return infraerrors.InternalServer("AUTH_IDENTITY_LOOKUP_FAILED", "failed to inspect auth identity ownership").WithCause(err)
+	if queryErr != nil && !dbent.IsNotFound(queryErr) {
+		return infraerrors.InternalServer("AUTH_IDENTITY_LOOKUP_FAILED", "failed to inspect auth identity ownership").WithCause(queryErr)
 	}
-	if identity != nil {
-		if identity.UserID != userID {
+	if existing != nil {
+		if existing.UserID != userID {
 			return infraerrors.Conflict("AUTH_IDENTITY_OWNERSHIP_CONFLICT", "auth identity already belongs to another user")
 		}
-		_, err = s.entClient.AuthIdentity.UpdateOneID(identity.ID).
-			SetMetadata(metadata).
+		_, updErr := s.entClient.AuthIdentity.UpdateOneID(existing.ID).
+			SetMetadata(meta).
 			Save(ctx)
-		return err
+		return updErr
 	}
-	_, err = s.entClient.AuthIdentity.Create().
+	_, createErr := s.entClient.AuthIdentity.Create().
 		SetUserID(userID).
-		SetProviderType(providerType).
-		SetProviderKey(providerKey).
-		SetProviderSubject(providerSubject).
-		SetMetadata(metadata).
+		SetProviderType(provider).
+		SetProviderKey(pKey).
+		SetProviderSubject(pSubject).
+		SetMetadata(meta).
 		Save(ctx)
-	return err
+	return createErr
 }

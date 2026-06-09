@@ -83,20 +83,20 @@ func NewPaymentResumeService(signingKey []byte, verifyFallbacks ...[]byte) *Paym
 		svc.signingKey = append([]byte(nil), signingKey...)
 		svc.verifyKeys = append(svc.verifyKeys, svc.signingKey)
 	}
-	for _, fallback := range verifyFallbacks {
-		if len(fallback) == 0 {
+	for _, fb := range verifyFallbacks {
+		if len(fb) == 0 {
 			continue
 		}
-		cloned := append([]byte(nil), fallback...)
-		duplicate := false
+		copied := append([]byte(nil), fb...)
+		isDuplicate := false
 		for _, existing := range svc.verifyKeys {
-			if bytes.Equal(existing, cloned) {
-				duplicate = true
+			if bytes.Equal(existing, copied) {
+				isDuplicate = true
 				break
 			}
 		}
-		if !duplicate {
-			svc.verifyKeys = append(svc.verifyKeys, cloned)
+		if !isDuplicate {
+			svc.verifyKeys = append(svc.verifyKeys, copied)
 		}
 	}
 	return svc
@@ -121,44 +121,47 @@ func NormalizeVisibleMethods(methods []string) []string {
 	if len(methods) == 0 {
 		return nil
 	}
-	seen := make(map[string]struct{}, len(methods))
-	out := make([]string, 0, len(methods))
-	for _, method := range methods {
-		normalized := NormalizeVisibleMethod(method)
-		if normalized == "" {
+	visited := make(map[string]struct{}, len(methods))
+	result := make([]string, 0, len(methods))
+	for _, m := range methods {
+		norm := NormalizeVisibleMethod(m)
+		if norm == "" {
 			continue
 		}
-		if _, ok := seen[normalized]; ok {
+		if _, already := visited[norm]; already {
 			continue
 		}
-		seen[normalized] = struct{}{}
-		out = append(out, normalized)
+		visited[norm] = struct{}{}
+		result = append(result, norm)
 	}
-	return out
+	return result
 }
 
 func NormalizePaymentSource(source string) string {
-	switch strings.TrimSpace(strings.ToLower(source)) {
+	lowered := strings.ToLower(strings.TrimSpace(source))
+	switch lowered {
 	case "", PaymentSourceHostedRedirect:
 		return PaymentSourceHostedRedirect
 	case "wechat_in_app", "wxpay_resume", PaymentSourceWechatInAppResume:
 		return PaymentSourceWechatInAppResume
 	default:
-		return strings.TrimSpace(strings.ToLower(source))
+		return lowered
 	}
 }
 
 func NormalizeVisibleMethodSource(method, source string) string {
-	switch NormalizeVisibleMethod(method) {
+	baseMethod := NormalizeVisibleMethod(method)
+	loweredSource := strings.ToLower(strings.TrimSpace(source))
+	switch baseMethod {
 	case payment.TypeAlipay:
-		switch strings.TrimSpace(strings.ToLower(source)) {
+		switch loweredSource {
 		case VisibleMethodSourceOfficialAlipay, payment.TypeAlipay, payment.TypeAlipayDirect, "official":
 			return VisibleMethodSourceOfficialAlipay
 		case VisibleMethodSourceEasyPayAlipay, payment.TypeEasyPay:
 			return VisibleMethodSourceEasyPayAlipay
 		}
 	case payment.TypeWxpay:
-		switch strings.TrimSpace(strings.ToLower(source)) {
+		switch loweredSource {
 		case VisibleMethodSourceOfficialWechat, payment.TypeWxpay, payment.TypeWxpayDirect, "wechat", "official":
 			return VisibleMethodSourceOfficialWechat
 		case VisibleMethodSourceEasyPayWechat, payment.TypeEasyPay:
@@ -169,7 +172,8 @@ func NormalizeVisibleMethodSource(method, source string) string {
 }
 
 func VisibleMethodProviderKeyForSource(method, source string) (string, bool) {
-	switch NormalizeVisibleMethodSource(method, source) {
+	normalized := NormalizeVisibleMethodSource(method, source)
+	switch normalized {
 	case VisibleMethodSourceOfficialAlipay:
 		return payment.TypeAlipay, NormalizeVisibleMethod(method) == payment.TypeAlipay
 	case VisibleMethodSourceEasyPayAlipay:
@@ -195,19 +199,19 @@ func (lb *visibleMethodLoadBalancer) GetInstanceConfig(ctx context.Context, inst
 }
 
 func (lb *visibleMethodLoadBalancer) SelectInstance(ctx context.Context, providerKey string, paymentType payment.PaymentType, strategy payment.Strategy, orderAmount float64) (*payment.InstanceSelection, error) {
-	visibleMethod := NormalizeVisibleMethod(paymentType)
-	if providerKey != "" || (visibleMethod != payment.TypeAlipay && visibleMethod != payment.TypeWxpay) {
+	baseMethod := NormalizeVisibleMethod(paymentType)
+	if providerKey != "" || (baseMethod != payment.TypeAlipay && baseMethod != payment.TypeWxpay) {
 		return lb.inner.SelectInstance(ctx, providerKey, paymentType, strategy, orderAmount)
 	}
 
-	inst, err := lb.configService.resolveEnabledVisibleMethodInstance(ctx, visibleMethod)
-	if err != nil {
-		return nil, err
+	resolved, resolveErr := lb.configService.resolveEnabledVisibleMethodInstance(ctx, baseMethod)
+	if resolveErr != nil {
+		return nil, resolveErr
 	}
-	if inst == nil {
-		return nil, fmt.Errorf("visible payment method %s has no enabled provider instance", visibleMethod)
+	if resolved == nil {
+		return nil, fmt.Errorf("visible payment method %s has no enabled provider instance", baseMethod)
 	}
-	return lb.inner.SelectInstance(ctx, inst.ProviderKey, paymentType, strategy, orderAmount)
+	return lb.inner.SelectInstance(ctx, resolved.ProviderKey, paymentType, strategy, orderAmount)
 }
 
 func visibleMethodEnabledSettingKey(method string) string {
@@ -233,12 +237,12 @@ func visibleMethodSourceSettingKey(method string) string {
 }
 
 func CanonicalizeReturnURL(raw string, srcHost string, srcURL string) (string, error) {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
 		return "", nil
 	}
-	parsed, err := url.Parse(raw)
-	if err != nil || !parsed.IsAbs() || parsed.Host == "" {
+	parsed, parseErr := url.Parse(trimmed)
+	if parseErr != nil || !parsed.IsAbs() || parsed.Host == "" {
 		return "", infraerrors.BadRequest("INVALID_RETURN_URL", "return_url must be an absolute http/https URL")
 	}
 	if parsed.Scheme != "http" && parsed.Scheme != "https" {
@@ -251,26 +255,26 @@ func CanonicalizeReturnURL(raw string, srcHost string, srcURL string) (string, e
 	if parsed.Path != paymentResultReturnPath {
 		return "", infraerrors.BadRequest("INVALID_RETURN_URL", "return_url must target the canonical internal payment result page")
 	}
-	if !allowedReturnURLHost(parsed.Host, srcHost, srcURL) {
+	if !isAllowedReturnHost(parsed.Host, srcHost, srcURL) {
 		return "", infraerrors.BadRequest("INVALID_RETURN_URL", "return_url must use the same host as the current site or browser origin")
 	}
 	return parsed.String(), nil
 }
 
-func allowedReturnURLHost(returnURLHost string, requestHost string, refererURL string) bool {
-	if sameOriginHost(returnURLHost, requestHost) {
+func isAllowedReturnHost(returnHost string, requestHost string, refererURL string) bool {
+	if hostsMatchOrigin(returnHost, requestHost) {
 		return true
 	}
 
-	refererURL = strings.TrimSpace(refererURL)
-	if refererURL == "" {
+	ref := strings.TrimSpace(refererURL)
+	if ref == "" {
 		return false
 	}
-	parsedReferer, err := url.Parse(refererURL)
-	if err != nil || parsedReferer.Host == "" {
+	parsedRef, parseErr := url.Parse(ref)
+	if parseErr != nil || parsedRef.Host == "" {
 		return false
 	}
-	return sameOriginHost(returnURLHost, parsedReferer.Host)
+	return hostsMatchOrigin(returnHost, parsedRef.Host)
 }
 
 func buildPaymentReturnURL(base string, orderID int64, outTradeNo string, resumeToken string) (string, error) {
@@ -279,8 +283,8 @@ func buildPaymentReturnURL(base string, orderID int64, outTradeNo string, resume
 		return "", nil
 	}
 
-	parsed, err := url.Parse(canonical)
-	if err != nil {
+	parsed, parseErr := url.Parse(canonical)
+	if parseErr != nil {
 		return "", infraerrors.BadRequest("INVALID_RETURN_URL", "return_url must be a valid URL")
 	}
 	if !parsed.IsAbs() || parsed.Host == "" {
@@ -288,53 +292,53 @@ func buildPaymentReturnURL(base string, orderID int64, outTradeNo string, resume
 	}
 	parsed.Fragment = ""
 
-	query := parsed.Query()
+	params := parsed.Query()
 	if orderID > 0 {
-		query.Set("order_id", strconv.FormatInt(orderID, 10))
+		params.Set("order_id", strconv.FormatInt(orderID, 10))
 	}
-	if strings.TrimSpace(outTradeNo) != "" {
-		query.Set("out_trade_no", strings.TrimSpace(outTradeNo))
+	if trimmedTrade := strings.TrimSpace(outTradeNo); trimmedTrade != "" {
+		params.Set("out_trade_no", trimmedTrade)
 	}
-	if strings.TrimSpace(resumeToken) != "" {
-		query.Set("resume_token", strings.TrimSpace(resumeToken))
+	if trimmedToken := strings.TrimSpace(resumeToken); trimmedToken != "" {
+		params.Set("resume_token", trimmedToken)
 	}
-	query.Set("status", "success")
-	parsed.RawQuery = query.Encode()
+	params.Set("status", "success")
+	parsed.RawQuery = params.Encode()
 
 	return parsed.String(), nil
 }
 
-func sameOriginHost(returnURLHost string, requestHost string) bool {
-	returnHost := strings.TrimSpace(returnURLHost)
-	reqHost := strings.TrimSpace(requestHost)
-	if returnHost == "" || reqHost == "" {
+func hostsMatchOrigin(hostA string, hostB string) bool {
+	a := strings.TrimSpace(hostA)
+	b := strings.TrimSpace(hostB)
+	if a == "" || b == "" {
 		return false
 	}
-	if strings.EqualFold(returnHost, reqHost) {
+	if strings.EqualFold(a, b) {
 		return true
 	}
 
-	returnName, returnPort := splitHostPortDefault(returnHost)
-	reqName, reqPort := splitHostPortDefault(reqHost)
-	if returnName == "" || reqName == "" {
+	nameA, portA := splitHostAndPort(a)
+	nameB, portB := splitHostAndPort(b)
+	if nameA == "" || nameB == "" {
 		return false
 	}
-	return strings.EqualFold(returnName, reqName) && returnPort == reqPort
+	return strings.EqualFold(nameA, nameB) && portA == portB
 }
 
-func splitHostPortDefault(raw string) (string, string) {
-	if host, port, err := net.SplitHostPort(raw); err == nil {
-		return host, port
+func splitHostAndPort(raw string) (string, string) {
+	if hostname, port, splitErr := net.SplitHostPort(raw); splitErr == nil {
+		return hostname, port
 	}
 	return raw, ""
 }
 
 func (s *PaymentResumeService) CreateToken(claims ResumeTokenClaims) (string, error) {
-	if err := s.ensureSigningKey(); err != nil {
-		return "", err
+	if keyErr := s.ensureSigningKey(); keyErr != nil {
+		return "", keyErr
 	}
 	if claims.OrderID <= 0 {
-		return "", fmt.Errorf("resume token requires order id")
+		return "", fmt.Errorf("resume token requires a valid order id")
 	}
 	if claims.IssuedAt == 0 {
 		claims.IssuedAt = time.Now().Unix()
@@ -342,33 +346,33 @@ func (s *PaymentResumeService) CreateToken(claims ResumeTokenClaims) (string, er
 	if claims.ExpiresAt == 0 {
 		claims.ExpiresAt = time.Now().Add(paymentResumeTokenTTL).Unix()
 	}
-	return s.createSignedToken(claims)
+	return s.mintSignedToken(claims)
 }
 
 func (s *PaymentResumeService) ParseToken(token string) (*ResumeTokenClaims, error) {
-	if err := s.ensureSigningKey(); err != nil {
-		return nil, err
+	if keyErr := s.ensureSigningKey(); keyErr != nil {
+		return nil, keyErr
 	}
 	var claims ResumeTokenClaims
-	if err := s.parseSignedToken(token, &claims); err != nil {
+	if decodeErr := s.decodeSignedToken(token, &claims); decodeErr != nil {
 		return nil, infraerrors.BadRequest("INVALID_RESUME_TOKEN", "resume token payload is invalid")
 	}
 	if claims.OrderID <= 0 {
 		return nil, infraerrors.BadRequest("INVALID_RESUME_TOKEN", "resume token missing order id")
 	}
-	if err := validatePaymentResumeExpiry(claims.ExpiresAt, "INVALID_RESUME_TOKEN", "resume token has expired"); err != nil {
-		return nil, err
+	if expiryErr := checkResumeTokenExpiry(claims.ExpiresAt, "INVALID_RESUME_TOKEN", "resume token has expired"); expiryErr != nil {
+		return nil, expiryErr
 	}
 	return &claims, nil
 }
 
 func (s *PaymentResumeService) CreateWeChatPaymentResumeToken(claims WeChatPaymentResumeClaims) (string, error) {
-	if err := s.ensureSigningKey(); err != nil {
-		return "", err
+	if keyErr := s.ensureSigningKey(); keyErr != nil {
+		return "", keyErr
 	}
 	claims.OpenID = strings.TrimSpace(claims.OpenID)
 	if claims.OpenID == "" {
-		return "", fmt.Errorf("wechat payment resume token requires openid")
+		return "", fmt.Errorf("wechat payment resume token requires an openid")
 	}
 	if claims.IssuedAt == 0 {
 		claims.IssuedAt = time.Now().Unix()
@@ -376,8 +380,8 @@ func (s *PaymentResumeService) CreateWeChatPaymentResumeToken(claims WeChatPayme
 	if claims.ExpiresAt == 0 {
 		claims.ExpiresAt = time.Now().Add(wechatPaymentResumeTokenTTL).Unix()
 	}
-	if normalized := NormalizeVisibleMethod(claims.PaymentType); normalized != "" {
-		claims.PaymentType = normalized
+	if norm := NormalizeVisibleMethod(claims.PaymentType); norm != "" {
+		claims.PaymentType = norm
 	}
 	if claims.PaymentType == "" {
 		claims.PaymentType = payment.TypeWxpay
@@ -386,15 +390,15 @@ func (s *PaymentResumeService) CreateWeChatPaymentResumeToken(claims WeChatPayme
 		claims.OrderType = payment.OrderTypeBalance
 	}
 	claims.TokenType = wechatPaymentResumeTokenType
-	return s.createSignedToken(claims)
+	return s.mintSignedToken(claims)
 }
 
 func (s *PaymentResumeService) ParseWeChatPaymentResumeToken(token string) (*WeChatPaymentResumeClaims, error) {
-	if err := s.ensureSigningKey(); err != nil {
-		return nil, err
+	if keyErr := s.ensureSigningKey(); keyErr != nil {
+		return nil, keyErr
 	}
 	var claims WeChatPaymentResumeClaims
-	if err := s.parseSignedToken(token, &claims); err != nil {
+	if decodeErr := s.decodeSignedToken(token, &claims); decodeErr != nil {
 		return nil, infraerrors.BadRequest("INVALID_WECHAT_PAYMENT_RESUME_TOKEN", "wechat payment resume token payload is invalid")
 	}
 	if claims.TokenType != wechatPaymentResumeTokenType {
@@ -404,11 +408,11 @@ func (s *PaymentResumeService) ParseWeChatPaymentResumeToken(token string) (*WeC
 	if claims.OpenID == "" {
 		return nil, infraerrors.BadRequest("INVALID_WECHAT_PAYMENT_RESUME_TOKEN", "wechat payment resume token missing openid")
 	}
-	if err := validatePaymentResumeExpiry(claims.ExpiresAt, "INVALID_WECHAT_PAYMENT_RESUME_TOKEN", "wechat payment resume token has expired"); err != nil {
-		return nil, err
+	if expiryErr := checkResumeTokenExpiry(claims.ExpiresAt, "INVALID_WECHAT_PAYMENT_RESUME_TOKEN", "wechat payment resume token has expired"); expiryErr != nil {
+		return nil, expiryErr
 	}
-	if normalized := NormalizeVisibleMethod(claims.PaymentType); normalized != "" {
-		claims.PaymentType = normalized
+	if norm := NormalizeVisibleMethod(claims.PaymentType); norm != "" {
+		claims.PaymentType = norm
 	}
 	if claims.PaymentType == "" {
 		claims.PaymentType = payment.TypeWxpay
@@ -419,43 +423,43 @@ func (s *PaymentResumeService) ParseWeChatPaymentResumeToken(token string) (*WeC
 	return &claims, nil
 }
 
-func (s *PaymentResumeService) createSignedToken(claims any) (string, error) {
-	payload, err := json.Marshal(claims)
-	if err != nil {
-		return "", fmt.Errorf("marshal resume claims: %w", err)
+func (s *PaymentResumeService) mintSignedToken(claims any) (string, error) {
+	raw, marshalErr := json.Marshal(claims)
+	if marshalErr != nil {
+		return "", fmt.Errorf("unable to marshal resume claims: %w", marshalErr)
 	}
-	encodedPayload := base64.RawURLEncoding.EncodeToString(payload)
-	return encodedPayload + "." + s.sign(encodedPayload), nil
+	encoded := base64.RawURLEncoding.EncodeToString(raw)
+	return encoded + "." + s.computeSignature(encoded), nil
 }
 
-func (s *PaymentResumeService) parseSignedToken(token string, dest any) error {
-	parts := strings.Split(token, ".")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+func (s *PaymentResumeService) decodeSignedToken(token string, dest any) error {
+	segments := strings.Split(token, ".")
+	if len(segments) != 2 || segments[0] == "" || segments[1] == "" {
 		return infraerrors.BadRequest("INVALID_RESUME_TOKEN", "resume token is malformed")
 	}
-	if !s.verifySignature(parts[0], parts[1]) {
+	if !s.isSignatureValid(segments[0], segments[1]) {
 		return infraerrors.BadRequest("INVALID_RESUME_TOKEN", "resume token signature mismatch")
 	}
-	payload, err := base64.RawURLEncoding.DecodeString(parts[0])
-	if err != nil {
+	decoded, decErr := base64.RawURLEncoding.DecodeString(segments[0])
+	if decErr != nil {
 		return infraerrors.BadRequest("INVALID_RESUME_TOKEN", "resume token payload is malformed")
 	}
-	return json.Unmarshal(payload, dest)
+	return json.Unmarshal(decoded, dest)
 }
 
-func (s *PaymentResumeService) verifySignature(payload string, signature string) bool {
+func (s *PaymentResumeService) isSignatureValid(payload string, signature string) bool {
 	if s == nil {
 		return false
 	}
-	for _, key := range s.verifyKeys {
-		if hmac.Equal([]byte(signature), []byte(signPaymentResumePayload(payload, key))) {
+	for _, k := range s.verifyKeys {
+		if hmac.Equal([]byte(signature), []byte(computeResumePayloadMAC(payload, k))) {
 			return true
 		}
 	}
 	return false
 }
 
-func validatePaymentResumeExpiry(expiresAt int64, code, message string) error {
+func checkResumeTokenExpiry(expiresAt int64, code, message string) error {
 	if expiresAt <= 0 {
 		return nil
 	}
@@ -465,12 +469,12 @@ func validatePaymentResumeExpiry(expiresAt int64, code, message string) error {
 	return nil
 }
 
-func (s *PaymentResumeService) sign(payload string) string {
-	return signPaymentResumePayload(payload, s.signingKey)
+func (s *PaymentResumeService) computeSignature(payload string) string {
+	return computeResumePayloadMAC(payload, s.signingKey)
 }
 
-func signPaymentResumePayload(payload string, key []byte) string {
-	mac := hmac.New(sha256.New, key)
-	_, _ = mac.Write([]byte(payload))
-	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+func computeResumePayloadMAC(payload string, key []byte) string {
+	h := hmac.New(sha256.New, key)
+	_, _ = h.Write([]byte(payload))
+	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 }

@@ -27,70 +27,70 @@ func (s *AuthService) BindEmailIdentity(
 		return nil, ErrServiceUnavailable
 	}
 
-	normalizedEmail, err := normalizeEmailForIdentityBinding(email)
-	if err != nil {
-		return nil, err
+	addr, normalizeErr := normalizeEmailForIdentityBinding(email)
+	if normalizeErr != nil {
+		return nil, normalizeErr
 	}
-	if isReservedEmail(normalizedEmail) {
+	if isReservedEmail(addr) {
 		return nil, ErrEmailReserved
 	}
 	if strings.TrimSpace(password) == "" {
 		return nil, ErrPasswordRequired
 	}
-	if err := s.VerifyOAuthEmailCode(ctx, normalizedEmail, verifyCode); err != nil {
-		return nil, err
+	if codeErr := s.VerifyOAuthEmailCode(ctx, addr, verifyCode); codeErr != nil {
+		return nil, codeErr
 	}
 
-	currentUser, err := s.userRepo.GetByID(ctx, userID)
-	if err != nil {
-		return nil, err
+	existing, fetchErr := s.userRepo.GetByID(ctx, userID)
+	if fetchErr != nil {
+		return nil, fetchErr
 	}
-	firstRealEmailBind := !hasBindableEmailIdentitySubject(currentUser.Email)
-	if firstRealEmailBind && len(password) < 6 {
+	isFirstBind := !hasBindableEmailIdentitySubject(existing.Email)
+	if isFirstBind && len(password) < 6 {
 		return nil, infraerrors.BadRequest("PASSWORD_TOO_SHORT", "password must be at least 6 characters")
 	}
-	if !firstRealEmailBind && !s.CheckPassword(password, currentUser.PasswordHash) {
+	if !isFirstBind && !s.CheckPassword(password, existing.PasswordHash) {
 		return nil, ErrPasswordIncorrect
 	}
 
-	existingUser, err := s.userRepo.GetByEmail(ctx, normalizedEmail)
+	otherUser, lookupErr := s.userRepo.GetByEmail(ctx, addr)
 	switch {
-	case err == nil && existingUser != nil && existingUser.ID != userID:
+	case lookupErr == nil && otherUser != nil && otherUser.ID != userID:
 		return nil, ErrEmailExists
-	case err != nil && !errors.Is(err, ErrUserNotFound):
+	case lookupErr != nil && !errors.Is(lookupErr, ErrUserNotFound):
 		return nil, ErrServiceUnavailable
 	}
 
-	hashedPassword, err := s.HashPassword(password)
-	if err != nil {
-		return nil, fmt.Errorf("hash password: %w", err)
+	pwHash, hashErr := s.HashPassword(password)
+	if hashErr != nil {
+		return nil, fmt.Errorf("unable to hash password: %w", hashErr)
 	}
 
 	if s.entClient != nil {
-		if err := s.updateBoundEmailIdentityTx(ctx, currentUser, normalizedEmail, hashedPassword, firstRealEmailBind); err != nil {
-			return nil, err
+		if txErr := s.updateBoundEmailIdentityTx(ctx, existing, addr, pwHash, isFirstBind); txErr != nil {
+			return nil, txErr
 		}
 		s.revokeEmailIdentitySessions(ctx, userID)
-		return currentUser, nil
+		return existing, nil
 	}
 
-	currentUser.Email = normalizedEmail
-	currentUser.PasswordHash = hashedPassword
-	if err := s.userRepo.Update(ctx, currentUser); err != nil {
-		if errors.Is(err, ErrEmailExists) {
+	existing.Email = addr
+	existing.PasswordHash = pwHash
+	if updErr := s.userRepo.Update(ctx, existing); updErr != nil {
+		if errors.Is(updErr, ErrEmailExists) {
 			return nil, ErrEmailExists
 		}
 		return nil, ErrServiceUnavailable
 	}
 
-	if firstRealEmailBind {
-		if err := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, userID, "email"); err != nil {
-			return nil, fmt.Errorf("apply email first bind defaults: %w", err)
+	if isFirstBind {
+		if bindErr := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, userID, "email"); bindErr != nil {
+			return nil, fmt.Errorf("unable to apply email first-bind defaults: %w", bindErr)
 		}
 	}
 
 	s.revokeEmailIdentitySessions(ctx, userID)
-	return currentUser, nil
+	return existing, nil
 }
 
 // SendEmailIdentityBindCode sends a verification code for authenticated email binding flows.
@@ -99,52 +99,52 @@ func (s *AuthService) SendEmailIdentityBindCode(ctx context.Context, userID int6
 		return ErrServiceUnavailable
 	}
 
-	normalizedEmail, err := normalizeEmailForIdentityBinding(email)
-	if err != nil {
-		return err
+	addr, normalizeErr := normalizeEmailForIdentityBinding(email)
+	if normalizeErr != nil {
+		return normalizeErr
 	}
-	if isReservedEmail(normalizedEmail) {
+	if isReservedEmail(addr) {
 		return ErrEmailReserved
 	}
 	if s.emailService == nil {
 		return ErrServiceUnavailable
 	}
-	if _, err := s.userRepo.GetByID(ctx, userID); err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+	if _, fetchErr := s.userRepo.GetByID(ctx, userID); fetchErr != nil {
+		if errors.Is(fetchErr, ErrUserNotFound) {
 			return ErrUserNotFound
 		}
 		return ErrServiceUnavailable
 	}
 
-	existingUser, err := s.userRepo.GetByEmail(ctx, normalizedEmail)
+	otherUser, lookupErr := s.userRepo.GetByEmail(ctx, addr)
 	switch {
-	case err == nil && existingUser != nil && existingUser.ID != userID:
+	case lookupErr == nil && otherUser != nil && otherUser.ID != userID:
 		return ErrEmailExists
-	case err != nil && !errors.Is(err, ErrUserNotFound):
+	case lookupErr != nil && !errors.Is(lookupErr, ErrUserNotFound):
 		return ErrServiceUnavailable
 	}
 
-	siteName := "Sub2API"
+	brandName := "Sub2API"
 	if s.settingService != nil {
-		siteName = s.settingService.GetSiteName(ctx)
+		brandName = s.settingService.GetSiteName(ctx)
 	}
-	return s.emailService.SendVerifyCode(ctx, normalizedEmail, siteName, firstEmailLocaleV2(locale))
+	return s.emailService.SendVerifyCode(ctx, addr, brandName, firstEmailLocaleV2(locale))
 }
 
 func normalizeEmailForIdentityBinding(email string) (string, error) {
-	normalized := strings.ToLower(strings.TrimSpace(email))
-	if normalized == "" || len(normalized) > 255 {
+	trimmed := strings.ToLower(strings.TrimSpace(email))
+	if trimmed == "" || len(trimmed) > 255 {
 		return "", infraerrors.BadRequest("INVALID_EMAIL", "invalid email")
 	}
-	if _, err := mail.ParseAddress(normalized); err != nil {
+	if _, parseErr := mail.ParseAddress(trimmed); parseErr != nil {
 		return "", infraerrors.BadRequest("INVALID_EMAIL", "invalid email")
 	}
-	return normalized, nil
+	return trimmed, nil
 }
 
 func hasBindableEmailIdentitySubject(email string) bool {
-	normalized := strings.ToLower(strings.TrimSpace(email))
-	return normalized != "" && !isReservedEmail(normalized)
+	trimmed := strings.ToLower(strings.TrimSpace(email))
+	return trimmed != "" && !isReservedEmail(trimmed)
 }
 
 func (s *AuthService) updateBoundEmailIdentityTx(
@@ -154,21 +154,21 @@ func (s *AuthService) updateBoundEmailIdentityTx(
 	hashedPassword string,
 	applyFirstBindDefaults bool,
 ) error {
-	if tx := dbent.TxFromContext(ctx); tx != nil {
-		return s.updateBoundEmailIdentityWithClient(ctx, tx.Client(), currentUser, email, hashedPassword, applyFirstBindDefaults)
+	if activeTx := dbent.TxFromContext(ctx); activeTx != nil {
+		return s.updateBoundEmailIdentityWithClient(ctx, activeTx.Client(), currentUser, email, hashedPassword, applyFirstBindDefaults)
 	}
 
-	tx, err := s.entClient.Tx(ctx)
-	if err != nil {
+	newTx, txErr := s.entClient.Tx(ctx)
+	if txErr != nil {
 		return ErrServiceUnavailable
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = newTx.Rollback() }()
 
-	txCtx := dbent.NewTxContext(ctx, tx)
-	if err := s.updateBoundEmailIdentityWithClient(txCtx, tx.Client(), currentUser, email, hashedPassword, applyFirstBindDefaults); err != nil {
-		return err
+	txCtx := dbent.NewTxContext(ctx, newTx)
+	if opErr := s.updateBoundEmailIdentityWithClient(txCtx, newTx.Client(), currentUser, email, hashedPassword, applyFirstBindDefaults); opErr != nil {
+		return opErr
 	}
-	if err := tx.Commit(); err != nil {
+	if commitErr := newTx.Commit(); commitErr != nil {
 		return ErrServiceUnavailable
 	}
 	return nil
@@ -186,45 +186,45 @@ func (s *AuthService) updateBoundEmailIdentityWithClient(
 		return ErrServiceUnavailable
 	}
 
-	oldEmail := currentUser.Email
-	if _, err := client.User.UpdateOneID(currentUser.ID).
+	previousEmail := currentUser.Email
+	if _, saveErr := client.User.UpdateOneID(currentUser.ID).
 		SetEmail(email).
 		SetPasswordHash(hashedPassword).
-		Save(ctx); err != nil {
-		if dbent.IsConstraintError(err) {
+		Save(ctx); saveErr != nil {
+		if dbent.IsConstraintError(saveErr) {
 			return ErrEmailExists
 		}
 		return ErrServiceUnavailable
 	}
 
-	if err := replaceBoundEmailAuthIdentityWithClient(ctx, client, currentUser.ID, oldEmail, email, "auth_service_email_bind"); err != nil {
-		if errors.Is(err, ErrEmailExists) {
+	if replaceErr := replaceBoundEmailAuthIdentityWithClient(ctx, client, currentUser.ID, previousEmail, email, "auth_service_email_bind"); replaceErr != nil {
+		if errors.Is(replaceErr, ErrEmailExists) {
 			return ErrEmailExists
 		}
 		return ErrServiceUnavailable
 	}
 
 	if applyFirstBindDefaults {
-		if err := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, currentUser.ID, "email"); err != nil {
-			return fmt.Errorf("apply email first bind defaults: %w", err)
+		if bindErr := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, currentUser.ID, "email"); bindErr != nil {
+			return fmt.Errorf("unable to apply email first-bind defaults: %w", bindErr)
 		}
 	}
 
-	updatedUser, err := client.User.Get(ctx, currentUser.ID)
-	if err != nil {
+	refreshed, getErr := client.User.Get(ctx, currentUser.ID)
+	if getErr != nil {
 		return ErrServiceUnavailable
 	}
-	currentUser.Email = updatedUser.Email
-	currentUser.PasswordHash = updatedUser.PasswordHash
-	currentUser.Balance = updatedUser.Balance
-	currentUser.Concurrency = updatedUser.Concurrency
-	currentUser.UpdatedAt = updatedUser.UpdatedAt
+	currentUser.Email = refreshed.Email
+	currentUser.PasswordHash = refreshed.PasswordHash
+	currentUser.Balance = refreshed.Balance
+	currentUser.Concurrency = refreshed.Concurrency
+	currentUser.UpdatedAt = refreshed.UpdatedAt
 	return nil
 }
 
 func (s *AuthService) revokeEmailIdentitySessions(ctx context.Context, userID int64) {
-	if err := s.RevokeAllUserSessions(ctx, userID); err != nil {
-		logger.LegacyPrintf("service.auth", "[Auth] Failed to revoke refresh sessions after email identity bind for user %d: %v", userID, err)
+	if revokeErr := s.RevokeAllUserSessions(ctx, userID); revokeErr != nil {
+		logger.LegacyPrintf("service.auth", "[Auth] Failed to revoke refresh sessions after email identity bind for user %d: %v", userID, revokeErr)
 	}
 }
 
@@ -236,25 +236,25 @@ func replaceBoundEmailAuthIdentityWithClient(
 	newEmail string,
 	source string,
 ) error {
-	newSubject := normalizeBoundEmailAuthIdentitySubject(newEmail)
-	if err := ensureBoundEmailAuthIdentityWithClient(ctx, client, userID, newSubject, source); err != nil {
-		return err
+	newSubj := normalizeBoundEmailAuthIdentitySubject(newEmail)
+	if ensureErr := ensureBoundEmailAuthIdentityWithClient(ctx, client, userID, newSubj, source); ensureErr != nil {
+		return ensureErr
 	}
 
-	oldSubject := normalizeBoundEmailAuthIdentitySubject(oldEmail)
-	if oldSubject == "" || oldSubject == newSubject {
+	oldSubj := normalizeBoundEmailAuthIdentitySubject(oldEmail)
+	if oldSubj == "" || oldSubj == newSubj {
 		return nil
 	}
 
-	_, err := client.AuthIdentity.Delete().
+	_, delErr := client.AuthIdentity.Delete().
 		Where(
 			authidentity.UserIDEQ(userID),
 			authidentity.ProviderTypeEQ("email"),
 			authidentity.ProviderKeyEQ("email"),
-			authidentity.ProviderSubjectEQ(oldSubject),
+			authidentity.ProviderSubjectEQ(oldSubj),
 		).
 		Exec(ctx)
-	return err
+	return delErr
 }
 
 func ensureBoundEmailAuthIdentityWithClient(
@@ -272,7 +272,7 @@ func ensureBoundEmailAuthIdentityWithClient(
 		source = "auth_service_email_bind"
 	}
 
-	if err := client.AuthIdentity.Create().
+	if upsertErr := client.AuthIdentity.Create().
 		SetUserID(userID).
 		SetProviderType("email").
 		SetProviderKey("email").
@@ -285,35 +285,35 @@ func ensureBoundEmailAuthIdentityWithClient(
 			authidentity.FieldProviderSubject,
 		).
 		DoNothing().
-		Exec(ctx); err != nil {
-		if !isSQLNoRowsError(err) {
-			return err
+		Exec(ctx); upsertErr != nil {
+		if !isSQLNoRowsError(upsertErr) {
+			return upsertErr
 		}
 	}
 
-	identity, err := client.AuthIdentity.Query().
+	row, queryErr := client.AuthIdentity.Query().
 		Where(
 			authidentity.ProviderTypeEQ("email"),
 			authidentity.ProviderKeyEQ("email"),
 			authidentity.ProviderSubjectEQ(subject),
 		).
 		Only(ctx)
-	if err != nil {
-		if dbent.IsNotFound(err) {
+	if queryErr != nil {
+		if dbent.IsNotFound(queryErr) {
 			return nil
 		}
-		return err
+		return queryErr
 	}
-	if identity.UserID != userID {
+	if row.UserID != userID {
 		return ErrEmailExists
 	}
 	return nil
 }
 
 func normalizeBoundEmailAuthIdentitySubject(email string) string {
-	normalized := strings.ToLower(strings.TrimSpace(email))
-	if normalized == "" || isReservedEmail(normalized) {
+	trimmed := strings.ToLower(strings.TrimSpace(email))
+	if trimmed == "" || isReservedEmail(trimmed) {
 		return ""
 	}
-	return normalized
+	return trimmed
 }

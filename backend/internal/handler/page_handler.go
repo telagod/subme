@@ -25,132 +25,132 @@ type PageHandler struct {
 }
 
 func NewPageHandler(dataDir string, settingService *service.SettingService) *PageHandler {
-	pagesDir := filepath.Join(dataDir, "pages")
-	_ = os.MkdirAll(pagesDir, 0755)
-	return &PageHandler{pagesDir: pagesDir, settingService: settingService}
+	dir := filepath.Join(dataDir, "pages")
+	_ = os.MkdirAll(dir, 0755)
+	return &PageHandler{pagesDir: dir, settingService: settingService}
 }
 
 // GetPageContent serves raw markdown content for a given slug.
 // GET /api/v1/pages/:slug
 func (h *PageHandler) GetPageContent(c *gin.Context) {
-	slug := c.Param("slug")
-	if !validSlugPattern.MatchString(slug) || len(slug) > 64 {
-		response.BadRequest(c, "Invalid page slug")
+	pageSlug := c.Param("slug")
+	if !validSlugPattern.MatchString(pageSlug) || len(pageSlug) > 64 {
+		response.BadRequest(c, "Page slug is not valid")
 		return
 	}
 
-	// Visibility check: slug must be configured in custom_menu_items
-	// and the user must have permission based on visibility setting
-	if !h.checkSlugVisibility(c, slug) {
+	// Visibility gate: the slug must be present in custom_menu_items
+	// and the caller must have permission based on its visibility setting.
+	if !h.checkSlugVisibility(c, pageSlug) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "page not found"})
 		return
 	}
 
-	filePath := filepath.Join(h.pagesDir, slug+".md")
-	cleaned := filepath.Clean(filePath)
-	if !strings.HasPrefix(cleaned, filepath.Clean(h.pagesDir)) {
-		response.BadRequest(c, "Invalid page slug")
+	target := filepath.Join(h.pagesDir, pageSlug+".md")
+	sanitized := filepath.Clean(target)
+	if !strings.HasPrefix(sanitized, filepath.Clean(h.pagesDir)) {
+		response.BadRequest(c, "Page slug is not valid")
 		return
 	}
 
-	info, err := os.Stat(cleaned)
-	if err != nil || info.IsDir() {
+	stat, statErr := os.Stat(sanitized)
+	if statErr != nil || stat.IsDir() {
 		c.JSON(http.StatusNotFound, gin.H{"error": "page not found"})
 		return
 	}
-	if info.Size() > maxPageFileSize {
-		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "page too large"})
+	if stat.Size() > maxPageFileSize {
+		c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "page content exceeds size limit"})
 		return
 	}
 
-	content, err := os.ReadFile(cleaned)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read page"})
+	raw, readErr := os.ReadFile(sanitized)
+	if readErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not read page content"})
 		return
 	}
 
-	c.Data(http.StatusOK, "text/markdown; charset=utf-8", content)
+	c.Data(http.StatusOK, "text/markdown; charset=utf-8", raw)
 }
 
 // ListPages returns available page slugs.
 // GET /api/v1/pages
 func (h *PageHandler) ListPages(c *gin.Context) {
-	entries, err := os.ReadDir(h.pagesDir)
-	if err != nil {
+	dirEntries, readErr := os.ReadDir(h.pagesDir)
+	if readErr != nil {
 		response.Success(c, []string{})
 		return
 	}
 
-	slugs := make([]string, 0, len(entries))
-	for _, e := range entries {
-		if e.IsDir() {
+	collected := make([]string, 0, len(dirEntries))
+	for _, entry := range dirEntries {
+		if entry.IsDir() {
 			continue
 		}
-		name := e.Name()
-		if strings.HasSuffix(name, ".md") {
-			slugs = append(slugs, strings.TrimSuffix(name, ".md"))
+		fname := entry.Name()
+		if strings.HasSuffix(fname, ".md") {
+			collected = append(collected, strings.TrimSuffix(fname, ".md"))
 		}
 	}
-	response.Success(c, slugs)
+	response.Success(c, collected)
 }
 
 // ServePageImage serves images from data/pages/{slug}/ directory.
 // GET /api/v1/pages/:slug/images/*filename
 // No JWT required (browser img tags can't carry tokens), but visibility is checked.
 func (h *PageHandler) ServePageImage(c *gin.Context) {
-	slug := c.Param("slug")
-	filename := c.Param("filename")
-	filename = strings.TrimPrefix(filename, "/")
+	pageSlug := c.Param("slug")
+	imgFile := c.Param("filename")
+	imgFile = strings.TrimPrefix(imgFile, "/")
 
-	if !validSlugPattern.MatchString(slug) || len(slug) > 64 {
+	if !validSlugPattern.MatchString(pageSlug) || len(pageSlug) > 64 {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	if !h.checkImageSlugVisibility(c, slug) {
+	if !h.checkImageSlugVisibility(c, pageSlug) {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	imagesDir := filepath.Join(h.pagesDir, slug)
-	cleaned, ok := resolvePageImagePath(h.pagesDir, imagesDir, filename)
-	if !ok {
+	imgDir := filepath.Join(h.pagesDir, pageSlug)
+	resolved, safe := resolvePageImagePath(h.pagesDir, imgDir, imgFile)
+	if !safe {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	info, err := os.Stat(cleaned)
-	if err != nil || info.IsDir() {
+	stat, statErr := os.Stat(resolved)
+	if statErr != nil || stat.IsDir() {
 		c.Status(http.StatusNotFound)
 		return
 	}
 
-	c.File(cleaned)
+	c.File(resolved)
 }
 
-func resolvePageImagePath(pagesDir, imagesDir, filename string) (string, bool) {
-	relPath, ok := cleanPageImageRelativePath(filename)
-	if !ok {
+func resolvePageImagePath(pagesRoot, imgDir, filename string) (string, bool) {
+	relSegment, valid := cleanPageImageRelativePath(filename)
+	if !valid {
 		return "", false
 	}
 
-	cleanedPagesDir := filepath.Clean(pagesDir)
-	cleanedImagesDir := filepath.Clean(imagesDir)
-	cleanedTarget := filepath.Clean(filepath.Join(cleanedImagesDir, relPath))
-	if !isPathWithinBase(cleanedTarget, cleanedImagesDir) {
+	normalizedRoot := filepath.Clean(pagesRoot)
+	normalizedDir := filepath.Clean(imgDir)
+	normalizedTarget := filepath.Clean(filepath.Join(normalizedDir, relSegment))
+	if !isPathWithinBase(normalizedTarget, normalizedDir) {
 		return "", false
 	}
 
-	realPagesDir, err := filepath.EvalSymlinks(cleanedPagesDir)
-	if err != nil {
+	realRoot, symlinkErr := filepath.EvalSymlinks(normalizedRoot)
+	if symlinkErr != nil {
 		return "", false
 	}
-	realImagesDir, err := filepath.EvalSymlinks(cleanedImagesDir)
-	if err != nil || !isPathWithinBase(realImagesDir, realPagesDir) {
+	realDir, symlinkErr := filepath.EvalSymlinks(normalizedDir)
+	if symlinkErr != nil || !isPathWithinBase(realDir, realRoot) {
 		return "", false
 	}
-	realTarget, err := filepath.EvalSymlinks(cleanedTarget)
-	if err != nil || !isPathWithinBase(realTarget, realImagesDir) {
+	realTarget, symlinkErr := filepath.EvalSymlinks(normalizedTarget)
+	if symlinkErr != nil || !isPathWithinBase(realTarget, realDir) {
 		return "", false
 	}
 	return realTarget, true
@@ -163,71 +163,71 @@ func cleanPageImageRelativePath(filename string) (string, bool) {
 	if strings.HasPrefix(filename, "/") {
 		return "", false
 	}
-	decoded, err := url.PathUnescape(filename)
-	if err != nil {
+	unescaped, decodeErr := url.PathUnescape(filename)
+	if decodeErr != nil {
 		return "", false
 	}
-	if decoded == "" || strings.HasPrefix(decoded, "/") || strings.Contains(decoded, "\\") || strings.ContainsRune(decoded, 0) {
+	if unescaped == "" || strings.HasPrefix(unescaped, "/") || strings.Contains(unescaped, "\\") || strings.ContainsRune(unescaped, 0) {
 		return "", false
 	}
 
-	parts := make([]string, 0)
-	for _, part := range strings.Split(decoded, "/") {
-		switch part {
+	segments := make([]string, 0)
+	for _, seg := range strings.Split(unescaped, "/") {
+		switch seg {
 		case "", ".":
 			continue
 		case "..":
 			return "", false
 		default:
-			parts = append(parts, part)
+			segments = append(segments, seg)
 		}
 	}
-	if len(parts) == 0 {
+	if len(segments) == 0 {
 		return "", false
 	}
 
-	relPath := filepath.Join(parts...)
-	if filepath.IsAbs(relPath) || filepath.VolumeName(relPath) != "" {
+	joined := filepath.Join(segments...)
+	if filepath.IsAbs(joined) || filepath.VolumeName(joined) != "" {
 		return "", false
 	}
-	return relPath, true
+	return joined, true
 }
 
-func isPathWithinBase(path, base string) bool {
-	rel, err := filepath.Rel(filepath.Clean(base), filepath.Clean(path))
-	if err != nil {
+func isPathWithinBase(candidate, base string) bool {
+	relative, relErr := filepath.Rel(filepath.Clean(base), filepath.Clean(candidate))
+	if relErr != nil {
 		return false
 	}
-	return rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+	return relative != "." && relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator))
 }
 
 // findSlugVisibility looks up the slug in custom_menu_items and returns (visibility, found).
-func (h *PageHandler) findSlugVisibility(c *gin.Context, slug string) (string, bool) {
+func (h *PageHandler) findSlugVisibility(c *gin.Context, pageSlug string) (string, bool) {
 	if h.settingService == nil {
 		return "", false
 	}
 
-	raw := h.settingService.GetCustomMenuItemsRaw(c.Request.Context())
-	if raw == "" || raw == "[]" {
+	rawJSON := h.settingService.GetCustomMenuItemsRaw(c.Request.Context())
+	if rawJSON == "" || rawJSON == "[]" {
 		return "", false
 	}
 
-	var items []struct {
+	var menuEntries []struct {
 		URL        string `json:"url"`
 		PageSlug   string `json:"page_slug"`
 		Visibility string `json:"visibility"`
 	}
-	if err := json.Unmarshal([]byte(raw), &items); err != nil {
+	if unmarshalErr := json.Unmarshal([]byte(rawJSON), &menuEntries); unmarshalErr != nil {
 		return "", false
 	}
 
-	for _, item := range items {
-		itemSlug := item.PageSlug
-		if itemSlug == "" && strings.HasPrefix(item.URL, "md:") {
-			itemSlug = strings.TrimPrefix(item.URL, "md:")
+	for _, entry := range menuEntries {
+		entrySlug := entry.PageSlug
+		if entrySlug == "" && strings.HasPrefix(entry.URL, "md:") {
+			entrySlug = strings.TrimPrefix(entry.URL, "md:")
 		}
-		if itemSlug == slug {
-			return item.Visibility, true
+		if entrySlug == pageSlug {
+			return entry.Visibility, true
 		}
 	}
 	return "", false
@@ -235,49 +235,49 @@ func (h *PageHandler) findSlugVisibility(c *gin.Context, slug string) (string, b
 
 // checkSlugVisibility verifies the slug is configured in custom_menu_items
 // and the authenticated user has permission to view it.
-func (h *PageHandler) checkSlugVisibility(c *gin.Context, slug string) bool {
-	visibility, found := h.findSlugVisibility(c, slug)
-	if !found {
+func (h *PageHandler) checkSlugVisibility(c *gin.Context, pageSlug string) bool {
+	vis, exists := h.findSlugVisibility(c, pageSlug)
+	if !exists {
 		return false
 	}
-	if visibility == "admin" {
-		role, _ := middleware2.GetUserRoleFromContext(c)
-		return role == "admin"
+	if vis == "admin" {
+		userRole, _ := middleware2.GetUserRoleFromContext(c)
+		return userRole == "admin"
 	}
 	return true
 }
 
 // checkImageSlugVisibility checks visibility for image requests (no JWT available).
 // Only allows user-visible pages; admin-only pages are blocked.
-func (h *PageHandler) checkImageSlugVisibility(c *gin.Context, slug string) bool {
-	visibility, found := h.findSlugVisibility(c, slug)
-	if !found {
+func (h *PageHandler) checkImageSlugVisibility(c *gin.Context, pageSlug string) bool {
+	vis, exists := h.findSlugVisibility(c, pageSlug)
+	if !exists {
 		return false
 	}
-	return visibility != "admin"
+	return vis != "admin"
 }
 
 // RegisterPageRoutes registers page routes on a router group.
 func RegisterPageRoutes(v1 *gin.RouterGroup, dataDir string, jwtAuth gin.HandlerFunc, adminAuth gin.HandlerFunc, settingService *service.SettingService) {
-	h := NewPageHandler(dataDir, settingService)
+	hdlr := NewPageHandler(dataDir, settingService)
 
 	// Authenticated page content (JWT required + visibility check)
-	pages := v1.Group("/pages")
-	pages.Use(jwtAuth)
+	authedPages := v1.Group("/pages")
+	authedPages.Use(jwtAuth)
 	{
-		pages.GET("/:slug", h.GetPageContent)
+		authedPages.GET("/:slug", hdlr.GetPageContent)
 	}
 
 	// Images: no JWT (browser img tags can't carry tokens), visibility check in handler
-	pageImages := v1.Group("/pages")
+	publicImages := v1.Group("/pages")
 	{
-		pageImages.GET("/:slug/images/*filename", h.ServePageImage)
+		publicImages.GET("/:slug/images/*filename", hdlr.ServePageImage)
 	}
 
 	// Admin-only: list all available pages
-	adminPages := v1.Group("/pages")
-	adminPages.Use(adminAuth)
+	adminOnlyPages := v1.Group("/pages")
+	adminOnlyPages.Use(adminAuth)
 	{
-		adminPages.GET("", h.ListPages)
+		adminOnlyPages.GET("", hdlr.ListPages)
 	}
 }

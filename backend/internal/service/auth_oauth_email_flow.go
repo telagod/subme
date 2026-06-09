@@ -15,12 +15,10 @@ import (
 )
 
 func normalizeOAuthSignupSource(signupSource string) string {
-	signupSource = strings.TrimSpace(strings.ToLower(signupSource))
-	switch signupSource {
-	case "", "email":
-		return "email"
+	src := strings.ToLower(strings.TrimSpace(signupSource))
+	switch src {
 	case "linuxdo", "wechat", "oidc", "github", "google", "dingtalk":
-		return signupSource
+		return src
 	default:
 		return "email"
 	}
@@ -29,26 +27,26 @@ func normalizeOAuthSignupSource(signupSource string) string {
 // SendPendingOAuthVerifyCode sends a local verification code for pending OAuth
 // account-creation flows without relying on the public registration gate.
 func (s *AuthService) SendPendingOAuthVerifyCode(ctx context.Context, email string, locale ...string) (*SendVerifyCodeResult, error) {
-	email = strings.TrimSpace(strings.ToLower(email))
-	if email == "" {
+	addr := strings.ToLower(strings.TrimSpace(email))
+	if addr == "" {
 		return nil, ErrEmailVerifyRequired
 	}
-	if _, err := mail.ParseAddress(email); err != nil {
+	if _, parseErr := mail.ParseAddress(addr); parseErr != nil {
 		return nil, ErrEmailVerifyRequired
 	}
-	if isReservedEmail(email) {
+	if isReservedEmail(addr) {
 		return nil, ErrEmailReserved
 	}
 	if s == nil || s.emailService == nil {
 		return nil, ErrServiceUnavailable
 	}
 
-	siteName := "Sub2API"
+	displayName := "Sub2API"
 	if s.settingService != nil {
-		siteName = s.settingService.GetSiteName(ctx)
+		displayName = s.settingService.GetSiteName(ctx)
 	}
-	if err := s.emailService.SendVerifyCode(ctx, email, siteName, firstEmailLocaleV2(locale)); err != nil {
-		return nil, err
+	if sendErr := s.emailService.SendVerifyCode(ctx, addr, displayName, firstEmailLocaleV2(locale)); sendErr != nil {
+		return nil, sendErr
 	}
 	return &SendVerifyCodeResult{
 		Countdown: int(verifyCodeCooldown / time.Second),
@@ -63,38 +61,38 @@ func (s *AuthService) validateOAuthRegistrationInvitation(ctx context.Context, i
 		return nil, ErrServiceUnavailable
 	}
 
-	invitationCode = strings.TrimSpace(invitationCode)
-	if invitationCode == "" {
+	code := strings.TrimSpace(invitationCode)
+	if code == "" {
 		return nil, ErrInvitationCodeRequired
 	}
 
-	redeemCode, err := s.loadOAuthRegistrationInvitation(ctx, invitationCode)
-	if err != nil {
+	loaded, loadErr := s.loadOAuthRegistrationInvitation(ctx, code)
+	if loadErr != nil {
 		return nil, ErrInvitationCodeInvalid
 	}
-	if redeemCode.Type != RedeemTypeInvitation || !redeemCode.CanUse() {
+	if loaded.Type != RedeemTypeInvitation || !loaded.CanUse() {
 		return nil, ErrInvitationCodeInvalid
 	}
-	return redeemCode, nil
+	return loaded, nil
 }
 
 // VerifyOAuthEmailCode verifies the locally entered email verification code for
 // third-party signup and binding flows. This is intentionally independent from
 // the global registration email verification toggle.
 func (s *AuthService) VerifyOAuthEmailCode(ctx context.Context, email, verifyCode string) error {
-	email = strings.TrimSpace(strings.ToLower(email))
-	verifyCode = strings.TrimSpace(verifyCode)
+	addr := strings.ToLower(strings.TrimSpace(email))
+	trimmedCode := strings.TrimSpace(verifyCode)
 
-	if email == "" {
+	if addr == "" {
 		return ErrEmailVerifyRequired
 	}
-	if verifyCode == "" {
+	if trimmedCode == "" {
 		return ErrEmailVerifyRequired
 	}
 	if s == nil || s.emailService == nil {
 		return ErrServiceUnavailable
 	}
-	return s.emailService.VerifyCode(ctx, email, verifyCode)
+	return s.emailService.VerifyCode(ctx, addr, trimmedCode)
 }
 
 // RegisterOAuthEmailAccount creates a local account from a third-party first
@@ -114,65 +112,65 @@ func (s *AuthService) RegisterOAuthEmailAccount(
 		return nil, nil, ErrRegDisabled
 	}
 
-	email = strings.TrimSpace(strings.ToLower(email))
-	if isReservedEmail(email) {
+	addr := strings.ToLower(strings.TrimSpace(email))
+	if isReservedEmail(addr) {
 		return nil, nil, ErrEmailReserved
 	}
-	if err := s.validateRegistrationEmailPolicy(ctx, email); err != nil {
-		slog.Error("oauth email register: policy rejected", "email", email, "error", err.Error())
-		return nil, nil, err
+	if policyErr := s.validateRegistrationEmailPolicy(ctx, addr); policyErr != nil {
+		slog.Error("oauth email registration blocked by policy", "email", addr, "error", policyErr.Error())
+		return nil, nil, policyErr
 	}
-	if err := s.VerifyOAuthEmailCode(ctx, email, verifyCode); err != nil {
-		slog.Error("oauth email register: verify code failed", "email", email, "error", err.Error())
-		return nil, nil, err
-	}
-
-	if _, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode); err != nil {
-		slog.Error("oauth email register: invitation failed", "email", email, "error", err.Error())
-		return nil, nil, err
+	if codeErr := s.VerifyOAuthEmailCode(ctx, addr, verifyCode); codeErr != nil {
+		slog.Error("oauth email registration code verification failed", "email", addr, "error", codeErr.Error())
+		return nil, nil, codeErr
 	}
 
-	existsEmail, err := s.userRepo.ExistsByEmail(ctx, email)
-	if err != nil {
-		slog.Error("oauth email register: ExistsByEmail failed", "email", email, "error", err.Error())
+	if _, invErr := s.validateOAuthRegistrationInvitation(ctx, invitationCode); invErr != nil {
+		slog.Error("oauth email registration invitation validation failed", "email", addr, "error", invErr.Error())
+		return nil, nil, invErr
+	}
+
+	emailTaken, checkErr := s.userRepo.ExistsByEmail(ctx, addr)
+	if checkErr != nil {
+		slog.Error("oauth email registration existence check failed", "email", addr, "error", checkErr.Error())
 		return nil, nil, ErrServiceUnavailable
 	}
-	if existsEmail {
+	if emailTaken {
 		return nil, nil, ErrEmailExists
 	}
 
-	hashedPassword, err := s.HashPassword(password)
-	if err != nil {
-		return nil, nil, fmt.Errorf("hash password: %w", err)
+	pwHash, hashErr := s.HashPassword(password)
+	if hashErr != nil {
+		return nil, nil, fmt.Errorf("unable to hash password: %w", hashErr)
 	}
 
-	signupSource = normalizeOAuthSignupSource(signupSource)
-	grantPlan := s.resolveSignupGrantPlan(ctx, signupSource)
+	src := normalizeOAuthSignupSource(signupSource)
+	grant := s.resolveSignupGrantPlan(ctx, src)
 
-	user := &User{
-		Email:        email,
-		PasswordHash: hashedPassword,
+	newUser := &User{
+		Email:        addr,
+		PasswordHash: pwHash,
 		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
+		Balance:      grant.Balance,
+		Concurrency:  grant.Concurrency,
 		Status:       StatusActive,
-		SignupSource: signupSource,
+		SignupSource: src,
 	}
 
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		if errors.Is(err, ErrEmailExists) {
+	if createErr := s.userRepo.Create(ctx, newUser); createErr != nil {
+		if errors.Is(createErr, ErrEmailExists) {
 			return nil, nil, ErrEmailExists
 		}
-		slog.Error("oauth email register: userRepo.Create failed", "email", email, "signup_source", signupSource, "error", err.Error())
+		slog.Error("oauth email registration user creation failed", "email", addr, "signup_source", src, "error", createErr.Error())
 		return nil, nil, ErrServiceUnavailable
 	}
 
-	tokenPair, err := s.GenerateTokenPair(ctx, user, "")
-	if err != nil {
-		_ = s.RollbackOAuthEmailAccountCreation(ctx, user.ID, "")
-		return nil, nil, fmt.Errorf("generate token pair: %w", err)
+	tokens, tokenErr := s.GenerateTokenPair(ctx, newUser, "")
+	if tokenErr != nil {
+		_ = s.RollbackOAuthEmailAccountCreation(ctx, newUser.ID, "")
+		return nil, nil, fmt.Errorf("unable to generate token pair: %w", tokenErr)
 	}
-	return tokenPair, user, nil
+	return tokens, newUser, nil
 }
 
 // RegisterVerifiedOAuthEmailAccount creates a local account from an OAuth
@@ -191,69 +189,69 @@ func (s *AuthService) RegisterVerifiedOAuthEmailAccount(
 		return nil, nil, ErrRegDisabled
 	}
 
-	email = strings.TrimSpace(strings.ToLower(email))
-	if email == "" || len(email) > 255 {
+	addr := strings.ToLower(strings.TrimSpace(email))
+	if addr == "" || len(addr) > 255 {
 		return nil, nil, ErrEmailVerifyRequired
 	}
-	if _, err := mail.ParseAddress(email); err != nil {
+	if _, parseErr := mail.ParseAddress(addr); parseErr != nil {
 		return nil, nil, ErrEmailVerifyRequired
 	}
-	if isReservedEmail(email) {
+	if isReservedEmail(addr) {
 		return nil, nil, ErrEmailReserved
 	}
-	if err := s.validateRegistrationEmailPolicy(ctx, email); err != nil {
-		return nil, nil, err
+	if policyErr := s.validateRegistrationEmailPolicy(ctx, addr); policyErr != nil {
+		return nil, nil, policyErr
 	}
 	if strings.TrimSpace(password) == "" {
 		return nil, nil, infraerrors.BadRequest("PASSWORD_REQUIRED", "password is required")
 	}
-	if _, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode); err != nil {
-		return nil, nil, err
+	if _, invErr := s.validateOAuthRegistrationInvitation(ctx, invitationCode); invErr != nil {
+		return nil, nil, invErr
 	}
 
-	existsEmail, err := s.userRepo.ExistsByEmail(ctx, email)
-	if err != nil {
+	emailTaken, checkErr := s.userRepo.ExistsByEmail(ctx, addr)
+	if checkErr != nil {
 		return nil, nil, ErrServiceUnavailable
 	}
-	if existsEmail {
+	if emailTaken {
 		return nil, nil, ErrEmailExists
 	}
 
-	hashedPassword, err := s.HashPassword(password)
-	if err != nil {
-		return nil, nil, fmt.Errorf("hash password: %w", err)
+	pwHash, hashErr := s.HashPassword(password)
+	if hashErr != nil {
+		return nil, nil, fmt.Errorf("unable to hash password: %w", hashErr)
 	}
 
-	signupSource = normalizeOAuthSignupSource(signupSource)
-	grantPlan := s.resolveSignupGrantPlan(ctx, signupSource)
-	var defaultRPMLimit int
+	src := normalizeOAuthSignupSource(signupSource)
+	grant := s.resolveSignupGrantPlan(ctx, src)
+	rpmCap := 0
 	if s.settingService != nil {
-		defaultRPMLimit = s.settingService.GetDefaultUserRPMLimit(ctx)
+		rpmCap = s.settingService.GetDefaultUserRPMLimit(ctx)
 	}
-	user := &User{
-		Email:        email,
-		PasswordHash: hashedPassword,
+	newUser := &User{
+		Email:        addr,
+		PasswordHash: pwHash,
 		Role:         RoleUser,
-		Balance:      grantPlan.Balance,
-		Concurrency:  grantPlan.Concurrency,
-		RPMLimit:     defaultRPMLimit,
+		Balance:      grant.Balance,
+		Concurrency:  grant.Concurrency,
+		RPMLimit:     rpmCap,
 		Status:       StatusActive,
-		SignupSource: signupSource,
+		SignupSource: src,
 	}
 
-	if err := s.userRepo.Create(ctx, user); err != nil {
-		if errors.Is(err, ErrEmailExists) {
+	if createErr := s.userRepo.Create(ctx, newUser); createErr != nil {
+		if errors.Is(createErr, ErrEmailExists) {
 			return nil, nil, ErrEmailExists
 		}
 		return nil, nil, ErrServiceUnavailable
 	}
 
-	tokenPair, err := s.GenerateTokenPair(ctx, user, "")
-	if err != nil {
-		_ = s.RollbackOAuthEmailAccountCreation(ctx, user.ID, "")
-		return nil, nil, fmt.Errorf("generate token pair: %w", err)
+	tokens, tokenErr := s.GenerateTokenPair(ctx, newUser, "")
+	if tokenErr != nil {
+		_ = s.RollbackOAuthEmailAccountCreation(ctx, newUser.ID, "")
+		return nil, nil, fmt.Errorf("unable to generate token pair: %w", tokenErr)
 	}
-	return tokenPair, user, nil
+	return tokens, newUser, nil
 }
 
 // FinalizeOAuthEmailAccount applies invitation usage and normal signup bootstrap
@@ -269,22 +267,22 @@ func (s *AuthService) FinalizeOAuthEmailAccount(
 		return ErrServiceUnavailable
 	}
 
-	signupSource = normalizeOAuthSignupSource(signupSource)
-	invitationRedeemCode, err := s.validateOAuthRegistrationInvitation(ctx, invitationCode)
-	if err != nil {
-		return err
+	src := normalizeOAuthSignupSource(signupSource)
+	invRedeemCode, invErr := s.validateOAuthRegistrationInvitation(ctx, invitationCode)
+	if invErr != nil {
+		return invErr
 	}
-	if invitationRedeemCode != nil {
-		if err := s.useOAuthRegistrationInvitation(ctx, invitationRedeemCode.ID, user.ID); err != nil {
+	if invRedeemCode != nil {
+		if useErr := s.useOAuthRegistrationInvitation(ctx, invRedeemCode.ID, user.ID); useErr != nil {
 			return ErrInvitationCodeInvalid
 		}
 	}
 
-	s.updateOAuthSignupSource(ctx, user.ID, signupSource)
-	grantPlan := s.resolveSignupGrantPlan(ctx, signupSource)
-	s.assignSubscriptions(ctx, user.ID, grantPlan.Subscriptions, "auto assigned by signup defaults")
-	// snapshot user × platform quota（fail-open）
-	_ = s.snapshotPlatformQuotaDefaults(ctx, user.ID, &grantPlan)
+	s.updateOAuthSignupSource(ctx, user.ID, src)
+	grant := s.resolveSignupGrantPlan(ctx, src)
+	s.assignSubscriptions(ctx, user.ID, grant.Subscriptions, "auto assigned by signup defaults")
+	// snapshot user x platform quota (fail-open)
+	_ = s.snapshotPlatformQuotaDefaults(ctx, user.ID, &grant)
 	s.bindOAuthAffiliate(ctx, user.ID, affiliateCode)
 	return nil
 }
@@ -295,11 +293,11 @@ func (s *AuthService) RollbackOAuthEmailAccountCreation(ctx context.Context, use
 	if s == nil || s.userRepo == nil || userID <= 0 {
 		return ErrServiceUnavailable
 	}
-	if err := s.restoreOAuthRegistrationInvitation(ctx, invitationCode, userID); err != nil {
-		return err
+	if restoreErr := s.restoreOAuthRegistrationInvitation(ctx, invitationCode, userID); restoreErr != nil {
+		return restoreErr
 	}
-	if err := s.userRepo.Delete(ctx, userID); err != nil {
-		return fmt.Errorf("delete created oauth user: %w", err)
+	if delErr := s.userRepo.Delete(ctx, userID); delErr != nil {
+		return fmt.Errorf("failed to remove partially-created oauth user: %w", delErr)
 	}
 	return nil
 }
@@ -312,27 +310,27 @@ func (s *AuthService) restoreOAuthRegistrationInvitation(ctx context.Context, in
 		return ErrServiceUnavailable
 	}
 
-	invitationCode = strings.TrimSpace(invitationCode)
-	if invitationCode == "" || userID <= 0 {
+	code := strings.TrimSpace(invitationCode)
+	if code == "" || userID <= 0 {
 		return nil
 	}
 
-	redeemCode, err := s.loadOAuthRegistrationInvitation(ctx, invitationCode)
-	if err != nil {
-		if errors.Is(err, ErrRedeemCodeNotFound) {
+	loaded, loadErr := s.loadOAuthRegistrationInvitation(ctx, code)
+	if loadErr != nil {
+		if errors.Is(loadErr, ErrRedeemCodeNotFound) {
 			return nil
 		}
-		return fmt.Errorf("load invitation code: %w", err)
+		return fmt.Errorf("failed to load invitation code for restoration: %w", loadErr)
 	}
-	if redeemCode.Type != RedeemTypeInvitation || redeemCode.Status != StatusUsed || redeemCode.UsedBy == nil || *redeemCode.UsedBy != userID {
+	if loaded.Type != RedeemTypeInvitation || loaded.Status != StatusUsed || loaded.UsedBy == nil || *loaded.UsedBy != userID {
 		return nil
 	}
 
-	redeemCode.Status = StatusUnused
-	redeemCode.UsedBy = nil
-	redeemCode.UsedAt = nil
-	if err := s.updateOAuthRegistrationInvitation(ctx, redeemCode); err != nil {
-		return fmt.Errorf("restore invitation code: %w", err)
+	loaded.Status = StatusUnused
+	loaded.UsedBy = nil
+	loaded.UsedAt = nil
+	if updateErr := s.updateOAuthRegistrationInvitation(ctx, loaded); updateErr != nil {
+		return fmt.Errorf("failed to restore invitation code: %w", updateErr)
 	}
 	return nil
 }
@@ -341,55 +339,56 @@ func (s *AuthService) oauthEmailFlowClient(ctx context.Context) *dbent.Client {
 	if s == nil || s.entClient == nil {
 		return nil
 	}
-	if tx := dbent.TxFromContext(ctx); tx != nil {
-		return tx.Client()
+	if activeTx := dbent.TxFromContext(ctx); activeTx != nil {
+		return activeTx.Client()
 	}
 	return s.entClient
 }
 
 func (s *AuthService) loadOAuthRegistrationInvitation(ctx context.Context, invitationCode string) (*RedeemCode, error) {
-	if client := s.oauthEmailFlowClient(ctx); client != nil {
-		entity, err := client.RedeemCode.Query().Where(redeemcode.CodeEQ(invitationCode)).Only(ctx)
-		if err != nil {
-			if dbent.IsNotFound(err) {
+	if dbClient := s.oauthEmailFlowClient(ctx); dbClient != nil {
+		row, queryErr := dbClient.RedeemCode.Query().Where(redeemcode.CodeEQ(invitationCode)).Only(ctx)
+		if queryErr != nil {
+			if dbent.IsNotFound(queryErr) {
 				return nil, ErrRedeemCodeNotFound
 			}
-			return nil, err
+			return nil, queryErr
 		}
 		return &RedeemCode{
-			ID:           entity.ID,
-			Code:         entity.Code,
-			Type:         entity.Type,
-			Value:        entity.Value,
-			Status:       entity.Status,
-			UsedBy:       entity.UsedBy,
-			UsedAt:       entity.UsedAt,
-			Notes:        oauthEmailFlowStringValue(entity.Notes),
-			CreatedAt:    entity.CreatedAt,
-			ExpiresAt:    entity.ExpiresAt,
-			GroupID:      entity.GroupID,
-			ValidityDays: entity.ValidityDays,
+			ID:           row.ID,
+			Code:         row.Code,
+			Type:         row.Type,
+			Value:        row.Value,
+			Status:       row.Status,
+			UsedBy:       row.UsedBy,
+			UsedAt:       row.UsedAt,
+			Notes:        oauthEmailFlowStringValue(row.Notes),
+			CreatedAt:    row.CreatedAt,
+			ExpiresAt:    row.ExpiresAt,
+			GroupID:      row.GroupID,
+			ValidityDays: row.ValidityDays,
 		}, nil
 	}
 	return s.redeemRepo.GetByCode(ctx, invitationCode)
 }
 
 func (s *AuthService) useOAuthRegistrationInvitation(ctx context.Context, invitationID, userID int64) error {
-	if client := s.oauthEmailFlowClient(ctx); client != nil {
-		affected, err := client.RedeemCode.Update().
+	if dbClient := s.oauthEmailFlowClient(ctx); dbClient != nil {
+		now := time.Now().UTC()
+		rowsAffected, updateErr := dbClient.RedeemCode.Update().
 			Where(
 				redeemcode.IDEQ(invitationID),
 				redeemcode.StatusEQ(StatusUnused),
-				redeemcode.Or(redeemcode.ExpiresAtIsNil(), redeemcode.ExpiresAtGT(time.Now().UTC())),
+				redeemcode.Or(redeemcode.ExpiresAtIsNil(), redeemcode.ExpiresAtGT(now)),
 			).
 			SetStatus(StatusUsed).
 			SetUsedBy(userID).
-			SetUsedAt(time.Now().UTC()).
+			SetUsedAt(now).
 			Save(ctx)
-		if err != nil {
-			return err
+		if updateErr != nil {
+			return updateErr
 		}
-		if affected == 0 {
+		if rowsAffected == 0 {
 			return ErrRedeemCodeUsed
 		}
 		return nil
@@ -401,8 +400,8 @@ func (s *AuthService) updateOAuthRegistrationInvitation(ctx context.Context, cod
 	if code == nil {
 		return nil
 	}
-	if client := s.oauthEmailFlowClient(ctx); client != nil {
-		update := client.RedeemCode.UpdateOneID(code.ID).
+	if dbClient := s.oauthEmailFlowClient(ctx); dbClient != nil {
+		mut := dbClient.RedeemCode.UpdateOneID(code.ID).
 			SetCode(code.Code).
 			SetType(code.Type).
 			SetValue(code.Value).
@@ -410,44 +409,44 @@ func (s *AuthService) updateOAuthRegistrationInvitation(ctx context.Context, cod
 			SetNotes(code.Notes).
 			SetValidityDays(code.ValidityDays)
 		if code.ExpiresAt != nil {
-			update = update.SetExpiresAt(*code.ExpiresAt)
+			mut = mut.SetExpiresAt(*code.ExpiresAt)
 		} else {
-			update = update.ClearExpiresAt()
+			mut = mut.ClearExpiresAt()
 		}
 		if code.UsedBy != nil {
-			update = update.SetUsedBy(*code.UsedBy)
+			mut = mut.SetUsedBy(*code.UsedBy)
 		} else {
-			update = update.ClearUsedBy()
+			mut = mut.ClearUsedBy()
 		}
 		if code.UsedAt != nil {
-			update = update.SetUsedAt(*code.UsedAt)
+			mut = mut.SetUsedAt(*code.UsedAt)
 		} else {
-			update = update.ClearUsedAt()
+			mut = mut.ClearUsedAt()
 		}
 		if code.GroupID != nil {
-			update = update.SetGroupID(*code.GroupID)
+			mut = mut.SetGroupID(*code.GroupID)
 		} else {
-			update = update.ClearGroupID()
+			mut = mut.ClearGroupID()
 		}
-		_, err := update.Save(ctx)
-		return err
+		_, saveErr := mut.Save(ctx)
+		return saveErr
 	}
 	return s.redeemRepo.Update(ctx, code)
 }
 
 func (s *AuthService) updateOAuthSignupSource(ctx context.Context, userID int64, signupSource string) {
-	client := s.oauthEmailFlowClient(ctx)
-	if client == nil || userID <= 0 || strings.TrimSpace(signupSource) == "" {
+	dbClient := s.oauthEmailFlowClient(ctx)
+	if dbClient == nil || userID <= 0 || strings.TrimSpace(signupSource) == "" {
 		return
 	}
-	_ = client.User.UpdateOneID(userID).SetSignupSource(signupSource).Exec(ctx)
+	_ = dbClient.User.UpdateOneID(userID).SetSignupSource(signupSource).Exec(ctx)
 }
 
-func oauthEmailFlowStringValue(value *string) string {
-	if value == nil {
+func oauthEmailFlowStringValue(ptr *string) string {
+	if ptr == nil {
 		return ""
 	}
-	return *value
+	return *ptr
 }
 
 // ValidatePasswordCredentials checks the local password without completing the
@@ -458,29 +457,30 @@ func (s *AuthService) ValidatePasswordCredentials(ctx context.Context, email, pa
 		return nil, ErrServiceUnavailable
 	}
 
-	user, err := s.userRepo.GetByEmail(ctx, strings.TrimSpace(strings.ToLower(email)))
-	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+	addr := strings.ToLower(strings.TrimSpace(email))
+	found, lookupErr := s.userRepo.GetByEmail(ctx, addr)
+	if lookupErr != nil {
+		if errors.Is(lookupErr, ErrUserNotFound) {
 			return nil, ErrInvalidCredentials
 		}
 		return nil, ErrServiceUnavailable
 	}
-	if !user.IsActive() {
+	if !found.IsActive() {
 		return nil, ErrUserNotActive
 	}
-	if !s.CheckPassword(password, user.PasswordHash) {
+	if !s.CheckPassword(password, found.PasswordHash) {
 		return nil, ErrInvalidCredentials
 	}
-	return user, nil
+	return found, nil
 }
 
 // RecordSuccessfulLogin updates last-login activity after a non-standard login
 // flow finishes with a real session.
 func (s *AuthService) RecordSuccessfulLogin(ctx context.Context, userID int64) {
 	if s != nil && s.userRepo != nil && userID > 0 {
-		user, err := s.userRepo.GetByID(ctx, userID)
-		if err == nil && user != nil && !isReservedEmail(user.Email) {
-			s.backfillEmailIdentityOnSuccessfulLogin(ctx, user)
+		found, lookupErr := s.userRepo.GetByID(ctx, userID)
+		if lookupErr == nil && found != nil && !isReservedEmail(found.Email) {
+			s.backfillEmailIdentityOnSuccessfulLogin(ctx, found)
 		}
 	}
 	s.touchUserLogin(ctx, userID)

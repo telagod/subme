@@ -24,31 +24,34 @@ func (r *contentModerationRepository) CreateLog(ctx context.Context, log *servic
 	if log == nil {
 		return nil
 	}
-	categoryScores, err := json.Marshal(log.CategoryScores)
-	if err != nil {
-		return fmt.Errorf("marshal moderation category scores: %w", err)
+
+	scoresJSON, marshalErr := json.Marshal(log.CategoryScores)
+	if marshalErr != nil {
+		return fmt.Errorf("encoding category scores to JSON: %w", marshalErr)
 	}
-	thresholdSnapshot, err := json.Marshal(log.ThresholdSnapshot)
-	if err != nil {
-		return fmt.Errorf("marshal moderation thresholds: %w", err)
+	thresholdsJSON, marshalErr := json.Marshal(log.ThresholdSnapshot)
+	if marshalErr != nil {
+		return fmt.Errorf("encoding threshold snapshot to JSON: %w", marshalErr)
 	}
-	var userID any
+
+	var uid any
 	if log.UserID != nil {
-		userID = *log.UserID
+		uid = *log.UserID
 	}
-	var apiKeyID any
+	var kid any
 	if log.APIKeyID != nil {
-		apiKeyID = *log.APIKeyID
+		kid = *log.APIKeyID
 	}
-	var groupID any
+	var gid any
 	if log.GroupID != nil {
-		groupID = *log.GroupID
+		gid = *log.GroupID
 	}
-	var latency any
+	var latencyVal any
 	if log.UpstreamLatencyMS != nil {
-		latency = *log.UpstreamLatencyMS
+		latencyVal = *log.UpstreamLatencyMS
 	}
-	err = r.db.QueryRowContext(ctx, `
+
+	insertErr := r.db.QueryRowContext(ctx, `
 INSERT INTO content_moderation_logs (
     request_id, user_id, user_email, api_key_id, api_key_name, group_id, group_name,
     endpoint, provider, model, mode, action, flagged, highest_category, highest_score,
@@ -60,130 +63,137 @@ INSERT INTO content_moderation_logs (
     $16::jsonb, $17::jsonb, $18, $19, $20,
     $21, $22, $23, $24
 ) RETURNING id, created_at`,
-		log.RequestID, userID, log.UserEmail, apiKeyID, log.APIKeyName, groupID, log.GroupName,
+		log.RequestID, uid, log.UserEmail, kid, log.APIKeyName, gid, log.GroupName,
 		log.Endpoint, log.Provider, log.Model, log.Mode, log.Action, log.Flagged, log.HighestCategory, log.HighestScore,
-		string(categoryScores), string(thresholdSnapshot), log.InputExcerpt, latency, log.Error,
-		log.ViolationCount, log.AutoBanned, log.EmailSent, nullableIntPtr(log.QueueDelayMS),
+		string(scoresJSON), string(thresholdsJSON), log.InputExcerpt, latencyVal, log.Error,
+		log.ViolationCount, log.AutoBanned, log.EmailSent, coalesceIntPtr(log.QueueDelayMS),
 	).Scan(&log.ID, &log.CreatedAt)
-	if err != nil {
-		return fmt.Errorf("insert content moderation log: %w", err)
+	if insertErr != nil {
+		return fmt.Errorf("persisting content moderation log: %w", insertErr)
 	}
 	return nil
 }
 
 func (r *contentModerationRepository) ListLogs(ctx context.Context, filter service.ContentModerationLogFilter) ([]service.ContentModerationLog, *pagination.PaginationResult, error) {
-	where, args := buildContentModerationLogWhere(filter)
-	whereSQL := "WHERE " + strings.Join(where, " AND ")
+	clauses, filterArgs := composeLogFilterClauses(filter)
+	whereFragment := "WHERE " + strings.Join(clauses, " AND ")
 
-	var total int64
-	if err := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM content_moderation_logs l "+whereSQL, args...).Scan(&total); err != nil {
-		return nil, nil, fmt.Errorf("count content moderation logs: %w", err)
+	var rowCount int64
+	if countErr := r.db.QueryRowContext(ctx, "SELECT COUNT(*) FROM content_moderation_logs l "+whereFragment, filterArgs...).Scan(&rowCount); countErr != nil {
+		return nil, nil, fmt.Errorf("counting content moderation logs: %w", countErr)
 	}
 
-	params := filter.Pagination
-	if params.Page <= 0 {
-		params.Page = 1
+	pg := filter.Pagination
+	if pg.Page <= 0 {
+		pg.Page = 1
 	}
-	if params.PageSize <= 0 {
-		params.PageSize = 20
+	if pg.PageSize <= 0 {
+		pg.PageSize = 20
 	}
-	if params.PageSize > 100 {
-		params.PageSize = 100
+	if pg.PageSize > 100 {
+		pg.PageSize = 100
 	}
-	queryArgs := append([]any{}, args...)
-	queryArgs = append(queryArgs, params.Limit(), params.Offset())
-	rows, err := r.db.QueryContext(ctx, `
+
+	selectArgs := append([]any{}, filterArgs...)
+	selectArgs = append(selectArgs, pg.Limit(), pg.Offset())
+
+	rows, queryErr := r.db.QueryContext(ctx, `
 SELECT
     l.id, l.request_id, l.user_id, l.user_email, l.api_key_id, l.api_key_name, l.group_id, l.group_name,
     l.endpoint, l.provider, l.model, l.mode, l.action, l.flagged, l.highest_category, l.highest_score,
     l.category_scores, l.threshold_snapshot, l.input_excerpt, l.upstream_latency_ms, l.error,
     l.violation_count, l.auto_banned, l.email_sent, COALESCE(u.status, ''), l.queue_delay_ms, l.created_at
 FROM content_moderation_logs l
-LEFT JOIN users u ON u.id = l.user_id `+whereSQL+`
+LEFT JOIN users u ON u.id = l.user_id `+whereFragment+`
 ORDER BY l.created_at DESC, l.id DESC
-LIMIT $`+fmt.Sprint(len(queryArgs)-1)+` OFFSET $`+fmt.Sprint(len(queryArgs)),
-		queryArgs...,
+LIMIT $`+fmt.Sprint(len(selectArgs)-1)+` OFFSET $`+fmt.Sprint(len(selectArgs)),
+		selectArgs...,
 	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("list content moderation logs: %w", err)
+	if queryErr != nil {
+		return nil, nil, fmt.Errorf("querying content moderation logs: %w", queryErr)
 	}
 	defer func() { _ = rows.Close() }()
 
-	items := make([]service.ContentModerationLog, 0)
+	entries := make([]service.ContentModerationLog, 0)
 	for rows.Next() {
-		var item service.ContentModerationLog
-		var userID, apiKeyID, groupID, latency, queueDelay sql.NullInt64
-		var scoresRaw, thresholdsRaw []byte
-		if err := rows.Scan(
-			&item.ID,
-			&item.RequestID,
-			&userID,
-			&item.UserEmail,
-			&apiKeyID,
-			&item.APIKeyName,
-			&groupID,
-			&item.GroupName,
-			&item.Endpoint,
-			&item.Provider,
-			&item.Model,
-			&item.Mode,
-			&item.Action,
-			&item.Flagged,
-			&item.HighestCategory,
-			&item.HighestScore,
-			&scoresRaw,
-			&thresholdsRaw,
-			&item.InputExcerpt,
-			&latency,
-			&item.Error,
-			&item.ViolationCount,
-			&item.AutoBanned,
-			&item.EmailSent,
-			&item.UserStatus,
-			&queueDelay,
-			&item.CreatedAt,
-		); err != nil {
-			return nil, nil, fmt.Errorf("scan content moderation log: %w", err)
+		var entry service.ContentModerationLog
+		var nullUID, nullKeyID, nullGID, nullLatency, nullQueueDelay sql.NullInt64
+		var rawScores, rawThresholds []byte
+
+		if scanErr := rows.Scan(
+			&entry.ID,
+			&entry.RequestID,
+			&nullUID,
+			&entry.UserEmail,
+			&nullKeyID,
+			&entry.APIKeyName,
+			&nullGID,
+			&entry.GroupName,
+			&entry.Endpoint,
+			&entry.Provider,
+			&entry.Model,
+			&entry.Mode,
+			&entry.Action,
+			&entry.Flagged,
+			&entry.HighestCategory,
+			&entry.HighestScore,
+			&rawScores,
+			&rawThresholds,
+			&entry.InputExcerpt,
+			&nullLatency,
+			&entry.Error,
+			&entry.ViolationCount,
+			&entry.AutoBanned,
+			&entry.EmailSent,
+			&entry.UserStatus,
+			&nullQueueDelay,
+			&entry.CreatedAt,
+		); scanErr != nil {
+			return nil, nil, fmt.Errorf("scanning content moderation log row: %w", scanErr)
 		}
-		if userID.Valid {
-			v := userID.Int64
-			item.UserID = &v
+
+		if nullUID.Valid {
+			val := nullUID.Int64
+			entry.UserID = &val
 		}
-		if apiKeyID.Valid {
-			v := apiKeyID.Int64
-			item.APIKeyID = &v
+		if nullKeyID.Valid {
+			val := nullKeyID.Int64
+			entry.APIKeyID = &val
 		}
-		if groupID.Valid {
-			v := groupID.Int64
-			item.GroupID = &v
+		if nullGID.Valid {
+			val := nullGID.Int64
+			entry.GroupID = &val
 		}
-		if latency.Valid {
-			v := int(latency.Int64)
-			item.UpstreamLatencyMS = &v
+		if nullLatency.Valid {
+			val := int(nullLatency.Int64)
+			entry.UpstreamLatencyMS = &val
 		}
-		if queueDelay.Valid {
-			v := int(queueDelay.Int64)
-			item.QueueDelayMS = &v
+		if nullQueueDelay.Valid {
+			val := int(nullQueueDelay.Int64)
+			entry.QueueDelayMS = &val
 		}
-		item.CategoryScores = map[string]float64{}
-		_ = json.Unmarshal(scoresRaw, &item.CategoryScores)
-		item.ThresholdSnapshot = map[string]float64{}
-		_ = json.Unmarshal(thresholdsRaw, &item.ThresholdSnapshot)
-		items = append(items, item)
+
+		entry.CategoryScores = map[string]float64{}
+		_ = json.Unmarshal(rawScores, &entry.CategoryScores)
+		entry.ThresholdSnapshot = map[string]float64{}
+		_ = json.Unmarshal(rawThresholds, &entry.ThresholdSnapshot)
+
+		entries = append(entries, entry)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, nil, fmt.Errorf("iterate content moderation logs: %w", err)
+	if iterErr := rows.Err(); iterErr != nil {
+		return nil, nil, fmt.Errorf("iterating content moderation log rows: %w", iterErr)
 	}
-	return items, paginationResultFromTotal(total, params), nil
+
+	return entries, paginationResultFromTotal(rowCount, pg), nil
 }
 
 func (r *contentModerationRepository) CountFlaggedByUserSince(ctx context.Context, userID int64, since time.Time) (int, error) {
 	if userID <= 0 {
 		return 0, nil
 	}
-	var count int
-	err := r.db.QueryRowContext(ctx, `
-WITH last_auto_ban AS (
+	var total int
+	queryErr := r.db.QueryRowContext(ctx, `
+WITH most_recent_ban AS (
     SELECT MAX(created_at) AS at
     FROM content_moderation_logs
     WHERE user_id = $1 AND auto_banned = TRUE
@@ -194,82 +204,87 @@ WHERE user_id = $1
   AND flagged = TRUE
   AND action <> 'hash_block'
   AND created_at >= $2
-  AND created_at > COALESCE((SELECT at FROM last_auto_ban), '-infinity'::timestamptz)
-`, userID, since).Scan(&count)
-	if err != nil {
-		return 0, fmt.Errorf("count user content moderation flagged logs: %w", err)
+  AND created_at > COALESCE((SELECT at FROM most_recent_ban), '-infinity'::timestamptz)
+`, userID, since).Scan(&total)
+	if queryErr != nil {
+		return 0, fmt.Errorf("counting flagged moderation entries for user: %w", queryErr)
 	}
-	return count, nil
+	return total, nil
 }
 
 func (r *contentModerationRepository) CleanupExpiredLogs(ctx context.Context, hitBefore time.Time, nonHitBefore time.Time) (*service.ContentModerationCleanupResult, error) {
-	result := &service.ContentModerationCleanupResult{FinishedAt: time.Now()}
+	outcome := &service.ContentModerationCleanupResult{FinishedAt: time.Now()}
 	if r == nil || r.db == nil {
-		return result, nil
+		return outcome, nil
 	}
-	hitExec, err := r.db.ExecContext(ctx, `
+
+	flaggedResult, delErr := r.db.ExecContext(ctx, `
 DELETE FROM content_moderation_logs
 WHERE flagged = TRUE AND created_at < $1
 `, hitBefore)
-	if err != nil {
-		return nil, fmt.Errorf("delete expired hit content moderation logs: %w", err)
+	if delErr != nil {
+		return nil, fmt.Errorf("removing expired flagged moderation logs: %w", delErr)
 	}
-	result.DeletedHit, _ = hitExec.RowsAffected()
+	outcome.DeletedHit, _ = flaggedResult.RowsAffected()
 
-	nonHitExec, err := r.db.ExecContext(ctx, `
+	cleanResult, delErr := r.db.ExecContext(ctx, `
 DELETE FROM content_moderation_logs
 WHERE flagged = FALSE AND created_at < $1
 `, nonHitBefore)
-	if err != nil {
-		return nil, fmt.Errorf("delete expired non-hit content moderation logs: %w", err)
+	if delErr != nil {
+		return nil, fmt.Errorf("removing expired clean moderation logs: %w", delErr)
 	}
-	result.DeletedNonHit, _ = nonHitExec.RowsAffected()
+	outcome.DeletedNonHit, _ = cleanResult.RowsAffected()
 
-	result.FinishedAt = time.Now()
-	return result, nil
+	outcome.FinishedAt = time.Now()
+	return outcome, nil
 }
 
-func nullableIntPtr(value *int) any {
-	if value == nil {
+func coalesceIntPtr(ptr *int) any {
+	if ptr == nil {
 		return nil
 	}
-	return *value
+	return *ptr
 }
 
-func buildContentModerationLogWhere(filter service.ContentModerationLogFilter) ([]string, []any) {
-	where := []string{"l.id IS NOT NULL"}
-	args := make([]any, 0)
-	add := func(expr string, value any) {
-		args = append(args, value)
-		where = append(where, fmt.Sprintf(expr, len(args)))
+func composeLogFilterClauses(filter service.ContentModerationLogFilter) ([]string, []any) {
+	predicates := []string{"l.id IS NOT NULL"}
+	params := make([]any, 0)
+
+	appendParam := func(template string, val any) {
+		params = append(params, val)
+		predicates = append(predicates, fmt.Sprintf(template, len(params)))
 	}
+
 	switch strings.ToLower(strings.TrimSpace(filter.Result)) {
 	case "hit", "flagged":
-		where = append(where, "l.flagged = TRUE")
+		predicates = append(predicates, "l.flagged = TRUE")
 	case "blocked", "block":
-		where = append(where, "l.action IN ('block', 'keyword_block', 'hash_block')")
+		predicates = append(predicates, "l.action IN ('block', 'keyword_block', 'hash_block')")
 	case "pass", "allow":
-		where = append(where, "l.flagged = FALSE AND l.error = ''")
+		predicates = append(predicates, "l.flagged = FALSE AND l.error = ''")
 	case "error":
-		where = append(where, "l.error <> ''")
+		predicates = append(predicates, "l.error <> ''")
 	}
+
 	if filter.GroupID != nil {
-		add("l.group_id = $%d", *filter.GroupID)
+		appendParam("l.group_id = $%d", *filter.GroupID)
 	}
-	if endpoint := strings.TrimSpace(filter.Endpoint); endpoint != "" {
-		add("l.endpoint = $%d", endpoint)
+	if ep := strings.TrimSpace(filter.Endpoint); ep != "" {
+		appendParam("l.endpoint = $%d", ep)
 	}
-	if search := strings.TrimSpace(filter.Search); search != "" {
-		like := "%" + search + "%"
-		args = append(args, like, like, like, like, like)
-		idx := len(args) - 4
-		where = append(where, fmt.Sprintf("(l.request_id ILIKE $%d OR l.user_email ILIKE $%d OR l.api_key_name ILIKE $%d OR l.model ILIKE $%d OR l.input_excerpt ILIKE $%d)", idx, idx+1, idx+2, idx+3, idx+4))
+	if keyword := strings.TrimSpace(filter.Search); keyword != "" {
+		pattern := "%" + keyword + "%"
+		params = append(params, pattern, pattern, pattern, pattern, pattern)
+		base := len(params) - 4
+		predicates = append(predicates, fmt.Sprintf("(l.request_id ILIKE $%d OR l.user_email ILIKE $%d OR l.api_key_name ILIKE $%d OR l.model ILIKE $%d OR l.input_excerpt ILIKE $%d)", base, base+1, base+2, base+3, base+4))
 	}
 	if filter.From != nil && !filter.From.IsZero() {
-		add("l.created_at >= $%d", *filter.From)
+		appendParam("l.created_at >= $%d", *filter.From)
 	}
 	if filter.To != nil && !filter.To.IsZero() {
-		add("l.created_at <= $%d", *filter.To)
+		appendParam("l.created_at <= $%d", *filter.To)
 	}
-	return where, args
+
+	return predicates, params
 }

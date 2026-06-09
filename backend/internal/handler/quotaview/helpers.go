@@ -9,30 +9,32 @@ import (
 	"github.com/telagod/subme/internal/service"
 )
 
-// LazyZeroQuotaForResponse 按 D14 规则把过期档位归零（不写 DB）。
-// includeWindowStart=true 时输出 *_window_start 字段（admin 视角调试用）
+// LazyZeroQuotaForResponse zeroes expired window usage for display (no DB write).
+// When includeWindowStart is true, *_window_start fields are added (admin debugging).
 func LazyZeroQuotaForResponse(r service.UserPlatformQuotaRecord, now time.Time, includeWindowStart bool) map[string]any {
-	daily := buildWindowSlice(r.DailyUsageUSD, r.DailyLimitUSD, r.DailyWindowStart, NeedsDailyReset(r.DailyWindowStart, now), nextDailyResetTime(now), includeWindowStart)
-	weekly := buildWindowSlice(r.WeeklyUsageUSD, r.WeeklyLimitUSD, r.WeeklyWindowStart, NeedsWeeklyReset(r.WeeklyWindowStart, now), nextWeeklyResetTime(now), includeWindowStart)
-	monthly := buildWindowSlice(r.MonthlyUsageUSD, r.MonthlyLimitUSD, r.MonthlyWindowStart, NeedsMonthlyReset(r.MonthlyWindowStart, now), NextMonthlyResetTimeFrom(r.MonthlyWindowStart, now), includeWindowStart)
-	out := map[string]any{
+	daySlice := computeWindowSlice(r.DailyUsageUSD, r.DailyLimitUSD, r.DailyWindowStart, NeedsDailyReset(r.DailyWindowStart, now), nextDailyResetTime(now), includeWindowStart)
+	weekSlice := computeWindowSlice(r.WeeklyUsageUSD, r.WeeklyLimitUSD, r.WeeklyWindowStart, NeedsWeeklyReset(r.WeeklyWindowStart, now), nextWeeklyResetTime(now), includeWindowStart)
+	monthSlice := computeWindowSlice(r.MonthlyUsageUSD, r.MonthlyLimitUSD, r.MonthlyWindowStart, NeedsMonthlyReset(r.MonthlyWindowStart, now), NextMonthlyResetTimeFrom(r.MonthlyWindowStart, now), includeWindowStart)
+
+	payload := map[string]any{
 		"platform":                 r.Platform,
-		"daily_usage_usd":          daily.usage,
-		"daily_limit_usd":          daily.limit,
-		"daily_window_resets_at":   daily.resetsAt,
-		"weekly_usage_usd":         weekly.usage,
-		"weekly_limit_usd":         weekly.limit,
-		"weekly_window_resets_at":  weekly.resetsAt,
-		"monthly_usage_usd":        monthly.usage,
-		"monthly_limit_usd":        monthly.limit,
-		"monthly_window_resets_at": monthly.resetsAt,
+		"daily_usage_usd":          daySlice.usage,
+		"daily_limit_usd":          daySlice.limit,
+		"daily_window_resets_at":   daySlice.resetsAt,
+		"weekly_usage_usd":         weekSlice.usage,
+		"weekly_limit_usd":         weekSlice.limit,
+		"weekly_window_resets_at":  weekSlice.resetsAt,
+		"monthly_usage_usd":        monthSlice.usage,
+		"monthly_limit_usd":        monthSlice.limit,
+		"monthly_window_resets_at": monthSlice.resetsAt,
 	}
+
 	if includeWindowStart {
-		out["daily_window_start"] = daily.windowStart
-		out["weekly_window_start"] = weekly.windowStart
-		out["monthly_window_start"] = monthly.windowStart
+		payload["daily_window_start"] = daySlice.windowStart
+		payload["weekly_window_start"] = weekSlice.windowStart
+		payload["monthly_window_start"] = monthSlice.windowStart
 	}
-	return out
+	return payload
 }
 
 type windowSlice struct {
@@ -42,24 +44,26 @@ type windowSlice struct {
 	windowStart *string
 }
 
-func buildWindowSlice(usage float64, limit *float64, start *time.Time, expired bool, nextReset time.Time, includeStart bool) windowSlice {
-	out := windowSlice{usage: usage, limit: limit}
-	if expired {
-		out.usage = 0
-		out.resetsAt = nil
+func computeWindowSlice(usage float64, limit *float64, start *time.Time, isExpired bool, nextReset time.Time, wantStart bool) windowSlice {
+	ws := windowSlice{usage: usage, limit: limit}
+
+	if isExpired {
+		ws.usage = 0
+		ws.resetsAt = nil
 	} else if start != nil {
-		s := nextReset.Format(time.RFC3339)
-		out.resetsAt = &s
+		formatted := nextReset.Format(time.RFC3339)
+		ws.resetsAt = &formatted
 	}
-	if includeStart && start != nil {
-		s := start.Format(time.RFC3339)
-		out.windowStart = &s
+
+	if wantStart && start != nil {
+		formatted := start.Format(time.RFC3339)
+		ws.windowStart = &formatted
 	}
-	return out
+	return ws
 }
 
-// NeedsDailyReset 判断日窗口是否已过期：start 早于「全局时区当天 0 点」即过期。
-// 时区跟随 timezone.Location()（全局服务器时区），与 billing / repo 写入的 window_start 同口径。
+// NeedsDailyReset reports whether the daily window has expired.
+// The window is expired when start is before today's midnight in the configured timezone.
 func NeedsDailyReset(start *time.Time, now time.Time) bool {
 	if start == nil {
 		return false
@@ -74,7 +78,7 @@ func NeedsWeeklyReset(start *time.Time, now time.Time) bool {
 	return start.Before(timezone.StartOfWeek(now))
 }
 
-// NeedsMonthlyReset 30 天滚动窗口语义（与订阅模式 NeedsMonthlyReset 一致）。
+// NeedsMonthlyReset uses a 30-day rolling window (matches subscription model).
 func NeedsMonthlyReset(start *time.Time, now time.Time) bool {
 	if start == nil {
 		return false
@@ -90,12 +94,12 @@ func nextWeeklyResetTime(now time.Time) time.Time {
 	return timezone.StartOfWeek(now).AddDate(0, 0, 7)
 }
 
-// NextMonthlyResetTimeFrom 计算 30 天滚动月度窗口的下次重置时间。
-// 语义：
-//   - start != nil → 返回 start + 30d（与 billing_cache_service.nextMonthlyResetFromV2 一致）
-//   - start == nil → 退化为 now + 30d（保留旧行为，避免 nil 崩溃）
+// NextMonthlyResetTimeFrom computes the next 30-day rolling window reset.
 //
-// 导出（首字母大写）以允许测试直接调用。
+//   - start != nil: returns start + 30 days (aligned with billing_cache_service)
+//   - start == nil:  falls back to now + 30 days to avoid nil panic
+//
+// Exported so tests can call it directly.
 func NextMonthlyResetTimeFrom(start *time.Time, now time.Time) time.Time {
 	if start == nil {
 		return now.Add(30 * 24 * time.Hour)
