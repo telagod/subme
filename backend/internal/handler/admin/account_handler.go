@@ -1176,6 +1176,55 @@ func (h *AccountHandler) BatchClearError(c *gin.Context) {
 	})
 }
 
+// BatchDelete handles batch deleting accounts
+// POST /api/v1/admin/accounts/batch-delete
+func (h *AccountHandler) BatchDelete(c *gin.Context) {
+	var req struct {
+		AccountIDs []int64 `json:"account_ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if len(req.AccountIDs) == 0 {
+		response.BadRequest(c, "account_ids is required")
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	const maxConcurrency = 10
+	g, gctx := errgroup.WithContext(ctx)
+	g.SetLimit(maxConcurrency)
+
+	var mu sync.Mutex
+	var successCount, failedCount int
+
+	for _, id := range req.AccountIDs {
+		accountID := id
+		g.Go(func() error {
+			if err := h.adminService.DeleteAccount(gctx, accountID); err != nil {
+				mu.Lock()
+				failedCount++
+				mu.Unlock()
+				return nil
+			}
+			mu.Lock()
+			successCount++
+			mu.Unlock()
+			return nil
+		})
+	}
+
+	_ = g.Wait()
+
+	response.Success(c, gin.H{
+		"total":   len(req.AccountIDs),
+		"success": successCount,
+		"failed":  failedCount,
+	})
+}
+
 // BatchRefresh handles batch refreshing account credentials
 // POST /api/v1/admin/accounts/batch-refresh
 func (h *AccountHandler) BatchRefresh(c *gin.Context) {

@@ -1199,17 +1199,19 @@ const handleBulkDeleteFiltered = async () => {
       return
     }
     if (!confirm(t('admin.accounts.bulkActions.deleteFilteredConfirm', { count: totalCount }))) return
-    const allPages = await adminAPI.accounts.list(1, totalCount, filters)
-    const ids = allPages.items.map((a: any) => a.id)
-    let success = 0
-    let failed = 0
-    for (const id of ids) {
-      try { await adminAPI.accounts.delete(id); success++ } catch { failed++ }
+    const allIds: number[] = []
+    const pageSize = 500
+    const totalPages = Math.ceil(totalCount / pageSize)
+    for (let page = 1; page <= totalPages; page++) {
+      const result = await adminAPI.accounts.list(page, pageSize, filters)
+      allIds.push(...result.items.map((a: any) => a.id))
     }
-    if (failed > 0) {
-      appStore.showError(t('admin.accounts.bulkActions.partialSuccess', { success, failed }))
+    if (allIds.length === 0) return
+    const result = await adminAPI.accounts.batchDelete(allIds)
+    if (result.failed > 0) {
+      appStore.showError(t('admin.accounts.bulkActions.partialSuccess', { success: result.success, failed: result.failed }))
     } else {
-      appStore.showSuccess(t('admin.accounts.bulkActions.deleteSuccess', { count: success }))
+      appStore.showSuccess(t('admin.accounts.bulkActions.deleteSuccess', { count: result.success }))
     }
     clearSelection()
     reload()

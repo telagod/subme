@@ -695,6 +695,15 @@ export async function batchRefresh(accountIds: number[]): Promise<BatchOperation
   return data
 }
 
+export async function batchDelete(accountIds: number[]): Promise<BatchOperationResult> {
+  const { data } = await apiClient.post<BatchOperationResult>('/admin/accounts/batch-delete', {
+    account_ids: accountIds
+  }, {
+    timeout: 120000
+  })
+  return data
+}
+
 /**
  * Set privacy for an Antigravity OAuth account
  * @param id - Account ID
@@ -745,6 +754,7 @@ export const accountsAPI = {
   getAntigravityDefaultModelMapping,
   batchClearError,
   batchRefresh,
+  batchDelete,
   setPrivacy,
   revertProxyFallback
 }

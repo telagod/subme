@@ -3429,7 +3429,8 @@ export default {
         deleteFiltered: '批量删除已筛选',
         deleteFilteredConfirm: '确定要删除当前筛选条件下的 {count} 个账号吗？此操作不可逆。',
         deleteSuccess: '已成功删除 {count} 个账号',
-        noMatchingAccounts: '当前筛选条件没有匹配的账号'
+        noMatchingAccounts: '当前筛选条件没有匹配的账号',
+        batchOps: '批量操作'
       },
       bulkEdit: {
         title: '批量编辑账号',

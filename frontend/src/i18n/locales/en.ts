@@ -3282,7 +3282,8 @@ export default {
         deleteFiltered: 'Delete Filtered',
         deleteFilteredConfirm: 'Are you sure you want to delete {count} account(s) matching the current filters? This cannot be undone.',
         deleteSuccess: 'Successfully deleted {count} account(s)',
-        noMatchingAccounts: 'No accounts match the current filters'
+        noMatchingAccounts: 'No accounts match the current filters',
+        batchOps: 'Batch Ops'
       },
       bulkEdit: {
         title: 'Bulk Edit Accounts',
