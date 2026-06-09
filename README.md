@@ -533,7 +533,7 @@ sub2api/
 
 ## License
 
-This project is a fork of [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) and is licensed under the [GNU Lesser General Public License v3.0](LICENSE) (or later).
+This project is a fork of [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) and is licensed under the [MIT License](LICENSE).
 
 See [NOTICE](NOTICE) for upstream attribution and modification summary.
 

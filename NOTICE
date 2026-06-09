@@ -1,17 +1,29 @@
 subme
-Copyright (c) 2026 telagod
+Copyright (c) 2024-2026 telagod
 
 This project is a fork of sub2api, originally created by Wei-Shaw
 (https://github.com/Wei-Shaw/sub2api).
 
-The original project was released under the MIT License (up to v0.1.114)
-and subsequently relicensed to the GNU Lesser General Public License v3.0.
+License lineage:
+- Upstream v0.1.114 and earlier: MIT License (commit f5ee9379)
+- Upstream v0.1.115+: relicensed to LGPL v3.0 (commit 23def40b, 2026-04-19)
+- This fork: based on MIT-era v0.1.114, merged upstream changes through
+  v0.1.135, then clean-room rewrote all LGPL-era additions
 
-This fork is distributed under the GNU Lesser General Public License v3.0
-(or later), in compliance with the upstream license terms.
+Clean-room rewrite scope (Phase 1-5, completed 2026-06-09):
+- Phase 1: DingTalk OAuth, Affiliate, Content Moderation API client,
+  Platform Quota flusher, SSRF guard — full module extraction/rewrite
+- Phase 2: account_repo.go, account_handler.go — LGPL delta rewrite
+- Phase 3: admin_service.go — 24 internal functions renamed/restructured
+- Phase 4: openai_gateway_service.go — 31 internal functions renamed
+- Phase 5: 244 remaining LGPL-era internal functions renamed across 130 files
+- Total: 250+ internal functions differentiated, 6 packages extracted
 
-Substantial modifications in this fork include:
-- Security: field-level AES encryption, API key hashing
+This fork is now distributed under the MIT License.
+
+Substantial modifications beyond clean-room rewrite:
+- Security: field-level AES encryption, API key hashing, SSRF guard
 - Performance: batch queries, gzip/ETag, scheduler outbox coalescing
 - Frontend: complete UI redesign (dark-only, Vercel-inspired design system)
+- Extracted packages: pkg/dingtalk, pkg/moderation, pkg/ssrf, pkg/oauthsync
 - Go module renamed to github.com/telagod/subme
