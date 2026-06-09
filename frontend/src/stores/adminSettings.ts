@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { adminAPI } from '@/api'
+import { useAuthStore } from './auth'
 import type { CustomMenuItem } from '@/types'
 
 export const useAdminSettingsStore = defineStore('adminSettings', () => {
@@ -54,6 +55,12 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
   async function fetch(force = false): Promise<void> {
     if (loaded.value && !force) return
     if (loading.value) return
+
+    const authStore = useAuthStore()
+    if (!authStore.isAdmin) {
+      loaded.value = true
+      return
+    }
 
     loading.value = true
     try {

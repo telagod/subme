@@ -1,12 +1,16 @@
 package routes
 
 import (
+	"time"
+
 	"github.com/telagod/subme/internal/handler"
 	"github.com/telagod/subme/internal/handler/admin"
+	appmiddleware "github.com/telagod/subme/internal/middleware"
 	"github.com/telagod/subme/internal/server/middleware"
 	"github.com/telagod/subme/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 // RegisterPaymentRoutes registers all payment-related routes:
@@ -19,7 +23,9 @@ func RegisterPaymentRoutes(
 	jwtAuth middleware.JWTAuthMiddleware,
 	adminAuth middleware.AdminAuthMiddleware,
 	settingService *service.SettingService,
+	redisClient *redis.Client,
 ) {
+	rateLimiter := appmiddleware.NewRateLimiter(redisClient)
 	// --- User-facing payment endpoints (authenticated) ---
 	authenticated := v1.Group("/payment")
 	authenticated.Use(gin.HandlerFunc(jwtAuth))
@@ -43,14 +49,25 @@ func RegisterPaymentRoutes(
 		}
 	}
 
-	// --- Public payment endpoints (no auth) ---
+	// --- Public payment endpoints (no auth, rate-limited) ---
 	// Signed resume-token recovery is the preferred public lookup path.
 	// The legacy anonymous out_trade_no verify endpoint remains available as a
 	// persisted-state compatibility path for staggered upgrades.
+	// Rate-limited to prevent order enumeration (out_trade_no brute-force).
 	public := v1.Group("/payment/public")
 	{
-		public.POST("/orders/verify", paymentHandler.VerifyOrderPublic)
-		public.POST("/orders/resolve", paymentHandler.ResolveOrderPublicByResumeToken)
+		public.POST("/orders/verify",
+			rateLimiter.LimitWithOptions("public-order-verify", 5, time.Minute, appmiddleware.RateLimitOptions{
+				FailureMode: appmiddleware.RateLimitFailClose,
+			}),
+			paymentHandler.VerifyOrderPublic,
+		)
+		public.POST("/orders/resolve",
+			rateLimiter.LimitWithOptions("public-order-resolve", 10, time.Minute, appmiddleware.RateLimitOptions{
+				FailureMode: appmiddleware.RateLimitFailClose,
+			}),
+			paymentHandler.ResolveOrderPublicByResumeToken,
+		)
 	}
 
 	// --- Webhook endpoints (no auth) ---
