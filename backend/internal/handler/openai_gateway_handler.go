@@ -40,6 +40,23 @@ type OpenAIGatewayHandler struct {
 	cfg                      *config.Config
 }
 
+type modelBodyReplacer func([]byte, string) []byte
+
+func newMappedBodyCache(original []byte, replace modelBodyReplacer) func(mapped bool, model string) []byte {
+	cache := make(map[string][]byte)
+	return func(mapped bool, model string) []byte {
+		if !mapped {
+			return original
+		}
+		if b, ok := cache[model]; ok {
+			return b
+		}
+		b := replace(original, model)
+		cache[model] = b
+		return b
+	}
+}
+
 func lookupOpenAIMessagesDispatchMappedModel(apiKey *service.APIKey, requestedModel string) string {
 	if apiKey == nil || apiKey.Group == nil {
 		return ""
@@ -242,6 +259,10 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 
 	// Resolve channel-level model mapping
 	channelMap, _ := h.gatewayService.ResolveChannelMappingAndRestrict(c.Request.Context(), apiKey.GroupID, requestedModel)
+	fwdBodyForResponses := rawBody
+	if channelMap.Mapped {
+		fwdBodyForResponses = h.gatewayService.ReplaceModelInBody(rawBody, channelMap.MappedModel)
+	}
 
 	// Pre-validate function_call_output context to avoid upstream 400s.
 	if !h.validateFunctionCallOutputRequest(c, rawBody, reqLog) {
@@ -354,11 +375,6 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 		// Forward the request
 		service.SetOpsLatencyMs(c, service.OpsRoutingLatencyMsKey, time.Since(routeStart).Milliseconds())
 		fwdStart := time.Now()
-		// Apply channel model mapping to the body
-		fwdBody := rawBody
-		if channelMap.Mapped {
-			fwdBody = h.gatewayService.ReplaceModelInBody(rawBody, channelMap.MappedModel)
-		}
 		writerSizeBefore := c.Writer.Size()
 		fwdResult, fwdErr := func() (*service.OpenAIForwardResult, error) {
 			defer func() {
@@ -366,7 +382,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 					acctRelease()
 				}
 			}()
-			return h.gatewayService.Forward(c.Request.Context(), c, acct, fwdBody)
+			return h.gatewayService.Forward(c.Request.Context(), c, acct, fwdBodyForResponses)
 		}()
 		fwdDuration := time.Since(fwdStart).Milliseconds()
 		upstreamMs, _ := getContextInt64(c, service.OpsUpstreamLatencyMsKey)
@@ -661,6 +677,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 
 	// Resolve channel-level model mapping
 	channelMapMsg, _ := h.gatewayService.ResolveChannelMappingAndRestrict(c.Request.Context(), apiKey.GroupID, requestedModel)
+	mappedBodyCache := newMappedBodyCache(rawBody, h.gatewayService.ReplaceModelInBody)
 
 	// Bind error passthrough service for service-layer reuse.
 	if h.errorPassthroughService != nil {
@@ -758,11 +775,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 		fwdStart := time.Now()
 
 		resolvedMapped := strings.TrimSpace(activeMappedModel)
-		// Apply channel model mapping to body
-		fwdBody := rawBody
-		if channelMapMsg.Mapped {
-			fwdBody = h.gatewayService.ReplaceModelInBody(rawBody, channelMapMsg.MappedModel)
-		}
+		fwdBody := mappedBodyCache(channelMapMsg.Mapped, channelMapMsg.MappedModel)
 		writerSizeBefore := c.Writer.Size()
 		fwdResult, fwdErr := func() (*service.OpenAIForwardResult, error) {
 			defer func() {
@@ -1848,9 +1861,9 @@ func (h *OpenAIGatewayHandler) ensureForwardErrorResponse(c *gin.Context, stream
 	if c == nil || c.Writer == nil {
 		return false
 	}
-	// When the Writer has already flushed data (e.g. a ping), HTTP 200 is
-	// locked. Force the streaming path so handleStreamingAwareError can
-	// emit a protocol-compliant terminal SSE event instead of a bare EOF.
+	if service.IsResponseCommitted(c) {
+		return false
+	}
 	if c.Writer.Written() {
 		streamStarted = true
 	}
