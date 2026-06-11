@@ -16,3 +16,4 @@
 | `6c886316` | 2026-06-12 | deferred | - | 与 2741e451#1 同族；error passthrough 路径的覆盖待行为比对确认 |
 | `bf28a009` | 2026-06-12 | deferred | - | beta token 清理已对齐（2741e451#4）；top-level 字段过滤部分待评估 |
 | `448936d9` | 2026-06-12 | skipped | - | 上游自身 CI/gofmt/errcheck 修复，与本仓库无关 |
+| `d251487d` | 2026-06-12 | ported | c47e8743 | CC→Responses 转换链路 prompt_cache_key 透传，独立实现 |
