@@ -462,6 +462,44 @@ func (r *userRepository) ListWithFilters(ctx context.Context, params pagination.
 		))
 	}
 
+	// 余额区间
+	if filters.BalanceMin != nil {
+		q = q.Where(dbuser.BalanceGTE(*filters.BalanceMin))
+	}
+	if filters.BalanceMax != nil {
+		q = q.Where(dbuser.BalanceLTE(*filters.BalanceMax))
+	}
+
+	// 注册时间区间
+	if filters.CreatedAfter != nil {
+		q = q.Where(dbuser.CreatedAtGTE(*filters.CreatedAfter))
+	}
+	if filters.CreatedBefore != nil {
+		q = q.Where(dbuser.CreatedAtLTE(*filters.CreatedBefore))
+	}
+
+	// 最后活跃时间区间
+	if filters.LastActiveAfter != nil {
+		q = q.Where(dbuser.LastActiveAtGTE(*filters.LastActiveAfter))
+	}
+	if filters.LastActiveBefore != nil {
+		q = q.Where(dbuser.LastActiveAtLTE(*filters.LastActiveBefore))
+	}
+
+	// 订阅状态筛选
+	switch filters.SubscriptionStatus {
+	case "active":
+		q = q.Where(dbuser.HasSubscriptionsWith(
+			usersubscription.StatusEQ(service.SubscriptionStatusActive),
+		))
+	case "expired":
+		q = q.Where(dbuser.HasSubscriptionsWith(
+			usersubscription.StatusEQ(service.SubscriptionStatusExpired),
+		))
+	case "none":
+		q = q.Where(dbuser.Not(dbuser.HasSubscriptions()))
+	}
+
 	// If attribute filters are specified, we need to filter by user IDs first
 	var allowedUserIDs []int64
 	if len(filters.Attributes) > 0 {

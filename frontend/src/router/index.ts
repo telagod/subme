@@ -467,11 +467,23 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin/subscriptions',
     name: 'AdminSubscriptions',
-    component: () => import('@/views/admin/SubscriptionsView.vue'),
+    component: () => import('@/views/admin/monetization/subscriptions/SubscriptionsQuenchView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
       title: 'Subscription Management',
+      titleKey: 'admin.subscriptions.title',
+      descriptionKey: 'admin.subscriptions.description'
+    }
+  },
+  {
+    path: '/admin/subscriptions/legacy',
+    name: 'AdminSubscriptionsLegacy',
+    component: () => import('@/views/admin/SubscriptionsView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Subscription Management (Legacy)',
       titleKey: 'admin.subscriptions.title',
       descriptionKey: 'admin.subscriptions.description'
     }

@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/telagod/subme/internal/handler/dto"
 	"github.com/telagod/subme/internal/pkg/pagination"
@@ -83,7 +84,23 @@ func (h *SubscriptionHandler) List(c *gin.Context) {
 	sortBy := c.DefaultQuery("sort_by", "created_at")
 	sortOrder := c.DefaultQuery("sort_order", "desc")
 
-	subscriptions, pagination, err := h.subscriptionService.List(c.Request.Context(), page, pageSize, userID, groupID, status, platform, sortBy, sortOrder)
+	// Parse extended filter options
+	var opts []service.ListSubscriptionOption
+	if v := c.Query("expires_after"); v != "" {
+		if t, err := parseFlexibleTime(v); err == nil {
+			opts = append(opts, service.WithExpiresAfter(t))
+		}
+	}
+	if v := c.Query("expires_before"); v != "" {
+		if t, err := parseFlexibleTime(v); err == nil {
+			opts = append(opts, service.WithExpiresBefore(t))
+		}
+	}
+	if v := c.Query("search"); v != "" {
+		opts = append(opts, service.WithSearch(v))
+	}
+
+	subscriptions, pagination, err := h.subscriptionService.List(c.Request.Context(), page, pageSize, userID, groupID, status, platform, sortBy, sortOrder, opts...)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -320,4 +337,13 @@ func getAdminIDFromContext(c *gin.Context) int64 {
 		return 0
 	}
 	return subject.UserID
+}
+
+// parseFlexibleTime parses RFC3339 or YYYY-MM-DD date strings.
+// YYYY-MM-DD is interpreted as UTC midnight.
+func parseFlexibleTime(v string) (time.Time, error) {
+	if t, err := time.Parse(time.RFC3339, v); err == nil {
+		return t, nil
+	}
+	return time.Parse("2006-01-02", v)
 }

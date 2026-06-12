@@ -5,28 +5,6 @@
       <div class="apv-toolbar">
         <input v-model="params.search" class="apv-search" :placeholder="t('admin.accountsQuench.searchPlaceholder')" @input="debouncedReload" />
 
-        <!-- QUENCH 风格下拉：平台 -->
-        <Select
-          v-model="params.platform"
-          :options="platformOpts"
-          class="apv-sel-q"
-          @change="debouncedReload"
-        />
-        <!-- QUENCH 风格下拉：状态 -->
-        <Select
-          v-model="params.status"
-          :options="statusOpts"
-          class="apv-sel-q"
-          @change="debouncedReload"
-        />
-        <!-- QUENCH 风格下拉：分组 -->
-        <Select
-          v-model="params.group"
-          :options="groupOpts"
-          class="apv-sel-q"
-          @change="debouncedReload"
-        />
-
         <button class="apv-icon-btn" :class="{ 'apv-spin': loading }" :title="t('admin.accountsQuench.refresh')" :aria-label="t('admin.accountsQuench.refresh')" @click="handleManualRefresh">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
         </button>
@@ -60,6 +38,16 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           {{ t('admin.accountsQuench.addAccountBtn') }}
         </button>
+      </div>
+
+      <!-- ── 高级筛选栏 ── -->
+      <div class="apv-filter-row">
+        <AdvancedFilter
+          :fields="filterFields"
+          v-model="filterValues"
+          @apply="onFilterApply"
+          @clear="onFilterClear"
+        />
       </div>
 
       <!-- ── 供给总览条（锻面卡）── -->
@@ -185,7 +173,8 @@ import AccountCardWall from './AccountCardWall.vue'
 import AccountPoolTablePanel from './AccountPoolTablePanel.vue'
 import AccountActionMenu from '@/components/admin/account/AccountActionMenu.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-import Select from '@/components/common/Select.vue'
+import { AdvancedFilter } from '@/components/datatable'
+import type { FilterFieldDef, AdvancedFilterValues } from '@/components/datatable'
 import { useAccountPoolActions } from './useAccountPoolActions'
 import type { Account, Proxy as AccountProxy, AdminGroup } from '@/types'
 
@@ -219,10 +208,87 @@ const tempUnschedAcc = ref<Account | null>(null), deletingAcc = ref<Account | nu
 
 const actionMenu = reactive<{ show: boolean; acc: Account | null; pos: any }>({ show: false, acc: null, pos: null })
 
+// ── 高级筛选状态 ──────────────────────────────────────────────────
+const filterValues = ref<AdvancedFilterValues>({})
+
+// ── 高级筛选字段定义（由 computed 驱动，groups 异步加载后自动更新 group 选项）──
+const filterFields = computed<FilterFieldDef[]>(() => [
+  {
+    key: 'platform',
+    label: t('admin.accountsQuench.filterPlatform'),
+    type: 'select',
+    options: [
+      { value: 'anthropic',   label: 'Anthropic' },
+      { value: 'openai',      label: 'OpenAI' },
+      { value: 'gemini',      label: 'Gemini' },
+      { value: 'antigravity', label: 'Antigravity' },
+    ],
+  },
+  {
+    key: 'type',
+    label: t('admin.accountsQuench.filterType'),
+    type: 'select',
+    options: [
+      { value: 'api_key',     label: t('admin.accountsQuench.typeApiKey') },
+      { value: 'oauth',       label: t('admin.accountsQuench.typeOAuth') },
+      { value: 'setup_token', label: t('admin.accountsQuench.typeSetupToken') },
+    ],
+  },
+  {
+    key: 'status',
+    label: t('admin.accountsQuench.filterStatus'),
+    type: 'select',
+    options: [
+      { value: 'active',       label: t('admin.accountsQuench.statusActive') },
+      { value: 'inactive',     label: t('admin.accountsQuench.statusInactive') },
+      { value: 'error',        label: t('admin.accountsQuench.statusError') },
+      { value: 'rate_limited', label: t('admin.accountsQuench.statusRateLimited') },
+    ],
+  },
+  {
+    key: 'group',
+    label: t('admin.accountsQuench.filterGroup'),
+    type: 'select',
+    options: [
+      { value: 'ungrouped', label: t('admin.accountsQuench.ungrouped') },
+      ...groups.value.map(g => ({ value: String(g.id), label: g.name })),
+    ],
+  },
+  {
+    key: 'privacy_mode',
+    label: t('admin.accountsQuench.filterPrivacyMode'),
+    type: 'boolean',
+  },
+])
+
+// ── 把 filterValues → params（提前映射，不丢字段）──────────────────
+function applyFiltersToParams(vals: AdvancedFilterValues) {
+  const p = params as any
+  p.platform     = typeof vals.platform     === 'string' ? vals.platform     : ''
+  p.type         = typeof vals.type         === 'string' ? vals.type         : ''
+  p.status       = typeof vals.status       === 'string' ? vals.status       : ''
+  p.group        = typeof vals.group        === 'string' ? vals.group        : ''
+  p.privacy_mode = typeof vals.privacy_mode === 'boolean'
+    ? (vals.privacy_mode ? '1' : '0')
+    : ''
+}
+
+function onFilterApply(vals: AdvancedFilterValues) {
+  filterValues.value = vals
+  applyFiltersToParams(vals)
+  reload()
+}
+
+function onFilterClear() {
+  filterValues.value = {}
+  applyFiltersToParams({})
+  reload()
+}
+
 // 表格加载器
 const { items: accounts, loading, params, pagination, load: baseLoad, reload: baseReload, debouncedReload, handlePageChange: basePageChange } = useTableLoader<Account, any>({
   fetchFn: adminAPI.accounts.list,
-  initialParams: { platform: '', type: '', status: '', group: '', search: '', sort_by: 'name', sort_order: 'asc' }
+  initialParams: { platform: '', type: '', status: '', group: '', privacy_mode: '', search: '', sort_by: 'name', sort_order: 'asc' }
 })
 
 const {
@@ -251,29 +317,6 @@ const summary = computed(() => {
   return { total: accounts.value.length, active, inactive, error, rate_limited }
 })
 
-// QUENCH Select 选项数组（由 computed 驱动，groups 为异步加载）
-const platformOpts = computed(() => [
-  { value: '', label: t('admin.accountsQuench.allPlatforms') },
-  { value: 'anthropic', label: 'Anthropic' },
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'gemini', label: 'Gemini' },
-  { value: 'antigravity', label: 'Antigravity' },
-])
-
-const statusOpts = computed(() => [
-  { value: '', label: t('admin.accountsQuench.allStatuses') },
-  { value: 'active', label: t('admin.accountsQuench.statusActive') },
-  { value: 'inactive', label: t('admin.accountsQuench.statusInactive') },
-  { value: 'error', label: t('admin.accountsQuench.statusError') },
-  { value: 'rate_limited', label: t('admin.accountsQuench.statusRateLimited') },
-])
-
-const groupOpts = computed(() => [
-  { value: '', label: t('admin.accountsQuench.allGroups') },
-  { value: 'ungrouped', label: t('admin.accountsQuench.ungrouped') },
-  ...groups.value.map(g => ({ value: String(g.id), label: g.name })),
-])
-
 const openEdit = (a: Account) => { editingAcc.value = a; showEdit.value = true }
 const handleAccountUpdated = (updated?: Account) => {
   showEdit.value = false; showReAuth.value = false; reAuthAcc.value = null
@@ -296,7 +339,7 @@ const openActionMenu = (a: Account, e: MouseEvent) => {
 const doExport = () => {
   const p = params as any
   handleExportData(
-    { platform: p.platform || undefined, type: p.type || undefined, status: p.status || undefined, group: p.group || undefined, search: p.search || undefined },
+    { platform: p.platform || undefined, type: p.type || undefined, status: p.status || undefined, group: p.group || undefined, privacy_mode: p.privacy_mode || undefined, search: p.search || undefined },
     sortBy.value, sortOrder.value
   )
   showExportDialog.value = false
@@ -323,11 +366,10 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 <style scoped>
 .apv-root  { display:flex; flex-direction:column; gap:12px; height:100%; padding:16px; }
 .apv-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.apv-filter-row { display:flex; align-items:flex-start; }
 .apv-search { flex:1; min-width:160px; max-width:240px; height:32px; padding:0 10px; font-size:13px; border-radius:8px; border:1px solid var(--line-0); background:var(--bg-1); color:var(--ink-0); outline:none; }
 .apv-search:focus { border-color:var(--azure); box-shadow:var(--glow-focus); }
 .apv-search:focus-visible { border-color:var(--azure); box-shadow:var(--glow-focus); }
-/* QUENCH Select 宽度约束（覆盖默认 w-full）*/
-.apv-sel-q { width:130px; flex-shrink:0; }
 .apv-icon-btn { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:1px solid var(--line-0); background:var(--bg-1); color:var(--ink-1); cursor:pointer; }
 .apv-icon-btn:hover { background:var(--bg-2); color:var(--ink-0); }
 .apv-icon-btn:focus-visible { outline:none; box-shadow:var(--glow-focus); }

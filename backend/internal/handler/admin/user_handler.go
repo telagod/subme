@@ -106,6 +106,13 @@ type BindUserAuthIdentityChannelRequest struct {
 //   - search: search in email, username
 //   - attr[{id}]: filter by custom attribute value, e.g. attr[1]=company
 //   - group_name: fuzzy filter by allowed group name
+//   - balance_min: minimum balance (float, inclusive)
+//   - balance_max: maximum balance (float, inclusive)
+//   - created_after: earliest created_at (RFC3339 or YYYY-MM-DD, inclusive)
+//   - created_before: latest created_at (RFC3339 or YYYY-MM-DD, inclusive)
+//   - last_active_after: earliest last_active_at (RFC3339 or YYYY-MM-DD, inclusive)
+//   - last_active_before: latest last_active_at (RFC3339 or YYYY-MM-DD, inclusive)
+//   - subscription_status: active | expired | none
 func (h *UserHandler) List(c *gin.Context) {
 	page, pageSize := response.ParsePagination(c)
 
@@ -117,12 +124,32 @@ func (h *UserHandler) List(c *gin.Context) {
 	}
 
 	filters := service.UserListFilters{
-		Status:     c.Query("status"),
-		Role:       c.Query("role"),
-		Search:     search,
-		GroupName:  strings.TrimSpace(c.Query("group_name")),
-		Attributes: parseAttributeFilters(c),
+		Status:             c.Query("status"),
+		Role:               c.Query("role"),
+		Search:             search,
+		GroupName:          strings.TrimSpace(c.Query("group_name")),
+		Attributes:         parseAttributeFilters(c),
+		SubscriptionStatus: strings.TrimSpace(c.Query("subscription_status")),
 	}
+
+	// 余额区间
+	if raw := strings.TrimSpace(c.Query("balance_min")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil {
+			filters.BalanceMin = &v
+		}
+	}
+	if raw := strings.TrimSpace(c.Query("balance_max")); raw != "" {
+		if v, err := strconv.ParseFloat(raw, 64); err == nil {
+			filters.BalanceMax = &v
+		}
+	}
+
+	// 日期区间解析（RFC3339 或 YYYY-MM-DD）
+	filters.CreatedAfter = parseAdminDateQuery(c.Query("created_after"))
+	filters.CreatedBefore = parseAdminDateQuery(c.Query("created_before"))
+	filters.LastActiveAfter = parseAdminDateQuery(c.Query("last_active_after"))
+	filters.LastActiveBefore = parseAdminDateQuery(c.Query("last_active_before"))
+
 	sortBy := c.DefaultQuery("sort_by", "created_at")
 	sortOrder := c.DefaultQuery("sort_order", "desc")
 	if raw, ok := c.GetQuery("include_subscriptions"); ok {
@@ -846,4 +873,24 @@ func (h *UserHandler) ResetUserPlatformQuotaWindow(c *gin.Context) {
 		out = append(out, quotaview.LazyZeroQuotaForResponse(records[i], now, true))
 	}
 	response.Success(c, map[string]any{"platform_quotas": out})
+}
+
+// parseAdminDateQuery 解析日期或日期时间字符串（支持 RFC3339 和 YYYY-MM-DD）。
+// 空字符串或解析失败均返回 nil（静默忽略无效值）。
+func parseAdminDateQuery(raw string) *time.Time {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	// 先尝试完整的 RFC3339
+	if t, err := time.Parse(time.RFC3339, raw); err == nil {
+		ut := t.UTC()
+		return &ut
+	}
+	// 回退到 YYYY-MM-DD，解析为 UTC 零点
+	if t, err := time.Parse("2006-01-02", raw); err == nil {
+		ut := t.UTC()
+		return &ut
+	}
+	return nil
 }

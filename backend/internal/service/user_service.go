@@ -77,6 +77,22 @@ type UserListFilters struct {
 	// IncludeDeleted 为 true 时绕过软删除过滤，返回含已删除（deleted_at 非空）的用户。
 	// 仅供 /admin/usage 的 SearchUsers 端点使用，其他列表调用方不要设置。
 	IncludeDeleted bool
+
+	// 余额区间筛选（可选，单位与 users.balance 列一致）
+	BalanceMin *float64
+	BalanceMax *float64
+
+	// 注册时间范围筛选（可选，对应 users.created_at）
+	CreatedAfter  *time.Time
+	CreatedBefore *time.Time
+
+	// 最后活跃时间范围筛选（可选，对应 users.last_active_at）
+	LastActiveAfter  *time.Time
+	LastActiveBefore *time.Time
+
+	// 订阅状态筛选：active（有效订阅）、expired（过期订阅）、none（无任何订阅）
+	// 空字符串表示不筛选。
+	SubscriptionStatus string
 }
 
 type UserRepository interface {

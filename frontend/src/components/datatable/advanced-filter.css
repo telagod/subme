@@ -1,0 +1,410 @@
+/* ── 淬钢 QUENCH · AdvancedFilter 样式 ── */
+
+.af-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
+  font-size: 12.5px;
+}
+
+/* ── chip 列表 ── */
+.af-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.af-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(92, 168, 255, 0.35);
+  background: var(--azure-dim, rgba(92, 168, 255, 0.10));
+  color: var(--ink-0, #E8EBF0);
+  font-size: 11.5px;
+  max-width: 260px;
+}
+
+.af-chip-label {
+  color: var(--ink-2, #757E8C);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.af-chip-sep {
+  color: var(--ink-2, #757E8C);
+  flex-shrink: 0;
+}
+
+.af-chip-val {
+  color: var(--azure-hi, #8CC4FF);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.af-chip-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 8.5px;
+  border-radius: 3px;
+  color: var(--ink-2, #757E8C);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 2px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.af-chip-del:hover {
+  color: var(--bad, #F25C69);
+  background: var(--bad-dim, rgba(242, 92, 105, 0.12));
+}
+
+.af-chip-del:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65);
+  border-radius: 3px;
+}
+
+/* ── 操作行 ── */
+.af-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── 添加按钮 ── */
+.af-add-wrap {
+  position: relative;
+}
+
+.af-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9px;
+  border: 1px dashed var(--line-1, #2F3540);
+  background: transparent;
+  color: var(--ink-1, #97A0AF);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.af-btn-add:hover {
+  border-color: var(--azure, #5CA8FF);
+  color: var(--azure, #5CA8FF);
+  background: var(--azure-dim, rgba(92, 168, 255, 0.06));
+}
+
+.af-btn-add:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus, 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 14px rgba(92, 168, 255, 0.2));
+  border-radius: 9px;
+}
+
+.af-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--azure, #5CA8FF);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  line-height: 1;
+}
+
+/* ── 清空全部 ── */
+.af-btn-clear {
+  padding: 5px 10px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2, #757E8C);
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s;
+}
+
+.af-btn-clear:hover { color: var(--bad, #F25C69); }
+
+.af-btn-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(242, 92, 105, 0.5);
+  border-radius: 9px;
+}
+
+/* ── 弹层 ── */
+.af-picker {
+  width: 300px;
+  background: var(--bg-1, #101216);
+  border: 1px solid var(--line-1, #2F3540);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.04) inset;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.af-picker-head {
+  padding: 10px 14px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2, #757E8C);
+  border-bottom: 1px solid var(--line-0, #20242C);
+}
+
+.af-picker-list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.af-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--ink-1, #97A0AF);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+}
+
+.af-picker-item:hover {
+  background: var(--bg-2, #171A20);
+  color: var(--ink-0, #E8EBF0);
+}
+
+.af-picker-item-on {
+  background: var(--azure-dim, rgba(92, 168, 255, 0.12));
+  color: var(--azure, #5CA8FF) !important;
+}
+
+.af-picker-item:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1.5px rgba(92, 168, 255, 0.55);
+}
+
+.af-picker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--azure, #5CA8FF);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(92, 168, 255, 0.5);
+}
+
+/* ── 控件区 ── */
+.af-ctrl-wrap {
+  border-top: 1px solid var(--line-0, #20242C);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.af-ctrl-head {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2, #757E8C);
+}
+
+.af-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-1, #2F3540);
+  background: var(--bg-2, #171A20);
+  color: var(--ink-0, #E8EBF0);
+  font-size: 12.5px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+}
+
+.af-input:focus {
+  outline: none;
+  border-color: rgba(92, 168, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(92, 168, 255, 0.15);
+}
+
+.af-input::placeholder { color: var(--ink-2, #757E8C); }
+
+.af-input-sm {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.af-input-date {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  color-scheme: dark;
+}
+
+.af-range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.af-range-dash {
+  color: var(--ink-2, #757E8C);
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.af-ctrl-opts,
+.af-bool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.af-opt {
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid var(--line-1, #2F3540);
+  background: transparent;
+  color: var(--ink-1, #97A0AF);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.af-opt:hover {
+  border-color: var(--azure, #5CA8FF);
+  color: var(--ink-0, #E8EBF0);
+}
+
+.af-opt-on {
+  background: var(--azure-dim, rgba(92, 168, 255, 0.12));
+  border-color: rgba(92, 168, 255, 0.45) !important;
+  color: var(--azure, #5CA8FF) !important;
+}
+
+.af-opt:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65);
+  border-radius: 7px;
+}
+
+.af-ctrl-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.af-btn-ghost {
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--ink-2, #757E8C);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.af-btn-ghost:hover { color: var(--bad, #F25C69); }
+
+/* 金属凸面应用按钮（不用实心 azure） */
+.af-btn-apply {
+  padding: 5px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line-1, #2F3540);
+  background: var(--metal-raised, linear-gradient(180deg, #272D37, #14171D));
+  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06));
+  color: var(--ink-0, #E8EBF0);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+.af-btn-apply:hover {
+  border-color: rgba(92, 168, 255, 0.45);
+  color: var(--azure, #5CA8FF);
+  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06)), 0 0 10px rgba(92, 168, 255, 0.12);
+}
+
+.af-btn-apply:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus, 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 14px rgba(92, 168, 255, 0.2));
+  border-radius: 8px;
+}
+
+/* ── Transitions ── */
+.af-pop-enter-active,
+.af-pop-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.af-pop-enter-from,
+.af-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+.af-ctrl-enter-active,
+.af-ctrl-leave-active {
+  transition: opacity 0.12s ease, max-height 0.15s ease;
+  overflow: hidden;
+  max-height: 400px;
+}
+
+.af-ctrl-enter-from,
+.af-ctrl-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+/* reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .af-btn-add, .af-btn-apply, .af-btn-ghost, .af-btn-clear,
+  .af-chip-del, .af-opt, .af-picker-item, .af-input { transition: none; }
+  .af-pop-enter-active, .af-pop-leave-active,
+  .af-ctrl-enter-active, .af-ctrl-leave-active { transition: none; }
+}

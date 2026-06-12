@@ -59,11 +59,19 @@ export async function list(
     status?: 'active' | 'disabled'
     role?: 'admin' | 'user'
     search?: string
-    group_name?: string         // fuzzy filter by allowed group name
+    group_name?: string              // fuzzy filter by allowed group name
     attributes?: Record<number, string>  // attributeId -> value
     include_subscriptions?: boolean
     sort_by?: string
     sort_order?: 'asc' | 'desc'
+    // 高级筛选参数（均为后端已有列，无需迁移）
+    balance_min?: number
+    balance_max?: number
+    created_after?: string           // YYYY-MM-DD
+    created_before?: string          // YYYY-MM-DD
+    last_active_after?: string       // YYYY-MM-DD
+    last_active_before?: string      // YYYY-MM-DD
+    subscription_status?: 'active' | 'expired' | 'none'
   },
   options?: {
     signal?: AbortSignal
@@ -79,7 +87,14 @@ export async function list(
     group_name: filters?.group_name,
     include_subscriptions: filters?.include_subscriptions,
     sort_by: filters?.sort_by,
-    sort_order: filters?.sort_order
+    sort_order: filters?.sort_order,
+    balance_min: filters?.balance_min,
+    balance_max: filters?.balance_max,
+    created_after: filters?.created_after,
+    created_before: filters?.created_before,
+    last_active_after: filters?.last_active_after,
+    last_active_before: filters?.last_active_before,
+    subscription_status: filters?.subscription_status,
   }
 
   // Add attribute filters as attr[id]=value

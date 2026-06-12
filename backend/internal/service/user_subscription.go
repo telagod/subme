@@ -2,6 +2,31 @@ package service
 
 import "time"
 
+// ListSubscriptionOptions holds optional filter parameters for subscription listing.
+type ListSubscriptionOptions struct {
+	ExpiresAfter  *time.Time // WHERE expires_at > ExpiresAfter
+	ExpiresBefore *time.Time // WHERE expires_at < ExpiresBefore
+	Search        string     // fuzzy match on user email OR group name (case-insensitive)
+}
+
+// ListSubscriptionOption is a functional option for ListSubscriptionOptions.
+type ListSubscriptionOption func(*ListSubscriptionOptions)
+
+// WithExpiresAfter filters subscriptions expiring after t.
+func WithExpiresAfter(t time.Time) ListSubscriptionOption {
+	return func(o *ListSubscriptionOptions) { o.ExpiresAfter = &t }
+}
+
+// WithExpiresBefore filters subscriptions expiring before t.
+func WithExpiresBefore(t time.Time) ListSubscriptionOption {
+	return func(o *ListSubscriptionOptions) { o.ExpiresBefore = &t }
+}
+
+// WithSearch performs case-insensitive substring match on user email or group name.
+func WithSearch(s string) ListSubscriptionOption {
+	return func(o *ListSubscriptionOptions) { o.Search = s }
+}
+
 type UserSubscription struct {
 	ID      int64
 	UserID  int64

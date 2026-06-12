@@ -30,9 +30,11 @@
       <div class="uq-rise" style="animation-delay:.14s">
         <UsersFilterBar
           v-model:search="searchInput"
-          v-model:role="filterRole"
-          v-model:status="filterStatus"
           v-model:density="density"
+          :fields="FILTER_FIELDS"
+          :advanced-filter="advancedFilterValues"
+          @update:advanced-filter="onAdvancedFilterApply"
+          @apply-filter="onAdvancedFilterApply"
           @commit-search="commitSearch"
           @clear="clearFilters"
         />
@@ -157,8 +159,8 @@
 import { ref, reactive, computed, watch, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
-import { DataTableV2, SavedViewTabs, BulkBar, useTableUrlState } from '@/components/datatable'
-import type { ColumnDef, SavedView } from '@/components/datatable'
+import { DataTableV2, SavedViewTabs, BulkBar, useTableUrlState, serializeFilters, deserializeFilters } from '@/components/datatable'
+import type { ColumnDef, SavedView, FilterFieldDef, AdvancedFilterValues, NumberRangeValue, DateRangeValue } from '@/components/datatable'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser } from '@/types'
 import { useAppStore } from '@/stores/app'
@@ -172,6 +174,74 @@ const UserBalanceModal = defineAsyncComponent(() => import('@/components/admin/u
 const { t } = useI18n()
 const appStore = useAppStore()
 const { state, reset } = useTableUrlState('u')
+
+// ─── 高级筛选字段定义 ──────────────────────────────────────────
+const FILTER_FIELDS = computed((): FilterFieldDef[] => [
+  {
+    key: 'role',
+    label: t('admin.usersQuench.filterFieldRole'),
+    type: 'select',
+    options: [
+      { value: 'admin', label: t('admin.usersQuench.roleAdmin') },
+      { value: 'user',  label: t('admin.usersQuench.roleUser') },
+    ],
+  },
+  {
+    key: 'status',
+    label: t('admin.usersQuench.filterFieldStatus'),
+    type: 'select',
+    options: [
+      { value: 'active',   label: t('admin.usersQuench.statusActive') },
+      { value: 'disabled', label: t('admin.usersQuench.statusDisabled') },
+    ],
+  },
+  {
+    key: 'group_name',
+    label: t('admin.usersQuench.filterFieldGroup'),
+    type: 'text',
+    placeholder: t('admin.usersQuench.filterFieldGroupPlaceholder'),
+  },
+  {
+    key: 'balance',
+    label: t('admin.usersQuench.filterFieldBalance'),
+    type: 'numberRange',
+    placeholder: t('admin.usersQuench.filterMin'),
+    placeholderMax: t('admin.usersQuench.filterMax'),
+  },
+  {
+    key: 'created_at',
+    label: t('admin.usersQuench.filterFieldCreatedAt'),
+    type: 'dateRange',
+  },
+  {
+    key: 'last_active',
+    label: t('admin.usersQuench.filterFieldLastActive'),
+    type: 'dateRange',
+  },
+  {
+    key: 'subscription_status',
+    label: t('admin.usersQuench.filterFieldSubStatus'),
+    type: 'select',
+    options: [
+      { value: 'active',  label: t('admin.usersQuench.subStatusActive') },
+      { value: 'expired', label: t('admin.usersQuench.subStatusExpired') },
+      { value: 'none',    label: t('admin.usersQuench.subStatusNone') },
+    ],
+  },
+])
+
+// ─── 高级筛选值（从 URL 反序列化初始值）──────────────────────────
+// AF 值存在 state.filters 的 af_ 命名空间中，通过 serializeFilters 写入
+function readAfFromState(): AdvancedFilterValues {
+  // state.filters 里以 af_ 开头的 key 转回 query 对象让 deserializeFilters 解析
+  const afQuery: Record<string, string> = {}
+  for (const [k, v] of Object.entries(state.filters)) {
+    if (k.startsWith('af_') && typeof v === 'string') afQuery[k] = v
+  }
+  return deserializeFilters(afQuery, FILTER_FIELDS.value)
+}
+
+const advancedFilterValues = ref<AdvancedFilterValues>(readAfFromState())
 
 // ─── 快速视图定义 ───────────────────────────────────────────────
 const QUICK_VIEWS = computed(() => [
@@ -199,10 +269,7 @@ const density = ref<'comfortable' | 'compact'>('comfortable')
 const selected = ref<AdminUser[]>([])
 const activeQuickView = ref('all')
 
-// 筛选状态（与 state.filters 双绑）
 const searchInput = ref(state.q)
-const filterRole = ref(state.filters.role as string ?? '')
-const filterStatus = ref(state.filters.status as string ?? '')
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 // 抽屉
@@ -233,6 +300,26 @@ function avatarColor(email: string) {
 }
 function fmtDate(iso: string) { return iso ? formatDateTime(iso) : '-' }
 
+/** 从 advancedFilterValues 提取后端 API 参数 */
+function extractApiFilters() {
+  const af = advancedFilterValues.value
+  const balVal = af.balance as NumberRangeValue | undefined
+  const createdVal = af.created_at as DateRangeValue | undefined
+  const activeVal = af.last_active as DateRangeValue | undefined
+  return {
+    role:                ((af.role as string) || undefined) as 'admin' | 'user' | undefined,
+    status:              ((af.status as string) || undefined) as 'active' | 'disabled' | undefined,
+    group_name:          (af.group_name as string) || undefined,
+    balance_min:         (balVal?.min !== '' && balVal?.min != null) ? Number(balVal.min) : undefined,
+    balance_max:         (balVal?.max !== '' && balVal?.max != null) ? Number(balVal.max) : undefined,
+    created_after:       createdVal?.after || undefined,
+    created_before:      createdVal?.before || undefined,
+    last_active_after:   activeVal?.after || undefined,
+    last_active_before:  activeVal?.before || undefined,
+    subscription_status: ((af.subscription_status as string) || undefined) as 'active' | 'expired' | 'none' | undefined,
+  }
+}
+
 // ─── 数据加载 ────────────────────────────────────────────────────
 async function loadUsers() {
   abortCtrl?.abort(); abortCtrl = new AbortController()
@@ -240,8 +327,7 @@ async function loadUsers() {
   loading.value = true
   try {
     const res = await adminAPI.users.list(state.page, state.pageSize, {
-      role: (state.filters.role as any) || undefined,
-      status: (state.filters.status as any) || undefined,
+      ...extractApiFilters(),
       search: state.q || undefined,
       sort_by: state.sort || 'created_at',
       sort_order: (state.order as any) || 'desc',
@@ -257,20 +343,67 @@ async function loadUsers() {
   }
 }
 
+/** 把 AF 值序列化写入 state.filters（af_ 前缀），触发 URL 持久化 */
+function syncAfToState(vals: AdvancedFilterValues) {
+  const serialized = serializeFilters(vals, FILTER_FIELDS.value)
+  // 清除旧 af_ 键
+  for (const k of Object.keys(state.filters)) {
+    if (k.startsWith('af_')) delete state.filters[k]
+  }
+  Object.assign(state.filters, serialized)
+  state.page = 1
+}
+
 // ─── 筛选 ────────────────────────────────────────────────────────
 function commitSearch() { state.q = searchInput.value; state.page = 1 }
-function clearFilters() { searchInput.value = ''; filterRole.value = ''; filterStatus.value = ''; state.q = ''; state.page = 1; activeQuickView.value = 'all' }
-function applyQuickView(qv: typeof QUICK_VIEWS.value[0]) {
-  activeQuickView.value = qv.id; filterRole.value = qv.filters.role ?? ''; filterStatus.value = qv.filters.status ?? ''; searchInput.value = ''; state.q = ''; state.page = 1
+
+function onAdvancedFilterApply(vals: AdvancedFilterValues) {
+  advancedFilterValues.value = vals
+  syncAfToState(vals)
+  activeQuickView.value = ''
 }
+
+function clearFilters() {
+  searchInput.value = ''
+  state.q = ''
+  state.page = 1
+  advancedFilterValues.value = {}
+  for (const k of Object.keys(state.filters)) {
+    if (k.startsWith('af_')) delete state.filters[k]
+  }
+  activeQuickView.value = 'all'
+}
+
+function applyQuickView(qv: typeof QUICK_VIEWS.value[0]) {
+  activeQuickView.value = qv.id
+  searchInput.value = ''
+  state.q = ''
+  state.page = 1
+  // 快速视图用 AF 覆盖（role/status）
+  const next: AdvancedFilterValues = {}
+  if (qv.filters.role) next.role = qv.filters.role
+  if (qv.filters.status) next.status = qv.filters.status
+  advancedFilterValues.value = next
+  syncAfToState(next)
+}
+
 function onApplyView(view: SavedView | null) {
-  if (!view) { reset(); searchInput.value = ''; filterRole.value = ''; filterStatus.value = ''; activeQuickView.value = 'all'; return }
+  if (!view) {
+    reset()
+    searchInput.value = ''
+    advancedFilterValues.value = {}
+    activeQuickView.value = 'all'
+    return
+  }
   if (view.state.q != null) { state.q = view.state.q; searchInput.value = view.state.q }
   if (view.state.sort) state.sort = view.state.sort
   if (view.state.order) state.order = view.state.order
   if (view.state.page) state.page = view.state.page
   if (view.state.pageSize) state.pageSize = view.state.pageSize
-  if (view.state.filters) { Object.assign(state.filters, view.state.filters); filterRole.value = (state.filters.role as string) ?? ''; filterStatus.value = (state.filters.status as string) ?? '' }
+  if (view.state.filters) {
+    Object.assign(state.filters, view.state.filters)
+    advancedFilterValues.value = readAfFromState()
+  }
   activeQuickView.value = ''
 }
 
@@ -309,9 +442,7 @@ async function doBulkDelete() {
   appStore.showSuccess(t('admin.usersQuench.bulkDeletedSuccess', { n: done })); selected.value = []; loadUsers()
 }
 
-// ─── 同步 filterRole/filterStatus → state.filters ────────────────
-watch(filterRole, v => { state.filters.role = v; state.page = 1 })
-watch(filterStatus, v => { state.filters.status = v; state.page = 1 })
+// ─── 搜索防抖 ─────────────────────────────────────────────────────
 watch(searchInput, () => { if (searchTimer) clearTimeout(searchTimer); searchTimer = setTimeout(commitSearch, 350) })
 
 // ─── state 变化 → loadUsers ──────────────────────────────────────

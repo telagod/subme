@@ -28,6 +28,9 @@ export async function list(
     user_id?: number
     group_id?: number
     platform?: string
+    expires_after?: string
+    expires_before?: string
+    search?: string
     sort_by?: string
     sort_order?: 'asc' | 'desc'
   },

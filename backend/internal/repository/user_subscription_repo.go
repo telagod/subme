@@ -6,6 +6,7 @@ import (
 
 	dbent "github.com/telagod/subme/ent"
 	"github.com/telagod/subme/ent/group"
+	"github.com/telagod/subme/ent/user"
 	"github.com/telagod/subme/ent/usersubscription"
 	"github.com/telagod/subme/internal/pkg/pagination"
 	"github.com/telagod/subme/internal/service"
@@ -191,7 +192,12 @@ func (r *userSubscriptionRepository) ListByGroupID(ctx context.Context, groupID 
 	return userSubscriptionEntitiesToService(subs), paginationResultFromTotal(int64(total), params), nil
 }
 
-func (r *userSubscriptionRepository) List(ctx context.Context, params pagination.PaginationParams, userID, groupID *int64, status, platform, sortBy, sortOrder string) ([]service.UserSubscription, *pagination.PaginationResult, error) {
+func (r *userSubscriptionRepository) List(ctx context.Context, params pagination.PaginationParams, userID, groupID *int64, status, platform, sortBy, sortOrder string, opts ...service.ListSubscriptionOption) ([]service.UserSubscription, *pagination.PaginationResult, error) {
+	o := service.ListSubscriptionOptions{}
+	for _, fn := range opts {
+		fn(&o)
+	}
+
 	client := clientFromContext(ctx, r.client)
 	q := client.UserSubscription.Query()
 	if userID != nil {
@@ -202,6 +208,18 @@ func (r *userSubscriptionRepository) List(ctx context.Context, params pagination
 	}
 	if platform != "" {
 		q = q.Where(usersubscription.HasGroupWith(group.PlatformEQ(platform)))
+	}
+	if o.ExpiresAfter != nil {
+		q = q.Where(usersubscription.ExpiresAtGT(*o.ExpiresAfter))
+	}
+	if o.ExpiresBefore != nil {
+		q = q.Where(usersubscription.ExpiresAtLT(*o.ExpiresBefore))
+	}
+	if o.Search != "" {
+		q = q.Where(usersubscription.Or(
+			usersubscription.HasUserWith(user.EmailContainsFold(o.Search)),
+			usersubscription.HasGroupWith(group.NameContainsFold(o.Search)),
+		))
 	}
 
 	// Status filtering with real-time expiration check
@@ -240,21 +258,23 @@ func (r *userSubscriptionRepository) List(ctx context.Context, params pagination
 	q = q.WithUser().WithGroup().WithAssignedByUser()
 
 	// Determine sort field
-	var field string
+	var sortField string
 	switch sortBy {
 	case "expires_at":
-		field = usersubscription.FieldExpiresAt
+		sortField = usersubscription.FieldExpiresAt
+	case "starts_at":
+		sortField = usersubscription.FieldStartsAt
 	case "status":
-		field = usersubscription.FieldStatus
+		sortField = usersubscription.FieldStatus
 	default:
-		field = usersubscription.FieldCreatedAt
+		sortField = usersubscription.FieldCreatedAt
 	}
 
 	// Determine sort order (default: desc)
 	if sortOrder == "asc" && sortBy != "" {
-		q = q.Order(dbent.Asc(field))
+		q = q.Order(dbent.Asc(sortField))
 	} else {
-		q = q.Order(dbent.Desc(field))
+		q = q.Order(dbent.Desc(sortField))
 	}
 
 	subs, err := q.
