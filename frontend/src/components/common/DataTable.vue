@@ -72,7 +72,7 @@
   <div
     v-else
     ref="tableWrapperRef"
-    class="table-wrapper"
+    class="overflow-x-auto"
     :class="{
       'actions-expanded': actionsExpanded,
       'is-scrollable': isScrollable
