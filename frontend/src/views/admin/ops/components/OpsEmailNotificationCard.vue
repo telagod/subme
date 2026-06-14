@@ -33,8 +33,8 @@ const reportRecipientInput = ref('')
 const alertRecipientError = ref('')
 const reportRecipientError = ref('')
 
-const severityOptions: Array<{ value: AlertSeverity | ''; label: string }> = [
-  { value: '', label: t('admin.ops.email.minSeverityAll') },
+const severityOptions: Array<{ value: AlertSeverity | 'all'; label: string }> = [
+  { value: 'all', label: t('admin.ops.email.minSeverityAll') },
   { value: 'critical', label: t('common.critical') },
   { value: 'warning', label: t('common.warning') },
   { value: 'info', label: t('common.info') }
@@ -272,7 +272,7 @@ onMounted(() => {
           </div>
           <div>
             <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.minSeverity') }}</Label>
-            <Select v-model="draft.alert.min_severity">
+            <Select :model-value="draft.alert.min_severity || 'all'" @update:model-value="(v: any) => { if (draft) draft.alert.min_severity = v === 'all' ? '' : v }">
               <SelectTrigger class="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>

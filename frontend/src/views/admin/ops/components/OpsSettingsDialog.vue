@@ -87,8 +87,8 @@ const alertRecipientInput = ref('')
 const reportRecipientInput = ref('')
 
 // 严重级别选项
-const severityOptions: Array<{ value: AlertSeverity | ''; label: string }> = [
-  { value: '', label: t('admin.ops.email.minSeverityAll') },
+const severityOptions: Array<{ value: AlertSeverity | 'all'; label: string }> = [
+  { value: 'all', label: t('admin.ops.email.minSeverityAll') },
   { value: 'critical', label: t('common.critical') },
   { value: 'warning', label: t('common.warning') },
   { value: 'info', label: t('common.info') }
@@ -281,7 +281,7 @@ async function saveAllSettings() {
           </div>
           <div v-if="emailConfig.alert.enabled">
             <Label class="mb-1 block text-xs font-medium text-muted-foreground">{{ t('admin.ops.settings.minSeverity') }}</Label>
-            <Select v-model="emailConfig.alert.min_severity">
+            <Select :model-value="emailConfig.alert.min_severity || 'all'" @update:model-value="(v: any) => { if (emailConfig) emailConfig.alert.min_severity = v === 'all' ? '' : v }">
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

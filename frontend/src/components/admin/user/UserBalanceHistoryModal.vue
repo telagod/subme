@@ -199,13 +199,13 @@ const currentPage = ref(1)
 const total = ref(0)
 const totalRecharged = ref(0)
 const pageSize = 15
-const typeFilter = ref('')
+const typeFilter = ref('all')
 
 const totalPages = computed(() => Math.ceil(total.value / pageSize) || 1)
 
 // Type filter options
 const typeOptions = computed(() => [
-  { value: '', label: t('admin.users.allTypes') },
+  { value: 'all', label: t('admin.users.allTypes') },
   { value: 'balance', label: t('admin.users.typeBalance') },
   { value: 'affiliate_balance', label: t('admin.users.typeAffiliateBalance') },
   { value: 'admin_balance', label: t('admin.users.typeAdminBalance') },
@@ -217,7 +217,7 @@ const typeOptions = computed(() => [
 // Watch modal open
 watch(() => props.show, (v) => {
   if (v && props.user) {
-    typeFilter.value = ''
+    typeFilter.value = 'all'
     loadHistory(1)
   }
 })
@@ -231,7 +231,7 @@ const loadHistory = async (page: number) => {
       props.user.id,
       page,
       pageSize,
-      typeFilter.value || undefined
+      (typeFilter.value && typeFilter.value !== 'all') ? typeFilter.value : undefined
     )
     history.value = res.items || []
     total.value = res.total || 0

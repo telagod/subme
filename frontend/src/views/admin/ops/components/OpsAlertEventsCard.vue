@@ -53,26 +53,26 @@ const timeRangeOptions = computed(() => [
   { value: '30d', label: t('admin.ops.timeRange.30d') }
 ])
 
-const severity = ref<string>('')
+const severity = ref<string>('all')
 const severityOptions = computed(() => [
-  { value: '', label: t('common.all') },
+  { value: 'all', label: t('common.all') },
   { value: 'P0', label: 'P0' },
   { value: 'P1', label: 'P1' },
   { value: 'P2', label: 'P2' },
   { value: 'P3', label: 'P3' }
 ])
 
-const status = ref<string>('')
+const status = ref<string>('all')
 const statusOptions = computed(() => [
-  { value: '', label: t('common.all') },
+  { value: 'all', label: t('common.all') },
   { value: 'firing', label: t('admin.ops.alertEvents.status.firing') },
   { value: 'resolved', label: t('admin.ops.alertEvents.status.resolved') },
   { value: 'manual_resolved', label: t('admin.ops.alertEvents.status.manualResolved') }
 ])
 
-const emailSent = ref<string>('')
+const emailSent = ref<string>('all')
 const emailSentOptions = computed(() => [
-  { value: '', label: t('common.all') },
+  { value: 'all', label: t('common.all') },
   { value: 'true', label: t('admin.ops.alertEvents.table.emailSent') },
   { value: 'false', label: t('admin.ops.alertEvents.table.emailIgnored') }
 ])
@@ -82,8 +82,8 @@ function buildQuery(overrides: Partial<AlertEventsQuery> = {}): AlertEventsQuery
     limit: PAGE_SIZE,
     time_range: timeRange.value
   }
-  if (severity.value) q.severity = severity.value
-  if (status.value) q.status = status.value
+  if (severity.value && severity.value !== 'all') q.severity = severity.value
+  if (status.value && status.value !== 'all') q.status = status.value
   if (emailSent.value === 'true') q.email_sent = true
   if (emailSent.value === 'false') q.email_sent = false
   return { ...q, ...overrides }

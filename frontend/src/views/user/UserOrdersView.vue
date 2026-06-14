@@ -122,14 +122,14 @@ const loading = ref(false)
 const actionLoading = ref(false)
 const orders = ref<PaymentOrder[]>([])
 const refundEligibleProviders = ref<Set<string>>(new Set())
-const currentFilter = ref('')
+const currentFilter = ref('all')
 const cancelTargetId = ref<number | null>(null)
 const refundTarget = ref<PaymentOrder | null>(null)
 const refundReason = ref('')
 const pagination = reactive({ page: 1, page_size: 20, total: 0 })
 
 const statusFilters = computed(() => [
-  { value: '', label: t('common.all') },
+  { value: 'all', label: t('common.all') },
   { value: 'PENDING', label: t('payment.status.pending') },
   { value: 'COMPLETED', label: t('payment.status.completed') },
   { value: 'FAILED', label: t('payment.status.failed') },
@@ -142,7 +142,7 @@ async function fetchOrders() {
     const res = await paymentAPI.getMyOrders({
       page: pagination.page,
       page_size: pagination.page_size,
-      status: currentFilter.value || undefined,
+      status: (currentFilter.value && currentFilter.value !== 'all') ? currentFilter.value : undefined,
     })
     orders.value = res.data.items || []
     pagination.total = res.data.total || 0

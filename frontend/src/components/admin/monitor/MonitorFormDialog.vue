@@ -307,7 +307,7 @@ const templateOptions = computed(() => {
     return normalizeAPIMode(t.api_mode) === form.api_mode
   })
   return [
-    { value: '', label: t('admin.channelMonitor.templateField.none') },
+    { value: 'none', label: t('admin.channelMonitor.templateField.none') },
     ...items.map((t) => ({ value: String(t.id), label: templateOptionLabel(t) })),
   ]
 })
@@ -328,9 +328,9 @@ async function loadTemplates() {
 
 // 模板下拉绑定：value 是 string（Select 组件约束），需要与 number | null 互转。
 const templateSelectValue = computed<string>({
-  get: () => (form.template_id == null ? '' : String(form.template_id)),
+  get: () => (form.template_id == null ? 'none' : String(form.template_id)),
   set: (raw: string) => {
-    if (raw === '') {
+    if (raw === 'none') {
       form.template_id = null
       return
     }

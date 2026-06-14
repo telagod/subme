@@ -51,7 +51,7 @@ const filters = reactive({
   time_range: '1h' as '5m' | '30m' | '1h' | '6h' | '24h' | '7d' | '30d',
   start_time: '',
   end_time: '',
-  level: '',
+  level: 'all',
   component: '',
   request_id: '',
   client_request_id: '',
@@ -86,7 +86,7 @@ const timeRangeOptions = [
 ]
 
 const filterLevelOptions = [
-  { value: '', label: '全部' },
+  { value: 'all', label: '全部' },
   { value: 'debug', label: 'debug' },
   { value: 'info', label: 'info' },
   { value: 'warn', label: 'warn' },
@@ -176,7 +176,7 @@ const buildQuery = () => {
   }
   if (filters.start_time) query.start_time = toRFC3339(filters.start_time)
   if (filters.end_time) query.end_time = toRFC3339(filters.end_time)
-  if (filters.level.trim()) query.level = filters.level.trim()
+  if (filters.level.trim() && filters.level !== 'all') query.level = filters.level.trim()
   if (filters.component.trim()) query.component = filters.component.trim()
   if (filters.request_id.trim()) query.request_id = filters.request_id.trim()
   if (filters.client_request_id.trim()) query.client_request_id = filters.client_request_id.trim()
@@ -285,7 +285,7 @@ const cleanupCurrentFilter = async () => {
     const payload = {
       start_time: toRFC3339(filters.start_time),
       end_time: toRFC3339(filters.end_time),
-      level: filters.level.trim() || undefined,
+      level: filters.level.trim() && filters.level !== 'all' ? filters.level.trim() : undefined,
       component: filters.component.trim() || undefined,
       request_id: filters.request_id.trim() || undefined,
       client_request_id: filters.client_request_id.trim() || undefined,
@@ -309,7 +309,7 @@ const resetFilters = () => {
   filters.time_range = '1h'
   filters.start_time = ''
   filters.end_time = ''
-  filters.level = ''
+  filters.level = 'all'
   filters.component = ''
   filters.request_id = ''
   filters.client_request_id = ''

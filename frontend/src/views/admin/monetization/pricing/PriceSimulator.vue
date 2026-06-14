@@ -40,7 +40,6 @@
               <SelectValue :placeholder="t('admin.pricingDesk.simModelPlaceholder')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">{{ t('admin.pricingDesk.simModelPlaceholder') }}</SelectItem>
               <template v-for="platform in platforms" :key="platform">
                 <SelectGroup>
                   <SelectLabel>{{ platform }}</SelectLabel>
@@ -68,7 +67,6 @@
               <SelectValue :placeholder="t('admin.pricingDesk.simGroupPlaceholder')" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">{{ t('admin.pricingDesk.simGroupPlaceholder') }}</SelectItem>
               <SelectItem v-for="g in activeGroups" :key="g.id" :value="String(g.id)">
                 {{ g.name }} (×{{ g.rate_multiplier.toFixed(2) }})
               </SelectItem>

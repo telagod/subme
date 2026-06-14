@@ -38,14 +38,14 @@
       <template v-for="filter in resource.filters" :key="filter.key">
         <Select
           v-if="filter.type === 'select'"
-          :model-value="filterValues[filter.key]"
-          @update:model-value="(val: string) => { filterValues[filter.key] = val; onFilterChange() }"
+          :model-value="filterValues[filter.key] || '__all__'"
+          @update:model-value="(val: string) => { filterValues[filter.key] = val === '__all__' ? '' : val; onFilterChange() }"
         >
           <SelectTrigger class="w-36 text-xs">
             <SelectValue :placeholder="filter.placeholder ?? filter.label" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{{ filter.placeholder ?? filter.label }}</SelectItem>
+            <SelectItem value="__all__">{{ filter.placeholder ?? filter.label }}</SelectItem>
             <SelectItem
               v-for="opt in (filter.options ?? [])"
               :key="String(opt.value)"

@@ -304,7 +304,7 @@ const announcements = ref<Announcement[]>([])
 const loading = ref(false)
 
 const filters = reactive({
-  status: '',
+  status: 'all',
 })
 const searchQuery = ref('')
 
@@ -321,7 +321,7 @@ const sortState = reactive({
 })
 
 const statusFilterOptions = computed(() => [
-  { value: '', label: t('admin.announcements.allStatus') },
+  { value: 'all', label: t('admin.announcements.allStatus') },
   { value: 'draft', label: t('admin.announcements.statusLabels.draft') },
   { value: 'active', label: t('admin.announcements.statusLabels.active') },
   { value: 'archived', label: t('admin.announcements.statusLabels.archived') }
@@ -373,7 +373,7 @@ async function loadAnnouncements() {
   try {
     loading.value = true
     const res = await adminAPI.announcements.list(pagination.page, pagination.page_size, {
-      status: filters.status || undefined,
+      status: filters.status && filters.status !== 'all' ? filters.status : undefined,
       search: searchQuery.value || undefined,
       sort_by: sortState.sort_by,
       sort_order: sortState.sort_order

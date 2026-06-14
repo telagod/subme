@@ -31,7 +31,7 @@
         :model-value="filters.status"
         @update:model-value="val => { filters.status = val; emitFiltersChanged() }"
       >
-        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.status }">
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.status !== 'all' }">
           <span class="mr-0.5">状态</span>
           <SelectValue :placeholder="statusLabel" />
         </SelectTrigger>
@@ -47,7 +47,7 @@
         :model-value="filters.payment_type"
         @update:model-value="val => { filters.payment_type = val; emitFiltersChanged() }"
       >
-        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.payment_type }">
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.payment_type !== 'all' }">
           <span class="mr-0.5">支付</span>
           <SelectValue :placeholder="payTypeLabel" />
         </SelectTrigger>
@@ -63,7 +63,7 @@
         :model-value="filters.order_type"
         @update:model-value="val => { filters.order_type = val; emitFiltersChanged() }"
       >
-        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.order_type }">
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.order_type !== 'all' }">
           <span class="mr-0.5">类型</span>
           <SelectValue :placeholder="orderTypeLabel" />
         </SelectTrigger>
@@ -235,7 +235,7 @@ const emit = defineEmits<{
 // UI state
 const searchFocused = ref(false)
 const searchQuery = ref('')
-const filters = reactive({ status: '', payment_type: '', order_type: '' })
+const filters = reactive({ status: 'all', payment_type: 'all', order_type: 'all' })
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 function handleSearch() {
@@ -246,9 +246,9 @@ function handleSearch() {
 function emitFiltersChanged() {
   emit('filter', {
     keyword: searchQuery.value || undefined,
-    status: filters.status || undefined,
-    payment_type: filters.payment_type || undefined,
-    order_type: filters.order_type || undefined,
+    status: (filters.status && filters.status !== 'all') ? filters.status : undefined,
+    payment_type: (filters.payment_type && filters.payment_type !== 'all') ? filters.payment_type : undefined,
+    order_type: (filters.order_type && filters.order_type !== 'all') ? filters.order_type : undefined,
   })
 }
 
@@ -264,7 +264,7 @@ const columns = computed<Column[]>(() => [
 ])
 
 const statusFilterOptions = computed(() => [
-  { value: '', label: t('payment.admin.allStatuses') },
+  { value: 'all', label: t('payment.admin.allStatuses') },
   { value: 'PENDING', label: t('payment.status.pending') },
   { value: 'PAID', label: t('payment.status.paid') },
   { value: 'COMPLETED', label: t('payment.status.completed') },
@@ -277,7 +277,7 @@ const statusFilterOptions = computed(() => [
 ])
 
 const paymentTypeFilterOptions = computed(() => [
-  { value: '', label: t('payment.admin.allPaymentTypes') },
+  { value: 'all', label: t('payment.admin.allPaymentTypes') },
   { value: 'alipay', label: t('payment.methods.alipay') },
   { value: 'wxpay', label: t('payment.methods.wxpay') },
   { value: 'stripe', label: t('payment.methods.stripe') },
@@ -285,7 +285,7 @@ const paymentTypeFilterOptions = computed(() => [
 ])
 
 const orderTypeFilterOptions = computed(() => [
-  { value: '', label: t('payment.admin.allOrderTypes') },
+  { value: 'all', label: t('payment.admin.allOrderTypes') },
   { value: 'balance', label: t('payment.admin.balanceOrder') },
   { value: 'subscription', label: t('payment.admin.subscriptionOrder') },
 ])
