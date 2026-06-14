@@ -1,90 +1,110 @@
 <template>
   <AppLayout>
-    <div class="relative px-7 pb-32 pt-6 text-foreground">
-      <!-- Loading splash -->
+    <div class="text-foreground">
       <div v-if="loading" class="flex h-[60vh] items-center justify-center">
         <div class="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
 
-      <template v-else>
-        <div class="flex gap-6 items-start">
-          <!-- Left anchor nav -->
-          <aside class="w-[200px] shrink-0 sticky top-20 max-h-[calc(100vh-7rem)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div class="mb-3">
+      <div v-else class="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <!-- Secondary nav: settings categories -->
+        <aside class="lg:w-[196px] lg:shrink-0">
+          <div class="lg:sticky lg:top-1">
+            <!-- search -->
+            <div class="relative mb-3">
+              <Search class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 v-model="searchQuery"
                 type="search"
-                class="text-[12.5px]"
+                class="h-9 pl-8 text-[13px]"
                 :placeholder="t('admin.settingsRegistry.searchPlaceholder')"
                 @input="onSearch"
               />
             </div>
-            <nav class="flex flex-col gap-1">
-              <template v-for="[tab, sections] in visibleSectionsByTab" :key="tab">
-                <div class="mb-2 flex flex-col gap-px">
-                  <span class="px-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{{ tabLabel(tab) }}</span>
-                  <a
-                    v-for="section in sections"
-                    :key="section.id"
-                    :href="`#sr-section-${section.id}`"
-                    class="block overflow-hidden text-ellipsis whitespace-nowrap rounded-md border-l-2 border-transparent px-2 py-1.5 pl-2.5 text-xs text-muted-foreground no-underline transition-colors duration-100 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-                    :class="{
-                      'border-l-primary bg-primary/8 text-foreground': activeSection === section.id,
-                      'font-medium text-primary': matchingSections.has(section.id)
-                    }"
-                    @click.prevent="scrollToSection(section.id)"
-                  >{{ resolveLabel(section.title) }}</a>
-                </div>
-              </template>
+            <!-- nav: vertical on lg, horizontal scroll on mobile -->
+            <nav class="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                v-for="tab in activeTabs"
+                :key="tab"
+                class="flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors"
+                :class="activeTab === tab
+                  ? 'bg-accent text-foreground'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'"
+                @click="activeTab = tab"
+              >
+                <component :is="tabIcon(tab)" class="h-4 w-4 shrink-0 opacity-80" />
+                <span class="whitespace-nowrap">{{ tabLabel(tab) }}</span>
+              </button>
             </nav>
-          </aside>
+          </div>
+        </aside>
 
-          <!-- Right scroll area -->
-          <main class="min-w-0 flex-1 flex flex-col gap-4" ref="mainEl" @scroll="onMainScroll">
-            <template v-for="[, sections] in visibleSectionsByTab" :key="sections[0]?.tab">
+        <!-- Content -->
+        <div class="min-w-0 flex-1">
+          <div class="max-w-3xl">
+            <!-- section heading -->
+            <div class="mb-6">
+              <h1 class="text-xl font-semibold tracking-tight text-foreground">{{ tabLabel(activeTab) }}</h1>
+            </div>
+
+            <!-- section cards -->
+            <div class="flex flex-col gap-6">
               <SectionRenderer
-                v-for="section in sections"
+                v-for="section in currentSections"
                 :key="section.id"
                 :section="section"
                 :form="form"
                 :settings="savedSettings"
-                class="transition-[outline] duration-150"
-                :class="{ 'outline outline-1 outline-primary/35': matchingSections.has(section.id) }"
+                :class="{ 'ring-1 ring-primary/40': matchingSections.has(section.id) }"
                 @update:field="onFieldUpdate"
               />
-            </template>
-          </main>
-        </div>
-
-        <!-- Sticky save bar -->
-        <Transition name="srg-bar">
-          <div
-            v-if="dirtyCount > 0"
-            class="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 whitespace-nowrap rounded-xl border border-border bg-card px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,.45)]"
-          >
-            <span class="font-mono text-[12.5px] tabular-nums text-muted-foreground">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
-            <div class="flex gap-2">
-              <Button variant="ghost" size="sm" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</Button>
-              <Button variant="default" size="sm" :disabled="saving" @click="saveChanges">
-                <span v-if="saving" class="mr-1.5 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-border border-t-primary-foreground align-[-3px]" />
-                {{ saving ? t('admin.settingsRegistry.savingBtn') : t('admin.settingsRegistry.saveBtn') }}
-              </Button>
+              <div v-if="currentSections.length === 0" class="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+                <p class="text-sm text-muted-foreground">{{ searchQuery ? t('admin.settingsRegistry.noSearchResults') : t('empty.noData') }}</p>
+              </div>
             </div>
           </div>
-        </Transition>
-      </template>
+        </div>
+      </div>
+
+      <!-- Sticky save bar (centered over content column) -->
+      <Transition name="srg-bar">
+        <div
+          v-if="dirtyCount > 0"
+          class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 whitespace-nowrap rounded-xl border border-border bg-card px-4 py-2.5 shadow-lg lg:left-[calc(50%_+_114px)]"
+        >
+          <span class="font-mono text-[12.5px] tabular-nums text-muted-foreground">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
+          <div class="flex gap-2">
+            <Button variant="ghost" size="sm" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</Button>
+            <Button variant="default" size="sm" :disabled="saving" @click="saveChanges">
+              <span v-if="saving" class="mr-1.5 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-border border-t-primary-foreground align-[-3px]" />
+              {{ saving ? t('admin.settingsRegistry.savingBtn') : t('admin.settingsRegistry.saveBtn') }}
+            </Button>
+          </div>
+        </div>
+      </Transition>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  Search,
+  SlidersHorizontal,
+  ShieldCheck,
+  Users,
+  Sparkles,
+  Network,
+  CreditCard,
+  Mail,
+  ScrollText,
+  Archive,
+} from 'lucide-vue-next'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api'
 import type { TabId } from './types'
-import { allSections, getSectionsByTab } from './registry'
+import { allSections, getSectionsByTab, getActiveTabs } from './registry'
 import SectionRenderer from './SectionRenderer.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -92,23 +112,56 @@ import { Button } from '@/components/ui/button'
 const { t } = useI18n()
 const appStore = useAppStore()
 
-// ── state ──────────────────────────────────────────────────────────────────
 const loading = ref(true)
 const saving = ref(false)
 const savedSettings = ref<Record<string, unknown>>({})
 const form = ref<Record<string, unknown>>({})
 const searchQuery = ref('')
-const activeSection = ref('')
-const mainEl = ref<HTMLElement | null>(null)
 const matchingSections = ref<Set<string>>(new Set())
+const activeTab = ref<TabId>('general')
 
-// ── load ───────────────────────────────────────────────────────────────────
+/** Semantic tab order (overrides glob discovery order); icons per tab */
+const TAB_ORDER: TabId[] = [
+  'general', 'security', 'users', 'features',
+  'gateway', 'payment', 'email', 'agreement', 'backup',
+]
+const TAB_ICONS: Record<TabId, Component> = {
+  general: SlidersHorizontal,
+  security: ShieldCheck,
+  users: Users,
+  features: Sparkles,
+  gateway: Network,
+  payment: CreditCard,
+  email: Mail,
+  agreement: ScrollText,
+  backup: Archive,
+}
+
+const activeTabs = computed<TabId[]>(() => {
+  const present = getActiveTabs()
+  const presentSet = new Set(present)
+  const ordered = TAB_ORDER.filter(tab => presentSet.has(tab))
+  // Append any active tab not covered by TAB_ORDER (forward-compat safety)
+  for (const tab of present) if (!ordered.includes(tab)) ordered.push(tab)
+  return ordered
+})
+
+const sectionsByTab = computed(() => getSectionsByTab())
+
+const currentSections = computed(() => {
+  const sections = sectionsByTab.value.get(activeTab.value) ?? []
+  if (matchingSections.value.size === 0) return sections
+  return sections.filter(s => matchingSections.value.has(s.id))
+})
+
 async function loadSettings() {
   loading.value = true
   try {
     const data = await adminAPI.settings.getSettings() as unknown as Record<string, unknown>
     savedSettings.value = { ...data }
     form.value = { ...data }
+    const tabs = activeTabs.value
+    if (tabs.length > 0) activeTab.value = tabs[0]
   } catch (err) {
     appStore.showError(String(err))
   } finally {
@@ -118,13 +171,10 @@ async function loadSettings() {
 
 onMounted(loadSettings)
 
-// ── dirty tracking ─────────────────────────────────────────────────────────
 const dirtyCount = computed(() => {
   let count = 0
   for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) {
-      count++
-    }
+    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) count++
   }
   return count
 })
@@ -133,8 +183,6 @@ function onFieldUpdate(key: string, value: unknown) {
   form.value = { ...form.value, [key]: value }
 }
 
-// 默认订阅/认证源订阅：同一分组不可重复（迁自旧 SettingsView 的
-// findDuplicateDefaultSubscription 保存前校验，重复则拦截不提交）。
 function duplicateGroupId(list: unknown): unknown {
   if (!Array.isArray(list)) return undefined
   const seen = new Set<unknown>()
@@ -147,9 +195,7 @@ function duplicateGroupId(list: unknown): unknown {
   return undefined
 }
 
-// ── save / discard ─────────────────────────────────────────────────────────
 async function saveChanges() {
-  // 重复订阅校验：default_subscriptions 与各认证源 *_subscriptions 数组。
   for (const key of Object.keys(form.value)) {
     if (key === 'default_subscriptions' || key.endsWith('_subscriptions')) {
       const dup = duplicateGroupId(form.value[key])
@@ -161,9 +207,7 @@ async function saveChanges() {
   }
   const patch: Record<string, unknown> = {}
   for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) {
-      patch[key] = form.value[key]
-    }
+    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) patch[key] = form.value[key]
   }
   saving.value = true
   try {
@@ -178,14 +222,11 @@ async function saveChanges() {
 }
 
 function discardChanges() {
-  // Reassign both refs so that components watching props.settings also re-sync
-  // (their watch fires only when the savedSettings reference changes).
   const snapshot = { ...savedSettings.value }
   savedSettings.value = snapshot
   form.value = snapshot
 }
 
-// ── search ─────────────────────────────────────────────────────────────────
 function onSearch() {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) {
@@ -196,55 +237,17 @@ function onSearch() {
   for (const section of allSections) {
     const titleMatch = resolveLabel(section.title).toLowerCase().includes(q)
     const fieldMatch = section.fields.some(
-      (f) =>
-        f.key.toLowerCase().includes(q) ||
-        resolveLabel(f.label).toLowerCase().includes(q),
+      f => f.key.toLowerCase().includes(q) || resolveLabel(f.label).toLowerCase().includes(q),
     )
     if (titleMatch || fieldMatch) hits.add(section.id)
   }
   matchingSections.value = hits
-}
-
-// ── visible sections (filtered by search) ──────────────────────────────────
-const visibleSectionsByTab = computed<Map<TabId, typeof allSections>>(() => {
-  const byTab = getSectionsByTab()
-  if (matchingSections.value.size === 0) return byTab
-  const filtered = new Map<TabId, typeof allSections>()
-  for (const [tab, sections] of byTab) {
-    const visible = sections.filter((s) => matchingSections.value.has(s.id))
-    if (visible.length > 0) filtered.set(tab, visible)
+  if (hits.size > 0) {
+    const first = allSections.find(s => hits.has(s.id))
+    if (first) activeTab.value = first.tab
   }
-  return filtered
-})
-
-// ── scroll tracking (throttled via rAF) ────────────────────────────────────────
-let scrollRafId: number | null = null
-
-function onMainScroll() {
-  if (scrollRafId !== null) return
-  scrollRafId = requestAnimationFrame(() => {
-    scrollRafId = null
-    if (!mainEl.value) return
-    const cards = mainEl.value.querySelectorAll<HTMLElement>('[id^="sr-section-"]')
-    for (const card of cards) {
-      const rect = card.getBoundingClientRect()
-      if (rect.top <= 160) activeSection.value = card.id.replace('sr-section-', '')
-    }
-  })
 }
 
-onUnmounted(() => {
-  if (scrollRafId !== null) cancelAnimationFrame(scrollRafId)
-})
-
-async function scrollToSection(id: string) {
-  await nextTick()
-  const el = document.getElementById(`sr-section-${id}`)
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  activeSection.value = id
-}
-
-// ── label helpers ──────────────────────────────────────────────────────────
 function resolveLabel(key: string): string {
   try {
     const r = t(key)
@@ -257,10 +260,13 @@ function tabLabel(tab: string): string {
   const result = t(key)
   return result === key ? tab : result
 }
+
+function tabIcon(tab: string): Component {
+  return TAB_ICONS[tab as TabId] ?? SlidersHorizontal
+}
 </script>
 
 <style scoped>
-/* bar transition */
 .srg-bar-enter-active, .srg-bar-leave-active { transition: opacity .2s, transform .2s; }
 .srg-bar-enter-from, .srg-bar-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
 @media (prefers-reduced-motion: reduce) {
