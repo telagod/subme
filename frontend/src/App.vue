@@ -5,6 +5,7 @@ import Toast from '@/components/common/Toast.vue'
 import NavigationProgress from '@/components/common/NavigationProgress.vue'
 import { resolveDocumentTitle } from '@/router/title'
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
+import { Button } from '@/components/ui/button'
 import { useAppStore, useAuthStore, useSubscriptionStore, useAnnouncementStore } from '@/stores'
 import { getSetupStatus } from '@/api/setup'
 
@@ -128,9 +129,9 @@ onMounted(async () => {
   <div v-if="routeError" class="flex items-center justify-center min-h-screen">
     <div class="text-center space-y-4">
       <p class="text-muted-foreground">Page failed to load</p>
-      <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm" @click="routeError = false; $router.go(0)">
+      <Button size="sm" @click="routeError = false; $router.go(0)">
         Reload
-      </button>
+      </Button>
     </div>
   </div>
   <RouterView v-else v-slot="{ Component, route: viewRoute }">

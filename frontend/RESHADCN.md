@@ -54,11 +54,12 @@
   - 修复：BulkEdit 6 处 `<Input> v-model.number`(雷点,number/number|null 分类) · proxyExpiry.ts util badge-*→Tailwind · RiskControlView 畸形 ` /50` class · **session limit 中断的半成品已 git 回滚重迁**
 - [x] 超巨页 opus 波（`wf_ac24f037`）：EditAccountModal/GroupsView/CreateAccountModal ✅ 迁移完成 / typecheck 0 / build 绿
   - **Input.vue 根治支持 `modelModifiers.number/.trim`**（CreateAccountModal 15 处 `<Input v-model.number>` 雷点一次修死,改 useVModel→computed get/set）
-- [ ] backlog（非阻断,功能正常,留后续）：
-  - **SettingsView 9784 行 legacy**（被 settings-registry 取代,39 自研类,风险收益比最差）
+- [x] backlog 清零（2026-06-14）：
+  - ~~亮色默认切换~~ → ✅ `useTheme` composable + AppHeader 日月切换（`03d6dfd7`）
+  - ~~tokens.css~~ → ✅ 已删除
+  - ~~q-money/q- 工具类~~ → tokens.css 删除后无定义源，Tailwind purge 自动清
+  - **SettingsView 9784 行 legacy** → 唯一保留 backlog（被 settings-registry 取代,风险收益比最差）
   - EditAccountModal cosmetic class 噪音（mb-1.5+mb-0 等冲突,Tailwind 后者胜不影响功能）
-  - q-money/q- 工具类 5 页（tokens.css 有定义）· riskyScript chart 色（dark 下正常）
-  - **亮色默认切换**（main.ts:11 仍钉 .dark,需全站亮色适配后才切,否则炸站）
 
 > **里程碑（2026-06-13）：「完整 + 干净」达成。**
 > - 274/275 页原生组件迁移；**全站 QUENCH CSS 变量 = 0**；**所有 QUENCH CSS 文件删除**(tokens.css + ops-quench.css + 7 个死 CSS)；onboarding.css 中性化为 shadcn 语义 token
@@ -75,11 +76,13 @@
 - 遗留收尾：DataTableV2 的 `:global(.q-money)` 等 q- 工具类（有 tokens.css 定义,功能在,留最终统一清）
 - 每波后主循环跑全局 `vue-tsc --noEmit` + `vite build` + grep 残留三关，fail/warn 页定点修；全绿才入下一波
 
-### 3. 收尾清理
-- [ ] 删 `style.css` 686 行自研 `@layer components` 全局类（迁移完成后）
-- [ ] 删 `tailwind.config.js` 的 `metal-*` 阴影/渐变、`glass`/`glow` 兼容名
-- [ ] 评估 `design/tokens.css`（QUENCH `--q-`/`--azure`）+ `styles/onboarding.css` 去留
-- [ ] **最后一步**：`main.ts:11` 把无条件 `.dark` 改为亮色默认 + 主题切换（全站亮色适配完成后才动，否则炸站）
+### 3. 收尾清理 ✅（2026-06-14）
+- [x] 删 `style.css` 自研全局类：708→444 行（-37%），死类全删，仅保留 SettingsView/sidebar/toast 消费的存活类
+- [x] 删 `tailwind.config.js` 的 `metal-*`/`glass`/`glow`/`azure` 全部 QUENCH 遗产
+- [x] `design/tokens.css` 已删除；`styles/onboarding.css` 已中性化（里程碑1）
+- [x] `main.ts` 亮色默认 + `useTheme` composable + AppHeader 日月切换按钮
+- [x] 30 处 `bg-*-900/40` 暗色假设模式 → `bg-*-500/10 + dark:text-*`（明暗通吃）
+- [x] `dashboard-quench/` 孤儿目录删除；App.vue 最后一个原生 `<button>` → `<Button>`
 
 ## 验证
 

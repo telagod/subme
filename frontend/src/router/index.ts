@@ -380,7 +380,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
-    component: () => import('@/views/admin/dashboard-quench/DashboardQuenchView.vue'),
+    component: () => import('@/views/admin/DashboardView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
