@@ -5,6 +5,10 @@ import Select from '@/components/common/Select.vue'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { adminAPI } from '@/api'
 import { opsAPI, type OpsDashboardOverview, type OpsMetricThresholds, type OpsRealtimeTrafficSummary } from '@/api/admin/ops'
 import type { OpsRequestDetailsPreset } from './OpsRequestDetailsModal.vue'
@@ -264,11 +268,11 @@ function getUpstreamErrorRateThresholdLevel(upstreamErrorRatePercent: number | n
 function getThresholdColorClass(level: ThresholdLevel): string {
   switch (level) {
     case 'critical':
-      return 'od-c-bad'
+      return 'text-red-500'
     case 'warning':
-      return 'od-c-warn'
+      return 'text-amber-500'
     default:
-      return 'od-c-ok'
+      return 'text-emerald-500'
   }
 }
 
@@ -446,12 +450,12 @@ const healthScoreColor = computed(() => {
 })
 
 const healthScoreClass = computed(() => {
-  if (isSystemIdle.value) return 'od-c-muted'
+  if (isSystemIdle.value) return 'text-muted-foreground'
   const score = healthScoreValue.value
-  if (score == null) return 'od-c-muted'
-  if (score >= 90) return 'od-c-ok'
-  if (score >= 60) return 'od-c-warn'
-  return 'od-c-bad'
+  if (score == null) return 'text-muted-foreground'
+  if (score >= 90) return 'text-emerald-500'
+  if (score >= 60) return 'text-amber-500'
+  return 'text-red-500'
 })
 
 const circleSize = computed(() => props.fullscreen ? 140 : 100)
@@ -651,10 +655,10 @@ const cpuPercentValue = computed<number | null>(() => {
 
 const cpuPercentClass = computed(() => {
   const v = cpuPercentValue.value
-  if (v == null) return 'od-c-muted'
-  if (v >= 95) return 'od-c-bad'
-  if (v >= 80) return 'od-c-warn'
-  return 'od-c-ok'
+  if (v == null) return 'text-muted-foreground'
+  if (v >= 95) return 'text-red-500'
+  if (v >= 80) return 'text-amber-500'
+  return 'text-emerald-500'
 })
 
 const memPercentValue = computed<number | null>(() => {
@@ -664,10 +668,10 @@ const memPercentValue = computed<number | null>(() => {
 
 const memPercentClass = computed(() => {
   const v = memPercentValue.value
-  if (v == null) return 'od-c-muted'
-  if (v >= 95) return 'od-c-bad'
-  if (v >= 85) return 'od-c-warn'
-  return 'od-c-ok'
+  if (v == null) return 'text-muted-foreground'
+  if (v >= 95) return 'text-red-500'
+  if (v >= 85) return 'text-amber-500'
+  return 'text-emerald-500'
 })
 
 const dbConnActiveValue = computed<number | null>(() => {
@@ -708,14 +712,14 @@ const dbMiddleLabel = computed(() => {
 })
 
 const dbMiddleClass = computed(() => {
-  if (systemMetrics.value?.db_ok === false) return 'od-c-bad'
+  if (systemMetrics.value?.db_ok === false) return 'text-red-500'
   if (dbUsagePercent.value != null) {
-    if (dbUsagePercent.value >= 90) return 'od-c-bad'
-    if (dbUsagePercent.value >= 70) return 'od-c-warn'
-    return 'od-c-ok'
+    if (dbUsagePercent.value >= 90) return 'text-red-500'
+    if (dbUsagePercent.value >= 70) return 'text-amber-500'
+    return 'text-emerald-500'
   }
-  if (systemMetrics.value?.db_ok === true) return 'od-c-ok'
-  return 'od-c-muted'
+  if (systemMetrics.value?.db_ok === true) return 'text-emerald-500'
+  return 'text-muted-foreground'
 })
 
 const redisConnTotalValue = computed<number | null>(() => {
@@ -751,14 +755,14 @@ const redisMiddleLabel = computed(() => {
 })
 
 const redisMiddleClass = computed(() => {
-  if (systemMetrics.value?.redis_ok === false) return 'od-c-bad'
+  if (systemMetrics.value?.redis_ok === false) return 'text-red-500'
   if (redisUsagePercent.value != null) {
-    if (redisUsagePercent.value >= 90) return 'od-c-bad'
-    if (redisUsagePercent.value >= 70) return 'od-c-warn'
-    return 'od-c-ok'
+    if (redisUsagePercent.value >= 90) return 'text-red-500'
+    if (redisUsagePercent.value >= 70) return 'text-amber-500'
+    return 'text-emerald-500'
   }
-  if (systemMetrics.value?.redis_ok === true) return 'od-c-ok'
-  return 'od-c-muted'
+  if (systemMetrics.value?.redis_ok === true) return 'text-emerald-500'
+  return 'text-muted-foreground'
 })
 
 const goroutineCountValue = computed<number | null>(() => {
@@ -793,13 +797,13 @@ const goroutineStatusLabel = computed(() => {
 const goroutineStatusClass = computed(() => {
   switch (goroutineStatus.value) {
     case 'ok':
-      return 'od-c-ok'
+      return 'text-emerald-500'
     case 'warning':
-      return 'od-c-warn'
+      return 'text-amber-500'
     case 'critical':
-      return 'od-c-bad'
+      return 'text-red-500'
     default:
-      return 'od-c-muted'
+      return 'text-muted-foreground'
   }
 })
 
@@ -838,11 +842,11 @@ const jobsStatusLabel = computed(() => {
 const jobsStatusClass = computed(() => {
   switch (jobsStatus.value) {
     case 'ok':
-      return 'od-c-ok'
+      return 'text-emerald-500'
     case 'warn':
-      return 'od-c-warn'
+      return 'text-amber-500'
     default:
-      return 'od-c-muted'
+      return 'text-muted-foreground'
   }
 })
 
@@ -859,12 +863,12 @@ function handleToolbarRefresh() {
 </script>
 
 <template>
-  <div class="od-card" :style="props.fullscreen ? 'padding:32px' : 'padding:20px'">
+  <div class="rounded-xl border border-border bg-card" :style="props.fullscreen ? 'padding:32px' : 'padding:20px'">
     <!-- Top Toolbar -->
-    <div class="od-toolbar">
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
       <div>
-        <h1 class="od-title">
-          <svg class="od-title-icon" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <h1 class="m-0 flex items-center gap-2 text-lg font-extrabold tracking-tight text-foreground">
+          <svg class="shrink-0 text-sky-400" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -875,9 +879,9 @@ function handleToolbarRefresh() {
           {{ t('admin.ops.title') }}
         </h1>
 
-        <div v-if="!props.fullscreen" class="od-subtitle">
+        <div v-if="!props.fullscreen" class="mt-1 flex items-center gap-2.5 text-[11.5px] text-muted-foreground">
           <span style="display:inline-flex;align-items:center;gap:6px;" :title="props.loading ? t('admin.ops.loadingText') : t('admin.ops.ready')">
-            <span class="od-status-dot" :class="props.loading ? 'loading' : 'ready'"></span>
+            <span class="inline-block h-[7px] w-[7px] shrink-0 rounded-full" :class="props.loading ? 'bg-muted-foreground' : 'bg-emerald-400'"></span>
             {{ props.loading ? t('admin.ops.loadingText') : t('admin.ops.ready') }}
           </span>
           <span>·</span>
@@ -889,7 +893,7 @@ function handleToolbarRefresh() {
         </div>
       </div>
 
-      <div class="od-toolbar-acts">
+      <div class="flex flex-wrap items-center gap-2.5">
         <template v-if="!props.fullscreen">
           <Select
             :model-value="platform"
@@ -903,7 +907,7 @@ function handleToolbarRefresh() {
             class="w-full sm:w-[160px]"
             @update:model-value="handleGroupChange"
           />
-          <div class="od-toolbar-sep" style="display:none;" aria-hidden></div>
+          <div class="h-4 w-px shrink-0 bg-border" style="display:none;" aria-hidden></div>
           <Select
             :model-value="timeRange"
             :options="timeRangeOptions"
@@ -920,10 +924,12 @@ function handleToolbarRefresh() {
           @update:model-value="handleQueryModeChange"
         />
 
-        <button
+        <Button
           v-if="!props.fullscreen"
           type="button"
-          class="od-btn od-btn-icon"
+          variant="outline"
+          size="icon"
+          class="h-8 w-8 shrink-0"
           :disabled="loading"
           :title="t('common.refresh')"
           :aria-label="t('common.refresh')"
@@ -932,15 +938,17 @@ function handleToolbarRefresh() {
           <svg width="15" height="15" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-        </button>
+        </Button>
 
-        <div v-if="!props.fullscreen" class="od-toolbar-sep"></div>
+        <div v-if="!props.fullscreen" class="h-4 w-px shrink-0 bg-border"></div>
 
         <!-- Alert Rules Button (hidden in fullscreen) -->
-        <button
+        <Button
           v-if="!props.fullscreen"
           type="button"
-          class="od-btn od-btn-azure"
+          variant="outline"
+          size="sm"
+          class="gap-1.5 border-sky-500/35 bg-sky-500/10 text-xs text-sky-400 hover:bg-sky-500/20 hover:text-sky-300"
           :title="t('admin.ops.alertRules.title')"
           @click="emit('openAlertRules')"
         >
@@ -948,13 +956,15 @@ function handleToolbarRefresh() {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
           <span>{{ t('admin.ops.alertRules.manage') }}</span>
-        </button>
+        </Button>
 
         <!-- Settings Button (hidden in fullscreen) -->
-        <button
+        <Button
           v-if="!props.fullscreen"
           type="button"
-          class="od-btn od-btn-metal"
+          variant="outline"
+          size="sm"
+          class="gap-1.5 text-xs"
           :title="t('admin.ops.settings.title')"
           @click="emit('openSettings')"
         >
@@ -963,13 +973,15 @@ function handleToolbarRefresh() {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <span>{{ t('common.settings') }}</span>
-        </button>
+        </Button>
 
         <!-- Enter Fullscreen Button (hidden in fullscreen mode) -->
-        <button
+        <Button
           v-if="!props.fullscreen"
           type="button"
-          class="od-btn od-btn-icon"
+          variant="outline"
+          size="icon"
+          class="h-8 w-8 shrink-0"
           :title="t('admin.ops.fullscreen.enter')"
           :aria-label="t('admin.ops.fullscreen.enter')"
           @click="emit('enterFullscreen')"
@@ -977,13 +989,13 @@ function handleToolbarRefresh() {
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
 
     <div v-if="overview" class="grid grid-cols-1 gap-5 lg:grid-cols-12" style="margin-top:16px;">
       <!-- Left: Health + Realtime -->
-      <div class="od-card lg:col-span-5" :style="props.fullscreen ? 'padding:24px' : 'padding:16px'">
+      <Card class="lg:col-span-5" :style="props.fullscreen ? 'padding:24px' : 'padding:16px'">
         <div class="grid h-full grid-cols-1 gap-6 md:grid-cols-[200px_1fr] md:items-center">
           <!-- 1) Health Score -->
           <div
@@ -995,29 +1007,29 @@ function handleToolbarRefresh() {
               style="pointer-events:none;position:absolute;left:50%;top:100%;z-index:50;margin-top:8px;width:288px;transform:translateX(-50%);opacity:0;transition:opacity .2s;"
               class="group-hover:pointer-events-auto group-hover:opacity-100 md:left-full md:top-0 md:ml-2 md:mt-0 md:translate-x-0 md:translate-y-0"
             >
-              <div class="od-diag-pop">
-                <h4 class="od-diag-head">
-                  <Icon name="brain" size="sm" class="od-c-azure" />
+              <div class="rounded-xl border border-border bg-card p-4 shadow-2xl">
+                <h4 class="mb-3 flex items-center gap-1.5 border-b border-border pb-2 text-[12.5px] font-bold text-foreground">
+                  <Icon name="brain" size="sm" class="text-sky-400" />
                   {{ t('admin.ops.diagnosis.title') }}
                 </h4>
 
-                <div>
-                  <div v-for="(item, idx) in diagnosisReport" :key="idx" class="od-diag-item">
+                <div class="space-y-2.5">
+                  <div v-for="(item, idx) in diagnosisReport" :key="idx" class="flex gap-2.5">
                     <div style="flex-shrink:0;margin-top:1px;">
-                      <svg v-if="item.type === 'critical'" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="od-c-bad">
+                      <svg v-if="item.type === 'critical'" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="text-red-400">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                       </svg>
-                      <svg v-else-if="item.type === 'warning'" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="od-c-warn">
+                      <svg v-else-if="item.type === 'warning'" width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="text-amber-400">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                       </svg>
-                      <svg v-else width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="od-c-azure">
+                      <svg v-else width="14" height="14" fill="currentColor" viewBox="0 0 20 20" class="text-sky-400">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 100 2 1 1 0 000-2zm-1 3a1 1 0 012 0v4a1 1 0 11-2 0v-4z" clip-rule="evenodd" />
                       </svg>
                     </div>
                     <div style="flex:1;">
-                      <div class="od-diag-msg">{{ item.message }}</div>
-                      <div class="od-diag-impact">{{ item.impact }}</div>
-                      <div v-if="item.action" class="od-diag-action">
+                      <div class="text-[11.5px] font-semibold text-foreground">{{ item.message }}</div>
+                      <div class="mt-0.5 text-[10.5px] text-muted-foreground">{{ item.impact }}</div>
+                      <div v-if="item.action" class="mt-1 flex items-center gap-1 text-[10.5px] text-sky-400">
                         <Icon name="lightbulb" size="xs" />
                         {{ item.action }}
                       </div>
@@ -1025,7 +1037,7 @@ function handleToolbarRefresh() {
                   </div>
                 </div>
 
-                <div class="od-diag-foot">{{ t('admin.ops.diagnosis.footer') }}</div>
+                <div class="mt-3 border-t border-border pt-2 text-[10px] text-muted-foreground">{{ t('admin.ops.diagnosis.footer') }}</div>
               </div>
             </div>
 
@@ -1037,7 +1049,7 @@ function handleToolbarRefresh() {
                   :r="radius"
                   :stroke-width="strokeWidth"
                   fill="transparent"
-                  stroke="var(--line-0,#20242C)"
+                  stroke="hsl(var(--border))"
                 />
                 <circle
                   :cx="circleSize / 2"
@@ -1053,16 +1065,16 @@ function handleToolbarRefresh() {
                 />
               </svg>
 
-              <div class="od-health-label">
-                <span class="od-health-score" :class="[props.fullscreen ? 'od-fs-num-xl' : 'od-num-xl', healthScoreClass]">
+              <div class="absolute flex flex-col items-center">
+                <span class="font-black leading-none" :class="[props.fullscreen ? 'text-[40px] font-black leading-none text-foreground' : 'text-[26px] font-black leading-none text-foreground', healthScoreClass]">
                   {{ isSystemIdle ? t('admin.ops.idleStatus') : (overview.health_score ?? '--') }}
                 </span>
-                <span class="od-health-tag">{{ t('admin.ops.health') }}</span>
+                <span class="mt-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-muted-foreground">{{ t('admin.ops.health') }}</span>
               </div>
             </div>
 
             <div v-if="!props.fullscreen" style="margin-top:14px;text-align:center;">
-              <div style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-2,#5C6470);">
+              <div class="text-muted-foreground" style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;">
                 {{ t('admin.ops.healthCondition') }}
                 <HelpTooltip :content="t('admin.ops.healthHelp')" />
               </div>
@@ -1083,38 +1095,42 @@ function handleToolbarRefresh() {
             <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
               <div style="display:flex;align-items:center;gap:8px;">
                 <!-- azure 呼吸点 -->
-                <span class="od-live-dot" :title="t('admin.ops.realtime.title')"></span>
-                <h3 class="od-metric-label">{{ t('admin.ops.realtime.title') }}</h3>
+                <span class="relative inline-flex h-2.5 w-2.5 shrink-0" :title="t('admin.ops.realtime.title')">
+                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-65"></span>
+                  <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-sky-400"></span>
+                </span>
+                <h3 class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.realtime.title') }}</h3>
                 <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.qps')" />
               </div>
 
               <!-- Time Window Selector -->
               <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                <button
+                <Button
                   v-for="window in availableRealtimeWindows"
                   :key="window"
                   type="button"
-                  class="od-win-btn"
-                  :class="{ active: realtimeWindow === window }"
+                  size="sm"
+                  class="h-auto rounded-[5px] px-[7px] py-0.5 text-[10px] font-bold"
+                  :class="realtimeWindow === window ? 'bg-sky-500 text-white hover:bg-sky-500' : 'bg-muted text-muted-foreground hover:bg-muted'"
                   @click="realtimeWindow = window"
                 >
                   {{ window }}
-                </button>
+                </Button>
               </div>
             </div>
 
             <div style="display:flex;flex-direction:column;gap:10px;">
               <!-- Row 1: Current -->
               <div>
-                <div class="od-metric-label">{{ t('admin.ops.current') }}</div>
+                <div class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.current') }}</div>
                 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 16px;margin-top:4px;">
                   <div style="display:flex;align-items:baseline;gap:5px;">
-                    <span :class="props.fullscreen ? 'od-fs-num-xl' : 'od-num-xl'">{{ displayRealTimeQps.toFixed(1) }}</span>
-                    <span class="od-unit">QPS</span>
+                    <span :class="props.fullscreen ? 'text-[40px] font-black leading-none text-foreground' : 'text-[26px] font-black leading-none text-foreground'">{{ displayRealTimeQps.toFixed(1) }}</span>
+                    <span class="text-[11px] font-bold text-muted-foreground">QPS</span>
                   </div>
                   <div style="display:flex;align-items:baseline;gap:5px;">
-                    <span :class="props.fullscreen ? 'od-fs-num-xl' : 'od-num-xl'">{{ displayRealTimeTps.toFixed(1) }}</span>
-                    <span class="od-unit">{{ t('admin.ops.tps') }}</span>
+                    <span :class="props.fullscreen ? 'text-[40px] font-black leading-none text-foreground' : 'text-[26px] font-black leading-none text-foreground'">{{ displayRealTimeTps.toFixed(1) }}</span>
+                    <span class="text-[11px] font-bold text-muted-foreground">{{ t('admin.ops.tps') }}</span>
                   </div>
                 </div>
               </div>
@@ -1123,30 +1139,30 @@ function handleToolbarRefresh() {
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <!-- Peak -->
                 <div>
-                  <div class="od-metric-label">{{ t('admin.ops.peak') }}</div>
+                  <div class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.peak') }}</div>
                   <div style="margin-top:4px;display:flex;flex-direction:column;gap:2px;">
                     <div style="display:flex;align-items:baseline;gap:5px;">
-                      <span class="od-num-md">{{ realtimeQpsPeakLabel }}</span>
-                      <span class="od-unit">QPS</span>
+                      <span class="text-sm font-bold text-foreground">{{ realtimeQpsPeakLabel }}</span>
+                      <span class="text-[11px] font-bold text-muted-foreground">QPS</span>
                     </div>
                     <div style="display:flex;align-items:baseline;gap:5px;">
-                      <span class="od-num-md">{{ realtimeTpsPeakLabel }}</span>
-                      <span class="od-unit">{{ t('admin.ops.tps') }}</span>
+                      <span class="text-sm font-bold text-foreground">{{ realtimeTpsPeakLabel }}</span>
+                      <span class="text-[11px] font-bold text-muted-foreground">{{ t('admin.ops.tps') }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Average -->
                 <div>
-                  <div class="od-metric-label">{{ t('admin.ops.average') }}</div>
+                  <div class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.average') }}</div>
                   <div style="margin-top:4px;display:flex;flex-direction:column;gap:2px;">
                     <div style="display:flex;align-items:baseline;gap:5px;">
-                      <span class="od-num-md">{{ realtimeQpsAvgLabel }}</span>
-                      <span class="od-unit">QPS</span>
+                      <span class="text-sm font-bold text-foreground">{{ realtimeQpsAvgLabel }}</span>
+                      <span class="text-[11px] font-bold text-muted-foreground">QPS</span>
                     </div>
                     <div style="display:flex;align-items:baseline;gap:5px;">
-                      <span class="od-num-md">{{ realtimeTpsAvgLabel }}</span>
-                      <span class="od-unit">{{ t('admin.ops.tps') }}</span>
+                      <span class="text-sm font-bold text-foreground">{{ realtimeTpsAvgLabel }}</span>
+                      <span class="text-[11px] font-bold text-muted-foreground">{{ t('admin.ops.tps') }}</span>
                     </div>
                   </div>
                 </div>
@@ -1154,11 +1170,11 @@ function handleToolbarRefresh() {
 
               <!-- Animated Pulse Line (Heart Beat) -->
               <div style="height:28px;width:100%;overflow:hidden;opacity:.45;">
-                <svg class="od-pulse-svg" viewBox="0 0 280 32" preserveAspectRatio="none">
+                <svg class="h-full w-full" viewBox="0 0 280 32" preserveAspectRatio="none">
                   <path
                     d="M0 16 Q 20 16, 40 16 T 80 16 T 120 10 T 160 22 T 200 16 T 240 16 T 280 16"
                     fill="none"
-                    stroke="var(--ops-azure)"
+                    stroke="hsl(var(--primary))"
                     stroke-width="2"
                     vector-effect="non-scaling-stroke"
                   >
@@ -1177,248 +1193,248 @@ function handleToolbarRefresh() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- Right: 6 cards (3 cols x 2 rows) -->
       <div class="grid h-full grid-cols-1 content-center gap-3 sm:grid-cols-2 lg:col-span-7 lg:grid-cols-3">
         <!-- Card 1: Requests -->
-        <div class="od-stat-card" style="order:1;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:1;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-stat-label">{{ t('admin.ops.requestsTitle') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.requestsTitle') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.totalRequests')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openDetails({ title: t('admin.ops.requestDetails.title') })">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openDetails({ title: t('admin.ops.requestDetails.title') })">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.requests') }}</span><span class="od-stat-sub-val">{{ totalRequestsLabel }}</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.tokens') }}</span><span class="od-stat-sub-val">{{ totalTokensLabel }}</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.avgQps') }}</span><span class="od-stat-sub-val">{{ qpsAvgLabel }}</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.avgTps') }}</span><span class="od-stat-sub-val">{{ tpsAvgLabel }}</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.requests') }}</span><span class="font-bold text-foreground">{{ totalRequestsLabel }}</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.tokens') }}</span><span class="font-bold text-foreground">{{ totalTokensLabel }}</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.avgQps') }}</span><span class="font-bold text-foreground">{{ qpsAvgLabel }}</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.avgTps') }}</span><span class="font-bold text-foreground">{{ tpsAvgLabel }}</span></div>
           </div>
         </div>
 
         <!-- Card 2: SLA -->
-        <div class="od-stat-card" style="order:2;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:2;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span class="od-stat-label">{{ t('admin.ops.sla') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.sla') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.sla')" />
-              <span class="od-stat-dot" :class="getSLAThresholdLevel(slaPercent) === 'critical' ? 'bad' : getSLAThresholdLevel(slaPercent) === 'warning' ? 'warn' : 'ok'"></span>
+              <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full" :class="getSLAThresholdLevel(slaPercent) === 'critical' ? 'bg-red-400' : getSLAThresholdLevel(slaPercent) === 'warning' ? 'bg-amber-400' : 'bg-emerald-400'"></span>
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openDetails({ title: t('admin.ops.requestDetails.title'), kind: 'error' })">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openDetails({ title: t('admin.ops.requestDetails.title'), kind: 'error' })">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
-          <div class="od-stat-big" :class="getThresholdColorClass(getSLAThresholdLevel(slaPercent))">
+          <div class="mt-1.5 text-[28px] font-black leading-none" :class="getThresholdColorClass(getSLAThresholdLevel(slaPercent))">
             {{ slaPercent == null ? '-' : `${slaPercent.toFixed(3)}%` }}
           </div>
-          <div class="od-stat-bar">
-            <div class="od-stat-bar-fill" :class="getSLAThresholdLevel(slaPercent) === 'critical' ? 'bad' : getSLAThresholdLevel(slaPercent) === 'warning' ? 'warn' : 'ok'" :style="{ width: `${Math.max((slaPercent ?? 0) - 90, 0) * 10}%` }"></div>
+          <div class="mt-2.5 h-1.5 overflow-hidden rounded-[3px] bg-muted">
+            <div class="h-full rounded-[3px] transition-[width]" :class="getSLAThresholdLevel(slaPercent) === 'critical' ? 'bg-red-400' : getSLAThresholdLevel(slaPercent) === 'warning' ? 'bg-amber-400' : 'bg-emerald-400'" :style="{ width: `${Math.max((slaPercent ?? 0) - 90, 0) * 10}%` }"></div>
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.exceptions') }}</span><span class="od-stat-sub-val od-c-bad">{{ formatNumber((overview.request_count_sla ?? 0) - (overview.success_count ?? 0)) }}</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.exceptions') }}</span><span class="font-bold text-red-400">{{ formatNumber((overview.request_count_sla ?? 0) - (overview.success_count ?? 0)) }}</span></div>
           </div>
         </div>
 
         <!-- Card 4: Request Duration -->
-        <div class="od-stat-card" style="order:4;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:4;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-stat-label">{{ t('admin.ops.latencyDuration') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.latencyDuration') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.latency')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openDetails({ title: t('admin.ops.latencyDuration'), sort: 'duration_desc' })">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openDetails({ title: t('admin.ops.latencyDuration'), sort: 'duration_desc' })">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
           <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;">
-            <span class="od-stat-big" style="color:var(--ink-0,#E8EBF0);">{{ durationP99Ms ?? '-' }}</span>
-            <span class="od-unit">ms (P99)</span>
+            <span class="mt-1.5 text-[28px] font-black leading-none text-foreground">{{ durationP99Ms ?? '-' }}</span>
+            <span class="text-[11px] font-bold text-muted-foreground">ms (P99)</span>
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P95</span><span class="od-stat-sub-val">{{ durationP95Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P90</span><span class="od-stat-sub-val">{{ durationP90Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P50</span><span class="od-stat-sub-val">{{ durationP50Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">Avg</span><span class="od-stat-sub-val">{{ durationAvgMs ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">Max</span><span class="od-stat-sub-val">{{ durationMaxMs ?? '-' }} ms</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">P95</span><span class="font-bold text-foreground">{{ durationP95Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">P90</span><span class="font-bold text-foreground">{{ durationP90Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">P50</span><span class="font-bold text-foreground">{{ durationP50Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Avg</span><span class="font-bold text-foreground">{{ durationAvgMs ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Max</span><span class="font-bold text-foreground">{{ durationMaxMs ?? '-' }} ms</span></div>
           </div>
         </div>
 
         <!-- Card 5: TTFT -->
-        <div class="od-stat-card" style="order:5;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:5;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-stat-label">TTFT</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">TTFT</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.ttft')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openDetails({ title: t('admin.ops.ttftLabel'), sort: 'duration_desc' })">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openDetails({ title: t('admin.ops.ttftLabel'), sort: 'duration_desc' })">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
           <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;">
-            <span class="od-stat-big" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP99Ms))">{{ ttftP99Ms ?? '-' }}</span>
-            <span class="od-unit">ms (P99)</span>
+            <span class="mt-1.5 text-[28px] font-black leading-none" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP99Ms))">{{ ttftP99Ms ?? '-' }}</span>
+            <span class="text-[11px] font-bold text-muted-foreground">ms (P99)</span>
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P95</span><span class="od-stat-sub-val" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP95Ms))">{{ ttftP95Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P90</span><span class="od-stat-sub-val" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP90Ms))">{{ ttftP90Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">P50</span><span class="od-stat-sub-val" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP50Ms))">{{ ttftP50Ms ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">Avg</span><span class="od-stat-sub-val" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftAvgMs))">{{ ttftAvgMs ?? '-' }} ms</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">Max</span><span class="od-stat-sub-val" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftMaxMs))">{{ ttftMaxMs ?? '-' }} ms</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">P95</span><span class="font-bold text-foreground" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP95Ms))">{{ ttftP95Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">P90</span><span class="font-bold text-foreground" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP90Ms))">{{ ttftP90Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">P50</span><span class="font-bold text-foreground" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftP50Ms))">{{ ttftP50Ms ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Avg</span><span class="font-bold text-foreground" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftAvgMs))">{{ ttftAvgMs ?? '-' }} ms</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Max</span><span class="font-bold text-foreground" :class="getThresholdColorClass(getTTFTThresholdLevel(ttftMaxMs))">{{ ttftMaxMs ?? '-' }} ms</span></div>
           </div>
         </div>
 
         <!-- Card 3: Request Errors -->
-        <div class="od-stat-card" style="order:3;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:3;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-stat-label">{{ t('admin.ops.requestErrors') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.requestErrors') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.errors')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openErrorDetails('request')">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openErrorDetails('request')">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
-          <div class="od-stat-big" style="margin-top:6px;" :class="getThresholdColorClass(getRequestErrorRateThresholdLevel(errorRatePercent))">
+          <div class="mt-1.5 text-[28px] font-black leading-none" style="margin-top:6px;" :class="getThresholdColorClass(getRequestErrorRateThresholdLevel(errorRatePercent))">
             {{ errorRatePercent == null ? '-' : `${errorRatePercent.toFixed(2)}%` }}
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.errorCount') }}</span><span class="od-stat-sub-val">{{ formatNumber(overview.error_count_sla ?? 0) }}</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.businessLimited') }}</span><span class="od-stat-sub-val">{{ formatNumber(overview.business_limited_count ?? 0) }}</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.errorCount') }}</span><span class="font-bold text-foreground">{{ formatNumber(overview.error_count_sla ?? 0) }}</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.businessLimited') }}</span><span class="font-bold text-foreground">{{ formatNumber(overview.business_limited_count ?? 0) }}</span></div>
           </div>
         </div>
 
         <!-- Card 6: Upstream Errors -->
-        <div class="od-stat-card" style="order:6;">
+        <div class="rounded-[10px] border border-border bg-card p-[14px]" style="order:6;">
           <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-stat-label">{{ t('admin.ops.upstreamErrors') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.upstreamErrors') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.upstreamErrors')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openErrorDetails('upstream')">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openErrorDetails('upstream')">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
-          <div class="od-stat-big" style="margin-top:6px;" :class="getThresholdColorClass(getUpstreamErrorRateThresholdLevel(upstreamErrorRatePercent))">
+          <div class="mt-1.5 text-[28px] font-black leading-none" style="margin-top:6px;" :class="getThresholdColorClass(getUpstreamErrorRateThresholdLevel(upstreamErrorRatePercent))">
             {{ upstreamErrorRatePercent == null ? '-' : `${upstreamErrorRatePercent.toFixed(2)}%` }}
           </div>
-          <div class="od-stat-sub" style="margin-top:8px;">
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">{{ t('admin.ops.errorCountExcl429529') }}</span><span class="od-stat-sub-val">{{ formatNumber(overview.upstream_error_count_excl_429_529 ?? 0) }}</span></div>
-            <div class="od-stat-sub-row"><span class="od-stat-sub-key">429/529</span><span class="od-stat-sub-val">{{ formatNumber((overview.upstream_429_count ?? 0) + (overview.upstream_529_count ?? 0)) }}</span></div>
+          <div class="flex flex-col gap-[3px] text-[11.5px]" style="margin-top:8px;">
+            <div class="flex justify-between"><span class="text-muted-foreground">{{ t('admin.ops.errorCountExcl429529') }}</span><span class="font-bold text-foreground">{{ formatNumber(overview.upstream_error_count_excl_429_529 ?? 0) }}</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">429/529</span><span class="font-bold text-foreground">{{ formatNumber((overview.upstream_429_count ?? 0) + (overview.upstream_529_count ?? 0)) }}</span></div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Integrated: System health (cards) -->
-    <div v-if="overview" style="margin-top:8px;border-top:1px solid var(--line-0,#20242C);padding-top:14px;">
+    <div v-if="overview" style="margin-top:8px;border-top:1px solid hsl(var(--border));padding-top:14px;">
       <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <!-- CPU -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;gap:4px;">
-            <span class="od-sys-label">CPU</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">CPU</span>
             <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.cpu')" />
           </div>
-          <div class="od-sys-val" :class="cpuPercentClass">{{ cpuPercentValue == null ? '-' : `${cpuPercentValue.toFixed(1)}%` }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">{{ t('common.warning') }} 80% · {{ t('common.critical') }} 95%</div>
+          <div class="mt-[3px] text-base font-black" :class="cpuPercentClass">{{ cpuPercentValue == null ? '-' : `${cpuPercentValue.toFixed(1)}%` }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">{{ t('common.warning') }} 80% · {{ t('common.critical') }} 95%</div>
         </div>
 
         <!-- MEM -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;gap:4px;">
-            <span class="od-sys-label">{{ t('admin.ops.memory') }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.memory') }}</span>
             <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.memory')" />
           </div>
-          <div class="od-sys-val" :class="memPercentClass">{{ memPercentValue == null ? '-' : `${memPercentValue.toFixed(1)}%` }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">
+          <div class="mt-[3px] text-base font-black" :class="memPercentClass">{{ memPercentValue == null ? '-' : `${memPercentValue.toFixed(1)}%` }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">
             {{ systemMetrics?.memory_used_mb == null || systemMetrics?.memory_total_mb == null ? '-' : `${formatNumber(systemMetrics.memory_used_mb)} / ${formatNumber(systemMetrics.memory_total_mb)} MB` }}
           </div>
         </div>
 
         <!-- DB -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;gap:4px;">
-            <span class="od-sys-label">{{ t('admin.ops.db') }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.db') }}</span>
             <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.db')" />
           </div>
-          <div class="od-sys-val" :class="dbMiddleClass">{{ dbMiddleLabel }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">
+          <div class="mt-[3px] text-base font-black" :class="dbMiddleClass">{{ dbMiddleLabel }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">
             {{ t('admin.ops.conns') }} {{ dbConnOpenValue ?? '-' }} / {{ dbMaxOpenConnsValue ?? '-' }} · {{ t('admin.ops.active') }} {{ dbConnActiveValue ?? '-' }} · {{ t('admin.ops.idle') }} {{ dbConnIdleValue ?? '-' }}<span v-if="dbConnWaitingValue != null"> · {{ t('admin.ops.waiting') }} {{ dbConnWaitingValue }}</span>
           </div>
         </div>
 
         <!-- Redis -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;gap:4px;">
-            <span class="od-sys-label">Redis</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">Redis</span>
             <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.redis')" />
           </div>
-          <div class="od-sys-val" :class="redisMiddleClass">{{ redisMiddleLabel }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">
+          <div class="mt-[3px] text-base font-black" :class="redisMiddleClass">{{ redisMiddleLabel }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">
             {{ t('admin.ops.conns') }} {{ redisConnTotalValue ?? '-' }} / {{ redisPoolSizeValue ?? '-' }}<span v-if="redisConnActiveValue != null"> · {{ t('admin.ops.active') }} {{ redisConnActiveValue }}</span><span v-if="redisConnIdleValue != null"> · {{ t('admin.ops.idle') }} {{ redisConnIdleValue }}</span>
           </div>
         </div>
 
         <!-- Goroutines -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;gap:4px;">
-            <span class="od-sys-label">{{ t('admin.ops.goroutines') }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.goroutines') }}</span>
             <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.goroutines')" />
           </div>
-          <div class="od-sys-val" :class="goroutineStatusClass">{{ goroutineStatusLabel }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">
-            {{ t('admin.ops.current') }} <span class="od-mono">{{ goroutineCountValue ?? '-' }}</span> · {{ t('common.warning') }} <span class="od-mono">{{ goroutinesWarnThreshold }}</span> · {{ t('common.critical') }} <span class="od-mono">{{ goroutinesCriticalThreshold }}</span><span v-if="systemMetrics?.concurrency_queue_depth != null"> · {{ t('admin.ops.queue') }} <span class="od-mono">{{ systemMetrics.concurrency_queue_depth }}</span></span>
+          <div class="mt-[3px] text-base font-black" :class="goroutineStatusClass">{{ goroutineStatusLabel }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">
+            {{ t('admin.ops.current') }} <span class="font-mono tabular-nums">{{ goroutineCountValue ?? '-' }}</span> · {{ t('common.warning') }} <span class="font-mono tabular-nums">{{ goroutinesWarnThreshold }}</span> · {{ t('common.critical') }} <span class="font-mono tabular-nums">{{ goroutinesCriticalThreshold }}</span><span v-if="systemMetrics?.concurrency_queue_depth != null"> · {{ t('admin.ops.queue') }} <span class="font-mono tabular-nums">{{ systemMetrics.concurrency_queue_depth }}</span></span>
           </div>
         </div>
 
         <!-- Jobs -->
-        <div class="od-sys-card">
+        <div class="rounded-[10px] border border-border bg-card p-3">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <span class="od-sys-label">{{ t('admin.ops.jobs') }}</span>
+              <span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">{{ t('admin.ops.jobs') }}</span>
               <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.jobs')" />
             </div>
-            <button v-if="!props.fullscreen" class="od-stat-link" type="button" @click="openJobsDetails">
+            <Button v-if="!props.fullscreen" variant="link" type="button" class="h-auto p-0 text-[10px] font-bold text-sky-400" @click="openJobsDetails">
               {{ t('admin.ops.requestDetails.details') }}
-            </button>
+            </Button>
           </div>
-          <div class="od-sys-val" :class="jobsStatusClass">{{ jobsStatusLabel }}</div>
-          <div v-if="!props.fullscreen" class="od-sys-sub">
-            {{ t('common.total') }} <span class="od-mono">{{ jobHeartbeats.length }}</span> · {{ t('common.warning') }} <span class="od-mono">{{ jobsWarnCount }}</span>
+          <div class="mt-[3px] text-base font-black" :class="jobsStatusClass">{{ jobsStatusLabel }}</div>
+          <div v-if="!props.fullscreen" class="mt-1 text-[10px] leading-normal text-muted-foreground">
+            {{ t('common.total') }} <span class="font-mono tabular-nums">{{ jobHeartbeats.length }}</span> · {{ t('common.warning') }} <span class="font-mono tabular-nums">{{ jobsWarnCount }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <BaseDialog :show="showJobsDetails" :title="t('admin.ops.jobs')" width="wide" @close="showJobsDetails = false">
-      <div v-if="!jobHeartbeats.length" style="font-size:13px;color:var(--ink-2,#5C6470);">
+      <div v-if="!jobHeartbeats.length" class="text-muted-foreground" style="font-size:13px;">
         {{ t('admin.ops.noData') }}
       </div>
       <div v-else style="display:flex;flex-direction:column;gap:10px;">
         <div
           v-for="hb in jobHeartbeats"
           :key="hb.job_name"
-          class="od-card"
+          class="rounded-xl border border-border bg-card"
           style="padding:14px;"
         >
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-            <div style="font-size:13px;font-weight:600;color:var(--ink-0,#E8EBF0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hb.job_name }}</div>
-            <div style="display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--ink-2,#5C6470);flex-shrink:0;">
-              <span v-if="hb.last_duration_ms != null" class="od-mono">{{ hb.last_duration_ms }}ms</span>
+            <div style="font-size:13px;font-weight:600;color:hsl(var(--foreground));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hb.job_name }}</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:11.5px;color:hsl(var(--muted-foreground));flex-shrink:0;">
+              <span v-if="hb.last_duration_ms != null" class="font-mono tabular-nums">{{ hb.last_duration_ms }}ms</span>
               <span>{{ formatTimeShort(hb.updated_at) }}</span>
             </div>
           </div>
 
-          <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.5px;color:var(--ink-1,#97A0AF);">
-            <div>{{ t('admin.ops.lastSuccess') }} <span class="od-mono">{{ formatTimeShort(hb.last_success_at) }}</span></div>
-            <div>{{ t('admin.ops.lastError') }} <span class="od-mono">{{ formatTimeShort(hb.last_error_at) }}</span></div>
-            <div>{{ t('admin.ops.result') }} <span class="od-mono">{{ hb.last_result || '-' }}</span></div>
+          <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.5px;color:hsl(var(--muted-foreground));">
+            <div>{{ t('admin.ops.lastSuccess') }} <span class="font-mono tabular-nums">{{ formatTimeShort(hb.last_success_at) }}</span></div>
+            <div>{{ t('admin.ops.lastError') }} <span class="font-mono tabular-nums">{{ formatTimeShort(hb.last_error_at) }}</span></div>
+            <div>{{ t('admin.ops.result') }} <span class="font-mono tabular-nums">{{ hb.last_result || '-' }}</span></div>
           </div>
 
-          <div v-if="hb.last_error" style="margin-top:10px;border-radius:8px;background:var(--ops-bad-dim);padding:8px;font-size:11.5px;color:var(--ops-bad);">
+          <div v-if="hb.last_error" class="bg-destructive/10 text-destructive" style="margin-top:10px;border-radius:8px;padding:8px;font-size:11.5px;">
             {{ hb.last_error }}
           </div>
         </div>
@@ -1429,20 +1445,19 @@ function handleToolbarRefresh() {
     <BaseDialog :show="showCustomTimeRangeDialog" :title="t('admin.ops.timeRange.custom')" width="narrow" @close="handleCustomTimeRangeCancel">
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
-          <label class="od-form-label">{{ t('admin.ops.customTimeRange.startTime') }}</label>
-          <input v-model="customStartTimeInput" type="datetime-local" class="od-input-dt" />
+          <Label class="mb-1 block text-muted-foreground">{{ t('admin.ops.customTimeRange.startTime') }}</Label>
+          <Input v-model="customStartTimeInput" type="datetime-local" />
         </div>
         <div>
-          <label class="od-form-label">{{ t('admin.ops.customTimeRange.endTime') }}</label>
-          <input v-model="customEndTimeInput" type="datetime-local" class="od-input-dt" />
+          <Label class="mb-1 block text-muted-foreground">{{ t('admin.ops.customTimeRange.endTime') }}</Label>
+          <Input v-model="customEndTimeInput" type="datetime-local" />
         </div>
         <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px;">
-          <button type="button" class="od-btn" @click="handleCustomTimeRangeCancel">{{ t('common.cancel') }}</button>
-          <button type="button" class="od-btn od-btn-azure" @click="handleCustomTimeRangeConfirm">{{ t('common.confirm') }}</button>
+          <Button type="button" variant="outline" size="sm" @click="handleCustomTimeRangeCancel">{{ t('common.cancel') }}</Button>
+          <Button type="button" size="sm" class="bg-sky-500 text-white hover:bg-sky-600" @click="handleCustomTimeRangeConfirm">{{ t('common.confirm') }}</Button>
         </div>
       </div>
     </BaseDialog>
   </div>
 </template>
 
-<style src="../ops-quench.css"></style>

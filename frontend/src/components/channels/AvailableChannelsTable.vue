@@ -1,5 +1,5 @@
 <template>
-  <div class="card overflow-hidden">
+  <Card class="overflow-hidden">
     <table class="w-full table-fixed border-collapse text-sm">
       <thead>
         <tr class="border-b border-border bg-muted text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -79,7 +79,7 @@
                 class="flex flex-wrap items-center gap-1.5"
               >
                 <span
-                  class="inline-flex items-center gap-0.5 text-[10px] font-medium uppercase text-primary-200"
+                  class="inline-flex items-center gap-0.5 text-[10px] font-medium uppercase text-primary"
                   :title="t('availableChannels.exclusiveTooltip')"
                 >
                   <Icon name="shield" size="xs" class="h-3 w-3" />
@@ -142,11 +142,12 @@
         </tr>
       </tbody>
     </table>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { Card } from '@/components/ui/card'
 import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'

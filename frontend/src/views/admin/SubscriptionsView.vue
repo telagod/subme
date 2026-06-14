@@ -16,28 +16,30 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="filterUserKeyword"
                 type="text"
                 :placeholder="t('admin.users.searchUsers')"
-                class="input pl-10 pr-8"
+                class="pl-10 pr-8"
                 @input="debounceSearchFilterUsers"
                 @focus="showFilterUserDropdown = true"
               />
-              <button
+              <Button
                 v-if="selectedFilterUser"
+                variant="ghost"
+                size="icon"
                 @click="clearFilterUser"
                 type="button"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                class="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 :title="t('common.clear')"
               >
                 <Icon name="x" size="sm" :stroke-width="2" />
-              </button>
+              </Button>
 
               <!-- User Dropdown -->
               <div
                 v-if="showFilterUserDropdown && (filterUserResults.length > 0 || filterUserKeyword)"
-                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card "
+                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-popover"
               >
                 <div
                   v-if="filterUserLoading"
@@ -51,16 +53,17 @@
                 >
                   {{ t('common.noOptionsFound') }}
                 </div>
-                <button
+                <Button
                   v-for="user in filterUserResults"
                   :key="user.id"
                   type="button"
+                  variant="ghost"
                   @click="selectFilterUser(user)"
-                  class="w-full px-4 py-2 text-left text-sm hover:bg-accent"
+                  class="h-auto w-full justify-start rounded-none px-4 py-2 text-left text-sm font-normal hover:bg-accent"
                 >
                   <span class="font-medium text-foreground">{{ user.email }}</span>
                   <span class="ml-2 text-muted-foreground">#{{ user.id }}</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -93,30 +96,33 @@
 
           <!-- Right: Actions -->
           <div class="ml-auto flex flex-wrap items-center justify-end gap-3">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               @click="loadSubscriptions"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
+            </Button>
             <!-- Column Settings Dropdown -->
             <div class="relative" ref="columnDropdownRef">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 @click="showColumnDropdown = !showColumnDropdown"
-                class="btn btn-secondary px-2 md:px-3"
+                class="px-2 md:px-3"
                 :title="t('admin.users.columnSettings')"
               >
                 <svg class="h-4 w-4 md:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
                 <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-              </button>
+              </Button>
               <!-- Dropdown menu -->
               <div
                 v-if="showColumnDropdown"
-                class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md border border-border bg-card "
+                class="absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-md border border-border bg-popover "
               >
                 <div class="p-2">
                   <!-- User column mode selection -->
@@ -124,45 +130,49 @@
                     <div class="px-3 py-1 text-xs font-medium text-muted-foreground">
                       {{ t('admin.subscriptions.columns.user') }}
                     </div>
-                    <button
+                    <Button
+                      variant="ghost"
                       @click="setUserColumnMode('email')"
-                      class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-foreground/85 hover:bg-accent"
+                      class="flex h-auto w-full items-center justify-between rounded-md px-3 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
                     >
                       <span>{{ t('admin.users.columns.email') }}</span>
-                      <Icon v-if="userColumnMode === 'email'" name="check" size="sm" class="text-primary-200" />
-                    </button>
-                    <button
+                      <Icon v-if="userColumnMode === 'email'" name="check" size="sm" class="text-primary" />
+                    </Button>
+                    <Button
+                      variant="ghost"
                       @click="setUserColumnMode('username')"
-                      class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-foreground/85 hover:bg-accent"
+                      class="flex h-auto w-full items-center justify-between rounded-md px-3 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
                     >
                       <span>{{ t('admin.users.columns.username') }}</span>
-                      <Icon v-if="userColumnMode === 'username'" name="check" size="sm" class="text-primary-200" />
-                    </button>
+                      <Icon v-if="userColumnMode === 'username'" name="check" size="sm" class="text-primary" />
+                    </Button>
                   </div>
                   <!-- Other columns toggle -->
-                  <button
+                  <Button
                     v-for="col in toggleableColumns"
                     :key="col.key"
+                    variant="ghost"
                     @click="toggleColumn(col.key)"
-                    class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm text-foreground/85 hover:bg-accent"
+                    class="flex h-auto w-full items-center justify-between rounded-md px-3 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
                   >
                     <span>{{ col.label }}</span>
-                    <Icon v-if="isColumnVisible(col.key)" name="check" size="sm" class="text-primary-200" />
-                  </button>
+                    <Icon v-if="isColumnVisible(col.key)" name="check" size="sm" class="text-primary" />
+                  </Button>
                 </div>
               </div>
             </div>
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               @click="showGuideModal = true"
-              class="btn btn-secondary"
               :title="t('admin.subscriptions.guide.showGuide')"
             >
               <Icon name="questionCircle" size="md" />
-            </button>
-            <button @click="showAssignModal = true" class="btn btn-primary">
+            </Button>
+            <Button size="sm" @click="showAssignModal = true">
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.subscriptions.assignSubscription') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -181,9 +191,9 @@
           <template #cell-user="{ row }">
             <div class="flex items-center gap-2">
               <div
-                class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary "
+                class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary"
               >
-                <span class="text-sm font-medium text-primary-200">
+                <span class="text-sm font-medium text-primary">
                   {{ userColumnMode === 'email'
                     ? (row.user?.email?.charAt(0).toUpperCase() || '?')
                     : (row.user?.username?.charAt(0).toUpperCase() || '?')
@@ -333,8 +343,8 @@
                 "
                 class="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2"
               >
-                <span class="text-lg text-emerald-400">∞</span>
-                <span class="text-xs font-medium text-emerald-400">
+                <span class="text-lg text-emerald-500">∞</span>
+                <span class="text-xs font-medium text-emerald-500">
                   {{ t('admin.subscriptions.unlimited') }}
                 </span>
               </div>
@@ -347,7 +357,7 @@
                 class="text-sm"
                 :class="
                   isExpiringSoon(value)
-                    ? 'text-amber-400'
+                    ? 'text-amber-500'
                     : 'text-foreground/85'
                 "
               >
@@ -363,47 +373,50 @@
           </template>
 
           <template #cell-status="{ value }">
-            <span
-              :class="[
-                'badge',
+            <Badge
+              variant="outline"
+              :class="
                 value === 'active'
-                  ? 'badge-success'
+                  ? 'border-emerald-500/35 bg-emerald-500/10 text-emerald-500'
                   : value === 'expired'
-                    ? 'badge-warning'
-                    : 'badge-danger'
-              ]"
+                    ? 'border-amber-500/35 bg-amber-500/10 text-amber-500'
+                    : 'border-destructive/35 bg-destructive/10 text-destructive'
+              "
             >
               {{ t(`admin.subscriptions.status.${value}`) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
-              <button
+              <Button
                 v-if="row.status === 'active' || row.status === 'expired'"
+                variant="ghost"
                 @click="handleExtend(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                class="flex h-auto flex-col items-center gap-0.5 rounded-md p-1.5 text-xs font-normal text-muted-foreground hover:bg-accent hover:text-foreground"
               >
                 <Icon name="calendar" size="sm" />
                 <span class="text-xs">{{ t('admin.subscriptions.adjust') }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 v-if="row.status === 'active'"
+                variant="ghost"
                 @click="handleResetQuota(row)"
                 :disabled="resettingQuota && resettingSubscription?.id === row.id"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                class="flex h-auto flex-col items-center gap-0.5 rounded-md p-1.5 text-xs font-normal text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Icon name="refresh" size="sm" />
                 <span class="text-xs">{{ t('admin.subscriptions.resetQuota') }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 v-if="row.status === 'active'"
+                variant="ghost"
                 @click="handleRevoke(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
+                class="flex h-auto flex-col items-center gap-0.5 rounded-md p-1.5 text-xs font-normal text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="ban" size="sm" />
                 <span class="text-xs">{{ t('admin.subscriptions.revoke') }}</span>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -444,28 +457,30 @@
         class="space-y-5"
       >
         <div>
-          <label class="input-label">{{ t('admin.subscriptions.form.user') }}</label>
+          <Label class="mb-1.5 block text-foreground">{{ t('admin.subscriptions.form.user') }}</Label>
           <div class="relative" data-assign-user-search>
-            <input
+            <Input
               v-model="userSearchKeyword"
               type="text"
-              class="input pr-8"
+              class="pr-8"
               :placeholder="t('admin.usage.searchUserPlaceholder')"
               @input="debounceSearchUsers"
               @focus="showUserDropdown = true"
             />
-            <button
+            <Button
               v-if="selectedUser"
+              variant="ghost"
+              size="icon"
               @click="clearUserSelection"
               type="button"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              class="absolute right-2 top-1/2 h-6 w-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <Icon name="x" size="sm" :stroke-width="2" />
-            </button>
+            </Button>
             <!-- User Dropdown -->
             <div
               v-if="showUserDropdown && (userSearchResults.length > 0 || userSearchKeyword)"
-              class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card "
+              class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-popover"
             >
               <div
                 v-if="userSearchLoading"
@@ -479,21 +494,22 @@
               >
                 {{ t('common.noOptionsFound') }}
               </div>
-              <button
+              <Button
                 v-for="user in userSearchResults"
                 :key="user.id"
                 type="button"
+                variant="ghost"
                 @click="selectUser(user)"
-                class="w-full px-4 py-2 text-left text-sm hover:bg-accent"
+                class="h-auto w-full justify-start rounded-none px-4 py-2 text-left text-sm font-normal hover:bg-accent"
               >
                 <span class="font-medium text-foreground">{{ user.email }}</span>
                 <span class="ml-2 text-muted-foreground">#{{ user.id }}</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.subscriptions.form.group') }}</label>
+          <Label class="mb-1.5 block text-foreground">{{ t('admin.subscriptions.form.group') }}</Label>
           <Select
             v-model="assignForm.group_id"
             :options="subscriptionGroupOptions"
@@ -520,24 +536,23 @@
               />
             </template>
           </Select>
-          <p class="input-hint">{{ t('admin.subscriptions.groupHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.subscriptions.groupHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.subscriptions.form.validityDays') }}</label>
-          <input v-model.number="assignForm.validity_days" type="number" min="1" class="input" />
-          <p class="input-hint">{{ t('admin.subscriptions.validityHint') }}</p>
+          <Label class="mb-1.5 block text-foreground">{{ t('admin.subscriptions.form.validityDays') }}</Label>
+          <Input v-model.number="assignForm.validity_days" type="number" min="1" />
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.subscriptions.validityHint') }}</p>
         </div>
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeAssignModal" type="button" class="btn btn-secondary">
+          <Button @click="closeAssignModal" type="button" variant="outline">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="assign-subscription-form"
             :disabled="submitting"
-            class="btn btn-primary"
           >
             <svg
               v-if="submitting"
@@ -560,7 +575,7 @@
               ></path>
             </svg>
             {{ submitting ? t('admin.subscriptions.assigning') : t('admin.subscriptions.assign') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -603,32 +618,31 @@
           </p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.subscriptions.form.adjustDays') }}</label>
+          <Label class="mb-1.5 block text-foreground">{{ t('admin.subscriptions.form.adjustDays') }}</Label>
           <div class="flex items-center gap-2">
-            <input
+            <Input
               v-model.number="extendForm.days"
               type="number"
               required
-              class="input text-center"
+              class="text-center"
               :placeholder="t('admin.subscriptions.adjustDaysPlaceholder')"
             />
           </div>
-          <p class="input-hint">{{ t('admin.subscriptions.adjustHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.subscriptions.adjustHint') }}</p>
         </div>
       </form>
       <template #footer>
         <div v-if="extendingSubscription" class="flex justify-end gap-3">
-          <button @click="closeExtendModal" type="button" class="btn btn-secondary">
+          <Button @click="closeExtendModal" type="button" variant="outline">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="extend-subscription-form"
             :disabled="submitting"
-            class="btn btn-primary"
           >
             {{ submitting ? t('admin.subscriptions.adjusting') : t('admin.subscriptions.adjust') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -660,10 +674,10 @@
       <transition name="modal">
         <div v-if="showGuideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @mousedown.self="showGuideModal = false">
           <div class="fixed inset-0 bg-black/50" @click="showGuideModal = false"></div>
-          <div class="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card p-6 ">
-            <button type="button" class="absolute right-4 top-4 text-muted-foreground hover:text-foreground" @click="showGuideModal = false">
+          <div class="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card p-6">
+            <Button variant="ghost" size="icon" type="button" class="absolute right-4 top-4 h-8 w-8 text-muted-foreground hover:text-foreground" @click="showGuideModal = false">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
+            </Button>
 
             <h2 class="mb-4 text-lg font-bold text-foreground">{{ t('admin.subscriptions.guide.title') }}</h2>
             <p class="mb-5 text-sm text-muted-foreground">{{ t('admin.subscriptions.guide.subtitle') }}</p>
@@ -671,7 +685,7 @@
             <!-- Step 1 -->
             <div class="mb-5">
               <h3 class="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary-200 ">1</span>
+                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary">1</span>
                 {{ t('admin.subscriptions.guide.step1.title') }}
               </h3>
               <ol class="ml-8 list-decimal space-y-1 text-sm text-foreground/85">
@@ -683,7 +697,7 @@
                 <router-link
                   to="/admin/groups"
                   @click="showGuideModal = false"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-primary-200 hover:text-primary-100"
+                  class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80"
                 >
                   {{ t('admin.subscriptions.guide.step1.link') }}
                   <Icon name="arrowRight" size="xs" />
@@ -694,7 +708,7 @@
             <!-- Step 2 -->
             <div class="mb-5">
               <h3 class="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary-200 ">2</span>
+                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary">2</span>
                 {{ t('admin.subscriptions.guide.step2.title') }}
               </h3>
               <ol class="ml-8 list-decimal space-y-1 text-sm text-foreground/85">
@@ -707,7 +721,7 @@
             <!-- Step 3 -->
             <div class="mb-5">
               <h3 class="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary-200 ">3</span>
+                <span class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-secondary text-xs font-bold text-primary">3</span>
                 {{ t('admin.subscriptions.guide.step3.title') }}
               </h3>
               <div class="ml-8 overflow-hidden rounded-md border border-border">
@@ -728,7 +742,7 @@
             </div>
 
             <div class="mt-4 text-right">
-              <button type="button" class="btn btn-primary btn-sm" @click="showGuideModal = false">{{ t('common.close') }}</button>
+              <Button type="button" size="sm" @click="showGuideModal = false">{{ t('common.close') }}</Button>
             </div>
           </div>
         </div>
@@ -758,6 +772,10 @@ import Select from '@/components/common/Select.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { getRemainingDurationParts, isOneTimeDailyQuota, type RemainingDurationParts } from '@/utils/subscriptionQuota'
 
 const { t } = useI18n()
@@ -1309,9 +1327,9 @@ const getProgressClass = (used: number | null | undefined, limit: number | null)
   if (!limit || limit === 0) return 'bg-muted-foreground'
   const usedValue = used ?? 0
   const percentage = (usedValue / limit) * 100
-  if (percentage >= 90) return 'bg-red-500'
-  if (percentage >= 70) return 'bg-orange-500'
-  return 'bg-green-500'
+  if (percentage >= 90) return 'bg-destructive'
+  if (percentage >= 70) return 'bg-amber-500'
+  return 'bg-emerald-500'
 }
 
 const formatResetDuration = (parts: RemainingDurationParts): string => {

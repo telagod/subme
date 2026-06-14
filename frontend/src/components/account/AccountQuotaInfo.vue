@@ -2,9 +2,9 @@
   <div v-if="shouldShowQuota">
     <!-- First line: Platform + Tier Badge -->
     <div class="mb-1 flex items-center gap-1">
-      <span :class="['badge text-xs px-2 py-0.5 rounded font-medium', tierBadgeClass]">
+      <Badge variant="outline" :class="tierBadgeClass">
         {{ tierLabel }}
-      </span>
+      </Badge>
     </div>
 
     <!-- Usage status: unlimited flow or rate limit -->
@@ -17,8 +17,8 @@
         :class="[
           'font-medium',
           isUrgent
-            ? 'text-red-400 animate-pulse'
-            : 'text-amber-400'
+            ? 'text-destructive animate-pulse'
+            : 'text-amber-500'
         ]"
       >
         {{ t('admin.accounts.gemini.rateLimit.limited', { time: resetCountdown }) }}
@@ -31,6 +31,7 @@
 import { computed, ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Account, GeminiCredentials } from '@/types'
+import { Badge } from '@/components/ui/badge'
 
 const props = defineProps<{
   account: Account
@@ -101,31 +102,31 @@ const tierBadgeClass = computed(() => {
 
   if (isCodeAssist.value) {
     const tier = (creds?.tier_id || '').toString().trim().toLowerCase()
-    if (tier === 'gcp_enterprise') return 'bg-purple-900/40 text-purple-300'
-    if (tier === 'gcp_standard') return 'bg-blue-900/40 text-sky-400'
+    if (tier === 'gcp_enterprise') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    if (tier === 'gcp_standard') return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     // Backward compatibility
     const upper = (creds?.tier_id || '').toString().trim().toUpperCase()
-    if (upper.includes('ULTRA') || upper.includes('ENTERPRISE')) return 'bg-purple-900/40 text-purple-300'
-    return 'bg-blue-900/40 text-sky-400'
+    if (upper.includes('ULTRA') || upper.includes('ENTERPRISE')) return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
   }
 
   if (isGoogleOne.value) {
     const tier = (creds?.tier_id || '').toString().trim().toLowerCase()
-    if (tier === 'google_ai_ultra') return 'bg-purple-900/40 text-purple-300'
-    if (tier === 'google_ai_pro') return 'bg-blue-900/40 text-sky-400'
+    if (tier === 'google_ai_ultra') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    if (tier === 'google_ai_pro') return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     if (tier === 'google_one_free') return 'bg-accent text-muted-foreground'
     // Backward compatibility
     const upper = (creds?.tier_id || '').toString().trim().toUpperCase()
-    if (upper === 'GOOGLE_ONE_UNLIMITED') return 'bg-purple-900/40 text-purple-300'
-    if (upper === 'AI_PREMIUM') return 'bg-blue-900/40 text-sky-400'
+    if (upper === 'GOOGLE_ONE_UNLIMITED') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    if (upper === 'AI_PREMIUM') return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     return 'bg-accent text-muted-foreground'
   }
 
   // AI Studio 默认样式：蓝色
   const tier = (creds?.tier_id || '').toString().trim().toLowerCase()
-  if (tier === 'aistudio_paid') return 'bg-blue-900/40 text-sky-400'
+  if (tier === 'aistudio_paid') return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
   if (tier === 'aistudio_free') return 'bg-accent text-muted-foreground'
-  return 'bg-blue-900/40 text-sky-400'
+  return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
 })
 
 // 是否限流

@@ -30,29 +30,29 @@
             />
           </template>
           <template #actions>
-            <button
+            <Button
+              variant="secondary"
               @click="loadCodes"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="handleExportCodes" class="btn btn-secondary">
+            </Button>
+            <Button variant="secondary" @click="handleExportCodes">
               {{ t('admin.redeem.exportCsv') }}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               data-test="batch-update-open"
               @click="openBatchUpdateDialog"
               :disabled="selectedCount === 0 || batchUpdating"
-              class="btn btn-secondary"
             >
               <Icon name="edit" size="md" class="mr-2" />
               {{ t('admin.redeem.batchUpdate') }}
-            </button>
-            <button @click="showGenerateDialog = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showGenerateDialog = true">
               {{ t('admin.redeem.generateCodes') }}
-            </button>
+            </Button>
           </template>
         </CollapsibleFilters>
       </template>
@@ -66,39 +66,39 @@
           default-sort-key="id"
           default-sort-order="desc"
           @sort="handleSort"
-          :row-class="(row: any) => isSelected(row.id) ? 'bg-primary-900/10' : ''"
+          :row-class="(row: any) => isSelected(row.id) ? 'bg-primary/10' : ''"
         >
           <template #header-select>
-            <input
+            <Checkbox
               data-test="select-all-codes"
-              type="checkbox"
-              class="h-4 w-4 cursor-pointer rounded border-border text-primary-500 focus:ring-ring"
-              :checked="allVisibleSelected"
+              class="cursor-pointer"
+              :model-value="allVisibleSelected"
               @click.stop
-              @change="toggleSelectAllVisible($event)"
+              @update:model-value="toggleVisible($event === true)"
             />
           </template>
 
           <template #cell-select="{ row }">
-            <input
+            <Checkbox
               data-test="select-code"
-              type="checkbox"
-              class="h-4 w-4 cursor-pointer rounded border-border text-primary-500 focus:ring-ring"
-              :checked="selectedCodeIds.has(row.id)"
+              class="cursor-pointer"
+              :model-value="selectedCodeIds.has(row.id)"
               @click.stop
-              @change="toggleSelectRow(row.id, $event)"
+              @update:model-value="$event ? select(row.id) : deselect(row.id)"
             />
           </template>
 
           <template #cell-code="{ value }">
             <div class="flex items-center space-x-2">
               <code class="font-mono text-sm text-foreground">{{ value }}</code>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="copyToClipboard(value)"
                 :class="[
-                  'flex items-center transition-colors',
+                  'h-7 w-7',
                   copiedCode === value
-                    ? 'text-emerald-400'
+                    ? 'text-emerald-500'
                     : 'text-muted-foreground hover:text-foreground'
                 ]"
                 :title="copiedCode === value ? t('admin.redeem.copied') : t('keys.copyToClipboard')"
@@ -112,23 +112,16 @@
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
           </template>
 
           <template #cell-type="{ value }">
-            <span
-              :class="[
-                'badge',
-                value === 'balance'
-                  ? 'badge-success'
-                  : value === 'subscription'
-                    ? 'badge-warning'
-                    : 'badge-primary'
-              ]"
+            <Badge
+              :variant="value === 'subscription' ? 'outline' : value === 'balance' ? 'secondary' : 'default'"
             >
               {{ t('admin.redeem.types.' + value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-value="{ value, row }">
@@ -145,18 +138,11 @@
           </template>
 
           <template #cell-status="{ value }">
-            <span
-              :class="[
-                'badge',
-                value === 'unused'
-                  ? 'badge-success'
-                  : value === 'used'
-                    ? 'badge-gray'
-                    : 'badge-danger'
-              ]"
+            <Badge
+              :variant="value === 'unused' ? 'secondary' : value === 'used' ? 'outline' : 'destructive'"
             >
               {{ t('admin.redeem.status.' + value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-used_by="{ value, row }">
@@ -176,7 +162,7 @@
               :class="[
                 'text-sm',
                 row.status === 'expired'
-                  ? 'text-red-400'
+                  ? 'text-destructive'
                   : 'text-muted-foreground'
               ]"
             >
@@ -186,10 +172,11 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center space-x-2">
-              <button
+              <Button
                 v-if="row.status === 'unused'"
+                variant="ghost"
                 @click="handleDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -200,7 +187,7 @@
                   />
                 </svg>
                 <span class="text-xs">{{ t('common.delete') }}</span>
-              </button>
+              </Button>
               <span v-else class="text-muted-foreground">-</span>
             </div>
           </template>
@@ -216,20 +203,22 @@
             {{ t('admin.redeem.selectedCount', { count: selectedCount }) }}
           </span>
           <div class="flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
-              class="text-xs font-medium text-primary-200 hover:text-primary-100"
+              variant="link"
+              size="sm"
+              class="h-auto p-0 text-xs font-medium"
               @click="clearSelectedCodes"
             >
               {{ t('admin.redeem.clearSelection') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              class="btn btn-primary btn-sm"
+              size="sm"
               @click="openBatchUpdateDialog"
             >
               {{ t('admin.redeem.batchUpdate') }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -244,9 +233,9 @@
 
         <!-- Batch Actions -->
         <div v-if="filters.status === 'unused'" class="flex justify-end">
-          <button @click="showDeleteUnusedDialog = true" class="btn btn-danger">
+          <Button variant="destructive" @click="showDeleteUnusedDialog = true">
             {{ t('admin.redeem.deleteAllUnused') }}
-          </button>
+          </Button>
         </div>
       </template>
     </TablePageLayout>
@@ -287,25 +276,24 @@
           </h2>
           <form @submit.prevent="handleGenerateCodes" class="space-y-4">
             <div>
-              <label class="input-label">{{ t('admin.redeem.codeType') }}</label>
+              <Label class="mb-2 block">{{ t('admin.redeem.codeType') }}</Label>
               <Select v-model="generateForm.type" :options="typeOptions" />
             </div>
             <!-- 余额/并发类型：显示数值输入 -->
             <div v-if="generateForm.type !== 'subscription' && generateForm.type !== 'invitation'">
-              <label class="input-label">
+              <Label class="mb-2 block">
                 {{
                   generateForm.type === 'balance'
                     ? t('admin.redeem.amount')
                     : t('admin.redeem.columns.value')
                 }}
-              </label>
-              <input
+              </Label>
+              <Input
                 v-model.number="generateForm.value"
                 type="number"
                 :step="generateForm.type === 'balance' ? '0.01' : '1'"
                 :min="generateForm.type === 'balance' ? '0.01' : '1'"
                 required
-                class="input"
               />
             </div>
             <!-- 邀请码类型：显示提示信息 -->
@@ -317,7 +305,7 @@
             <!-- 订阅类型：显示分组选择和有效天数 -->
             <template v-if="generateForm.type === 'subscription'">
               <div>
-                <label class="input-label">{{ t('admin.redeem.selectGroup') }}</label>
+                <Label class="mb-2 block">{{ t('admin.redeem.selectGroup') }}</Label>
                 <Select
                   v-model="generateForm.group_id"
                   :options="subscriptionGroupOptions"
@@ -348,64 +336,63 @@
                 </Select>
               </div>
               <div>
-                <label class="input-label">{{ t('admin.redeem.validityDays') }}</label>
-                <input
+                <Label class="mb-2 block">{{ t('admin.redeem.validityDays') }}</Label>
+                <Input
                   v-model.number="generateForm.validity_days"
                   type="number"
                   min="1"
                   max="365"
                   required
-                  class="input"
                 />
               </div>
             </template>
             <div>
-              <label class="input-label">{{ t('admin.redeem.codeExpiry') }}</label>
+              <Label class="mb-2 block">{{ t('admin.redeem.codeExpiry') }}</Label>
               <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
-                <button
+                <Button
                   v-for="option in redeemCodeExpiryOptions"
                   :key="option.value"
                   type="button"
+                  :variant="generateForm.expiry_option === option.value ? 'secondary' : 'outline'"
                   @click="generateForm.expiry_option = option.value"
                   :class="[
-                    'rounded-md border px-3 py-2 text-sm transition-colors',
+                    'px-3 py-2 text-sm',
                     generateForm.expiry_option === option.value
-                      ? 'border-primary-400/50 bg-secondary text-primary-200 '
-                      : 'border-border text-foreground/85 hover:bg-accent'
+                      ? 'border-primary/50'
+                      : 'text-foreground/85'
                   ]"
                 >
                   {{ option.label }}
-                </button>
+                </Button>
               </div>
-              <input
+              <Input
                 v-if="generateForm.expiry_option === 'custom'"
                 v-model.number="generateForm.custom_expiry_days"
                 type="number"
                 min="1"
                 max="3650"
                 required
-                class="input mt-2"
+                class="mt-2"
                 :placeholder="t('admin.redeem.customExpiryDays')"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('admin.redeem.count') }}</label>
-              <input
+              <Label class="mb-2 block">{{ t('admin.redeem.count') }}</Label>
+              <Input
                 v-model.number="generateForm.count"
                 type="number"
                 min="1"
                 max="100"
                 required
-                class="input"
               />
             </div>
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="showGenerateDialog = false" class="btn btn-secondary">
+              <Button variant="secondary" type="button" @click="showGenerateDialog = false">
                 {{ t('common.cancel') }}
-              </button>
-              <button type="submit" :disabled="generating" class="btn btn-primary">
+              </Button>
+              <Button type="submit" :disabled="generating">
                 {{ generating ? t('admin.redeem.generating') : t('admin.redeem.generate') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -431,15 +418,13 @@
 
           <form data-test="batch-update-form" class="space-y-4" @submit.prevent="handleBatchUpdate">
             <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
-                <input
+              <Label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
+                <Checkbox
                   data-test="batch-field-status"
                   v-model="batchUpdateForm.update_status"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
                 />
                 {{ t('admin.redeem.batchFields.status') }}
-              </label>
+              </Label>
               <Select
                 v-if="batchUpdateForm.update_status"
                 v-model="batchUpdateForm.status"
@@ -449,54 +434,42 @@
             </div>
 
             <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
-                <input
-                  v-model="batchUpdateForm.update_expires_at"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
-                />
+              <Label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
+                <Checkbox v-model="batchUpdateForm.update_expires_at" />
                 {{ t('admin.redeem.batchFields.expiresAt') }}
-              </label>
+              </Label>
               <template v-if="batchUpdateForm.update_expires_at">
                 <Select v-model="batchUpdateForm.expires_mode" :options="batchExpiryModeOptions" />
-                <input
+                <Input
                   v-if="batchUpdateForm.expires_mode === 'custom'"
                   v-model="batchUpdateForm.expires_at_local"
                   type="datetime-local"
-                  class="input"
                 />
               </template>
             </div>
 
             <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
-                <input
+              <Label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
+                <Checkbox
                   data-test="batch-field-notes"
                   v-model="batchUpdateForm.update_notes"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
                 />
                 {{ t('admin.redeem.batchFields.notes') }}
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 v-if="batchUpdateForm.update_notes"
                 data-test="batch-notes-input"
                 v-model="batchUpdateForm.notes"
                 rows="3"
-                class="input"
                 :placeholder="t('admin.redeem.batchNotesPlaceholder')"
-              ></textarea>
+              />
             </div>
 
             <div class="space-y-2">
-              <label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
-                <input
-                  v-model="batchUpdateForm.update_group_id"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
-                />
+              <Label class="flex items-center gap-2 text-sm font-medium text-foreground/85">
+                <Checkbox v-model="batchUpdateForm.update_group_id" />
                 {{ t('admin.redeem.batchFields.group') }}
-              </label>
+              </Label>
               <Select
                 v-if="batchUpdateForm.update_group_id"
                 v-model="batchUpdateForm.group_id"
@@ -506,17 +479,16 @@
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-              <button type="button" @click="closeBatchUpdateDialog" class="btn btn-secondary">
+              <Button variant="secondary" type="button" @click="closeBatchUpdateDialog">
                 {{ t('common.cancel') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 data-test="batch-update-submit"
                 type="submit"
                 :disabled="batchUpdating"
-                class="btn btn-primary"
               >
                 {{ batchUpdating ? t('common.submitting') : t('admin.redeem.batchUpdate') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -537,7 +509,7 @@
                 class="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10"
               >
                 <svg
-                  class="h-5 w-5 text-emerald-400"
+                  class="h-5 w-5 text-emerald-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -559,34 +531,34 @@
                 </p>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               @click="closeResultDialog"
-              class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground"
             >
               <Icon name="x" size="md" :stroke-width="2" />
-            </button>
+            </Button>
           </div>
           <!-- Content -->
           <div class="p-5">
             <div class="relative">
-              <textarea
+              <Textarea
                 readonly
-                :value="generatedCodesText"
+                :model-value="generatedCodesText"
                 :style="{ height: textareaHeight }"
-                class="w-full resize-none rounded-md border border-border bg-muted p-3 font-mono text-sm text-foreground focus:outline-none"
-              ></textarea>
+                class="min-h-0 resize-none border-border bg-muted p-3 font-mono text-foreground"
+              />
             </div>
           </div>
           <!-- Footer -->
           <div
             class="flex justify-end gap-2 rounded-b-lg border-t border-border bg-muted px-5 py-4"
           >
-            <button
+            <Button
+              :variant="copiedAll ? 'outline' : 'secondary'"
               @click="copyGeneratedCodes"
-              :class="[
-                'btn flex items-center gap-2 transition-all',
-                copiedAll ? 'btn-success' : 'btn-secondary'
-              ]"
+              :class="copiedAll ? 'border-emerald-500/40 text-emerald-500' : ''"
             >
               <Icon v-if="!copiedAll" name="copy" size="sm" :stroke-width="2" />
               <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -598,11 +570,11 @@
                 />
               </svg>
               {{ copiedAll ? t('admin.redeem.copied') : t('admin.redeem.copyAll') }}
-            </button>
-            <button @click="downloadGeneratedCodes" class="btn btn-primary flex items-center gap-2">
+            </Button>
+            <Button @click="downloadGeneratedCodes">
               <Icon name="download" size="sm" :stroke-width="2" />
               {{ t('admin.redeem.download') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -639,6 +611,12 @@ import SearchInput from '@/components/common/SearchInput.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -937,20 +915,6 @@ const handleSort = (key: string, order: 'asc' | 'desc') => {
   sortState.sort_order = order
   pagination.page = 1
   loadCodes()
-}
-
-const toggleSelectRow = (id: number, event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.checked) {
-    select(id)
-    return
-  }
-  deselect(id)
-}
-
-const toggleSelectAllVisible = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  toggleVisible(target.checked)
 }
 
 const getRedeemCodeExpiresInDays = () => {

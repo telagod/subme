@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <section
       data-testid="profile-overview-hero"
-      class="card overflow-hidden border border-border bg-secondary"
+      class="overflow-hidden rounded-lg border border-border bg-secondary shadow-sm"
     >
       <div class="px-6 py-6 md:px-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -24,18 +24,19 @@
                 <h2 class="truncate text-2xl font-semibold text-foreground">
                   {{ displayName }}
                 </h2>
-                <span :class="['badge', user?.role === 'admin' ? 'badge-primary' : 'badge-gray']">
+                <Badge :variant="user?.role === 'admin' ? 'default' : 'secondary'">
                   {{ user?.role === 'admin' ? t('profile.administrator') : t('profile.user') }}
-                </span>
-                <span
-                  :class="['badge', user?.status === 'active' ? 'badge-success' : 'badge-danger']"
+                </Badge>
+                <Badge
+                  :variant="user?.status === 'active' ? 'outline' : 'destructive'"
+                  :class="user?.status === 'active' ? 'border-emerald-500 text-emerald-500' : ''"
                 >
                   {{
                     user?.status === 'active'
                       ? t('common.active')
                       : t('common.disabled')
                   }}
-                </span>
+                </Badge>
               </div>
 
               <div class="space-y-1">
@@ -46,14 +47,15 @@
                   v-if="sourceHints.length"
                   class="flex flex-wrap gap-2 text-xs text-muted-foreground"
                 >
-                  <span
+                  <Badge
                     v-for="hint in sourceHints"
                     :key="hint.key"
-                    class="inline-flex items-center gap-1 rounded-full bg-card px-3 py-1 ring-1 ring-border"
+                    variant="outline"
+                    class="gap-1"
                   >
                     <Icon name="link" size="sm" />
                     {{ hint.text }}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -102,7 +104,7 @@
       <div data-testid="profile-main-column" class="space-y-6">
         <section
           data-testid="profile-basics-panel"
-          class="card border border-border bg-card p-6"
+          class="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
           <div class="mb-5 flex items-start justify-between gap-4">
             <div>
@@ -134,7 +136,7 @@
 
         <section
           data-testid="profile-auth-bindings-panel"
-          class="card border border-border bg-card p-6"
+          class="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
           <ProfileIdentityBindingsSection
             :user="user"
@@ -154,7 +156,7 @@
       <div data-testid="profile-side-column" class="space-y-6">
         <section
           v-if="sourceHints.length"
-          class="card border border-border bg-card p-6"
+          class="rounded-lg border border-border bg-card p-6 shadow-sm"
         >
           <h3 class="text-lg font-semibold text-foreground">
             {{ t('profile.linkedProfileSources') }}
@@ -182,6 +184,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Badge } from '@/components/ui/badge'
 import Icon from '@/components/icons/Icon.vue'
 import ProfileAvatarCard from '@/components/user/profile/ProfileAvatarCard.vue'
 import ProfileEditForm from '@/components/user/profile/ProfileEditForm.vue'

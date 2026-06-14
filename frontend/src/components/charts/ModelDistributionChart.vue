@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4">
+  <Card class="p-4">
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-sm font-semibold text-foreground">
         {{ !enableRankingView || activeView === 'model_distribution'
@@ -11,8 +11,10 @@
           v-if="showSourceToggle"
           class="inline-flex rounded-md border border-border bg-muted p-0.5"
         >
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="source === 'requested'
               ? 'bg-secondary text-foreground '
@@ -20,9 +22,11 @@
             @click="emit('update:source', 'requested')"
           >
             {{ t('usage.requestedModel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="source === 'upstream'
               ? 'bg-secondary text-foreground '
@@ -30,9 +34,11 @@
             @click="emit('update:source', 'upstream')"
           >
             {{ t('usage.upstreamModel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="source === 'mapping'
               ? 'bg-secondary text-foreground '
@@ -40,14 +46,16 @@
             @click="emit('update:source', 'mapping')"
           >
             {{ t('usage.mapping') }}
-          </button>
+          </Button>
         </div>
         <div
           v-if="showMetricToggle"
           class="inline-flex rounded-md border border-border bg-muted p-0.5"
         >
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="metric === 'tokens'
               ? 'bg-secondary text-foreground '
@@ -55,9 +63,11 @@
             @click="emit('update:metric', 'tokens')"
           >
             {{ t('admin.dashboard.metricTokens') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="metric === 'actual_cost'
               ? 'bg-secondary text-foreground '
@@ -65,11 +75,13 @@
             @click="emit('update:metric', 'actual_cost')"
           >
             {{ t('admin.dashboard.metricActualCost') }}
-          </button>
+          </Button>
         </div>
         <div v-if="enableRankingView" class="inline-flex rounded-md bg-muted p-1">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="
               activeView === 'model_distribution'
@@ -79,9 +91,11 @@
             @click="activeView = 'model_distribution'"
           >
             {{ t('admin.dashboard.viewModelDistribution') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
             :class="
               activeView === 'spending_ranking'
@@ -91,7 +105,7 @@
             @click="activeView = 'spending_ranking'"
           >
             {{ t('admin.dashboard.viewSpendingRanking') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -125,7 +139,7 @@
                 @click="toggleBreakdown('model', model.model)"
               >
                 <td
-                  class="max-w-[100px] truncate py-1.5 font-medium text-primary-200 hover:text-foreground"
+                  class="max-w-[100px] truncate py-1.5 font-medium text-foreground/80 hover:text-foreground"
                   :title="model.model"
                 >
                   <span class="inline-flex items-center gap-1">
@@ -236,7 +250,7 @@
     >
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -246,6 +260,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import type { ModelStat, UserSpendingRankingItem, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
 

@@ -8,34 +8,36 @@
     <!-- provider tabs -->
     <div class="mb-4 border-b border-border">
       <div role="tablist" class="flex gap-1">
-        <button
+        <Button
           v-for="tab in providerTabs"
           :key="tab.value"
           type="button"
+          variant="ghost"
           role="tab"
           :aria-selected="activeProvider === tab.value"
-          class="px-4 py-2 text-sm font-medium transition-colors"
+          class="px-4 py-2 text-sm font-medium transition-colors rounded-none"
           :class="tabClass(tab.value)"
           @click="activeProvider = tab.value"
         >
           {{ tab.label }}
-          <span
+          <Badge
             v-if="countByProvider[tab.value] > 0"
-            class="ml-1.5 rounded-full bg-accent px-2 py-0.5 text-xs"
+            variant="secondary"
+            class="ml-1.5"
           >
             {{ countByProvider[tab.value] }}
-          </span>
-        </button>
+          </Badge>
+        </Button>
       </div>
     </div>
 
     <!-- active provider list -->
     <div v-if="!editing" class="space-y-2">
       <div class="flex justify-end">
-        <button class="btn btn-primary btn-sm" @click="openCreateForm">
+        <Button size="sm" @click="openCreateForm">
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.channelMonitor.template.createButton') }}
-        </button>
+        </Button>
       </div>
 
       <div v-if="loading" class="py-8 text-center text-sm text-muted-foreground">
@@ -59,19 +61,19 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <span class="font-medium text-foreground">{{ tpl.name }}</span>
-              <span
-                class="inline-flex items-center rounded-md px-1.5 py-0.5 text-xs"
+              <Badge
+                variant="outline"
                 :class="modeBadgeClass(tpl.body_override_mode)"
               >
                 {{ modeLabel(tpl.body_override_mode) }}
-              </span>
-              <span
+              </Badge>
+              <Badge
                 v-if="tpl.provider === PROVIDER_OPENAI"
-                class="inline-flex items-center rounded-md px-1.5 py-0.5 text-xs"
+                variant="outline"
                 :class="apiModeBadgeClass(tpl.api_mode)"
               >
                 {{ apiModeLabel(tpl.api_mode) }}
-              </span>
+              </Badge>
               <span
                 v-if="tpl.associated_monitors > 0"
                 class="text-xs text-muted-foreground"
@@ -89,21 +91,22 @@
             </p>
           </div>
           <div class="flex flex-shrink-0 gap-2">
-            <button
-              class="btn btn-secondary btn-sm"
+            <Button
+              variant="outline"
+              size="sm"
               :disabled="tpl.associated_monitors === 0"
               :title="t('admin.channelMonitor.template.applyTooltip')"
               @click="confirmApply(tpl)"
             >
               <Icon name="refresh" size="sm" class="mr-1" />
               {{ t('admin.channelMonitor.template.applyButton') }}
-            </button>
-            <button class="btn btn-secondary btn-sm" @click="openEditForm(tpl)">
+            </Button>
+            <Button variant="outline" size="sm" @click="openEditForm(tpl)">
               {{ t('common.edit') }}
-            </button>
-            <button class="btn btn-secondary btn-sm text-red-400" @click="handleDelete(tpl)">
+            </Button>
+            <Button variant="outline" size="sm" class="text-destructive hover:text-destructive" @click="handleDelete(tpl)">
               {{ t('common.delete') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -112,63 +115,63 @@
     <!-- edit / create form -->
     <div v-else class="space-y-4">
       <div>
-        <label class="input-label">
+        <Label class="mb-1.5 block">
           {{ t('admin.channelMonitor.template.form.name') }}
-          <span class="text-red-400">*</span>
-        </label>
-        <input
+          <span class="text-destructive">*</span>
+        </Label>
+        <Input
           v-model="form.name"
           type="text"
           required
-          class="input"
           :placeholder="t('admin.channelMonitor.template.form.namePlaceholder')"
         />
       </div>
 
       <div v-if="editing === 'new'">
-        <label class="input-label">
+        <Label class="mb-1.5 block">
           {{ t('admin.channelMonitor.form.provider') }}
-          <span class="text-red-400">*</span>
-        </label>
+          <span class="text-destructive">*</span>
+        </Label>
         <div class="grid grid-cols-3 gap-3">
-          <button
+          <Button
             v-for="opt in providerTabs"
             :key="opt.value"
             type="button"
+            variant="outline"
             class="rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors"
             :class="providerPickerClass(opt.value, form.provider === opt.value)"
             @click="form.provider = opt.value"
           >
             {{ opt.label }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div v-if="form.provider === PROVIDER_OPENAI" class="rounded-lg border border-border bg-accent p-3">
-        <label class="input-label">{{ t('admin.channelMonitor.form.apiMode') }}</label>
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.apiMode') }}</Label>
         <div class="grid gap-3 sm:grid-cols-2">
-          <button
+          <Button
             v-for="opt in apiModeOptions"
             :key="opt.value"
             type="button"
-            class="rounded-lg border-2 px-3 py-2 text-left transition-colors"
+            variant="outline"
+            class="h-auto rounded-lg border-2 px-3 py-2 text-left transition-colors flex-col items-start"
             :class="apiModeButtonClass(opt.value)"
             @click="form.api_mode = opt.value"
           >
             <span class="block text-sm font-semibold">{{ opt.label }}</span>
             <span class="mt-0.5 block text-xs opacity-80">{{ opt.hint }}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       <div>
-        <label class="input-label">
+        <Label class="mb-1.5 block">
           {{ t('admin.channelMonitor.template.form.description') }}
-        </label>
-        <input
+        </Label>
+        <Input
           v-model="form.description"
           type="text"
-          class="input"
           :placeholder="t('admin.channelMonitor.template.form.descriptionPlaceholder')"
         />
       </div>
@@ -189,18 +192,18 @@
       <div class="flex w-full items-center justify-between">
         <!-- Left: back to list / nothing -->
         <div>
-          <button v-if="editing" class="btn btn-secondary" @click="backToList">
+          <Button v-if="editing" variant="outline" @click="backToList">
             {{ t('common.back') }}
-          </button>
+          </Button>
         </div>
         <!-- Right: save or close -->
         <div class="flex gap-2">
-          <button class="btn btn-secondary" @click="$emit('close')">
+          <Button variant="outline" @click="$emit('close')">
             {{ t('common.close') }}
-          </button>
-          <button v-if="editing" class="btn btn-primary" :disabled="submitting" @click="handleSubmit">
+          </Button>
+          <Button v-if="editing" :disabled="submitting" @click="handleSubmit">
             {{ submitting ? t('common.submitting') : editing === 'new' ? t('common.create') : t('common.update') }}
-          </button>
+          </Button>
         </div>
       </div>
     </template>
@@ -251,6 +254,10 @@ import {
   API_MODE_CHAT_COMPLETIONS,
   API_MODE_RESPONSES,
 } from '@/constants/channelMonitor'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{
@@ -460,7 +467,7 @@ async function doDelete() {
 // --- misc ---
 function tabClass(value: Provider): string {
   return activeProvider.value === value
-    ? 'border-b-2 border-primary-500 text-primary-400'
+    ? 'border-b-2 border-primary text-primary'
     : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
 }
 
@@ -505,9 +512,9 @@ function normalizeAPIMode(mode: APIMode | undefined | null): APIMode {
 function apiModeButtonClass(mode: APIMode): string {
   const active = form.api_mode === mode
   if (active) {
-    return 'border-primary-500 bg-primary-500/15 text-primary-300 shadow-sm  '
+    return 'border-primary bg-primary/15 text-primary shadow-sm  '
   }
-  return 'border-border bg-card text-muted-foreground hover:border-primary-300'
+  return 'border-border bg-card text-muted-foreground hover:border-primary/50'
 }
 
 function apiModeLabel(mode: APIMode): string {

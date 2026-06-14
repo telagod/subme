@@ -1,47 +1,86 @@
 <template>
   <AppLayout>
-    <div class="apv-root">
+    <div class="flex flex-col gap-3 h-full p-4">
       <!-- ── 工具栏 ── -->
-      <div class="apv-toolbar">
-        <input v-model="params.search" class="apv-search" :placeholder="t('admin.accountsQuench.searchPlaceholder')" @input="debouncedReload" />
+      <div class="flex items-center gap-2 flex-wrap">
+        <Input
+          v-model="params.search"
+          class="flex-1 min-w-[160px] max-w-[240px] h-8 text-[13px]"
+          :placeholder="t('admin.accountsQuench.searchPlaceholder')"
+          @input="debouncedReload"
+        />
 
-        <button class="apv-icon-btn" :class="{ 'apv-spin': loading }" :title="t('admin.accountsQuench.refresh')" :aria-label="t('admin.accountsQuench.refresh')" @click="handleManualRefresh">
+        <Button
+          variant="outline"
+          size="icon"
+          class="w-8 h-8 rounded-lg"
+          :class="{ 'apv-spin': loading }"
+          :title="t('admin.accountsQuench.refresh')"
+          :aria-label="t('admin.accountsQuench.refresh')"
+          @click="handleManualRefresh"
+        >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-        </button>
+        </Button>
 
         <!-- 工具菜单 -->
-        <div class="apv-menu-wrap" ref="toolsMenuRef">
-          <button class="apv-icon-btn" :aria-label="t('admin.accountsQuench.moreTools')" :aria-expanded="showToolsMenu" aria-haspopup="menu" @click="showToolsMenu = !showToolsMenu">
+        <div class="relative" ref="toolsMenuRef">
+          <Button
+            variant="outline"
+            size="icon"
+            class="w-8 h-8 rounded-lg"
+            :aria-label="t('admin.accountsQuench.moreTools')"
+            :aria-expanded="showToolsMenu"
+            aria-haspopup="menu"
+            @click="showToolsMenu = !showToolsMenu"
+          >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
-          </button>
-          <div v-if="showToolsMenu" class="apv-dropdown">
-            <button class="apv-ditem" @click="showToolsMenu=false; showSync=true">{{ t('admin.accountsQuench.toolsSync') }}</button>
-            <button class="apv-ditem" @click="showToolsMenu=false; showImportData=true">{{ t('admin.accountsQuench.toolsImport') }}</button>
-            <button class="apv-ditem" @click="showToolsMenu=false; showExportDialog=true">{{ t('admin.accountsQuench.toolsExport') }}</button>
-            <div class="apv-dsep"></div>
-            <button class="apv-ditem" @click="showToolsMenu=false; showErrorPassthrough=true">{{ t('admin.accountsQuench.toolsErrorPassthrough') }}</button>
-            <button class="apv-ditem" @click="showToolsMenu=false; showTLSProfiles=true">{{ t('admin.accountsQuench.toolsTLSProfiles') }}</button>
+          </Button>
+          <div v-if="showToolsMenu" class="absolute right-0 top-[calc(100%+4px)] z-60 min-w-[150px] bg-popover border border-border rounded-[10px] p-1 shadow-[0_8px_24px_rgba(0,0,0,.28)]">
+            <Button variant="ghost" class="flex items-center gap-2 w-full px-2.5 py-1.5 text-[13px] justify-start h-auto font-normal" @click="showToolsMenu=false; showSync=true">{{ t('admin.accountsQuench.toolsSync') }}</Button>
+            <Button variant="ghost" class="flex items-center gap-2 w-full px-2.5 py-1.5 text-[13px] justify-start h-auto font-normal" @click="showToolsMenu=false; showImportData=true">{{ t('admin.accountsQuench.toolsImport') }}</Button>
+            <Button variant="ghost" class="flex items-center gap-2 w-full px-2.5 py-1.5 text-[13px] justify-start h-auto font-normal" @click="showToolsMenu=false; showExportDialog=true">{{ t('admin.accountsQuench.toolsExport') }}</Button>
+            <Separator class="my-1" />
+            <Button variant="ghost" class="flex items-center gap-2 w-full px-2.5 py-1.5 text-[13px] justify-start h-auto font-normal" @click="showToolsMenu=false; showErrorPassthrough=true">{{ t('admin.accountsQuench.toolsErrorPassthrough') }}</Button>
+            <Button variant="ghost" class="flex items-center gap-2 w-full px-2.5 py-1.5 text-[13px] justify-start h-auto font-normal" @click="showToolsMenu=false; showTLSProfiles=true">{{ t('admin.accountsQuench.toolsTLSProfiles') }}</Button>
           </div>
         </div>
 
         <!-- 视图模式 -->
-        <div class="apv-seg" role="group" :aria-label="t('admin.accountsQuench.viewModeLabel')">
-          <button class="apv-seg-btn" :class="{ 'apv-seg-on': viewMode === 'matrix' }" :title="t('admin.accountsQuench.viewMatrix')" :aria-label="t('admin.accountsQuench.viewMatrix')" :aria-pressed="viewMode === 'matrix'" @click="viewMode = 'matrix'">
+        <div class="flex border border-border rounded-lg overflow-hidden" role="group" :aria-label="t('admin.accountsQuench.viewModeLabel')">
+          <Button
+            variant="ghost"
+            size="icon"
+            class="w-8 h-8 rounded-none border-r border-border"
+            :class="viewMode === 'matrix' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'"
+            :title="t('admin.accountsQuench.viewMatrix')"
+            :aria-label="t('admin.accountsQuench.viewMatrix')"
+            :aria-pressed="viewMode === 'matrix'"
+            @click="viewMode = 'matrix'"
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          </button>
-          <button class="apv-seg-btn" :class="{ 'apv-seg-on': viewMode === 'table' }" :title="t('admin.accountsQuench.viewTable')" :aria-label="t('admin.accountsQuench.viewTable')" :aria-pressed="viewMode === 'table'" @click="viewMode = 'table'">
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="w-8 h-8 rounded-none"
+            :class="viewMode === 'table' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'"
+            :title="t('admin.accountsQuench.viewTable')"
+            :aria-label="t('admin.accountsQuench.viewTable')"
+            :aria-pressed="viewMode === 'table'"
+            @click="viewMode = 'table'"
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25M3.375 4.5h17.25M6 12h12"/></svg>
-          </button>
+          </Button>
         </div>
 
-        <button class="apv-btn-primary" @click="router.push('/admin/accounts/legacy')">
+        <Button variant="outline" size="sm" class="ml-auto gap-1.5 font-semibold" @click="router.push('/admin/accounts/legacy')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           {{ t('admin.accountsQuench.addAccountBtn') }}
-        </button>
+        </Button>
       </div>
 
       <!-- ── 高级筛选栏 ── -->
-      <div class="apv-filter-row">
+      <div class="flex items-start">
         <AdvancedFilter
           :fields="filterFields"
           v-model="filterValues"
@@ -50,48 +89,54 @@
         />
       </div>
 
-      <!-- ── 供给总览条（锻面卡）── -->
-      <div class="apv-summary">
-        <div class="apv-stat">
-          <span class="apv-sdot apv-sdot-total"></span>
-          <div class="apv-stat-inner">
-            <span class="apv-num">{{ summary.total }}</span>
-            <span class="apv-lbl">{{ t('admin.accountsQuench.summaryTotal') }}</span>
+      <!-- ── 供给总览条 ── -->
+      <div class="flex items-center gap-0.5 px-4 py-2.5 bg-card border border-border rounded-[10px] shadow-sm">
+        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
+          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-muted-foreground"></span>
+          <div class="flex flex-col">
+            <span class="text-[20px] font-bold font-mono tabular-nums text-foreground leading-[1.2]">{{ summary.total }}</span>
+            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryTotal') }}</span>
           </div>
         </div>
-        <div class="apv-div"></div>
-        <div class="apv-stat">
-          <span class="apv-sdot apv-sdot-ok"></span>
-          <div class="apv-stat-inner">
-            <span class="apv-num apv-ok">{{ summary.active }}</span>
-            <span class="apv-lbl">{{ t('admin.accountsQuench.summaryActive') }}</span>
+        <Separator orientation="vertical" class="h-7 mx-1" />
+        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
+          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-emerald-500"></span>
+          <div class="flex flex-col">
+            <span class="text-[20px] font-bold font-mono tabular-nums text-emerald-500 leading-[1.2]">{{ summary.active }}</span>
+            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryActive') }}</span>
           </div>
         </div>
-        <div class="apv-stat">
-          <span class="apv-sdot apv-sdot-off"></span>
-          <div class="apv-stat-inner">
-            <span class="apv-num apv-off">{{ summary.inactive }}</span>
-            <span class="apv-lbl">{{ t('admin.accountsQuench.summaryInactive') }}</span>
+        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
+          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-muted-foreground"></span>
+          <div class="flex flex-col">
+            <span class="text-[20px] font-bold font-mono tabular-nums text-muted-foreground leading-[1.2]">{{ summary.inactive }}</span>
+            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryInactive') }}</span>
           </div>
         </div>
-        <div class="apv-stat" :class="{ 'apv-stat-alert': summary.error > 0 }">
-          <span class="apv-sdot apv-sdot-bad" :class="{ 'apv-sdot-pulse': summary.error > 0 }"></span>
-          <div class="apv-stat-inner">
-            <span class="apv-num" :class="summary.error > 0 ? 'apv-bad' : 'apv-off'">{{ summary.error }}</span>
-            <span class="apv-lbl">{{ t('admin.accountsQuench.summaryError') }}</span>
+        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative rounded-lg" :class="{ 'bg-destructive/5': summary.error > 0 }">
+          <span
+            class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-destructive"
+            :class="{ 'apv-sdot-pulse': summary.error > 0 }"
+          ></span>
+          <div class="flex flex-col">
+            <span class="text-[20px] font-bold font-mono tabular-nums leading-[1.2]" :class="summary.error > 0 ? 'text-destructive' : 'text-muted-foreground'">{{ summary.error }}</span>
+            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryError') }}</span>
           </div>
         </div>
-        <div class="apv-stat" :class="{ 'apv-stat-alert': summary.rate_limited > 0 }">
-          <span class="apv-sdot apv-sdot-warn" :class="{ 'apv-sdot-pulse': summary.rate_limited > 0 }"></span>
-          <div class="apv-stat-inner">
-            <span class="apv-num" :class="summary.rate_limited > 0 ? 'apv-warn' : 'apv-off'">{{ summary.rate_limited }}</span>
-            <span class="apv-lbl">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
+        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative rounded-lg" :class="{ 'bg-amber-500/5': summary.rate_limited > 0 }">
+          <span
+            class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-amber-500"
+            :class="{ 'apv-sdot-pulse-warn': summary.rate_limited > 0 }"
+          ></span>
+          <div class="flex flex-col">
+            <span class="text-[20px] font-bold font-mono tabular-nums leading-[1.2]" :class="summary.rate_limited > 0 ? 'text-amber-500' : 'text-muted-foreground'">{{ summary.rate_limited }}</span>
+            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
           </div>
         </div>
       </div>
 
       <!-- ── 主体 ── -->
-      <div class="apv-body">
+      <div class="flex-1 overflow-y-auto min-h-0">
         <AccountCardWall
           v-if="viewMode === 'matrix'"
           :accounts="accounts"
@@ -139,10 +184,22 @@
       </div>
 
       <!-- 分页（表格模式） -->
-      <div v-if="viewMode === 'table' && pagination.total > pagination.page_size" class="apv-pg-row">
-        <button class="apv-pg" :disabled="pagination.page <= 1" @click="handlePageChange(pagination.page - 1)">‹</button>
-        <span class="apv-pg-info">{{ pagination.page }} / {{ Math.max(1, Math.ceil(pagination.total / pagination.page_size)) }}</span>
-        <button class="apv-pg" :disabled="pagination.page >= Math.ceil(pagination.total / pagination.page_size)" @click="handlePageChange(pagination.page + 1)">›</button>
+      <div v-if="viewMode === 'table' && pagination.total > pagination.page_size" class="flex items-center justify-center gap-3 py-2">
+        <Button
+          variant="outline"
+          size="icon"
+          class="w-7 h-7 text-base"
+          :disabled="pagination.page <= 1"
+          @click="handlePageChange(pagination.page - 1)"
+        >‹</Button>
+        <span class="text-xs text-muted-foreground font-mono">{{ pagination.page }} / {{ Math.max(1, Math.ceil(pagination.total / pagination.page_size)) }}</span>
+        <Button
+          variant="outline"
+          size="icon"
+          class="w-7 h-7 text-base"
+          :disabled="pagination.page >= Math.ceil(pagination.total / pagination.page_size)"
+          @click="handlePageChange(pagination.page + 1)"
+        >›</Button>
       </div>
     </div>
 
@@ -177,6 +234,9 @@ import { AdvancedFilter } from '@/components/datatable'
 import type { FilterFieldDef, AdvancedFilterValues } from '@/components/datatable'
 import { useAccountPoolActions } from './useAccountPoolActions'
 import type { Account, Proxy as AccountProxy, AdminGroup } from '@/types'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 const EditAccountModal            = defineAsyncComponent(() => import('@/components/account/EditAccountModal.vue'))
 const ReAuthAccountModal          = defineAsyncComponent(() => import('@/components/admin/account/ReAuthAccountModal.vue'))
@@ -364,61 +424,31 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 </script>
 
 <style scoped>
-.apv-root  { display:flex; flex-direction:column; gap:12px; height:100%; padding:16px; }
-.apv-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.apv-filter-row { display:flex; align-items:flex-start; }
-.apv-search { flex:1; min-width:160px; max-width:240px; height:32px; padding:0 10px; font-size:13px; border-radius:8px; border:1px solid var(--line-0); background:var(--bg-1); color:var(--ink-0); outline:none; }
-.apv-search:focus { border-color:var(--azure); box-shadow:var(--glow-focus); }
-.apv-search:focus-visible { border-color:var(--azure); box-shadow:var(--glow-focus); }
-.apv-icon-btn { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; border:1px solid var(--line-0); background:var(--bg-1); color:var(--ink-1); cursor:pointer; }
-.apv-icon-btn:hover { background:var(--bg-2); color:var(--ink-0); }
-.apv-icon-btn:focus-visible { outline:none; box-shadow:var(--glow-focus); }
-.apv-spin svg { animation:spin 1s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-.apv-menu-wrap { position:relative; }
-.apv-dropdown { position:absolute; right:0; top:calc(100% + 4px); z-index:60; min-width:150px; background:var(--bg-1); border:1px solid var(--line-1); border-radius:10px; padding:4px; box-shadow:0 8px 24px rgba(0,0,0,.28); }
-.apv-ditem { display:flex; align-items:center; gap:8px; width:100%; padding:7px 10px; font-size:13px; color:var(--ink-1); background:none; border:none; border-radius:6px; cursor:pointer; text-align:left; }
-.apv-ditem:hover { background:var(--bg-2); color:var(--ink-0); }
-.apv-ditem:focus-visible { outline:none; background:var(--bg-2); color:var(--ink-0); box-shadow:var(--glow-focus); }
-.apv-dsep { height:1px; background:var(--line-0); margin:4px 0; }
-.apv-seg { display:flex; border:1px solid var(--line-0); border-radius:8px; overflow:hidden; }
-.apv-seg-btn { display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--bg-1); border:none; color:var(--ink-2); cursor:pointer; }
-.apv-seg-btn:first-child { border-right:1px solid var(--line-0); }
-.apv-seg-btn:hover { background:var(--bg-2); color:var(--ink-0); }
-.apv-seg-btn:focus-visible { outline:none; box-shadow:var(--glow-focus); }
-.apv-seg-on { background:var(--azure-dim) !important; color:var(--azure) !important; }
-.apv-btn-primary { display:flex; align-items:center; gap:5px; height:32px; padding:0 14px; font-size:13px; font-weight:600; border-radius:8px; border:1px solid #3A4250; background:var(--metal-raised); color:var(--ink-0); cursor:pointer; margin-left:auto; box-shadow:var(--edge-hi), 0 2px 10px rgba(0,0,0,.4); }
-.apv-btn-primary:hover { border-color:rgba(92,168,255,.55); box-shadow:var(--edge-hi), 0 0 16px rgba(92,168,255,.22), 0 2px 10px rgba(0,0,0,.4); }
-.apv-btn-primary:focus-visible { outline:none; box-shadow:var(--glow-focus), 0 2px 10px rgba(0,0,0,.4); }
-/* 总览条（锻面卡）*/
-.apv-summary { display:flex; align-items:center; gap:2px; padding:10px 16px; background:var(--metal); border:1px solid var(--line-0); border-radius:10px; box-shadow:var(--edge-hi), 0 6px 18px rgba(0,0,0,.22); }
-.apv-stat { display:flex; flex-direction:row; align-items:center; gap:6px; padding:4px 14px; position:relative; }
-/* 告警态：background tint */
-.apv-stat-alert { background:rgba(242,92,105,.05); border-radius:8px; }
-.apv-stat-alert .apv-lbl { color:var(--ink-1); }
-.apv-div  { width:1px; height:28px; background:var(--line-0); margin:0 4px; align-self:center; }
-/* 语义色点 */
-.apv-sdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.apv-sdot-total { background:var(--ink-2); }
-.apv-sdot-ok    { background:var(--ok); }
-.apv-sdot-off   { background:var(--ink-2); }
-.apv-sdot-bad   { background:var(--bad); }
-.apv-sdot-warn  { background:var(--warn); }
-/* 告警脉冲（error/rate_limited > 0 时激活）*/
-.apv-sdot-pulse { animation:sdot-pulse 1.8s ease-in-out infinite; }
-@keyframes sdot-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(242,92,105,.55);} 50%{ box-shadow:0 0 0 4px rgba(242,92,105,0);} }
-.apv-sdot-warn.apv-sdot-pulse { animation:sdot-pulse-w 1.8s ease-in-out infinite; }
-@keyframes sdot-pulse-w { 0%,100%{ box-shadow:0 0 0 0 rgba(224,179,78,.55);} 50%{ box-shadow:0 0 0 4px rgba(224,179,78,0);} }
-/* 数字与标签纵向叠 */
-.apv-stat-inner { display:flex; flex-direction:column; }
-.apv-num  { font-size:20px; font-weight:700; font-family:monospace; font-variant-numeric:tabular-nums; color:var(--ink-0); line-height:1.2; }
-.apv-lbl  { font-size:10px; color:var(--ink-2); letter-spacing:.04em; white-space:nowrap; }
-.apv-ok { color:var(--ok); } .apv-off { color:var(--ink-2); } .apv-bad { color:var(--bad); } .apv-warn { color:var(--warn); }
-.apv-body { flex:1; overflow-y:auto; min-height:0; }
-.apv-pg-row { display:flex; align-items:center; justify-content:center; gap:12px; padding:8px 0; }
-.apv-pg { width:28px; height:28px; border-radius:6px; border:1px solid var(--line-0); background:var(--bg-1); color:var(--ink-1); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; }
-.apv-pg:hover:not(:disabled) { background:var(--bg-2); } .apv-pg:disabled { opacity:.35; cursor:not-allowed; }
-.apv-pg:focus-visible { outline:none; box-shadow:var(--glow-focus); }
-.apv-pg-info { font-size:12px; color:var(--ink-2); font-family:monospace; }
-@media (prefers-reduced-motion: reduce) { .apv-spin svg { animation:none; } .apv-sdot-pulse, .apv-sdot-warn.apv-sdot-pulse { animation:none; } }
+/* spin animation for refresh button */
+.apv-spin svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* error dot pulse */
+.apv-sdot-pulse {
+  animation: sdot-pulse 1.8s ease-in-out infinite;
+}
+@keyframes sdot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 92, 105, .55); }
+  50%       { box-shadow: 0 0 0 4px rgba(242, 92, 105, 0); }
+}
+
+/* rate-limited dot pulse */
+.apv-sdot-pulse-warn {
+  animation: sdot-pulse-w 1.8s ease-in-out infinite;
+}
+@keyframes sdot-pulse-w {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 179, 78, .55); }
+  50%       { box-shadow: 0 0 0 4px rgba(224, 179, 78, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .apv-spin svg,
+  .apv-sdot-pulse,
+  .apv-sdot-pulse-warn { animation: none; }
+}
 </style>

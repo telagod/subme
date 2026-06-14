@@ -1,12 +1,24 @@
 <template>
   <div>
     <!-- 筛选栏 -->
-    <div class="oq-filter" style="margin-bottom:14px">
-      <div class="oq-search" :class="{ 'oq-search-focus': searchFocused }">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        <input
+    <div class="mb-3.5 flex flex-wrap items-center gap-2">
+      <!-- 搜索框 -->
+      <div class="relative">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 13 13"
+          fill="none"
+          aria-hidden="true"
+          class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        >
+          <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <Input
           v-model="searchQuery"
-          class="oq-search-input"
+          class="h-8 pl-8 text-sm"
+          :class="{ 'ring-2 ring-ring': searchFocused }"
           :placeholder="t('payment.admin.searchOrders')"
           @focus="searchFocused = true"
           @blur="searchFocused = false"
@@ -15,115 +27,173 @@
       </div>
 
       <!-- 状态筛选 -->
-      <div class="oq-chip-wrap" v-click-outside="() => showStatusMenu = false">
-        <button class="oq-chip" :class="{ 'oq-chip-on': filters.status }" @click="showStatusMenu = !showStatusMenu">
-          状态 <b>{{ statusLabel }}</b>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        </button>
-        <div v-if="showStatusMenu" class="oq-menu">
-          <button v-for="opt in statusFilterOptions" :key="opt.value" class="oq-menu-item" :class="{ on: filters.status === opt.value }" @click="filters.status = opt.value; showStatusMenu = false; emitFiltersChanged()">{{ opt.label }}</button>
-        </div>
-      </div>
+      <Select
+        :model-value="filters.status"
+        @update:model-value="val => { filters.status = val; emitFiltersChanged() }"
+      >
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.status }">
+          <span class="mr-0.5">状态</span>
+          <SelectValue :placeholder="statusLabel" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in statusFilterOptions" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
       <!-- 支付方式筛选 -->
-      <div class="oq-chip-wrap" v-click-outside="() => showPayTypeMenu = false">
-        <button class="oq-chip" :class="{ 'oq-chip-on': filters.payment_type }" @click="showPayTypeMenu = !showPayTypeMenu">
-          支付 <b>{{ payTypeLabel }}</b>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        </button>
-        <div v-if="showPayTypeMenu" class="oq-menu">
-          <button v-for="opt in paymentTypeFilterOptions" :key="opt.value" class="oq-menu-item" :class="{ on: filters.payment_type === opt.value }" @click="filters.payment_type = opt.value; showPayTypeMenu = false; emitFiltersChanged()">{{ opt.label }}</button>
-        </div>
-      </div>
+      <Select
+        :model-value="filters.payment_type"
+        @update:model-value="val => { filters.payment_type = val; emitFiltersChanged() }"
+      >
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.payment_type }">
+          <span class="mr-0.5">支付</span>
+          <SelectValue :placeholder="payTypeLabel" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in paymentTypeFilterOptions" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
       <!-- 订单类型筛选 -->
-      <div class="oq-chip-wrap" v-click-outside="() => showOrderTypeMenu = false">
-        <button class="oq-chip" :class="{ 'oq-chip-on': filters.order_type }" @click="showOrderTypeMenu = !showOrderTypeMenu">
-          类型 <b>{{ orderTypeLabel }}</b>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-        </button>
-        <div v-if="showOrderTypeMenu" class="oq-menu">
-          <button v-for="opt in orderTypeFilterOptions" :key="opt.value" class="oq-menu-item" :class="{ on: filters.order_type === opt.value }" @click="filters.order_type = opt.value; showOrderTypeMenu = false; emitFiltersChanged()">{{ opt.label }}</button>
-        </div>
-      </div>
+      <Select
+        :model-value="filters.order_type"
+        @update:model-value="val => { filters.order_type = val; emitFiltersChanged() }"
+      >
+        <SelectTrigger class="h-8 w-auto gap-1 text-xs" :class="{ 'border-primary text-primary': filters.order_type }">
+          <span class="mr-0.5">类型</span>
+          <SelectValue :placeholder="orderTypeLabel" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in orderTypeFilterOptions" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-      <div style="margin-left:auto">
-        <button class="oq-btn" :disabled="loading" @click="emit('refresh')">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" :class="loading ? 'oq-spin-icon' : ''"><path d="M11 6.5A4.5 4.5 0 1 1 6.5 2a4.5 4.5 0 0 1 3.18 1.32" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 2v2.5H8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="ml-auto">
+        <Button variant="outline" size="sm" class="h-8 gap-1.5 text-xs" :disabled="loading" @click="emit('refresh')">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 13 13"
+            fill="none"
+            :class="loading ? 'animate-spin' : ''"
+          >
+            <path d="M11 6.5A4.5 4.5 0 1 1 6.5 2a4.5 4.5 0 0 1 3.18 1.32" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M11 2v2.5H8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           {{ t('common.refresh') }}
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- 表格 -->
-    <div class="oq-card">
-      <DataTable :columns="columns" :data="orders" :loading="loading">
-        <template #cell-id="{ value }">
-          <span class="oq-mono oq-xs oq-muted">#{{ value }}</span>
-        </template>
+    <Card>
+      <CardContent class="p-0">
+        <DataTable :columns="columns" :data="orders" :loading="loading">
+          <template #cell-id="{ value }">
+            <span class="font-mono text-xs text-muted-foreground">#{{ value }}</span>
+          </template>
 
-        <template #cell-user_id="{ value }">
-          <span class="oq-mono oq-xs oq-muted">#{{ value }}</span>
-        </template>
+          <template #cell-user_id="{ value }">
+            <span class="font-mono text-xs text-muted-foreground">#{{ value }}</span>
+          </template>
 
-        <template #cell-pay_amount="{ value, row }">
-          <span class="oq-amount" style="font-size:13px">¥{{ value.toFixed(2) }}</span>
-          <span v-if="row.fee_rate > 0" class="oq-amount-sub" :title="t('payment.orders.fee') + ': ' + row.fee_rate + '%'">({{ row.fee_rate }}%)</span>
-          <div v-if="row.amount !== row.pay_amount" class="oq-amount-sub">
-            {{ t('payment.orders.creditedAmount') }}: {{ row.order_type === 'balance' ? '$' : '¥' }}{{ row.amount.toFixed(2) }}
-          </div>
-        </template>
+          <template #cell-pay_amount="{ value, row }">
+            <span class="text-[13px] font-medium text-foreground">¥{{ value.toFixed(2) }}</span>
+            <span
+              v-if="row.fee_rate > 0"
+              class="ml-1 text-xs text-muted-foreground"
+              :title="t('payment.orders.fee') + ': ' + row.fee_rate + '%'"
+            >({{ row.fee_rate }}%)</span>
+            <div v-if="row.amount !== row.pay_amount" class="text-xs text-muted-foreground">
+              {{ t('payment.orders.creditedAmount') }}: {{ row.order_type === 'balance' ? '$' : '¥' }}{{ row.amount.toFixed(2) }}
+            </div>
+          </template>
 
-        <template #cell-payment_type="{ value }">
-          <span class="oq-xs" style="color:var(--ink-0)">{{ t('payment.methods.' + value, value) }}</span>
-        </template>
+          <template #cell-payment_type="{ value }">
+            <span class="text-xs text-foreground">{{ t('payment.methods.' + value, value) }}</span>
+          </template>
 
-        <template #cell-status="{ value }">
-          <span :class="['oq-badge', statusBadgeQuench(value)]">{{ t('payment.status.' + value.toLowerCase(), value) }}</span>
-        </template>
+          <template #cell-status="{ value }">
+            <Badge :variant="statusBadgeVariant(value)">{{ t('payment.status.' + value.toLowerCase(), value) }}</Badge>
+          </template>
 
-        <template #cell-order_type="{ value }">
-          <span class="oq-xs" style="color:var(--ink-1)">{{ t('payment.admin.' + value + 'Order', value) }}</span>
-        </template>
+          <template #cell-order_type="{ value }">
+            <span class="text-xs text-muted-foreground">{{ t('payment.admin.' + value + 'Order', value) }}</span>
+          </template>
 
-        <template #cell-created_at="{ value }">
-          <span class="oq-mono oq-xs oq-muted">{{ formatDateTime(value) }}</span>
-        </template>
+          <template #cell-created_at="{ value }">
+            <span class="font-mono text-xs text-muted-foreground">{{ formatDateTime(value) }}</span>
+          </template>
 
-        <template #cell-actions="{ row }">
-          <div class="oq-acts">
-            <button class="oq-ib" @click="emit('detail', row)">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>
-              <span>{{ t('common.view') }}</span>
-            </button>
-            <button v-if="row.status === 'PENDING'" class="oq-ib oq-ib-warn" @click="emit('cancel', row)">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3.5 3.5L8.5 8.5M8.5 3.5L3.5 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              <span>{{ t('payment.orders.cancel') }}</span>
-            </button>
-            <button v-if="row.status === 'FAILED'" class="oq-ib" @click="emit('retry', row)">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 5.5A3.5 3.5 0 1 1 5.5 2a3.5 3.5 0 0 1 2.47 1.03" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M10 2v2H8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              <span>{{ t('payment.admin.retry') }}</span>
-            </button>
-            <!-- TODO(backlog): 此组件为 backup/unused，晋升为主组件时需拆分为三分支：
-                 REFUND_REQUESTED → emit('approveRefund'), REFUND_FAILED → emit('retryRefund'), 其余 → emit('refund')
-                 参考 AdminOrdersView.vue 中的 template v-if/v-else-if 链 -->
-            <button v-if="canRefundRow(row)" class="oq-ib oq-ib-bad" @click="emit('refund', row)">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 5l3-3 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <span>{{ t('payment.admin.refund') }}</span>
-            </button>
-          </div>
-        </template>
-      </DataTable>
+          <template #cell-actions="{ row }">
+            <div class="flex items-center gap-1">
+              <Button variant="ghost" size="sm" class="h-7 gap-1 px-2 text-xs" @click="emit('detail', row)">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+                  <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+                </svg>
+                <span>{{ t('common.view') }}</span>
+              </Button>
+              <Button
+                v-if="row.status === 'PENDING'"
+                variant="ghost"
+                size="sm"
+                class="h-7 gap-1 px-2 text-xs text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                @click="emit('cancel', row)"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3.5 3.5L8.5 8.5M8.5 3.5L3.5 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                <span>{{ t('payment.orders.cancel') }}</span>
+              </Button>
+              <Button
+                v-if="row.status === 'FAILED'"
+                variant="ghost"
+                size="sm"
+                class="h-7 gap-1 px-2 text-xs"
+                @click="emit('retry', row)"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M10 5.5A3.5 3.5 0 1 1 5.5 2a3.5 3.5 0 0 1 2.47 1.03" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  <path d="M10 2v2H8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                <span>{{ t('payment.admin.retry') }}</span>
+              </Button>
+              <!-- TODO(backlog): 此组件为 backup/unused，晋升为主组件时需拆分为三分支：
+                   REFUND_REQUESTED → emit('approveRefund'), REFUND_FAILED → emit('retryRefund'), 其余 → emit('refund')
+                   参考 AdminOrdersView.vue 中的 template v-if/v-else-if 链 -->
+              <Button
+                v-if="canRefundRow(row)"
+                variant="ghost"
+                size="sm"
+                class="h-7 gap-1 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                @click="emit('refund', row)"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 2v8M3 5l3-3 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ t('payment.admin.refund') }}</span>
+              </Button>
+            </div>
+          </template>
+        </DataTable>
 
-      <Pagination
-        v-if="total > 0"
-        :page="page"
-        :total="total"
-        :page-size="pageSize"
-        @update:page="emit('update:page', $event)"
-        @update:pageSize="emit('update:pageSize', $event)"
-      />
-    </div>
+        <Pagination
+          v-if="total > 0"
+          :page="page"
+          :total="total"
+          :page-size="pageSize"
+          @update:page="emit('update:page', $event)"
+          @update:pageSize="emit('update:pageSize', $event)"
+        />
+      </CardContent>
+    </Card>
   </div>
 </template>
 
@@ -135,6 +205,11 @@ import type { Column } from '@/components/common/types'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import { canRefund, formatOrderDateTime } from '@/components/payment/orderUtils'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 
 const { t } = useI18n()
 
@@ -159,20 +234,8 @@ const emit = defineEmits<{
 
 // UI state
 const searchFocused = ref(false)
-const showStatusMenu = ref(false)
-const showPayTypeMenu = ref(false)
-const showOrderTypeMenu = ref(false)
 const searchQuery = ref('')
 const filters = reactive({ status: '', payment_type: '', order_type: '' })
-
-// vClick-outside directive (inline)
-const vClickOutside = {
-  mounted(el: HTMLElement, binding: { value: () => void }) {
-    (el as any)._clickOutside = (e: MouseEvent) => { if (!el.contains(e.target as Node)) binding.value() }
-    document.addEventListener('click', (el as any)._clickOutside)
-  },
-  unmounted(el: HTMLElement) { document.removeEventListener('click', (el as any)._clickOutside) }
-}
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 function handleSearch() {
@@ -231,13 +294,13 @@ const statusLabel = computed(() => statusFilterOptions.value.find(o => o.value =
 const payTypeLabel = computed(() => paymentTypeFilterOptions.value.find(o => o.value === filters.payment_type)?.label ?? '全部')
 const orderTypeLabel = computed(() => orderTypeFilterOptions.value.find(o => o.value === filters.order_type)?.label ?? '全部')
 
-function statusBadgeQuench(status: string): string {
+function statusBadgeVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
   const s = status.toUpperCase()
-  if (s === 'COMPLETED' || s === 'PAID') return 'oq-badge-ok'
-  if (s === 'PENDING' || s === 'REFUND_REQUESTED') return 'oq-badge-warn'
-  if (s === 'FAILED' || s === 'REFUND_FAILED' || s === 'CANCELLED' || s === 'EXPIRED') return 'oq-badge-bad'
-  if (s === 'REFUNDED') return 'oq-badge-azure'
-  return 'oq-badge-dim'
+  if (s === 'COMPLETED' || s === 'PAID') return 'default'
+  if (s === 'PENDING' || s === 'REFUND_REQUESTED') return 'secondary'
+  if (s === 'FAILED' || s === 'REFUND_FAILED' || s === 'CANCELLED' || s === 'EXPIRED') return 'destructive'
+  if (s === 'REFUNDED') return 'outline'
+  return 'secondary'
 }
 
 function canRefundRow(order: PaymentOrder): boolean {
@@ -248,8 +311,3 @@ function formatDateTime(dateStr: string): string {
   return formatOrderDateTime(dateStr)
 }
 </script>
-
-<style scoped>
-.oq-spin-icon { animation: oq-icon-spin .7s linear infinite; }
-@keyframes oq-icon-spin { to { transform: rotate(360deg); } }
-</style>

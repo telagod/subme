@@ -1,54 +1,56 @@
 <template>
   <div class="flex min-h-screen items-center justify-center bg-background p-4">
-    <div
-      class="w-full max-w-md space-y-4 rounded-lg border border-border bg-card p-6 "
-    >
-      <!-- Amount + Order ID -->
-      <div v-if="amount" class="text-center">
-        <p class="text-3xl font-bold" :style="{ color: methodColor }">¥{{ amount }}</p>
-        <p v-if="orderId" class="mt-1 text-sm text-muted-foreground">
-          {{ t('payment.orders.orderId') }}: {{ orderId }}
-        </p>
-      </div>
-
-      <!-- Error -->
-      <div v-if="error" class="space-y-3">
-        <div
-          class="rounded-md border border-[var(--bad)]/30 bg-[var(--bad-dim)] p-3 text-sm text-[var(--bad)]"
-        >
-          {{ error }}
+    <Card class="w-full max-w-md">
+      <CardContent class="space-y-4 p-6">
+        <!-- Amount + Order ID -->
+        <div v-if="amount" class="text-center">
+          <p class="text-3xl font-bold" :style="{ color: methodColor }">¥{{ amount }}</p>
+          <p v-if="orderId" class="mt-1 text-sm text-muted-foreground">
+            {{ t('payment.orders.orderId') }}: {{ orderId }}
+          </p>
         </div>
-        <button
-          class="w-full text-sm underline"
-          :style="{ color: methodColor }"
-          @click="closeWindow"
-        >
-          {{ t('common.close') }}
-        </button>
-      </div>
 
-      <!-- Success -->
-      <div v-else-if="success" class="space-y-3 py-4 text-center">
-        <div class="text-5xl text-[var(--ok)]">✓</div>
-        <p class="text-sm text-muted-foreground">{{ t('payment.result.success') }}</p>
-        <button
-          class="text-sm underline"
-          :style="{ color: methodColor }"
-          @click="closeWindow"
-        >
-          {{ t('common.close') }}
-        </button>
-      </div>
+        <!-- Error -->
+        <div v-if="error" class="space-y-3">
+          <div
+            class="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {{ error }}
+          </div>
+          <Button
+            variant="link"
+            class="w-full text-sm"
+            :style="{ color: methodColor }"
+            @click="closeWindow"
+          >
+            {{ t('common.close') }}
+          </Button>
+        </div>
 
-      <!-- Loading / Redirecting -->
-      <div v-else class="flex items-center justify-center py-8">
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          :style="{ borderColor: methodColor, borderTopColor: 'transparent' }"
-        />
-        <span class="ml-3 text-sm text-muted-foreground">{{ hint }}</span>
-      </div>
-    </div>
+        <!-- Success -->
+        <div v-else-if="success" class="space-y-3 py-4 text-center">
+          <div class="text-5xl text-emerald-500">✓</div>
+          <p class="text-sm text-muted-foreground">{{ t('payment.result.success') }}</p>
+          <Button
+            variant="link"
+            class="text-sm"
+            :style="{ color: methodColor }"
+            @click="closeWindow"
+          >
+            {{ t('common.close') }}
+          </Button>
+        </div>
+
+        <!-- Loading / Redirecting -->
+        <div v-else class="flex items-center justify-center py-8">
+          <div
+            class="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+            :style="{ borderColor: methodColor, borderTopColor: 'transparent' }"
+          />
+          <span class="ml-3 text-sm text-muted-foreground">{{ hint }}</span>
+        </div>
+      </CardContent>
+    </Card>
   </div>
 </template>
 
@@ -58,6 +60,8 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { isMobileDevice } from '@/utils/device'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface StripeWithWechatPay {
   confirmWechatPayPayment(clientSecret: string, options: Record<string, unknown>): Promise<{ error?: { message?: string }; paymentIntent?: { status: string } }>

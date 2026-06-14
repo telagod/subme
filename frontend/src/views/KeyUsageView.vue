@@ -42,21 +42,24 @@
       <div class="max-w-xl mx-auto mb-14">
         <div class="flex gap-3">
           <div class="flex-1 relative">
-            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
-            <input
+            <Input
               v-model="apiKey"
               :type="keyVisible ? 'text' : 'password'"
               :placeholder="t('keyUsage.placeholder')"
-              class="input-ring w-full h-12 pl-12 pr-12 rounded-md border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground transition-all"
+              class="h-12 px-12"
               @keydown.enter="queryKey"
             />
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
               @click="keyVisible = !keyVisible"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              class="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
             >
               <svg v-if="!keyVisible" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
@@ -65,12 +68,12 @@
               <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
               </svg>
-            </button>
+            </Button>
           </div>
-          <button
+          <Button
             @click="queryKey"
             :disabled="isQuerying"
-            class="h-12 px-7 rounded-md bg-foreground text-foreground font-medium text-sm  transition-all active:scale-[0.97] flex items-center gap-2 whitespace-nowrap disabled:opacity-60"
+            class="h-12 px-7 active:scale-[0.97]"
           >
             <svg v-if="isQuerying" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25"/>
@@ -80,7 +83,7 @@
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             {{ isQuerying ? t('keyUsage.querying') : t('keyUsage.query') }}
-          </button>
+          </Button>
         </div>
         <p class="text-xs text-muted-foreground mt-3 text-center">
           {{ t('keyUsage.privacyNote') }}
@@ -90,31 +93,31 @@
         <div v-if="showDatePicker" class="mt-4">
           <div class="flex flex-wrap items-center gap-2 justify-center">
             <span class="text-xs text-muted-foreground">{{ t('keyUsage.dateRange') }}</span>
-            <button
+            <Button
               v-for="range in dateRanges"
               :key="range.key"
+              size="sm"
+              :variant="currentRange === range.key ? 'default' : 'outline'"
               @click="setDateRange(range.key)"
-              class="text-xs px-3 py-1.5 rounded-md border transition-all"
-              :class="currentRange === range.key
-                ? 'bg-foreground text-foreground border-border '
-                : 'border-border bg-card text-foreground/85 hover:bg-accent'"
-            >{{ range.label }}</button>
+              class="h-auto px-3 py-1.5 text-xs"
+            >{{ range.label }}</Button>
             <div v-if="currentRange === 'custom'" class="flex items-center gap-2 ml-1">
-              <input
+              <Input
                 v-model="customStartDate"
                 type="date"
-                class="input-ring text-xs px-2 py-1.5 rounded-md border border-border bg-card text-foreground"
+                class="h-auto w-auto px-2 py-1.5 text-xs"
               />
               <span class="text-xs text-muted-foreground">-</span>
-              <input
+              <Input
                 v-model="customEndDate"
                 type="date"
-                class="input-ring text-xs px-2 py-1.5 rounded-md border border-border bg-card text-foreground"
+                class="h-auto w-auto px-2 py-1.5 text-xs"
               />
-              <button
+              <Button
+                size="sm"
                 @click="queryKey"
-                class="text-xs px-3 py-1.5 rounded-md bg-foreground text-foreground "
-              >{{ t('keyUsage.apply') }}</button>
+                class="h-auto px-3 py-1.5 text-xs"
+              >{{ t('keyUsage.apply') }}</Button>
             </div>
           </div>
         </div>
@@ -126,21 +129,21 @@
         <div v-if="showLoading" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="rounded-lg border border-border bg-card p-8 ">
-              <div class="skeleton h-5 w-24 mb-6"></div>
-              <div class="flex justify-center"><div class="skeleton w-44 h-44 rounded-full"></div></div>
+              <div class="animate-pulse rounded bg-muted h-5 w-24 mb-6"></div>
+              <div class="flex justify-center"><div class="animate-pulse w-44 h-44 rounded-full bg-muted"></div></div>
             </div>
             <div class="rounded-lg border border-border bg-card p-8 ">
-              <div class="skeleton h-5 w-24 mb-6"></div>
-              <div class="flex justify-center"><div class="skeleton w-44 h-44 rounded-full"></div></div>
+              <div class="animate-pulse rounded bg-muted h-5 w-24 mb-6"></div>
+              <div class="flex justify-center"><div class="animate-pulse w-44 h-44 rounded-full bg-muted"></div></div>
             </div>
           </div>
           <div class="rounded-lg border border-border bg-card p-8 ">
-            <div class="skeleton h-5 w-32 mb-6"></div>
+            <div class="animate-pulse rounded bg-muted h-5 w-32 mb-6"></div>
             <div class="space-y-4">
-              <div class="skeleton h-4 w-full"></div>
-              <div class="skeleton h-4 w-3/4"></div>
-              <div class="skeleton h-4 w-5/6"></div>
-              <div class="skeleton h-4 w-2/3"></div>
+              <div class="animate-pulse rounded bg-muted h-4 w-full"></div>
+              <div class="animate-pulse rounded bg-muted h-4 w-3/4"></div>
+              <div class="animate-pulse rounded bg-muted h-4 w-5/6"></div>
+              <div class="animate-pulse rounded bg-muted h-4 w-2/3"></div>
             </div>
           </div>
         </div>
@@ -149,15 +152,15 @@
         <div v-else-if="resultData" class="space-y-6">
           <!-- Status Badge -->
           <div v-if="statusInfo" class="fade-up flex items-center justify-center mb-2">
-            <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border bg-card ">
+            <Badge variant="outline" class="gap-2 px-5 py-2.5 bg-card">
               <span
                 class="w-2.5 h-2.5 rounded-full pulse-dot"
-                :class="statusInfo.isActive ? 'bg-emerald-400' : 'bg-red-400'"
+                :class="statusInfo.isActive ? 'bg-emerald-500' : 'bg-destructive'"
               ></span>
               <span class="text-sm font-medium text-foreground">{{ statusInfo.label }}</span>
               <span class="text-xs text-muted-foreground">|</span>
               <span class="text-xs text-muted-foreground">{{ statusInfo.statusText }}</span>
-            </div>
+            </Badge>
           </div>
 
           <!-- Ring Cards Grid -->
@@ -253,7 +256,7 @@
                       v-html="row.iconSvg"
                     ></svg>
                   </div>
-                  <span class="text-sm text-foreground/85">{{ row.label }}</span>
+                  <span class="text-sm text-muted-foreground">{{ row.label }}</span>
                 </div>
                 <span class="text-sm font-semibold tabular-nums" :class="row.valueClass || 'text-foreground'">
                   {{ row.value }}
@@ -290,48 +293,46 @@
             <div class="flex flex-col gap-3 px-8 py-5 border-b border-border sm:flex-row sm:items-center sm:justify-between">
               <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.dailyDetail') }}</h3>
               <div class="inline-flex rounded-md border border-border bg-muted p-0.5">
-                <button
+                <Button
                   v-for="option in dailyUsageOptions"
                   :key="option.value"
+                  size="sm"
+                  :variant="dailyUsageDays === option.value ? 'default' : 'ghost'"
                   @click="setDailyUsageDays(option.value)"
-                  class="min-w-12 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-                  :class="dailyUsageDays === option.value
-                    ? 'bg-foreground text-foreground '
-                    : 'text-foreground/85 hover:bg-accent'"
+                  class="h-auto min-w-12 px-3 py-1.5 text-xs"
                 >
                   {{ option.label }}
-                </button>
+                </Button>
               </div>
             </div>
             <div v-if="dailyUsageRows.length > 0" class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-border bg-muted">
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.date') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.requests') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.inputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.outputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cacheReadTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cacheWriteTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cost') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
+              <Table>
+                <TableHeader>
+                  <TableRow class="bg-muted hover:bg-muted">
+                    <TableHead class="text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.date') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.requests') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.inputTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.outputTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cacheReadTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cacheWriteTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cost') }}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
                     v-for="row in dailyUsageRows"
                     :key="row.date"
-                    class="border-b border-border last:border-b-0"
                   >
-                    <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-foreground">{{ row.date }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(row.requests) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(row.input_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(row.output_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(row.cache_read_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(row.cache_write_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right font-medium text-foreground">{{ usd(row.actual_cost != null ? row.actual_cost : row.cost) }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                    <TableCell class="text-sm font-medium whitespace-nowrap text-foreground">{{ row.date }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(row.requests) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(row.input_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(row.output_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(row.cache_read_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(row.cache_write_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right font-medium text-foreground">{{ usd(row.actual_cost != null ? row.actual_cost : row.cost) }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
             <div v-else class="px-8 py-8 text-center text-sm text-muted-foreground">
               {{ t('keyUsage.noDailyUsage') }}
@@ -347,36 +348,35 @@
               <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.modelStats') }}</h3>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="border-b border-border bg-muted">
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.model') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.requests') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.inputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.outputTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cacheCreationTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cacheReadTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.totalTokens') }}</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">{{ t('keyUsage.cost') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
+              <Table>
+                <TableHeader>
+                  <TableRow class="bg-muted hover:bg-muted">
+                    <TableHead class="text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.model') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.requests') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.inputTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.outputTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cacheCreationTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cacheReadTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.totalTokens') }}</TableHead>
+                    <TableHead class="text-right text-xs font-semibold uppercase tracking-wider">{{ t('keyUsage.cost') }}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
                     v-for="(m, i) in modelStats"
                     :key="i"
-                    class="border-b border-border last:border-b-0"
                   >
-                    <td class="px-4 py-3 text-sm font-medium whitespace-nowrap text-foreground">{{ m.model || '-' }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.requests) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.input_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.output_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.cache_creation_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.cache_read_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right text-foreground/85">{{ fmtNum(m.total_tokens) }}</td>
-                    <td class="px-4 py-3 text-sm tabular-nums text-right font-medium text-foreground">{{ usd(m.actual_cost != null ? m.actual_cost : m.cost) }}</td>
-                  </tr>
-                </tbody>
-              </table>
+                    <TableCell class="text-sm font-medium whitespace-nowrap text-foreground">{{ m.model || '-' }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.requests) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.input_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.output_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.cache_creation_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.cache_read_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right text-muted-foreground">{{ fmtNum(m.total_tokens) }}</TableCell>
+                    <TableCell class="text-sm tabular-nums text-right font-medium text-foreground">{{ usd(m.actual_cost != null ? m.actual_cost : m.cost) }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>
@@ -415,6 +415,17 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
 
 const { t, locale } = useI18n()
 const appStore = useAppStore()
@@ -521,7 +532,7 @@ const RING_GRADIENTS = [
 const ringAnimated = ref(false)
 const displayPcts = ref<number[]>([])
 
-const ringTrackColor = computed(() => '#222222')
+const ringTrackColor = computed(() => 'hsl(var(--muted))')
 
 interface RingItem {
   title: string
@@ -659,7 +670,7 @@ interface DetailRow {
 function getUsageColor(pct: number): string {
   if (pct > 90) return 'text-rose-500'
   if (pct > 70) return 'text-amber-500'
-  return 'text-emerald-400'
+  return 'text-emerald-500'
 }
 
 const detailRows = computed<DetailRow[]>(() => {
@@ -676,9 +687,9 @@ const detailRows = computed<DetailRow[]>(() => {
     if (data.quota) {
       const remainColor = data.quota.remaining <= 0 ? 'text-rose-500'
         : data.quota.remaining < data.quota.limit * 0.1 ? 'text-amber-500'
-        : 'text-emerald-400'
+        : 'text-emerald-500'
       rows.push({
-        iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400', iconSvg: ICON_SHIELD,
+        iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
         label: t('keyUsage.remainingQuota'), value: usd(data.quota.remaining), valueClass: remainColor,
       })
     }
@@ -703,7 +714,7 @@ const detailRows = computed<DetailRow[]>(() => {
           valueStr += ` (⟳ ${resetStr})`
         }
         rows.push({
-          iconBg: 'bg-primary-500/10', iconColor: 'text-primary-500', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-muted', iconColor: 'text-muted-foreground', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${windowMap[rl.window] || rl.window})`,
           value: valueStr,
           valueClass: getUsageColor(pct),
@@ -712,7 +723,7 @@ const detailRows = computed<DetailRow[]>(() => {
     }
   } else {
     rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400', iconSvg: ICON_CHECK,
+      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_CHECK,
       label: t('keyUsage.subscriptionType'), value: data.planName || t('keyUsage.walletBalance'), valueClass: '',
     })
 
@@ -721,21 +732,21 @@ const detailRows = computed<DetailRow[]>(() => {
       if (sub.daily_limit_usd > 0) {
         const pct = (sub.daily_usage_usd / sub.daily_limit_usd) * 100
         rows.push({
-          iconBg: 'bg-primary-500/10', iconColor: 'text-primary-500', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-muted', iconColor: 'text-muted-foreground', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '日' : 'D'})`, value: `${usd(sub.daily_usage_usd)} / ${usd(sub.daily_limit_usd)}`, valueClass: getUsageColor(pct),
         })
       }
       if (sub.weekly_limit_usd > 0) {
         const pct = (sub.weekly_usage_usd / sub.weekly_limit_usd) * 100
         rows.push({
-          iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-500', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-muted', iconColor: 'text-muted-foreground', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '周' : 'W'})`, value: `${usd(sub.weekly_usage_usd)} / ${usd(sub.weekly_limit_usd)}`, valueClass: getUsageColor(pct),
         })
       }
       if (sub.monthly_limit_usd > 0) {
         const pct = (sub.monthly_usage_usd / sub.monthly_limit_usd) * 100
         rows.push({
-          iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400', iconSvg: ICON_DOLLAR,
+          iconBg: 'bg-muted', iconColor: 'text-muted-foreground', iconSvg: ICON_DOLLAR,
           label: `${t('keyUsage.usedQuota')} (${locale.value === 'zh' ? '月' : 'M'})`, value: `${usd(sub.monthly_usage_usd)} / ${usd(sub.monthly_limit_usd)}`, valueClass: getUsageColor(pct),
         })
       }
@@ -748,10 +759,10 @@ const detailRows = computed<DetailRow[]>(() => {
     }
 
     const remainColor = data.remaining != null
-      ? (data.remaining <= 0 ? 'text-rose-500' : data.remaining < 10 ? 'text-amber-500' : 'text-emerald-400')
+      ? (data.remaining <= 0 ? 'text-rose-500' : data.remaining < 10 ? 'text-amber-500' : 'text-emerald-500')
       : ''
     rows.push({
-      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400', iconSvg: ICON_SHIELD,
+      iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-500', iconSvg: ICON_SHIELD,
       label: t('keyUsage.remainingQuota'), value: data.remaining != null ? usd(data.remaining) : '-', valueClass: remainColor,
     })
   }
@@ -921,37 +932,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Input focus ring */
-.input-ring {
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-}
-.input-ring:focus {
-  box-shadow: 0 0 0 3px rgba(160, 165, 173, 0.25);
-  border-color: #9aa1a9;
-  outline: none;
-}
-
 /* Ring animation */
 .progress-ring {
   transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
-}
-
-/* Skeleton loading */
-@keyframes shimmer-kv {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.skeleton {
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: shimmer-kv 1.8s ease-in-out infinite;
-  border-radius: 8px;
-}
-:global(.dark) .skeleton {
-  background: linear-gradient(90deg, #334155 25%, #1e293b 50%, #334155 75%);
-  background-size: 200% 100%;
 }
 
 /* Fade up animation */

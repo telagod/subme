@@ -7,17 +7,18 @@
   >
     <form id="channel-monitor-form" @submit.prevent="handleSubmit" class="space-y-5">
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.name') }} <span class="text-red-400">*</span></label>
-        <input v-model="form.name" type="text" required class="input" :placeholder="t('admin.channelMonitor.form.namePlaceholder')" />
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.name') }} <span class="text-destructive">*</span></Label>
+        <Input v-model="form.name" type="text" required :placeholder="t('admin.channelMonitor.form.namePlaceholder')" />
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.provider') }} <span class="text-red-400">*</span></label>
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.provider') }} <span class="text-destructive">*</span></Label>
         <div class="grid grid-cols-3 gap-3">
-          <button
+          <Button
             v-for="opt in providerOptions"
             :key="opt.value"
             type="button"
+            variant="outline"
             :aria-pressed="form.provider === opt.value"
             class="flex items-center justify-center gap-2 rounded-md border-2 px-3 py-2.5 text-sm font-medium transition-colors"
             :class="providerPickerClass(opt.value, form.provider === opt.value)"
@@ -25,71 +26,72 @@
           >
             <ProviderIcon :provider="opt.value" :size="18" />
             <span>{{ opt.label }}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       <div v-if="form.provider === PROVIDER_OPENAI" class="rounded-md border border-border bg-card p-3">
-        <label class="input-label">{{ t('admin.channelMonitor.form.apiMode') }}</label>
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.apiMode') }}</Label>
         <div class="grid gap-3 sm:grid-cols-2">
-          <button
+          <Button
             v-for="opt in apiModeOptions"
             :key="opt.value"
             type="button"
+            variant="outline"
             :aria-pressed="form.api_mode === opt.value"
-            class="rounded-md border-2 px-3 py-2 text-left transition-colors"
+            class="h-auto rounded-md border-2 px-3 py-2 text-left transition-colors"
             :class="apiModeButtonClass(opt.value)"
             @click="form.api_mode = opt.value"
           >
             <span class="block text-sm font-semibold">{{ opt.label }}</span>
             <span class="mt-0.5 block text-xs opacity-80">{{ opt.hint }}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.endpoint') }} <span class="text-red-400">*</span></label>
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.endpoint') }} <span class="text-destructive">*</span></Label>
         <div class="flex gap-2">
-          <input v-model="form.endpoint" type="text" required class="input flex-1" :placeholder="t('admin.channelMonitor.form.endpointPlaceholder')" />
-          <button type="button" @click="useCurrentDomain" class="btn btn-secondary whitespace-nowrap">
+          <Input v-model="form.endpoint" type="text" required class="flex-1" :placeholder="t('admin.channelMonitor.form.endpointPlaceholder')" />
+          <Button type="button" variant="secondary" class="whitespace-nowrap" @click="useCurrentDomain">
             {{ t('admin.channelMonitor.form.useCurrentDomain') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div>
-        <label class="input-label">
-          {{ t('admin.channelMonitor.form.apiKey') }}<span v-if="!editing" class="text-red-400"> *</span>
-        </label>
+        <Label class="mb-1.5 block">
+          {{ t('admin.channelMonitor.form.apiKey') }}<span v-if="!editing" class="text-destructive"> *</span>
+        </Label>
         <div class="flex gap-2">
-          <input
+          <Input
             v-model="form.api_key"
             type="password"
             :required="!editing"
-            class="input flex-1"
+            class="flex-1"
             :placeholder="editing ? t('admin.channelMonitor.form.apiKeyEditPlaceholder') : t('admin.channelMonitor.form.apiKeyPlaceholder')"
           />
-          <button type="button" @click="openMyKeyPicker" class="btn btn-secondary whitespace-nowrap">
+          <Button type="button" variant="secondary" class="whitespace-nowrap" @click="openMyKeyPicker">
             {{ t('admin.channelMonitor.form.useMyKey') }}
-          </button>
+          </Button>
         </div>
         <p v-if="editing && editing.api_key_masked" class="mt-1 text-xs text-muted-foreground">{{ editing.api_key_masked }}</p>
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.primaryModel') }} <span class="text-red-400">*</span></label>
-        <input
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.primaryModel') }} <span class="text-destructive">*</span></Label>
+        <Input
           v-model="form.primary_model"
           type="text"
           required
-          class="input font-medium"
+          class="font-medium"
           :class="getPlatformTextClass(form.provider)"
           :placeholder="t('admin.channelMonitor.form.primaryModelPlaceholder')"
         />
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.extraModels') }}</label>
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.extraModels') }}</Label>
         <ModelTagInput
           :models="form.extra_models"
           :platform="form.provider"
@@ -99,19 +101,19 @@
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.groupName') }}</label>
-        <input v-model="form.group_name" type="text" class="input" :placeholder="t('admin.channelMonitor.form.groupNamePlaceholder')" />
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.groupName') }}</Label>
+        <Input v-model="form.group_name" type="text" :placeholder="t('admin.channelMonitor.form.groupNamePlaceholder')" />
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.intervalSeconds') }} <span class="text-red-400">*</span></label>
-        <input v-model.number="form.interval_seconds" type="number" min="15" max="3600" required class="input" />
+        <Label class="mb-1.5 block">{{ t('admin.channelMonitor.form.intervalSeconds') }} <span class="text-destructive">*</span></Label>
+        <Input :model-value="form.interval_seconds" type="number" min="15" max="3600" required @update:model-value="form.interval_seconds = Number($event) || 0" />
         <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.channelMonitor.form.intervalSecondsHint') }}</p>
       </div>
 
       <div class="flex items-center justify-between">
-        <label class="input-label mb-0">{{ t('admin.channelMonitor.form.enabled') }}</label>
-        <Toggle v-model="form.enabled" />
+        <Label class="mb-0">{{ t('admin.channelMonitor.form.enabled') }}</Label>
+        <Switch v-model="form.enabled" />
       </div>
 
       <!-- 高级设置区：请求模板 + 自定义 headers/body -->
@@ -123,12 +125,17 @@
 
         <div class="mt-4 space-y-4">
           <div>
-            <label class="input-label">{{ t('admin.channelMonitor.templateField.label') }}</label>
-            <Select
-              v-model="templateSelectValue"
-              :options="templateOptions"
-              :placeholder="t('admin.channelMonitor.templateField.placeholder')"
-            />
+            <Label class="mb-1.5 block">{{ t('admin.channelMonitor.templateField.label') }}</Label>
+            <Select v-model="templateSelectValue">
+              <SelectTrigger>
+                <SelectValue :placeholder="t('admin.channelMonitor.templateField.placeholder')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in templateOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.channelMonitor.templateField.applyHint') }}</p>
           </div>
 
@@ -148,19 +155,18 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" type="button" class="btn btn-secondary">
+        <Button @click="$emit('close')" type="button" variant="secondary">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="channel-monitor-form"
           :disabled="submitting"
-          class="btn btn-primary"
         >
           {{ submitting
             ? t('common.submitting')
             : editing ? t('common.update') : t('common.create') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -195,8 +201,17 @@ import type {
 import type { ChannelMonitorTemplate } from '@/api/admin/channelMonitorTemplate'
 import type { ApiKey } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
-import Toggle from '@/components/common/Toggle.vue'
-import Select from '@/components/common/Select.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import ModelTagInput from '@/components/admin/channel/ModelTagInput.vue'
 import { getPlatformTextClass } from '@/components/admin/channel/types'
 import MonitorKeyPickerDialog from '@/components/admin/monitor/MonitorKeyPickerDialog.vue'
@@ -356,9 +371,9 @@ function normalizeAPIMode(mode: APIMode | undefined | null): APIMode {
 function apiModeButtonClass(mode: APIMode): string {
   const active = form.api_mode === mode
   if (active) {
-    return 'border-primary-500 bg-primary-500/15 text-primary-300 shadow-sm  '
+    return 'border-primary bg-primary/15 text-primary shadow-sm'
   }
-  return 'border-border bg-card text-muted-foreground hover:border-primary-300'
+  return 'border-border bg-card text-muted-foreground hover:border-primary/30'
 }
 
 function templateOptionLabel(tpl: ChannelMonitorTemplate): string {

@@ -3,27 +3,28 @@
     <div v-if="user" class="space-y-4">
       <div class="flex items-center gap-3 rounded-lg bg-muted p-4">
         <div class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-secondary ">
-          <span class="text-lg font-medium text-primary-200">{{ user.email.charAt(0).toUpperCase() }}</span>
+          <span class="text-lg font-medium text-primary">{{ user.email.charAt(0).toUpperCase() }}</span>
         </div>
         <div><p class="font-medium text-foreground">{{ user.email }}</p><p class="text-sm text-muted-foreground">{{ user.username }}</p></div>
       </div>
-      <div v-if="loading" class="flex justify-center py-8"><svg class="h-8 w-8 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+      <div v-if="loading" class="flex justify-center py-8"><svg class="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
       <div v-else-if="apiKeys.length === 0" class="py-8 text-center"><p class="text-sm text-muted-foreground">{{ t('admin.users.noApiKeys') }}</p></div>
       <div v-else ref="scrollContainerRef" class="max-h-96 space-y-3 overflow-y-auto" @scroll="closeGroupSelector">
         <div v-for="key in apiKeys" :key="key.id" class="rounded-lg border border-border bg-card p-4">
           <div class="flex items-start justify-between">
             <div class="min-w-0 flex-1">
-              <div class="mb-1 flex items-center gap-2"><span class="font-medium text-foreground">{{ key.name }}</span><span :class="['badge text-xs', key.status === 'active' ? 'badge-success' : 'badge-danger']">{{ key.status }}</span></div>
+              <div class="mb-1 flex items-center gap-2"><span class="font-medium text-foreground">{{ key.name }}</span><Badge :variant="key.status === 'active' ? 'default' : 'destructive'" class="text-xs">{{ key.status }}</Badge></div>
               <p class="truncate font-mono text-sm text-muted-foreground">{{ key.key.substring(0, 20) }}...{{ key.key.substring(key.key.length - 8) }}</p>
             </div>
           </div>
           <div class="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
             <div class="flex items-center gap-1">
               <span>{{ t('admin.users.group') }}:</span>
-              <button
+              <Button
                 :ref="(el) => setGroupButtonRef(key.id, el)"
                 @click="openGroupSelector(key)"
-                class="-mx-1 -my-0.5 flex cursor-pointer items-center gap-1 rounded-md px-1 py-0.5 transition-colors hover:bg-accent"
+                variant="ghost"
+                class="-mx-1 -my-0.5 h-auto flex-wrap gap-1 px-1 py-0.5 text-xs font-normal"
                 :disabled="updatingKeyIds.has(key.id)"
               >
                 <GroupBadge
@@ -34,9 +35,9 @@
                   :rate-multiplier="key.group.rate_multiplier"
                 />
                 <span v-else class="text-muted-foreground italic">{{ t('admin.users.none') }}</span>
-                <svg v-if="updatingKeyIds.has(key.id)" class="h-3 w-3 animate-spin text-primary-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg v-if="updatingKeyIds.has(key.id)" class="h-3 w-3 animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 <svg v-else class="h-3 w-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" /></svg>
-              </button>
+              </Button>
             </div>
             <div class="flex items-center gap-1"><span>{{ t('admin.users.columns.created') }}: {{ formatDateTime(key.created_at) }}</span></div>
           </div>
@@ -55,32 +56,30 @@
     >
       <div class="max-h-64 overflow-y-auto p-1.5">
         <!-- Unbind option -->
-        <button
+        <Button
+          variant="ghost"
           @click="changeGroup(selectedKeyForGroup!, null)"
           :class="[
-            'flex w-full items-center rounded-md px-3 py-2 text-sm transition-colors',
-            !selectedKeyForGroup?.group_id
-              ? 'bg-accent'
-              : 'hover:bg-accent'
+            'flex w-full items-center justify-start rounded-md px-3 py-2 text-sm h-auto',
+            !selectedKeyForGroup?.group_id ? 'bg-accent' : ''
           ]"
         >
           <span class="text-muted-foreground italic">{{ t('admin.users.none') }}</span>
           <svg
             v-if="!selectedKeyForGroup?.group_id"
-            class="ml-auto h-4 w-4 shrink-0 text-primary-200"
+            class="ml-auto h-4 w-4 shrink-0 text-primary"
             fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"
           ><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-        </button>
+        </Button>
         <!-- Group options -->
-        <button
+        <Button
           v-for="group in allGroups"
           :key="group.id"
+          variant="ghost"
           @click="changeGroup(selectedKeyForGroup!, group.id)"
           :class="[
-            'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
-            selectedKeyForGroup?.group_id === group.id
-              ? 'bg-accent'
-              : 'hover:bg-accent'
+            'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm h-auto',
+            selectedKeyForGroup?.group_id === group.id ? 'bg-accent' : ''
           ]"
         >
           <GroupOptionItem
@@ -91,7 +90,7 @@
             :description="group.description"
             :selected="selectedKeyForGroup?.group_id === group.id"
           />
-        </button>
+        </Button>
       </div>
     </div>
   </Teleport>
@@ -107,6 +106,8 @@ import type { AdminUser, AdminGroup, ApiKey } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{ show: boolean; user: AdminUser | null }>()
 const emit = defineEmits(['close'])

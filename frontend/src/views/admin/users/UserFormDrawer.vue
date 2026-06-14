@@ -1,99 +1,145 @@
 <template>
-  <Teleport to="body">
-    <Transition name="ufd-slide">
-      <div v-if="open" class="ufd-overlay" @click.self="$emit('close')" role="dialog" :aria-label="isEdit ? t('admin.userFormDrawer.titleEdit') : t('admin.userFormDrawer.titleCreate')">
-        <div class="ufd-panel">
-          <!-- 头部 -->
-          <div class="ufd-head">
-            <div class="ufd-title">{{ isEdit ? t('admin.userFormDrawer.titleEdit') : t('admin.userFormDrawer.titleCreate') }}</div>
-            <button class="ufd-close" :aria-label="t('admin.userFormDrawer.ariaClose')" @click="$emit('close')">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </button>
+  <Sheet :open="open" @update:open="(v) => { if (!v) $emit('close') }">
+    <SheetContent side="right" class="w-[400px] max-w-full p-0 flex flex-col" :aria-label="isEdit ? t('admin.userFormDrawer.titleEdit') : t('admin.userFormDrawer.titleCreate')">
+      <!-- 头部 -->
+      <SheetHeader class="px-6 py-4 border-b border-border flex-shrink-0">
+        <SheetTitle class="text-[15px] font-bold text-foreground">
+          {{ isEdit ? t('admin.userFormDrawer.titleEdit') : t('admin.userFormDrawer.titleCreate') }}
+        </SheetTitle>
+      </SheetHeader>
+
+      <!-- 表单主体 -->
+      <ScrollArea class="flex-1">
+        <form class="flex flex-col gap-4 p-6" @submit.prevent="handleSubmit">
+          <!-- 邮箱 -->
+          <div class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.emailLabel') }}
+              <span class="text-destructive ml-0.5">*</span>
+            </Label>
+            <Input
+              v-model="form.email"
+              type="email"
+              required
+              placeholder="user@example.com"
+              autocomplete="off"
+            />
           </div>
 
-          <!-- 表单主体 -->
-          <form class="ufd-body" @submit.prevent="handleSubmit">
-            <!-- 邮箱 -->
-            <div class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.emailLabel') }} <span class="ufd-req">*</span></label>
-              <input
-                v-model="form.email"
-                type="email"
-                required
-                class="ufd-input"
-                placeholder="user@example.com"
-                autocomplete="off"
+          <!-- 密码 -->
+          <div class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ isEdit ? t('admin.userFormDrawer.passwordEditLabel') : t('admin.userFormDrawer.passwordLabel') }}
+            </Label>
+            <div class="flex gap-2">
+              <Input
+                v-model="form.password"
+                type="text"
+                :required="!isEdit"
+                :placeholder="t('admin.userFormDrawer.passwordPlaceholder')"
+                autocomplete="new-password"
+                class="flex-1"
               />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                :title="t('admin.userFormDrawer.passwordGenTitle')"
+                @click="generatePassword"
+                class="shrink-0"
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                  <path d="M11.5 6.5A5 5 0 1 1 6.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  <path d="M9 1.5v3h-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </Button>
             </div>
+          </div>
 
-            <!-- 密码 -->
-            <div class="ufd-field">
-              <label class="ufd-label">{{ isEdit ? t('admin.userFormDrawer.passwordEditLabel') : t('admin.userFormDrawer.passwordLabel') }}</label>
-              <div class="ufd-row">
-                <input
-                  v-model="form.password"
-                  type="text"
-                  class="ufd-input"
-                  :required="!isEdit"
-                  :placeholder="t('admin.userFormDrawer.passwordPlaceholder')"
-                  autocomplete="new-password"
-                />
-                <button type="button" class="ufd-gen-btn" :title="t('admin.userFormDrawer.passwordGenTitle')" @click="generatePassword">
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-                    <path d="M11.5 6.5A5 5 0 1 1 6.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                    <path d="M9 1.5v3h-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
+          <!-- 用户名 -->
+          <div class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.usernameLabel') }}
+            </Label>
+            <Input
+              v-model="form.username"
+              type="text"
+              :placeholder="t('admin.userFormDrawer.usernamePlaceholder')"
+              autocomplete="off"
+            />
+          </div>
 
-            <!-- 用户名 -->
-            <div class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.usernameLabel') }}</label>
-              <input v-model="form.username" type="text" class="ufd-input" :placeholder="t('admin.userFormDrawer.usernamePlaceholder')" autocomplete="off" />
-            </div>
+          <!-- 初始余额（仅创建时） -->
+          <div v-if="!isEdit" class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.balanceLabel') }}
+            </Label>
+            <Input
+              v-model="form.balance"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+            />
+          </div>
 
-            <!-- 初始余额（仅创建时） -->
-            <div v-if="!isEdit" class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.balanceLabel') }}</label>
-              <input v-model="form.balance" type="number" step="0.01" min="0" class="ufd-input" placeholder="0.00" />
-            </div>
+          <!-- 并发上限 -->
+          <div class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.concurrencyLabel') }}
+            </Label>
+            <Input
+              v-model.number="form.concurrency"
+              type="number"
+              min="1"
+            />
+          </div>
 
-            <!-- 并发上限 -->
-            <div class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.concurrencyLabel') }}</label>
-              <input v-model.number="form.concurrency" type="number" min="1" class="ufd-input" />
-            </div>
+          <!-- RPM 限速 -->
+          <div class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.rpmLabel') }}
+              <span class="ml-1 font-normal normal-case text-muted-foreground/70">{{ t('admin.userFormDrawer.rpmHint') }}</span>
+            </Label>
+            <Input
+              v-model.number="form.rpm_limit"
+              type="number"
+              min="0"
+              step="1"
+            />
+          </div>
 
-            <!-- RPM 限速 -->
-            <div class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.rpmLabel') }} <span class="ufd-hint-inline">{{ t('admin.userFormDrawer.rpmHint') }}</span></label>
-              <input v-model.number="form.rpm_limit" type="number" min="0" step="1" class="ufd-input" />
-            </div>
+          <!-- 备注（仅编辑时） -->
+          <div v-if="isEdit" class="flex flex-col gap-1.5">
+            <Label class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {{ t('admin.userFormDrawer.notesLabel') }}
+            </Label>
+            <Textarea
+              v-model="form.notes"
+              rows="3"
+              :placeholder="t('admin.userFormDrawer.notesPlaceholder')"
+              class="resize-y min-h-[72px]"
+            />
+          </div>
 
-            <!-- 备注（仅编辑时） -->
-            <div v-if="isEdit" class="ufd-field">
-              <label class="ufd-label">{{ t('admin.userFormDrawer.notesLabel') }}</label>
-              <textarea v-model="form.notes" rows="3" class="ufd-input ufd-textarea" :placeholder="t('admin.userFormDrawer.notesPlaceholder')"></textarea>
-            </div>
+          <!-- 错误提示 -->
+          <div v-if="errorMsg" class="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-[12.5px] text-destructive">
+            {{ errorMsg }}
+          </div>
 
-            <!-- 错误提示 -->
-            <div v-if="errorMsg" class="ufd-error">{{ errorMsg }}</div>
-
-            <!-- 底部操作 -->
-            <div class="ufd-footer">
-              <button type="button" class="ufd-btn" @click="$emit('close')">{{ t('admin.userFormDrawer.cancelBtn') }}</button>
-              <button type="submit" class="ufd-btn ufd-btn-primary" :disabled="submitting">
-                {{ submitting ? (isEdit ? t('admin.userFormDrawer.saving') : t('admin.userFormDrawer.creating')) : (isEdit ? t('admin.userFormDrawer.saveChanges') : t('admin.userFormDrawer.createUser')) }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+          <!-- 底部操作 -->
+          <div class="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" @click="$emit('close')">
+              {{ t('admin.userFormDrawer.cancelBtn') }}
+            </Button>
+            <Button type="submit" :disabled="submitting">
+              {{ submitting ? (isEdit ? t('admin.userFormDrawer.saving') : t('admin.userFormDrawer.creating')) : (isEdit ? t('admin.userFormDrawer.saveChanges') : t('admin.userFormDrawer.createUser')) }}
+            </Button>
+          </div>
+        </form>
+      </ScrollArea>
+    </SheetContent>
+  </Sheet>
 </template>
 
 <script setup lang="ts">
@@ -102,6 +148,12 @@ import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser } from '@/types'
 import { useAppStore } from '@/stores/app'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 const { t } = useI18n()
 
@@ -204,5 +256,3 @@ async function handleSubmit() {
   }
 }
 </script>
-
-<style src="./user-form-drawer.css"></style>

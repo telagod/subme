@@ -8,7 +8,7 @@
         <div
           class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary "
         >
-          <Icon name="cog" size="xl" class="text-primary-200" />
+          <Icon name="cog" size="xl" class="text-primary" />
         </div>
         <h1 class="text-3xl font-bold text-foreground">{{ t('setup.title') }}</h1>
         <p class="mt-2 text-muted-foreground">{{ t('setup.description') }}</p>
@@ -72,20 +72,18 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('setup.database.host') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.database.host') }}</Label>
+              <Input
                 v-model="formData.database.host"
                 type="text"
-                class="input"
                 placeholder="localhost"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.port') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.database.port') }}</Label>
+              <Input
                 v-model.number="formData.database.port"
                 type="number"
-                class="input"
                 placeholder="5432"
               />
             </div>
@@ -100,25 +98,23 @@
                 {{ t("setup.redis.enableTlsHint") }}
               </p>
             </div>
-            <Toggle v-model="formData.redis.enable_tls" />
+            <Switch v-model="formData.redis.enable_tls" />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('setup.database.username') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.database.username') }}</Label>
+              <Input
                 v-model="formData.database.user"
                 type="text"
-                class="input"
                 placeholder="postgres"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.password') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.database.password') }}</Label>
+              <Input
                 v-model="formData.database.password"
                 type="password"
-                class="input"
                 :placeholder="t('setup.database.passwordPlaceholder')"
               />
             </div>
@@ -126,32 +122,34 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('setup.database.databaseName') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.database.databaseName') }}</Label>
+              <Input
                 v-model="formData.database.dbname"
                 type="text"
-                class="input"
                 placeholder="sub2api"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.database.sslMode') }}</label>
-              <Select
-                v-model="formData.database.sslmode"
-                :options="[
-                  { value: 'disable', label: t('setup.database.ssl.disable') },
-                  { value: 'require', label: t('setup.database.ssl.require') },
-                  { value: 'verify-ca', label: t('setup.database.ssl.verifyCa') },
-                  { value: 'verify-full', label: t('setup.database.ssl.verifyFull') }
-                ]"
-              />
+              <Label class="mb-1.5 block">{{ t('setup.database.sslMode') }}</Label>
+              <Select v-model="formData.database.sslmode">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="disable">{{ t('setup.database.ssl.disable') }}</SelectItem>
+                  <SelectItem value="require">{{ t('setup.database.ssl.require') }}</SelectItem>
+                  <SelectItem value="verify-ca">{{ t('setup.database.ssl.verifyCa') }}</SelectItem>
+                  <SelectItem value="verify-full">{{ t('setup.database.ssl.verifyFull') }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <button
+          <Button
+            variant="outline"
             @click="testDatabaseConnection"
             :disabled="testingDb"
-            class="btn btn-secondary w-full"
+            class="w-full"
           >
             <svg
               v-if="testingDb"
@@ -181,7 +179,7 @@
                   ? t('setup.status.success')
                   : t('setup.status.testConnection')
             }}
-          </button>
+          </Button>
         </div>
 
         <!-- Step 2: Redis -->
@@ -197,20 +195,18 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('setup.redis.host') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.redis.host') }}</Label>
+              <Input
                 v-model="formData.redis.host"
                 type="text"
-                class="input"
                 placeholder="localhost"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.redis.port') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.redis.port') }}</Label>
+              <Input
                 v-model.number="formData.redis.port"
                 type="number"
-                class="input"
                 placeholder="6379"
               />
             </div>
@@ -218,20 +214,18 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('setup.redis.password') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.redis.password') }}</Label>
+              <Input
                 v-model="formData.redis.password"
                 type="password"
-                class="input"
                 :placeholder="t('setup.redis.passwordPlaceholder')"
               />
             </div>
             <div>
-              <label class="input-label">{{ t('setup.redis.database') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('setup.redis.database') }}</Label>
+              <Input
                 v-model.number="formData.redis.db"
                 type="number"
-                class="input"
                 placeholder="0"
               />
             </div>
@@ -246,13 +240,14 @@
                 {{ t("setup.redis.enableTlsHint") }}
               </p>
             </div>
-            <Toggle v-model="formData.redis.enable_tls" />
+            <Switch v-model="formData.redis.enable_tls" />
           </div>
 
-          <button
+          <Button
+            variant="outline"
             @click="testRedisConnection"
             :disabled="testingRedis"
-            class="btn btn-secondary w-full"
+            class="w-full"
           >
             <svg
               v-if="testingRedis"
@@ -288,7 +283,7 @@
                   ? t('setup.status.success')
                   : t('setup.status.testConnection')
             }}
-          </button>
+          </Button>
         </div>
 
         <!-- Step 3: Admin -->
@@ -303,36 +298,33 @@
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.email') }}</label>
-            <input
+            <Label class="mb-1.5 block">{{ t('setup.admin.email') }}</Label>
+            <Input
               v-model="formData.admin.email"
               type="email"
-              class="input"
               placeholder="admin@example.com"
             />
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.password') }}</label>
-            <input
+            <Label class="mb-1.5 block">{{ t('setup.admin.password') }}</Label>
+            <Input
               v-model="formData.admin.password"
               type="password"
-              class="input"
               :placeholder="t('setup.admin.passwordPlaceholder')"
             />
           </div>
 
           <div>
-            <label class="input-label">{{ t('setup.admin.confirmPassword') }}</label>
-            <input
+            <Label class="mb-1.5 block">{{ t('setup.admin.confirmPassword') }}</Label>
+            <Input
               v-model="confirmPassword"
               type="password"
-              class="input"
               :placeholder="t('setup.admin.confirmPasswordPlaceholder')"
             />
             <p
               v-if="confirmPassword && formData.admin.password !== confirmPassword"
-              class="input-error-text"
+              class="mt-1 text-sm text-destructive"
             >
               {{ t('setup.admin.passwordMismatch') }}
             </p>
@@ -383,11 +375,11 @@
         <!-- Error Message -->
         <div
           v-if="errorMessage"
-          class="mt-6 rounded-md border border-red-500/30 bg-red-500/10 p-4"
+          class="mt-6 rounded-md border border-destructive/30 bg-destructive/10 p-4"
         >
           <div class="flex items-start gap-3">
-            <Icon name="exclamationCircle" size="md" class="flex-shrink-0 text-red-400" />
-            <p class="text-sm text-red-400">{{ errorMessage }}</p>
+            <Icon name="exclamationCircle" size="md" class="flex-shrink-0 text-destructive" />
+            <p class="text-sm text-destructive">{{ errorMessage }}</p>
           </div>
         </div>
 
@@ -435,31 +427,29 @@
 
         <!-- Navigation Buttons -->
         <div class="mt-8 flex justify-between">
-          <button
+          <Button
             v-if="currentStep > 0 && !installSuccess"
+            variant="outline"
             @click="currentStep--"
-            class="btn btn-secondary"
           >
             <Icon name="chevronLeft" size="sm" class="mr-2" :stroke-width="2" />
             {{ t('common.back') }}
-          </button>
+          </Button>
           <div v-else></div>
 
-          <button
+          <Button
             v-if="currentStep < 3"
             @click="nextStep"
             :disabled="!canProceed"
-            class="btn btn-primary"
           >
             {{ t('common.next') }}
             <Icon name="chevronRight" size="sm" class="ml-2" :stroke-width="2" />
-          </button>
+          </Button>
 
-          <button
+          <Button
             v-else-if="!installSuccess"
             @click="performInstall"
             :disabled="installing"
-            class="btn btn-primary"
           >
             <svg
               v-if="installing"
@@ -482,7 +472,7 @@
               ></path>
             </svg>
             {{ installing ? t('setup.status.installing') : t('setup.status.completeInstallation') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -493,9 +483,12 @@
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { testDatabase, testRedis, install, type InstallRequest } from '@/api/setup'
-import Select from '@/components/common/Select.vue'
-import Toggle from '@/components/common/Toggle.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
 const { t } = useI18n()
 

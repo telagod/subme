@@ -5,6 +5,8 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import Select from '@/components/common/Select.vue'
 import OpsErrorLogTable from './OpsErrorLogTable.vue'
 import { opsAPI, type OpsErrorLog } from '@/api/admin/ops'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Props {
   show: boolean
@@ -190,25 +192,25 @@ watch(
   <BaseDialog :show="show" :title="modalTitle" width="full" @close="close">
     <div style="display:flex;height:100%;min-height:0;flex-direction:column;">
       <!-- Filters -->
-      <div style="margin-bottom:12px;flex-shrink:0;border-bottom:1px solid var(--line-0,#20242C);padding-bottom:12px;">
+      <div class="mb-3 flex-shrink-0 border-b border-border pb-3">
         <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr auto;gap:8px;align-items:center;">
           <div style="position:relative;">
             <div style="pointer-events:none;position:absolute;inset-y:0;left:0;display:flex;align-items:center;padding-left:10px;">
-              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--ink-2,#5C6470);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-muted-foreground"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <input v-model="q" type="text" class="input" style="padding-left:30px;height:30px;font-size:11.5px;" :placeholder="t('admin.ops.errorDetails.searchPlaceholder')" />
+            <Input v-model="q" type="text" class="h-[30px] pl-[30px] text-[11.5px]" :placeholder="t('admin.ops.errorDetails.searchPlaceholder')" />
           </div>
           <Select :model-value="statusCode" :options="statusCodeSelectOptions" @update:model-value="statusCode = $event as any" />
           <Select :model-value="phase" :options="phaseSelectOptions" @update:model-value="phase = String($event ?? '')" />
           <Select :model-value="errorOwner" :options="ownerSelectOptions" @update:model-value="errorOwner = String($event ?? '')" />
           <Select :model-value="viewMode" :options="viewModeSelectOptions" @update:model-value="viewMode = $event as any" />
-          <button type="button" class="od-btn" style="padding:4px 10px;font-size:11px;white-space:nowrap;" @click="resetFilters">{{ t('common.reset') }}</button>
+          <Button type="button" variant="outline" size="sm" class="whitespace-nowrap text-[11px]" @click="resetFilters">{{ t('common.reset') }}</Button>
         </div>
       </div>
 
       <!-- Body -->
       <div style="display:flex;min-height:0;flex:1;flex-direction:column;">
-        <div style="margin-bottom:6px;flex-shrink:0;font-size:11px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.errorDetails.total') }} {{ total }}</div>
+        <div class="mb-1.5 flex-shrink-0 text-[11px] text-muted-foreground">{{ t('admin.ops.errorDetails.total') }} {{ total }}</div>
         <OpsErrorLogTable
           style="min-height:0;flex:1;"
           :rows="rows"
@@ -225,4 +227,3 @@ watch(
   </BaseDialog>
 </template>
 
-<style src="../ops-quench.css"></style>

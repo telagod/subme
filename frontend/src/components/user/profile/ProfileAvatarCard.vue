@@ -1,22 +1,16 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card'">
-    <div
-      v-if="!props.embedded"
-      class="border-b border-border px-6 py-4"
-    >
+  <Card v-if="!props.embedded">
+    <CardHeader class="border-b border-border px-6 py-4">
       <h2 class="text-lg font-medium text-foreground">
         {{ t('profile.avatar.title') }}
       </h2>
       <p class="mt-1 text-sm text-muted-foreground">
         {{ t('profile.avatar.description') }}
       </p>
-    </div>
-
-    <div :class="props.embedded ? 'space-y-3' : 'flex flex-col gap-5 px-6 py-6 sm:flex-row sm:items-start'">
+    </CardHeader>
+    <CardContent class="flex flex-col gap-5 px-6 py-6 sm:flex-row sm:items-start">
       <div
-        :class="props.embedded
-          ? 'flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-foreground text-xl font-bold text-foreground '
-          : 'flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-foreground text-3xl font-bold text-foreground '"
+        class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted text-3xl font-bold text-foreground"
       >
         <img
           v-if="avatarPreviewUrl"
@@ -28,12 +22,9 @@
         <span v-else>{{ avatarInitial }}</span>
       </div>
 
-      <div :class="props.embedded ? 'space-y-3' : 'min-w-0 flex-1 space-y-4'">
+      <div class="min-w-0 flex-1 space-y-4">
         <div class="space-y-1">
-          <p v-if="props.embedded" class="text-sm font-semibold text-foreground">
-            {{ t('profile.avatar.title') }}
-          </p>
-          <p v-else class="text-sm font-medium text-foreground">
+          <p class="text-sm font-medium text-foreground">
             {{ displayName }}
           </p>
           <p class="text-sm text-muted-foreground">
@@ -42,7 +33,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
-          <label class="btn btn-secondary btn-sm cursor-pointer">
+          <Button as="label" variant="outline" size="sm" class="cursor-pointer">
             <input
               data-testid="profile-avatar-file-input"
               type="file"
@@ -51,27 +42,90 @@
               @change="handleAvatarFileChange"
             >
             {{ t('profile.avatar.uploadAction') }}
-          </label>
+          </Button>
 
-          <button
+          <Button
             data-testid="profile-avatar-save"
             type="button"
-            class="btn btn-primary btn-sm"
+            size="sm"
             :disabled="avatarSaving || !avatarDraft"
             @click="handleAvatarSave"
           >
             {{ t('common.save') }}
-          </button>
+          </Button>
 
-          <button
+          <Button
             data-testid="profile-avatar-delete"
             type="button"
-            class="btn btn-secondary btn-sm"
+            variant="outline"
+            size="sm"
             :disabled="avatarSaving"
             @click="handleAvatarDelete"
           >
             {{ t('common.delete') }}
-          </button>
+          </Button>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+
+  <div v-else class="space-y-4">
+    <div class="space-y-3">
+      <div
+        class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted text-xl font-bold text-foreground"
+      >
+        <img
+          v-if="avatarPreviewUrl"
+          data-testid="profile-avatar-preview"
+          :src="avatarPreviewUrl"
+          :alt="displayName"
+          class="h-full w-full object-cover"
+        >
+        <span v-else>{{ avatarInitial }}</span>
+      </div>
+
+      <div class="space-y-3">
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-foreground">
+            {{ t('profile.avatar.title') }}
+          </p>
+          <p class="text-sm text-muted-foreground">
+            {{ t('profile.avatar.uploadHint') }}
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <Button as="label" variant="outline" size="sm" class="cursor-pointer">
+            <input
+              data-testid="profile-avatar-file-input"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleAvatarFileChange"
+            >
+            {{ t('profile.avatar.uploadAction') }}
+          </Button>
+
+          <Button
+            data-testid="profile-avatar-save"
+            type="button"
+            size="sm"
+            :disabled="avatarSaving || !avatarDraft"
+            @click="handleAvatarSave"
+          >
+            {{ t('common.save') }}
+          </Button>
+
+          <Button
+            data-testid="profile-avatar-delete"
+            type="button"
+            variant="outline"
+            size="sm"
+            :disabled="avatarSaving"
+            @click="handleAvatarDelete"
+          >
+            {{ t('common.delete') }}
+          </Button>
         </div>
       </div>
     </div>
@@ -86,6 +140,8 @@ import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/types'
 import { extractApiErrorMessage } from '@/utils/apiError'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 
 const props = withDefaults(defineProps<{
   user: User | null

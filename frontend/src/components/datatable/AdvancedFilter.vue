@@ -1,128 +1,183 @@
 <template>
-  <div class="af-root">
+  <div class="flex flex-col gap-2 text-[12.5px]">
     <!-- 激活 chip 列表 -->
-    <div v-if="activeChips.length > 0" class="af-chips" role="list" :aria-label="t('advancedFilter.activeFilters')">
-      <div v-for="chip in activeChips" :key="chip.key" class="af-chip" role="listitem">
-        <span class="af-chip-label">{{ chip.fieldLabel }}</span>
-        <span class="af-chip-sep">:</span>
-        <span class="af-chip-val">{{ chip.summary }}</span>
-        <button class="af-chip-del" type="button" :aria-label="t('advancedFilter.removeFilter', { name: chip.fieldLabel })" @click="removeFilter(chip.key)">✕</button>
+    <div v-if="activeChips.length > 0" class="flex flex-wrap gap-1.5 items-center" role="list" :aria-label="t('advancedFilter.activeFilters')">
+      <div
+        v-for="chip in activeChips"
+        :key="chip.key"
+        class="inline-flex items-center gap-1 py-0.5 px-2.5 rounded-lg border border-primary/30 bg-primary/10 text-foreground text-[11.5px] max-w-[260px]"
+        role="listitem"
+      >
+        <span class="text-muted-foreground text-[10.5px] font-medium uppercase tracking-[0.04em] shrink-0">{{ chip.fieldLabel }}</span>
+        <span class="text-muted-foreground shrink-0">:</span>
+        <span class="text-primary font-medium overflow-hidden text-ellipsis whitespace-nowrap">{{ chip.summary }}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          type="button"
+          class="w-3.5 h-3.5 text-[8.5px] rounded-sm text-muted-foreground shrink-0 ml-0.5 hover:text-destructive hover:bg-destructive/10"
+          :aria-label="t('advancedFilter.removeFilter', { name: chip.fieldLabel })"
+          @click="removeFilter(chip.key)"
+        >✕</Button>
       </div>
     </div>
 
     <!-- 操作行 -->
-    <div class="af-bar">
-      <div class="af-add-wrap" ref="addWrapRef">
-        <button class="af-btn-add" type="button" :aria-expanded="pickerOpen" :aria-haspopup="true" :aria-label="t('advancedFilter.addFilter')" @click="togglePicker">
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="relative" ref="addWrapRef">
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          class="gap-1.5 rounded-[9px] border-dashed text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5"
+          :aria-expanded="pickerOpen"
+          :aria-haspopup="true"
+          :aria-label="t('advancedFilter.addFilter')"
+          @click="togglePicker"
+        >
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M5.5 1v9M1 5.5h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           {{ t('advancedFilter.addFilter') }}
-          <span v-if="activeCount > 0" class="af-badge">{{ activeCount }}</span>
-        </button>
+          <Badge v-if="activeCount > 0" variant="secondary" class="h-4 min-w-4 px-1 text-[9.5px] font-bold font-mono rounded-full">{{ activeCount }}</Badge>
+        </Button>
 
         <Teleport to="body">
           <Transition name="af-pop">
-            <div v-if="pickerOpen" ref="pickerRef" class="af-picker" :style="pickerStyle" role="dialog" :aria-label="t('advancedFilter.chooseField')" @keydown.esc="closePicker">
-              <div class="af-picker-head">{{ t('advancedFilter.chooseField') }}</div>
-              <div class="af-picker-list" role="listbox">
-                <button
+            <div
+              v-if="pickerOpen"
+              ref="pickerRef"
+              class="w-[300px] bg-popover border border-border rounded-xl shadow-xl overflow-hidden flex flex-col"
+              :style="pickerStyle"
+              role="dialog"
+              :aria-label="t('advancedFilter.chooseField')"
+              @keydown.esc="closePicker"
+            >
+              <div class="px-3.5 pt-2.5 pb-2 text-[10.5px] font-semibold tracking-[0.08em] uppercase text-muted-foreground border-b border-border">
+                {{ t('advancedFilter.chooseField') }}
+              </div>
+              <div class="flex flex-col p-1.5 gap-0.5 max-h-[200px] overflow-y-auto" role="listbox">
+                <Button
                   v-for="field in fields" :key="field.key"
-                  class="af-picker-item" :class="{ 'af-picker-item-on': editingKey === field.key }"
-                  role="option" :aria-selected="editingKey === field.key" type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="w-full justify-between px-2.5 text-muted-foreground text-[12.5px]"
+                  :class="{ 'bg-primary/10 text-primary': editingKey === field.key }"
+                  role="option"
+                  :aria-selected="editingKey === field.key"
+                  type="button"
                   @click="selectField(field.key)"
                 >
                   <span>{{ field.label }}</span>
-                  <span v-if="isFieldActive(field.key)" class="af-picker-dot" aria-hidden="true"></span>
-                </button>
+                  <span
+                    v-if="isFieldActive(field.key)"
+                    class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"
+                    aria-hidden="true"
+                  ></span>
+                </Button>
               </div>
               <Transition name="af-ctrl">
-                <div v-if="editingKey && editingField" class="af-ctrl-wrap">
-                  <div class="af-ctrl-head">{{ editingField.label }}</div>
+                <div v-if="editingKey && editingField" class="border-t border-border p-3 flex flex-col gap-2">
+                  <div class="text-[10.5px] font-semibold tracking-[0.06em] uppercase text-muted-foreground">
+                    {{ editingField.label }}
+                  </div>
 
                   <!-- select -->
-                  <div v-if="editingField.type === 'select'" class="af-ctrl-opts">
-                    <button
+                  <div v-if="editingField.type === 'select'" class="flex flex-wrap gap-1.5">
+                    <Button
                       v-for="opt in editingField.options"
                       :key="opt.value"
-                      class="af-opt"
-                      :class="{ 'af-opt-on': draftValue === opt.value }"
+                      variant="outline"
+                      size="sm"
+                      class="rounded-[7px] text-muted-foreground text-xs"
+                      :class="{ 'bg-primary/10 border-primary/40 text-primary': draftValue === opt.value }"
                       type="button"
                       @click="draftValue = opt.value"
-                    >{{ opt.label }}</button>
+                    >{{ opt.label }}</Button>
                   </div>
 
                   <!-- text -->
-                  <input
+                  <Input
                     v-else-if="editingField.type === 'text'"
                     v-model="draftText"
-                    class="af-input"
                     type="text"
                     :placeholder="editingField.placeholder || ''"
+                    class="h-8 text-[12.5px]"
                     @keydown.enter="applyDraft"
                   />
 
                   <!-- numberRange -->
-                  <div v-else-if="editingField.type === 'numberRange'" class="af-range-row">
-                    <input
-                      v-model.number="draftNumMin"
-                      class="af-input af-input-sm"
+                  <div v-else-if="editingField.type === 'numberRange'" class="flex items-center gap-2">
+                    <Input
+                      :model-value="draftNumMin ?? ''"
                       type="number"
                       :placeholder="editingField.placeholder || t('advancedFilter.min')"
+                      class="flex-1 min-w-0 h-8 text-[12.5px]"
+                      @update:model-value="draftNumMin = $event === '' || $event == null ? '' : Number($event)"
                       @keydown.enter="applyDraft"
                     />
-                    <span class="af-range-dash">–</span>
-                    <input
-                      v-model.number="draftNumMax"
-                      class="af-input af-input-sm"
+                    <span class="text-muted-foreground shrink-0 text-xs">–</span>
+                    <Input
+                      :model-value="draftNumMax ?? ''"
                       type="number"
                       :placeholder="editingField.placeholderMax || t('advancedFilter.max')"
+                      class="flex-1 min-w-0 h-8 text-[12.5px]"
+                      @update:model-value="draftNumMax = $event === '' || $event == null ? '' : Number($event)"
                       @keydown.enter="applyDraft"
                     />
                   </div>
 
                   <!-- dateRange -->
-                  <div v-else-if="editingField.type === 'dateRange'" class="af-range-row">
-                    <input
+                  <div v-else-if="editingField.type === 'dateRange'" class="flex items-center gap-2">
+                    <Input
                       v-model="draftDateAfter"
-                      class="af-input af-input-date"
                       type="date"
                       :placeholder="t('advancedFilter.after')"
+                      class="flex-1 min-w-0 h-8 text-[12.5px]"
                     />
-                    <span class="af-range-dash">~</span>
-                    <input
+                    <span class="text-muted-foreground shrink-0 text-xs">~</span>
+                    <Input
                       v-model="draftDateBefore"
-                      class="af-input af-input-date"
                       type="date"
                       :placeholder="t('advancedFilter.before')"
+                      class="flex-1 min-w-0 h-8 text-[12.5px]"
                     />
                   </div>
 
                   <!-- boolean -->
-                  <div v-else-if="editingField.type === 'boolean'" class="af-bool-row">
-                    <button
-                      class="af-opt"
-                      :class="{ 'af-opt-on': draftBool === true }"
+                  <div v-else-if="editingField.type === 'boolean'" class="flex flex-wrap gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      class="rounded-[7px] text-muted-foreground text-xs"
+                      :class="{ 'bg-primary/10 border-primary/40 text-primary': draftBool === true }"
                       type="button"
                       @click="draftBool = true"
-                    >{{ t('advancedFilter.yes') }}</button>
-                    <button
-                      class="af-opt"
-                      :class="{ 'af-opt-on': draftBool === false }"
+                    >{{ t('advancedFilter.yes') }}</Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      class="rounded-[7px] text-muted-foreground text-xs"
+                      :class="{ 'bg-primary/10 border-primary/40 text-primary': draftBool === false }"
                       type="button"
                       @click="draftBool = false"
-                    >{{ t('advancedFilter.no') }}</button>
+                    >{{ t('advancedFilter.no') }}</Button>
                   </div>
 
                   <!-- 应用 / 清除该字段 -->
-                  <div class="af-ctrl-foot">
-                    <button
+                  <div class="flex justify-end gap-2 mt-0.5">
+                    <Button
                       v-if="isFieldActive(editingKey)"
-                      class="af-btn-ghost"
+                      variant="ghost"
+                      size="sm"
                       type="button"
+                      class="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       @click="removeFilter(editingKey!)"
-                    >{{ t('advancedFilter.clearField') }}</button>
-                    <button class="af-btn-apply" type="button" @click="applyDraft">
-                      {{ t('advancedFilter.apply') }}
-                    </button>
+                    >{{ t('advancedFilter.clearField') }}</Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      @click="applyDraft"
+                    >{{ t('advancedFilter.apply') }}</Button>
                   </div>
                 </div>
               </Transition>
@@ -132,9 +187,14 @@
       </div>
 
       <!-- 清空全部 -->
-      <button v-if="activeCount > 0" class="af-btn-clear" type="button" @click="clearAll">
-        {{ t('advancedFilter.clearAll') }}
-      </button>
+      <Button
+        v-if="activeCount > 0"
+        variant="ghost"
+        size="sm"
+        type="button"
+        class="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+        @click="clearAll"
+      >{{ t('advancedFilter.clearAll') }}</Button>
     </div>
   </div>
 </template>
@@ -144,6 +204,9 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { FilterFieldDef, AdvancedFilterValues, NumberRangeValue, DateRangeValue } from './advancedFilter'
 import { isFilterActive, countActiveFilters, summarizeFilterValue } from './advancedFilter'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 
@@ -295,4 +358,33 @@ function isFieldActive(key: string) { return isFilterActive(props.modelValue[key
 watch(() => props.modelValue, (v) => { if (Object.keys(v).length === 0) editingKey.value = null })
 </script>
 
-<style src="./advanced-filter.css"></style>
+<style>
+.af-pop-enter-active,
+.af-pop-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.af-pop-enter-from,
+.af-pop-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+.af-ctrl-enter-active,
+.af-ctrl-leave-active {
+  transition: opacity 0.12s ease, max-height 0.15s ease;
+  overflow: hidden;
+  max-height: 400px;
+}
+
+.af-ctrl-enter-from,
+.af-ctrl-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .af-pop-enter-active, .af-pop-leave-active,
+  .af-ctrl-enter-active, .af-ctrl-leave-active { transition: none; }
+}
+</style>

@@ -1,10 +1,12 @@
 <template>
   <div>
     <!-- 铃铛按钮 -->
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       @click="openModal"
-      class="relative flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent hover:scale-105"
-      :class="{ 'text-primary-200': unreadCount > 0 }"
+      class="relative text-muted-foreground transition-all hover:scale-105"
+      :class="{ 'text-primary': unreadCount > 0 }"
       :aria-label="t('announcements.title')"
     >
       <Icon name="bell" size="md" />
@@ -16,7 +18,7 @@
         <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
         <span class="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
       </span>
-    </button>
+    </Button>
 
     <!-- 公告列表 Modal -->
     <Teleport to="body">
@@ -35,7 +37,7 @@
               <div class="relative z-10 flex items-start justify-between">
                 <div>
                   <div class="flex items-center gap-2">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-secondary text-primary">
                       <Icon name="bell" size="sm" />
                     </div>
                     <h2 class="text-lg font-semibold text-foreground">
@@ -43,26 +45,28 @@
                     </h2>
                   </div>
                   <p v-if="unreadCount > 0" class="mt-2 text-sm text-muted-foreground">
-                    <span class="font-medium text-primary-200">{{ unreadCount }}</span>
+                    <span class="font-medium text-primary">{{ unreadCount }}</span>
                     {{ t('announcements.unread') }}
                   </p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <button
+                  <Button
                     v-if="unreadCount > 0"
                     @click="markAllAsRead"
                     :disabled="loading"
-                    class="rounded-md bg-foreground px-4 py-2 text-xs font-medium text-foreground  transition-all hover:brightness-110 disabled:opacity-50"
+                    class="text-xs"
                   >
                     {{ t('announcements.markAllRead') }}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     @click="closeModal"
-                    class="flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+                    class="text-muted-foreground hover:text-foreground"
                     :aria-label="t('common.close')"
                   >
                     <Icon name="x" size="sm" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -72,7 +76,7 @@
               <!-- Loading -->
               <div v-if="loading" class="flex items-center justify-center py-16">
                 <div class="relative">
-                  <div class="h-12 w-12 animate-spin rounded-full border-4 border-border border-t-primary-200"></div>
+                  <div class="h-12 w-12 animate-spin rounded-full border-4 border-border border-t-primary"></div>
                 </div>
               </div>
 
@@ -90,22 +94,17 @@
                   <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center">
                     <div
                       v-if="!item.read_at"
-                      class="relative flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 "
+                      class="relative flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary"
                     >
                       <!-- Pulse ring -->
-                      <span class="absolute inline-flex h-full w-full animate-ping rounded-md bg-primary-200/20 opacity-75"></span>
-                      <!-- Icon -->
-                      <svg class="relative z-10 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <span class="absolute inline-flex h-full w-full animate-ping rounded-md bg-primary/20 opacity-75"></span>
+                      <Icon name="infoCircle" size="md" class="relative z-10" :stroke-width="2.5" />
                     </div>
                     <div
                       v-else
                       class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground"
                     >
-                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <Icon name="checkCircle" size="md" :stroke-width="2" />
                     </div>
                   </div>
 
@@ -119,37 +118,29 @@
                         <time class="text-xs text-muted-foreground">
                           {{ formatRelativeTime(item.created_at) }}
                         </time>
-                        <span
+                        <Badge
                           v-if="!item.read_at"
-                          class="inline-flex items-center gap-1 rounded-md bg-secondary border border-border px-1.5 py-0.5 text-xs font-medium text-primary-200"
+                          variant="outline"
+                          class="inline-flex items-center gap-1 bg-secondary text-primary border-border px-1.5 py-0.5 text-xs"
                         >
                           <span class="relative flex h-1.5 w-1.5">
-                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-200/40 opacity-75"></span>
-                            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary-200"></span>
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/40 opacity-75"></span>
+                            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary"></span>
                           </span>
                           {{ t('announcements.unread') }}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
 
-                    <!-- Arrow -->
                     <div class="flex-shrink-0">
-                      <svg
-                        class="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
+                      <Icon name="chevronRight" size="md" class="text-muted-foreground transition-transform group-hover:translate-x-1" :stroke-width="2" />
                     </div>
                   </div>
 
                   <!-- Unread indicator bar -->
                   <div
                     v-if="!item.read_at"
-                    class="absolute left-0 top-0 h-full w-1 bg-primary-200"
+                    class="absolute left-0 top-0 h-full w-1 bg-primary"
                   ></div>
                 </div>
               </div>
@@ -193,25 +184,24 @@
                 <div class="flex-1 min-w-0">
                   <!-- Icon and Category -->
                   <div class="mb-3 flex items-center gap-2">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
-                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary">
+                      <Icon name="infoCircle" size="md" :stroke-width="2" />
                     </div>
                     <div class="flex items-center gap-2">
-                      <span class="rounded-md bg-secondary border border-border px-2.5 py-1 text-xs font-medium text-primary-200">
+                      <Badge variant="outline" class="bg-secondary text-primary border-border px-2.5 py-1 text-xs">
                         {{ t('announcements.title') }}
-                      </span>
-                      <span
+                      </Badge>
+                      <Badge
                         v-if="!selectedAnnouncement.read_at"
-                        class="inline-flex items-center gap-1.5 rounded-md bg-secondary border border-border px-2.5 py-1 text-xs font-medium text-primary-200 "
+                        variant="outline"
+                        class="inline-flex items-center gap-1.5 bg-secondary text-primary border-border px-2.5 py-1 text-xs"
                       >
                         <span class="relative flex h-2 w-2">
-                          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-200/40 opacity-75"></span>
-                          <span class="relative inline-flex h-2 w-2 rounded-full bg-primary-200"></span>
+                          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/40 opacity-75"></span>
+                          <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
                         </span>
                         {{ t('announcements.unread') }}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 
@@ -223,29 +213,26 @@
                   <!-- Meta Info -->
                   <div class="flex items-center gap-4 text-sm text-muted-foreground">
                     <div class="flex items-center gap-1.5">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <Icon name="clock" size="sm" :stroke-width="2" />
                       <time>{{ formatRelativeWithDateTime(selectedAnnouncement.created_at) }}</time>
                     </div>
                     <div class="flex items-center gap-1.5">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+                      <Icon name="eye" size="sm" :stroke-width="2" />
                       <span>{{ selectedAnnouncement.read_at ? t('announcements.read') : t('announcements.unread') }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Close button -->
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   @click="closeDetail"
-                  class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground transition-all hover:bg-accent hover:text-foreground"
+                  class="flex-shrink-0 text-muted-foreground hover:text-foreground"
                   :aria-label="t('common.close')"
                 >
                   <Icon name="x" size="md" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -254,7 +241,7 @@
               <!-- Content with decorative border -->
               <div class="relative">
                 <!-- Decorative left border -->
-                <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-primary-200"></div>
+                <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-primary"></div>
 
                 <div class="pl-6">
                   <div
@@ -269,30 +256,24 @@
             <div class="border-t border-border bg-card px-8 py-5">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 text-xs text-muted-foreground">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <Icon name="infoCircle" size="sm" :stroke-width="2" />
                   <span>{{ selectedAnnouncement.read_at ? t('announcements.readStatus') : t('announcements.markReadHint') }}</span>
                 </div>
                 <div class="flex items-center gap-3">
-                  <button
+                  <Button
+                    variant="outline"
                     @click="closeDetail"
-                    class="rounded-md border border-border bg-secondary px-5 py-2.5 text-sm font-medium text-foreground/85  transition-all hover:bg-accent"
                   >
                     {{ t('common.close') }}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     v-if="!selectedAnnouncement.read_at"
                     @click="markAsReadAndClose(selectedAnnouncement.id)"
-                    class="rounded-md bg-foreground px-5 py-2.5 text-sm font-medium text-foreground  transition-all hover:brightness-110 hover:scale-105"
+                    class="hover:scale-105"
                   >
-                    <span class="flex items-center gap-2">
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      {{ t('announcements.markRead') }}
-                    </span>
-                  </button>
+                    <Icon name="check" size="sm" :stroke-width="2" />
+                    {{ t('announcements.markRead') }}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -314,6 +295,8 @@ import { useAnnouncementStore } from '@/stores/announcements'
 import { formatRelativeTime, formatRelativeWithDateTime } from '@/utils/format'
 import type { UserAnnouncement } from '@/types'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -447,20 +430,20 @@ watch(
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #4b5563, #374151);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #94a3b8, #64748b);
+  background: hsl(var(--muted-foreground) / 0.6);
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #6b7280, #4b5563);
+  background: hsl(var(--muted-foreground) / 0.7);
 }
 </style>
 
@@ -492,7 +475,7 @@ watch(
 }
 
 .markdown-body a {
-  @apply font-medium text-primary-200 underline decoration-primary-200/30 decoration-2 underline-offset-2 transition-all hover:decoration-primary-200;
+  @apply font-medium text-primary underline decoration-primary/30 decoration-2 underline-offset-2 transition-all hover:decoration-primary;
 }
 
 .markdown-body ul,
@@ -514,20 +497,20 @@ watch(
 }
 
 .markdown-body li::marker {
-  @apply text-primary-200;
+  @apply text-primary;
 }
 
 .markdown-body blockquote {
-  @apply relative my-5 border-l-4 border-primary-200 bg-card py-3 pl-5 pr-4 italic text-foreground/85;
+  @apply relative my-5 border-l-4 border-primary bg-card py-3 pl-5 pr-4 italic text-foreground/85;
 }
 
 .markdown-body blockquote::before {
   content: '"';
-  @apply absolute -left-1 top-0 text-5xl font-serif text-primary-200/20;
+  @apply absolute -left-1 top-0 text-5xl font-serif text-primary/20;
 }
 
 .markdown-body code {
-  @apply rounded-md bg-muted px-2 py-1 text-[13px] font-mono text-primary-200;
+  @apply rounded-md bg-muted px-2 py-1 text-[13px] font-mono text-primary;
 }
 
 .markdown-body pre {

@@ -3,11 +3,11 @@
     <form id="plan-form" @submit.prevent="handleSavePlan" class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="input-label">{{ t('payment.admin.planName') }} <span class="text-red-400">*</span></label>
-          <input v-model="planForm.name" type="text" class="input" required />
+          <Label class="mb-1 block">{{ t('payment.admin.planName') }} <span class="text-destructive">*</span></Label>
+          <Input v-model="planForm.name" type="text" required />
         </div>
         <div>
-          <label class="input-label">{{ t('payment.admin.group') }} <span class="text-red-400">*</span></label>
+          <Label class="mb-1 block">{{ t('payment.admin.group') }} <span class="text-destructive">*</span></Label>
           <Select v-model="planForm.group_id" :options="groupOptions" :placeholder="t('payment.admin.selectGroup')" class="w-full">
             <template #selected="{ option }">
               <span v-if="option?.platform" :class="platformTextClass(String(option.platform))">{{ option.label }}</span>
@@ -33,44 +33,35 @@
         </div>
       </div>
 
-      <div><label class="input-label">{{ t('payment.admin.planDescription') }} <span class="text-red-400">*</span></label><textarea v-model="planForm.description" rows="2" class="input" required></textarea></div>
-      <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.price') }} <span class="text-red-400">*</span></label><input v-model.number="planForm.price" type="number" step="0.01" min="0.01" class="input" required /></div>
-        <div><label class="input-label">{{ t('payment.admin.originalPrice') }}</label><input v-model.number="planForm.original_price" type="number" step="0.01" min="0" class="input" /></div>
+      <div>
+        <Label class="mb-1 block">{{ t('payment.admin.planDescription') }} <span class="text-destructive">*</span></Label>
+        <Textarea v-model="planForm.description" rows="2" required />
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.validityDays') }} <span class="text-red-400">*</span></label><input v-model.number="planForm.validity_days" type="number" min="1" class="input" required /></div>
-        <div><label class="input-label">{{ t('payment.admin.validityUnit') }} <span class="text-red-400">*</span></label><Select v-model="planForm.validity_unit" :options="validityUnitOptions" /></div>
+        <div><Label class="mb-1 block">{{ t('payment.admin.price') }} <span class="text-destructive">*</span></Label><Input v-model.number="planForm.price" type="number" step="0.01" min="0.01" required /></div>
+        <div><Label class="mb-1 block">{{ t('payment.admin.originalPrice') }}</Label><Input v-model.number="planForm.original_price" type="number" step="0.01" min="0" /></div>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="input-label">{{ t('payment.admin.sortOrder') }}</label><input v-model.number="planForm.sort_order" type="number" min="0" class="input" /></div>
+        <div><Label class="mb-1 block">{{ t('payment.admin.validityDays') }} <span class="text-destructive">*</span></Label><Input v-model.number="planForm.validity_days" type="number" min="1" required /></div>
+        <div><Label class="mb-1 block">{{ t('payment.admin.validityUnit') }} <span class="text-destructive">*</span></Label><Select v-model="planForm.validity_unit" :options="validityUnitOptions" /></div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><Label class="mb-1 block">{{ t('payment.admin.sortOrder') }}</Label><Input v-model.number="planForm.sort_order" type="number" min="0" /></div>
       </div>
       <div>
-        <label class="input-label">{{ t('payment.admin.features') }}</label>
-        <textarea v-model="planFeaturesText" rows="3" class="input" :placeholder="t('payment.admin.featuresPlaceholder')"></textarea>
+        <Label class="mb-1 block">{{ t('payment.admin.features') }}</Label>
+        <Textarea v-model="planFeaturesText" rows="3" :placeholder="t('payment.admin.featuresPlaceholder')" />
         <p class="mt-1 text-xs text-muted-foreground">{{ t('payment.admin.featuresHint') }}</p>
       </div>
       <div class="flex items-center gap-3">
-        <label class="text-sm text-foreground/85">{{ t('payment.admin.forSale') }}</label>
-        <button
-          type="button"
-          :class="[
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-            planForm.for_sale ? 'bg-foreground' : 'bg-muted'
-          ]"
-          @click="planForm.for_sale = !planForm.for_sale"
-        >
-          <span :class="[
-            'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground shadow ring-0 transition duration-200 ease-in-out',
-            planForm.for_sale ? 'translate-x-5' : 'translate-x-0'
-          ]" />
-        </button>
+        <Label class="text-sm text-foreground/85">{{ t('payment.admin.forSale') }}</Label>
+        <Switch :checked="planForm.for_sale" @update:checked="planForm.for_sale = $event" />
       </div>
     </form>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" @click="emit('close')" class="btn btn-secondary">{{ t('common.cancel') }}</button>
-        <button type="submit" form="plan-form" :disabled="saving" class="btn btn-primary">{{ saving ? t('common.saving') : t('common.save') }}</button>
+        <Button type="button" variant="outline" @click="emit('close')">{{ t('common.cancel') }}</Button>
+        <Button type="submit" form="plan-form" :disabled="saving">{{ saving ? t('common.saving') : t('common.save') }}</Button>
       </div>
     </template>
   </BaseDialog>
@@ -89,6 +80,11 @@ import Select from '@/components/common/Select.vue'
 import Icon from '@/components/icons/Icon.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import { platformTextClass } from '@/utils/platformColors'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 
 const props = defineProps<{
   show: boolean

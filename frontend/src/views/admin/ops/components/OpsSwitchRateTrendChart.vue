@@ -127,10 +127,10 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="od-chart-card">
-    <div class="od-chart-head">
-      <h3 class="od-chart-title">
-        <svg class="od-chart-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <div class="bg-card border border-border rounded-xl p-5 flex flex-col h-full">
+    <div class="flex items-center justify-between mb-3.5 shrink-0">
+      <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">
+        <svg class="text-primary shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h6m-6 5h3" />
         </svg>
         {{ t('admin.ops.switchRateTrend') }}
@@ -138,14 +138,12 @@ const options = computed(() => {
       </h3>
     </div>
 
-    <div style="flex:1;min-height:0;">
+    <div class="flex-1 min-h-0">
       <Line v-if="state === 'ready' && chartData" :data="chartData" :options="options" />
-      <div v-else style="display:flex;height:100%;align-items:center;justify-content:center;">
-        <div v-if="state === 'loading'" style="font-size:13px;color:var(--ink-2,#5C6470);" class="animate-pulse">{{ t('common.loading') }}</div>
+      <div v-else class="flex h-full items-center justify-center">
+        <div v-if="state === 'loading'" class="text-[13px] text-muted-foreground animate-pulse">{{ t('common.loading') }}</div>
         <EmptyState v-else :title="t('common.noData')" :description="t('admin.ops.charts.emptyRequest')" />
       </div>
     </div>
   </div>
 </template>
-
-<style src="../ops-quench.css"></style>

@@ -1,66 +1,90 @@
 <template>
   <!-- 小弹窗：调余额 -->
-  <Teleport to="body">
-    <div v-if="open" class="bal-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" :aria-label="t('admin.balanceAdjustPopover.title')">
-      <div class="bal-panel" @keydown.esc.stop="$emit('close')">
-        <div class="bal-header">
-          <span class="bal-title">{{ t('admin.balanceAdjustPopover.title') }}</span>
-          <button class="bal-close" @click="$emit('close')" :aria-label="t('admin.balanceAdjustPopover.ariaClose')">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          </button>
+  <Dialog :open="open" @update:open="val => !val && $emit('close')">
+    <DialogContent
+      class="w-[340px] max-w-[calc(100vw-2rem)] gap-0 p-0"
+      :aria-label="t('admin.balanceAdjustPopover.title')"
+      @keydown.esc.stop="$emit('close')"
+    >
+      <!-- Header -->
+      <DialogHeader class="border-b border-border px-[18px] pb-3 pt-4">
+        <DialogTitle class="text-sm font-bold text-foreground">
+          {{ t('admin.balanceAdjustPopover.title') }}
+        </DialogTitle>
+      </DialogHeader>
+
+      <!-- Body -->
+      <div class="flex flex-col gap-3.5 px-[18px] py-4">
+        <!-- 当前余额 -->
+        <div class="text-[12.5px] text-muted-foreground">
+          {{ t('admin.balanceAdjustPopover.currentBalance') }}<span class="font-mono font-semibold text-foreground">${{ fmtBal(currentBalance) }}</span>
         </div>
-        <div class="bal-body">
-          <div class="bal-cur">
-            {{ t('admin.balanceAdjustPopover.currentBalance') }}<span class="q-money">${{ fmtBal(currentBalance) }}</span>
-          </div>
-          <div class="bal-field">
-            <label class="bal-label">{{ t('admin.balanceAdjustPopover.operationLabel') }}</label>
-            <div class="bal-ops">
-              <button
-                v-for="op in ops"
-                :key="op.value"
-                class="bal-op-btn"
-                :class="{ 'bal-op-active': form.operation === op.value }"
-                @click="form.operation = op.value"
-              >{{ op.label }}</button>
-            </div>
-          </div>
-          <div class="bal-field">
-            <label class="bal-label">{{ t('admin.balanceAdjustPopover.amountLabel') }}</label>
-            <div class="bal-input-wrap">
-              <span class="bal-prefix">$</span>
-              <input
-                ref="amountRef"
-                v-model.number="form.amount"
-                type="number"
-                step="any"
-                min="0"
-                class="bal-input q-focus-glow"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-          <div class="bal-field" v-if="form.operation !== 'set'">
-            <div class="bal-preview">
-              → <span class="q-money">${{ fmtBal(previewBalance) }}</span>
-            </div>
-          </div>
-          <div class="bal-field">
-            <label class="bal-label">{{ t('admin.balanceAdjustPopover.notesLabel') }}</label>
-            <textarea v-model="form.notes" rows="2" class="bal-textarea q-focus-glow" :placeholder="t('admin.balanceAdjustPopover.notesPlaceholder')"></textarea>
+
+        <!-- 操作选择 -->
+        <div class="flex flex-col gap-1.5">
+          <Label class="text-[11.5px] text-muted-foreground">{{ t('admin.balanceAdjustPopover.operationLabel') }}</Label>
+          <div class="flex gap-1.5">
+            <Button
+              v-for="op in ops"
+              :key="op.value"
+              type="button"
+              size="sm"
+              :variant="form.operation === op.value ? 'default' : 'outline'"
+              class="flex-1 text-xs"
+              @click="form.operation = op.value"
+            >{{ op.label }}</Button>
           </div>
         </div>
-        <div class="bal-footer">
-          <button class="bal-btn bal-btn-ghost" @click="$emit('close')">{{ t('admin.balanceAdjustPopover.cancelBtn') }}</button>
-          <button
-            class="bal-btn bal-btn-primary"
-            :disabled="submitting || !form.amount"
-            @click="submit"
-          >{{ submitting ? t('admin.balanceAdjustPopover.submitting') : t('admin.balanceAdjustPopover.confirmBtn') }}</button>
+
+        <!-- 金额输入 -->
+        <div class="flex flex-col gap-1.5">
+          <Label class="text-[11.5px] text-muted-foreground">{{ t('admin.balanceAdjustPopover.amountLabel') }}</Label>
+          <div class="relative">
+            <span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 select-none text-[13px] text-muted-foreground">$</span>
+            <Input
+              ref="amountRef"
+              v-model.number="form.amount"
+              type="number"
+              step="any"
+              min="0"
+              class="pl-7 font-mono text-[13px]"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <!-- 预览 -->
+        <div v-if="form.operation !== 'set'" class="text-[12.5px] text-muted-foreground py-1">
+          → <span class="font-mono font-semibold text-foreground">${{ fmtBal(previewBalance) }}</span>
+        </div>
+
+        <!-- 备注 -->
+        <div class="flex flex-col gap-1.5">
+          <Label class="text-[11.5px] text-muted-foreground">{{ t('admin.balanceAdjustPopover.notesLabel') }}</Label>
+          <Textarea
+            v-model="form.notes"
+            :rows="2"
+            class="resize-none text-[12.5px]"
+            :placeholder="t('admin.balanceAdjustPopover.notesPlaceholder')"
+          />
         </div>
       </div>
-    </div>
-  </Teleport>
+
+      <!-- Footer -->
+      <DialogFooter class="border-t border-border px-[18px] py-3 gap-2">
+        <Button variant="outline" size="sm" @click="$emit('close')">
+          {{ t('admin.balanceAdjustPopover.cancelBtn') }}
+        </Button>
+        <Button
+          size="sm"
+          :disabled="submitting || !form.amount"
+          @click="submit"
+        >
+          {{ submitting ? t('admin.balanceAdjustPopover.submitting') : t('admin.balanceAdjustPopover.confirmBtn') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -68,6 +92,11 @@ import { reactive, ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
 import { useAppStore } from '@/stores/app'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 const props = defineProps<{
   open: boolean
@@ -130,97 +159,3 @@ async function submit() {
   } finally { submitting.value = false }
 }
 </script>
-
-<style scoped>
-.bal-backdrop {
-  position: fixed; inset: 0; z-index: 99999;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex; align-items: center; justify-content: center;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .bal-panel { animation: bal-in 0.18s ease; }
-}
-@keyframes bal-in {
-  from { opacity: 0; transform: scale(0.96) translateY(4px); }
-  to { opacity: 1; transform: none; }
-}
-.bal-panel {
-  width: 340px;
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--q-radius);
-  box-shadow: 0 24px 64px rgba(0,0,0,.5), var(--edge-hi);
-  display: flex; flex-direction: column;
-  font-size: 13px; font-family: var(--font-ui, sans-serif);
-  color: var(--ink-0);
-}
-.bal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid var(--line-0);
-}
-.bal-title { font-weight: 700; font-size: 14px; }
-.bal-close {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-2); padding: 4px;
-  border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  transition: background 0.12s;
-}
-.bal-close:hover { background: var(--bg-2); color: var(--ink-0); }
-.bal-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
-.bal-cur { font-size: 12.5px; color: var(--ink-1); }
-.bal-field { display: flex; flex-direction: column; gap: 6px; }
-.bal-label { font-size: 11.5px; color: var(--ink-2); }
-.bal-ops { display: flex; gap: 6px; }
-.bal-op-btn {
-  flex: 1; padding: 6px 10px; border-radius: 8px;
-  border: 1px solid var(--line-1); background: var(--bg-2);
-  color: var(--ink-1); font-size: 12px; cursor: pointer;
-  transition: all 0.13s; font-family: inherit;
-}
-.bal-op-active {
-  border-color: rgba(92,168,255,.6);
-  background: var(--azure-dim);
-  color: var(--azure);
-}
-.bal-input-wrap { display: flex; align-items: center; background: var(--bg-2); border: 1px solid var(--line-1); border-radius: 8px; overflow: hidden; }
-.bal-prefix { padding: 0 10px; color: var(--ink-2); font-size: 13px; user-select: none; }
-.bal-input {
-  flex: 1; background: transparent; border: none; outline: none;
-  padding: 8px 10px 8px 0; font-size: 13px; color: var(--ink-0);
-  font-family: 'IBM Plex Mono', monospace;
-}
-.bal-input:focus { outline: none; }
-.bal-input-wrap:focus-within {
-  border-color: rgba(92,168,255,.55);
-  box-shadow: var(--glow-focus);
-}
-.bal-preview { font-size: 12.5px; color: var(--ink-1); padding: 4px 0; }
-.bal-textarea {
-  background: var(--bg-2); border: 1px solid var(--line-1); border-radius: 8px;
-  padding: 8px 12px; font-size: 12.5px; color: var(--ink-0);
-  resize: none; outline: none; font-family: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.bal-footer {
-  display: flex; justify-content: flex-end; gap: 8px;
-  padding: 12px 18px;
-  border-top: 1px solid var(--line-0);
-}
-.bal-btn {
-  padding: 7px 16px; border-radius: 8px; font-size: 12.5px;
-  font-weight: 600; cursor: pointer; border: 1px solid transparent;
-  font-family: inherit; transition: all 0.13s;
-}
-.bal-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.bal-btn-ghost {
-  background: transparent; border-color: var(--line-1); color: var(--ink-1);
-}
-.bal-btn-ghost:hover { background: var(--bg-2); color: var(--ink-0); }
-.bal-btn-primary {
-  background: var(--azure-dim); border-color: rgba(92,168,255,.5); color: var(--azure);
-}
-.bal-btn-primary:not(:disabled):hover {
-  background: rgba(92,168,255,.25); box-shadow: 0 0 14px rgba(92,168,255,.2);
-}
-</style>

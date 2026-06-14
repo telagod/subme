@@ -5,7 +5,19 @@ import { useAppStore } from '@/stores/app'
 import { opsAPI } from '@/api/admin/ops'
 import type { EmailNotificationConfig, AlertSeverity } from '../types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
-import Select from '@/components/common/Select.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
+} from '@/components/ui/select'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -181,191 +193,196 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="od-card od-card-pad">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
+  <Card class="p-6">
+    <div class="flex items-start justify-between gap-3 mb-3.5">
       <div>
-        <h3 class="od-chart-title">{{ t('admin.ops.email.title') }}</h3>
-        <p style="margin-top:3px;font-size:11.5px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.email.description') }}</p>
+        <h3 class="flex items-center gap-2 text-sm font-bold text-foreground">{{ t('admin.ops.email.title') }}</h3>
+        <p class="mt-0.5 text-[11.5px] text-muted-foreground">{{ t('admin.ops.email.description') }}</p>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button class="od-btn od-btn-icon" :disabled="loading" @click="loadConfig">
+      <div class="flex items-center gap-1.5">
+        <Button variant="outline" size="sm" class="h-8 w-8 p-0" :disabled="loading" @click="loadConfig">
           <svg width="13" height="13" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           {{ t('common.refresh') }}
-        </button>
-        <button class="od-btn" style="padding:4px 10px;font-size:11px;" :disabled="!config" @click="openEditor">{{ t('common.edit') }}</button>
+        </Button>
+        <Button variant="outline" size="sm" :disabled="!config" @click="openEditor">{{ t('common.edit') }}</Button>
       </div>
     </div>
 
-    <div v-if="!config" style="font-size:13px;color:var(--ink-2,#5C6470);">
+    <div v-if="!config" class="text-sm text-muted-foreground">
       <span v-if="loading">{{ t('admin.ops.email.loading') }}</span>
       <span v-else>{{ t('admin.ops.email.noData') }}</span>
     </div>
 
-    <div v-else style="display:flex;flex-direction:column;gap:12px;">
-      <div class="od-sys-card">
-        <div style="font-size:12px;font-weight:600;color:var(--ink-0,#E8EBF0);margin-bottom:8px;">{{ t('admin.ops.email.alertTitle') }}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('common.enabled') }}</div>
-            <div class="od-sys-val">{{ config.alert.enabled ? t('common.enabled') : t('common.disabled') }}</div>
+    <div v-else class="flex flex-col gap-3">
+      <div class="rounded-lg border border-border bg-card p-3">
+        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">{{ t('admin.ops.email.alertTitle') }}</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('common.enabled') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.alert.enabled ? t('common.enabled') : t('common.disabled') }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.email.recipients') }}</div>
-            <div class="od-sys-val">{{ config.alert.recipients.length }}</div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('admin.ops.email.recipients') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.alert.recipients.length }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.email.minSeverity') }}</div>
-            <div class="od-sys-val">{{ config.alert.min_severity || t('admin.ops.email.minSeverityAll') }}</div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('admin.ops.email.minSeverity') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.alert.min_severity || t('admin.ops.email.minSeverityAll') }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.email.rateLimitPerHour') }}</div>
-            <div class="od-sys-val">{{ config.alert.rate_limit_per_hour }}</div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('admin.ops.email.rateLimitPerHour') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.alert.rate_limit_per_hour }}</div>
           </div>
         </div>
       </div>
-      <div class="od-sys-card">
-        <div style="font-size:12px;font-weight:600;color:var(--ink-0,#E8EBF0);margin-bottom:8px;">{{ t('admin.ops.email.reportTitle') }}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('common.enabled') }}</div>
-            <div class="od-sys-val">{{ config.report.enabled ? t('common.enabled') : t('common.disabled') }}</div>
+      <div class="rounded-lg border border-border bg-card p-3">
+        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">{{ t('admin.ops.email.reportTitle') }}</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('common.enabled') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.report.enabled ? t('common.enabled') : t('common.disabled') }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.email.recipients') }}</div>
-            <div class="od-sys-val">{{ config.report.recipients.length }}</div>
+          <div class="rounded-lg border border-border bg-background p-3">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{{ t('admin.ops.email.recipients') }}</div>
+            <div class="mt-0.5 text-base font-black text-foreground">{{ config.report.recipients.length }}</div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </Card>
 
   <BaseDialog :show="showEditor" :title="t('admin.ops.email.title')" width="extra-wide" @close="showEditor = false">
-    <div v-if="draft" style="display:flex;flex-direction:column;gap:16px;">
-      <div v-if="!editorValidation.valid" style="border-radius:8px;border:1px solid var(--ops-warn-border,rgba(224,179,78,.25));background:var(--ops-warn-dim,rgba(224,179,78,.08));padding:10px 14px;font-size:11.5px;color:var(--ops-warn,#E0B34E);">
-        <div style="font-weight:700;">{{ t('admin.ops.email.validation.title') }}</div>
-        <ul style="margin-top:4px;padding-left:16px;">
+    <div v-if="draft" class="flex flex-col gap-4">
+      <div v-if="!editorValidation.valid" class="rounded-lg border border-yellow-500/25 bg-yellow-500/8 px-3.5 py-2.5 text-[11.5px] text-yellow-500">
+        <div class="font-bold">{{ t('admin.ops.email.validation.title') }}</div>
+        <ul class="mt-1 pl-4">
           <li v-for="msg in editorValidation.errors" :key="msg">{{ msg }}</li>
         </ul>
       </div>
 
-      <div class="od-card" style="padding:14px;background:var(--bg-2,#171A20);">
-        <div style="font-size:13px;font-weight:600;color:var(--ink-0,#E8EBF0);margin-bottom:12px;">{{ t('admin.ops.email.alertTitle') }}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="rounded-lg border border-border bg-muted/30 p-3.5">
+        <div class="mb-3 text-sm font-semibold text-foreground">{{ t('admin.ops.email.alertTitle') }}</div>
+        <div class="grid grid-cols-2 gap-3">
           <div>
-            <div class="od-form-label">{{ t('common.enabled') }}</div>
-            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-1,#97A0AF);">
-              <input v-model="draft.alert.enabled" type="checkbox" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('common.enabled') }}</Label>
+            <label class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Checkbox v-model="draft.alert.enabled" />
               {{ draft.alert.enabled ? t('common.enabled') : t('common.disabled') }}
             </label>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.minSeverity') }}</div>
-            <Select v-model="draft.alert.min_severity" :options="severityOptions" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.minSeverity') }}</Label>
+            <Select v-model="draft.alert.min_severity">
+              <SelectTrigger class="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in severityOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div style="grid-column:span 2;">
-            <div class="od-form-label">{{ t('admin.ops.email.recipients') }}</div>
-            <div style="display:flex;gap:6px;">
-              <input v-model="alertRecipientInput" type="email" class="input" :placeholder="t('admin.ops.email.recipients')" @keydown.enter.prevent="addRecipient('alert')" />
-              <button class="od-btn" style="padding:4px 10px;font-size:11px;white-space:nowrap;" type="button" @click="addRecipient('alert')">{{ t('common.add') }}</button>
+          <div class="col-span-2">
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.recipients') }}</Label>
+            <div class="flex gap-1.5">
+              <Input v-model="alertRecipientInput" type="email" :placeholder="t('admin.ops.email.recipients')" @keydown.enter.prevent="addRecipient('alert')" />
+              <Button variant="outline" size="sm" type="button" class="whitespace-nowrap" @click="addRecipient('alert')">{{ t('common.add') }}</Button>
             </div>
-            <p v-if="alertRecipientError" style="margin-top:3px;font-size:11px;color:var(--ops-bad,#F25C69);">{{ alertRecipientError }}</p>
-            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">
-              <span v-for="email in draft.alert.recipients" :key="email" class="od-badge od-badge-azure" style="gap:6px;">
+            <p v-if="alertRecipientError" class="mt-0.5 text-[11px] text-destructive">{{ alertRecipientError }}</p>
+            <div class="mt-1.5 flex flex-wrap gap-1.5">
+              <Badge v-for="email in draft.alert.recipients" :key="email" variant="outline" class="gap-1.5 border-blue-500/35 bg-blue-500/10 text-blue-400">
                 {{ email }}
-                <button type="button" style="color:inherit;opacity:.7;background:none;border:none;cursor:pointer;padding:0;line-height:1;" @click="removeRecipient('alert', email)">×</button>
-              </span>
+                <Button type="button" variant="ghost" size="icon" class="h-3.5 w-3.5 p-0 opacity-70 hover:opacity-100" @click="removeRecipient('alert', email)">×</Button>
+              </Badge>
             </div>
-            <div style="margin-top:4px;font-size:11px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.email.recipientsHint') }}</div>
+            <div class="mt-1 text-[11px] text-muted-foreground">{{ t('admin.ops.email.recipientsHint') }}</div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.rateLimitPerHour') }}</div>
-            <input v-model.number="draft.alert.rate_limit_per_hour" type="number" min="0" max="100000" class="input" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.rateLimitPerHour') }}</Label>
+            <Input v-model.number="draft.alert.rate_limit_per_hour" type="number" min="0" max="100000" />
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.batchWindowSeconds') }}</div>
-            <input v-model.number="draft.alert.batching_window_seconds" type="number" min="0" max="86400" class="input" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.batchWindowSeconds') }}</Label>
+            <Input v-model.number="draft.alert.batching_window_seconds" type="number" min="0" max="86400" />
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.includeResolved') }}</div>
-            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-1,#97A0AF);">
-              <input v-model="draft.alert.include_resolved_alerts" type="checkbox" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.includeResolved') }}</Label>
+            <label class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Checkbox v-model="draft.alert.include_resolved_alerts" />
               {{ draft.alert.include_resolved_alerts ? t('common.enabled') : t('common.disabled') }}
             </label>
           </div>
         </div>
       </div>
 
-      <div class="od-card" style="padding:14px;background:var(--bg-2,#171A20);">
-        <div style="font-size:13px;font-weight:600;color:var(--ink-0,#E8EBF0);margin-bottom:12px;">{{ t('admin.ops.email.reportTitle') }}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div style="grid-column:span 2;">
-            <div class="od-form-label">{{ t('common.enabled') }}</div>
-            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-1,#97A0AF);">
-              <input v-model="draft.report.enabled" type="checkbox" />
+      <div class="rounded-lg border border-border bg-muted/30 p-3.5">
+        <div class="mb-3 text-sm font-semibold text-foreground">{{ t('admin.ops.email.reportTitle') }}</div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2">
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('common.enabled') }}</Label>
+            <label class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Checkbox v-model="draft.report.enabled" />
               {{ draft.report.enabled ? t('common.enabled') : t('common.disabled') }}
             </label>
           </div>
-          <div style="grid-column:span 2;">
-            <div class="od-form-label">{{ t('admin.ops.email.recipients') }}</div>
-            <div style="display:flex;gap:6px;">
-              <input v-model="reportRecipientInput" type="email" class="input" :placeholder="t('admin.ops.email.recipients')" @keydown.enter.prevent="addRecipient('report')" />
-              <button class="od-btn" style="padding:4px 10px;font-size:11px;white-space:nowrap;" type="button" @click="addRecipient('report')">{{ t('common.add') }}</button>
+          <div class="col-span-2">
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.recipients') }}</Label>
+            <div class="flex gap-1.5">
+              <Input v-model="reportRecipientInput" type="email" :placeholder="t('admin.ops.email.recipients')" @keydown.enter.prevent="addRecipient('report')" />
+              <Button variant="outline" size="sm" type="button" class="whitespace-nowrap" @click="addRecipient('report')">{{ t('common.add') }}</Button>
             </div>
-            <p v-if="reportRecipientError" style="margin-top:3px;font-size:11px;color:var(--ops-bad,#F25C69);">{{ reportRecipientError }}</p>
-            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">
-              <span v-for="email in draft.report.recipients" :key="email" class="od-badge od-badge-azure" style="gap:6px;">
+            <p v-if="reportRecipientError" class="mt-0.5 text-[11px] text-destructive">{{ reportRecipientError }}</p>
+            <div class="mt-1.5 flex flex-wrap gap-1.5">
+              <Badge v-for="email in draft.report.recipients" :key="email" variant="outline" class="gap-1.5 border-blue-500/35 bg-blue-500/10 text-blue-400">
                 {{ email }}
-                <button type="button" style="color:inherit;opacity:.7;background:none;border:none;cursor:pointer;padding:0;line-height:1;" @click="removeRecipient('report', email)">×</button>
-              </span>
+                <Button type="button" variant="ghost" size="icon" class="h-3.5 w-3.5 p-0 opacity-70 hover:opacity-100" @click="removeRecipient('report', email)">×</Button>
+              </Badge>
             </div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.dailySummary') }}</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input v-model="draft.report.daily_summary_enabled" type="checkbox" />
-              <input v-model="draft.report.daily_summary_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.dailySummary') }}</Label>
+            <div class="flex items-center gap-2">
+              <Checkbox v-model="draft.report.daily_summary_enabled" />
+              <Input v-model="draft.report.daily_summary_schedule" type="text" :placeholder="t('admin.ops.email.cronPlaceholder')" />
             </div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.weeklySummary') }}</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input v-model="draft.report.weekly_summary_enabled" type="checkbox" />
-              <input v-model="draft.report.weekly_summary_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.weeklySummary') }}</Label>
+            <div class="flex items-center gap-2">
+              <Checkbox v-model="draft.report.weekly_summary_enabled" />
+              <Input v-model="draft.report.weekly_summary_schedule" type="text" :placeholder="t('admin.ops.email.cronPlaceholder')" />
             </div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.errorDigest') }}</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input v-model="draft.report.error_digest_enabled" type="checkbox" />
-              <input v-model="draft.report.error_digest_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.errorDigest') }}</Label>
+            <div class="flex items-center gap-2">
+              <Checkbox v-model="draft.report.error_digest_enabled" />
+              <Input v-model="draft.report.error_digest_schedule" type="text" :placeholder="t('admin.ops.email.cronPlaceholder')" />
             </div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.errorDigestMinCount') }}</div>
-            <input v-model.number="draft.report.error_digest_min_count" type="number" min="0" max="1000000" class="input" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.errorDigestMinCount') }}</Label>
+            <Input v-model.number="draft.report.error_digest_min_count" type="number" min="0" max="1000000" />
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.accountHealth') }}</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <input v-model="draft.report.account_health_enabled" type="checkbox" />
-              <input v-model="draft.report.account_health_schedule" type="text" class="input" :placeholder="t('admin.ops.email.cronPlaceholder')" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.accountHealth') }}</Label>
+            <div class="flex items-center gap-2">
+              <Checkbox v-model="draft.report.account_health_enabled" />
+              <Input v-model="draft.report.account_health_schedule" type="text" :placeholder="t('admin.ops.email.cronPlaceholder')" />
             </div>
           </div>
           <div>
-            <div class="od-form-label">{{ t('admin.ops.email.accountHealthThreshold') }}</div>
-            <input v-model.number="draft.report.account_health_error_rate_threshold" type="number" min="0" max="100" step="0.1" class="input" />
+            <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.email.accountHealthThreshold') }}</Label>
+            <Input v-model.number="draft.report.account_health_error_rate_threshold" type="number" min="0" max="100" step="0.1" />
           </div>
-          <div style="grid-column:span 2;font-size:11px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.email.reportHint') }}</div>
+          <div class="col-span-2 text-[11px] text-muted-foreground">{{ t('admin.ops.email.reportHint') }}</div>
         </div>
       </div>
     </div>
     <template #footer>
-      <div style="display:flex;justify-content:flex-end;gap:8px;">
-        <button class="od-btn" @click="showEditor = false">{{ t('common.cancel') }}</button>
-        <button class="od-btn od-btn-azure" :disabled="saving || !editorValidation.valid" @click="saveConfig">{{ saving ? t('common.saving') : t('common.save') }}</button>
+      <div class="flex justify-end gap-2">
+        <Button variant="outline" @click="showEditor = false">{{ t('common.cancel') }}</Button>
+        <Button :disabled="saving || !editorValidation.valid" @click="saveConfig">{{ saving ? t('common.saving') : t('common.save') }}</Button>
       </div>
     </template>
   </BaseDialog>
 </template>
-
-<style src="../ops-quench.css"></style>

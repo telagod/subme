@@ -1,117 +1,162 @@
 <template>
-  <Teleport to="body">
-    <!-- ── 分配订阅 Dialog ── -->
-    <Transition name="sq-modal">
-      <div v-if="showAssign" class="sq-overlay" @click.self="emit('close-assign')">
-        <div class="sq-dialog" role="dialog" :aria-label="t('admin.subscriptionsQuench.assignTitle')">
-          <div class="sq-dlg-title">
-            {{ t('admin.subscriptionsQuench.assignTitle') }}
-            <button class="sq-dlg-close" @click="emit('close-assign')">✕</button>
-          </div>
-          <!-- User search -->
-          <div class="sq-field">
-            <label class="sq-label">{{ t('admin.subscriptionsQuench.formUser') }}</label>
-            <div class="sq-search-wrap">
-              <input v-model="userKeyword" class="sq-search-input" :placeholder="t('admin.subscriptionsQuench.searchUserPlaceholder')" @input="debounceUserSearch" @focus="showUserDd = true" />
-              <button v-if="selectedUser" class="sq-search-clear" @click="clearUser">✕</button>
-              <div v-if="showUserDd && (userResults.length || userKeyword)" class="sq-dropdown">
-                <div v-if="userLoading" class="sq-dd-hint">{{ t('common.loading') }}</div>
-                <div v-else-if="!userResults.length && userKeyword" class="sq-dd-hint">{{ t('common.noOptionsFound') }}</div>
-                <button v-for="u in userResults" :key="u.id" class="sq-dd-item" @click="selectUser(u)">
-                  <span>{{ u.email }}</span><span class="sq-muted sq-xs">#{{ u.id }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-          <!-- Group select -->
-          <div class="sq-field">
-            <label class="sq-label">{{ t('admin.subscriptionsQuench.formGroup') }}</label>
-            <div class="sq-sel-bar">
-              <button v-for="g in subGroups" :key="g.id" class="sq-sel-chip" :class="{ on: assignForm.group_id === g.id }" @click="assignForm.group_id = g.id">{{ g.name }}</button>
-              <span v-if="!subGroups.length" class="sq-muted sq-xs">{{ t('admin.subscriptionsQuench.noGroups') }}</span>
-            </div>
-          </div>
-          <!-- Validity days -->
-          <div class="sq-field">
-            <label class="sq-label">{{ t('admin.subscriptionsQuench.formDays') }}</label>
-            <input v-model.number="assignForm.validity_days" type="number" min="1" class="sq-input" />
-            <p class="sq-hint">{{ t('admin.subscriptionsQuench.validityHint') }}</p>
-          </div>
-          <div class="sq-dlg-foot">
-            <button class="sq-btn" @click="emit('close-assign')">{{ t('common.cancel') }}</button>
-            <button class="sq-btn sq-btn-metal" :disabled="submitting" @click="doAssign">
-              {{ submitting ? t('admin.subscriptionsQuench.assigning') : t('admin.subscriptionsQuench.assign') }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
+  <!-- ── 分配订阅 Dialog ── -->
+  <Dialog :open="showAssign" @update:open="(v) => { if (!v) emit('close-assign') }">
+    <DialogContent class="w-full max-w-[420px]" :aria-label="t('admin.subscriptionsQuench.assignTitle')">
+      <DialogHeader>
+        <DialogTitle>{{ t('admin.subscriptionsQuench.assignTitle') }}</DialogTitle>
+      </DialogHeader>
 
-    <!-- ── 续期 / 调整 Dialog ── -->
-    <Transition name="sq-modal">
-      <div v-if="showExtend && extendingSub" class="sq-overlay" @click.self="emit('close-extend')">
-        <div class="sq-dialog" role="dialog" :aria-label="t('admin.subscriptionsQuench.extendTitle')">
-          <div class="sq-dlg-title">
-            {{ t('admin.subscriptionsQuench.extendTitle') }}
-            <button class="sq-dlg-close" @click="emit('close-extend')">✕</button>
-          </div>
-          <div class="sq-info-box">
-            <div>{{ t('admin.subscriptionsQuench.extendForUser') }} <strong>{{ extendingSub.user?.email ?? `#${extendingSub.user_id}` }}</strong></div>
-            <div>{{ t('admin.subscriptionsQuench.currentExpiry') }}: <strong>{{ extendingSub.expires_at ? fmtDate(extendingSub.expires_at) : t('admin.subscriptions.noExpiration') }}</strong></div>
-          </div>
-          <div class="sq-field">
-            <label class="sq-label">{{ t('admin.subscriptionsQuench.formAdjustDays') }}</label>
-            <input v-model.number="extendDays" type="number" class="sq-input" :placeholder="t('admin.subscriptionsQuench.adjustDaysPlaceholder')" />
-            <p class="sq-hint">{{ t('admin.subscriptionsQuench.adjustHint') }}</p>
-          </div>
-          <div class="sq-dlg-foot">
-            <button class="sq-btn" @click="emit('close-extend')">{{ t('common.cancel') }}</button>
-            <button class="sq-btn sq-btn-metal" :disabled="submitting" @click="doExtend">
-              {{ submitting ? t('admin.subscriptionsQuench.adjusting') : t('admin.subscriptionsQuench.adjust') }}
-            </button>
+      <!-- User search -->
+      <div class="mb-4">
+        <Label class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          {{ t('admin.subscriptionsQuench.formUser') }}
+        </Label>
+        <div class="relative">
+          <Input
+            v-model="userKeyword"
+            :placeholder="t('admin.subscriptionsQuench.searchUserPlaceholder')"
+            @input="debounceUserSearch"
+            @focus="showUserDd = true"
+            class="pr-8"
+          />
+          <Button
+            v-if="selectedUser"
+            type="button"
+            variant="ghost"
+            size="icon"
+            class="absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            @click="clearUser"
+          >✕</Button>
+          <div
+            v-if="showUserDd && (userResults.length || userKeyword)"
+            class="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-[200px] overflow-y-auto rounded-lg border border-border bg-popover shadow-md"
+          >
+            <div v-if="userLoading" class="px-3 py-2.5 text-xs text-muted-foreground">{{ t('common.loading') }}</div>
+            <div v-else-if="!userResults.length && userKeyword" class="px-3 py-2.5 text-xs text-muted-foreground">{{ t('common.noOptionsFound') }}</div>
+            <Button
+              v-for="u in userResults"
+              :key="u.id"
+              type="button"
+              variant="ghost"
+              class="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 text-sm text-foreground hover:bg-accent"
+              @click="selectUser(u)"
+            >
+              <span>{{ u.email }}</span>
+              <span class="text-xs text-muted-foreground">#{{ u.id }}</span>
+            </Button>
           </div>
         </div>
       </div>
-    </Transition>
 
-    <!-- ── 吊销确认 Dialog ── -->
-    <Transition name="sq-modal">
-      <div v-if="showRevoke && revokingSub" class="sq-overlay" @click.self="emit('close-revoke')">
-        <div class="sq-dialog" role="dialog" :aria-label="t('admin.subscriptionsQuench.revokeTitle')">
-          <div class="sq-dlg-title">
-            {{ t('admin.subscriptionsQuench.revokeTitle') }}
-            <button class="sq-dlg-close" @click="emit('close-revoke')">✕</button>
-          </div>
-          <p class="sq-dlg-body" v-html="t('admin.subscriptionsQuench.revokeConfirm', { user: `<b>${revokingSub.user?.email ?? revokingSub.user_id}</b>` })"></p>
-          <div class="sq-dlg-foot">
-            <button class="sq-btn" @click="emit('close-revoke')">{{ t('common.cancel') }}</button>
-            <button class="sq-btn sq-btn-danger" :disabled="submitting" @click="doRevoke">
-              {{ submitting ? t('admin.subscriptionsQuench.revoking') : t('admin.subscriptionsQuench.revoke') }}
-            </button>
-          </div>
+      <!-- Group select -->
+      <div class="mb-4">
+        <Label class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          {{ t('admin.subscriptionsQuench.formGroup') }}
+        </Label>
+        <div class="flex flex-wrap gap-2">
+          <Button
+            v-for="g in subGroups"
+            :key="g.id"
+            type="button"
+            variant="outline"
+            class="h-auto rounded-lg px-2.5 py-1 text-xs font-medium"
+            :class="assignForm.group_id === g.id
+              ? 'border-primary/40 bg-primary/10 text-primary'
+              : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/40 hover:text-foreground'"
+            @click="assignForm.group_id = g.id"
+          >{{ g.name }}</Button>
+          <span v-if="!subGroups.length" class="text-xs text-muted-foreground">{{ t('admin.subscriptionsQuench.noGroups') }}</span>
         </div>
       </div>
-    </Transition>
 
-    <!-- ── 重置配额确认 Dialog ── -->
-    <Transition name="sq-modal">
-      <div v-if="showResetQuota && resettingSub" class="sq-overlay" @click.self="emit('close-reset-quota')">
-        <div class="sq-dialog" role="dialog" :aria-label="t('admin.subscriptionsQuench.resetQuotaTitle')">
-          <div class="sq-dlg-title">
-            {{ t('admin.subscriptionsQuench.resetQuotaTitle') }}
-            <button class="sq-dlg-close" @click="emit('close-reset-quota')">✕</button>
-          </div>
-          <p class="sq-dlg-body" v-html="t('admin.subscriptionsQuench.resetQuotaConfirm', { user: `<b>${resettingSub.user?.email ?? resettingSub.user_id}</b>` })"></p>
-          <div class="sq-dlg-foot">
-            <button class="sq-btn" @click="emit('close-reset-quota')">{{ t('common.cancel') }}</button>
-            <button class="sq-btn sq-btn-metal" :disabled="submitting" @click="doResetQuota">
-              {{ submitting ? t('admin.subscriptionsQuench.resetting') : t('admin.subscriptionsQuench.resetQuota') }}
-            </button>
-          </div>
-        </div>
+      <!-- Validity days -->
+      <div class="mb-4">
+        <Label class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          {{ t('admin.subscriptionsQuench.formDays') }}
+        </Label>
+        <Input v-model.number="assignForm.validity_days" type="number" min="1" />
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.subscriptionsQuench.validityHint') }}</p>
       </div>
-    </Transition>
-  </Teleport>
+
+      <DialogFooter>
+        <Button variant="outline" @click="emit('close-assign')">{{ t('common.cancel') }}</Button>
+        <Button :disabled="submitting" @click="doAssign">
+          {{ submitting ? t('admin.subscriptionsQuench.assigning') : t('admin.subscriptionsQuench.assign') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <!-- ── 续期 / 调整 Dialog ── -->
+  <Dialog :open="showExtend && !!extendingSub" @update:open="(v) => { if (!v) emit('close-extend') }">
+    <DialogContent class="w-full max-w-[420px]" :aria-label="t('admin.subscriptionsQuench.extendTitle')">
+      <DialogHeader>
+        <DialogTitle>{{ t('admin.subscriptionsQuench.extendTitle') }}</DialogTitle>
+      </DialogHeader>
+
+      <div v-if="extendingSub" class="mb-4 rounded-lg border border-border bg-muted/40 px-3.5 py-3 text-sm leading-relaxed text-muted-foreground">
+        <div>{{ t('admin.subscriptionsQuench.extendForUser') }} <strong class="text-foreground">{{ extendingSub.user?.email ?? `#${extendingSub.user_id}` }}</strong></div>
+        <div>{{ t('admin.subscriptionsQuench.currentExpiry') }}: <strong class="text-foreground">{{ extendingSub.expires_at ? fmtDate(extendingSub.expires_at) : t('admin.subscriptions.noExpiration') }}</strong></div>
+      </div>
+
+      <div class="mb-4">
+        <Label class="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          {{ t('admin.subscriptionsQuench.formAdjustDays') }}
+        </Label>
+        <Input v-model.number="extendDays" type="number" :placeholder="t('admin.subscriptionsQuench.adjustDaysPlaceholder')" />
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.subscriptionsQuench.adjustHint') }}</p>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" @click="emit('close-extend')">{{ t('common.cancel') }}</Button>
+        <Button :disabled="submitting" @click="doExtend">
+          {{ submitting ? t('admin.subscriptionsQuench.adjusting') : t('admin.subscriptionsQuench.adjust') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <!-- ── 吊销确认 Dialog ── -->
+  <Dialog :open="showRevoke && !!revokingSub" @update:open="(v) => { if (!v) emit('close-revoke') }">
+    <DialogContent class="w-full max-w-[420px]" :aria-label="t('admin.subscriptionsQuench.revokeTitle')">
+      <DialogHeader>
+        <DialogTitle>{{ t('admin.subscriptionsQuench.revokeTitle') }}</DialogTitle>
+      </DialogHeader>
+
+      <p
+        class="mb-5 text-sm leading-relaxed text-muted-foreground [&_b]:text-foreground"
+        v-html="t('admin.subscriptionsQuench.revokeConfirm', { user: `<b>${revokingSub?.user?.email ?? revokingSub?.user_id}</b>` })"
+      ></p>
+
+      <DialogFooter>
+        <Button variant="outline" @click="emit('close-revoke')">{{ t('common.cancel') }}</Button>
+        <Button variant="destructive" :disabled="submitting" @click="doRevoke">
+          {{ submitting ? t('admin.subscriptionsQuench.revoking') : t('admin.subscriptionsQuench.revoke') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
+  <!-- ── 重置配额确认 Dialog ── -->
+  <Dialog :open="showResetQuota && !!resettingSub" @update:open="(v) => { if (!v) emit('close-reset-quota') }">
+    <DialogContent class="w-full max-w-[420px]" :aria-label="t('admin.subscriptionsQuench.resetQuotaTitle')">
+      <DialogHeader>
+        <DialogTitle>{{ t('admin.subscriptionsQuench.resetQuotaTitle') }}</DialogTitle>
+      </DialogHeader>
+
+      <p
+        class="mb-5 text-sm leading-relaxed text-muted-foreground [&_b]:text-foreground"
+        v-html="t('admin.subscriptionsQuench.resetQuotaConfirm', { user: `<b>${resettingSub?.user?.email ?? resettingSub?.user_id}</b>` })"
+      ></p>
+
+      <DialogFooter>
+        <Button variant="outline" @click="emit('close-reset-quota')">{{ t('common.cancel') }}</Button>
+        <Button :disabled="submitting" @click="doResetQuota">
+          {{ submitting ? t('admin.subscriptionsQuench.resetting') : t('admin.subscriptionsQuench.resetQuota') }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -121,6 +166,10 @@ import { adminAPI } from '@/api/admin'
 import type { UserSubscription, Group } from '@/types'
 import type { SimpleUser } from '@/api/admin/usage'
 import { useAppStore } from '@/stores/app'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -240,9 +289,3 @@ async function doResetQuota() {
   finally { submitting.value = false }
 }
 </script>
-
-<style>
-/* sq-modal 入场动画 */
-.sq-modal-enter-active, .sq-modal-leave-active { transition: opacity 0.18s ease; }
-.sq-modal-enter-from, .sq-modal-leave-to { opacity: 0; }
-</style>

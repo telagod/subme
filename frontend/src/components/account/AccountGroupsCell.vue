@@ -13,14 +13,16 @@
         class="max-w-24"
       />
       <!-- 更多数量徽章 -->
-      <button
+      <Button
         v-if="hiddenCount > 0"
         ref="moreButtonRef"
+        variant="outline"
+        size="sm"
         @click.stop="showPopover = !showPopover"
-        class="inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-medium bg-secondary border border-border text-foreground/85 hover:bg-accent transition-colors cursor-pointer whitespace-nowrap"
+        class="h-auto px-1.5 py-0.5 text-xs font-medium whitespace-nowrap"
       >
         <span>+{{ hiddenCount }}</span>
-      </button>
+      </Button>
     </div>
 
     <!-- Popover 显示完整列表 -->
@@ -43,14 +45,16 @@
             <span class="text-xs font-medium text-muted-foreground">
               {{ t('admin.accounts.groupCountTotal', { count: groups.length }) }}
             </span>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               @click="showPopover = false"
-              class="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              class="h-5 w-5 text-muted-foreground"
             >
               <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </div>
           <div class="flex flex-wrap gap-1.5 max-h-64 overflow-y-auto">
             <GroupBadge
@@ -80,6 +84,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import type { Group } from '@/types'
 

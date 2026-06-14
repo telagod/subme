@@ -1,13 +1,13 @@
 <template>
   <aside
-    class="sidebar"
+    class="sidebar-shell fixed inset-y-0 left-0 z-40 flex flex-col border-r border-border bg-background transition-transform duration-200"
     :class="[
       sidebarCollapsed ? 'w-[72px]' : 'w-64',
       { '-translate-x-full lg:translate-x-0': !mobileOpen }
     ]"
   >
     <!-- Logo/Brand -->
-    <div class="sidebar-header" :class="{ 'sidebar-header-collapsed': sidebarCollapsed }">
+    <div class="sidebar-header-anim flex h-14 items-center gap-3 border-b border-border px-5" :class="{ 'sidebar-header-collapsed': sidebarCollapsed }">
       <!-- Custom Logo or Default Logo -->
       <div class="sidebar-logo flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary ">
         <img v-if="settingsLoaded" :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
@@ -22,19 +22,20 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="sidebar-nav scrollbar-hide">
+    <nav class="scrollbar-hide flex-1 overflow-y-auto px-2 py-3">
       <!-- Admin View: Admin menu first, then personal menu -->
       <template v-if="isAdmin">
         <!-- Admin Section -->
-        <div class="sidebar-section">
+        <div class="mb-4">
           <template v-for="item in adminNavItems" :key="item.path">
             <!-- Collapsible group (has children) -->
             <template v-if="item.children?.length">
-              <button
+              <Button
                 type="button"
-                class="sidebar-link mb-1 w-full"
+                variant="ghost"
+                class="mb-1 flex h-auto w-full items-center justify-start gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
                 :class="{
-                  'sidebar-link-active': isGroupActive(item) && !isGroupExpanded(item),
+                  'bg-accent text-foreground': isGroupActive(item) && !isGroupExpanded(item),
                   'sidebar-link-collapsed': sidebarCollapsed
                 }"
                 :title="sidebarCollapsed ? item.label : undefined"
@@ -52,15 +53,15 @@
                     :class="isGroupExpanded(item) ? 'rotate-180' : ''"
                   />
                 </span>
-              </button>
+              </Button>
               <!-- Children -->
               <div v-if="!sidebarCollapsed && isGroupExpanded(item)" class="mb-1 ml-4 border-l border-border pl-2">
                 <router-link
                   v-for="child in item.children"
                   :key="child.path"
                   :to="child.path"
-                  class="sidebar-link mb-0.5 py-1.5 text-sm"
-                  :class="{ 'sidebar-link-active': route.path === child.path }"
+                  class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
+                  :class="{ 'bg-accent text-foreground': route.path === child.path }"
                   @click="handleMenuItemClick(child.path)"
                 >
                   <component :is="child.icon" class="h-4 w-4 flex-shrink-0" />
@@ -72,8 +73,8 @@
             <router-link
               v-else
               :to="item.path"
-              class="sidebar-link mb-1"
-              :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+              class="mb-1 flex items-center gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
+              :class="{ 'bg-accent text-foreground': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
               :title="sidebarCollapsed ? item.label : undefined"
               :id="
                 item.path === '/admin/accounts'
@@ -94,8 +95,8 @@
         </div>
 
         <!-- Personal Section for Admin (hidden in simple mode) -->
-        <div v-if="!authStore.isSimpleMode" class="sidebar-section">
-          <div class="sidebar-section-title" :class="{ 'sidebar-section-title-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
+        <div v-if="!authStore.isSimpleMode" class="mb-4">
+          <div class="sidebar-section-title mb-1 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/50" :class="{ 'sidebar-section-title-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">
             <span class="sidebar-section-title-text" :class="{ 'sidebar-section-title-text-collapsed': sidebarCollapsed }">
               {{ t('nav.myAccount') }}
             </span>
@@ -105,8 +106,8 @@
             v-for="item in personalNavItems"
             :key="item.path"
             :to="item.path"
-            class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+            class="mb-1 flex items-center gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
+            :class="{ 'bg-accent text-foreground': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
             :title="sidebarCollapsed ? item.label : undefined"
             :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
             @click="handleMenuItemClick(item.path)"
@@ -120,13 +121,13 @@
 
       <!-- Regular User View -->
       <template v-else-if="!appStore.backendModeEnabled">
-        <div class="sidebar-section">
+        <div class="mb-4">
           <router-link
             v-for="item in userNavItems"
             :key="item.path"
             :to="item.path"
-            class="sidebar-link mb-1"
-            :class="{ 'sidebar-link-active': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
+            class="mb-1 flex items-center gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
+            :class="{ 'bg-accent text-foreground': isActive(item.path), 'sidebar-link-collapsed': sidebarCollapsed }"
             :title="sidebarCollapsed ? item.label : undefined"
             :data-tour="item.path === '/keys' ? 'sidebar-my-keys' : undefined"
             @click="handleMenuItemClick(item.path)"
@@ -142,16 +143,17 @@
     <!-- Bottom Section -->
     <div class="mt-auto border-t border-border p-3">
       <!-- Collapse Button -->
-      <button
+      <Button
+        variant="ghost"
         @click="toggleSidebar"
-        class="sidebar-link w-full"
+        class="flex h-auto w-full items-center justify-start gap-2.5 overflow-hidden rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors duration-75 hover:bg-accent hover:text-foreground"
         :class="{ 'sidebar-link-collapsed': sidebarCollapsed }"
         :title="sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
       >
         <ChevronDoubleLeftIcon v-if="!sidebarCollapsed" class="h-5 w-5 flex-shrink-0" />
         <ChevronDoubleRightIcon v-else class="h-5 w-5 flex-shrink-0" />
         <span class="sidebar-label" :class="{ 'sidebar-label-collapsed': sidebarCollapsed }" :aria-hidden="sidebarCollapsed ? 'true' : 'false'">{{ t('nav.collapse') }}</span>
-      </button>
+      </Button>
     </div>
   </aside>
 
@@ -171,6 +173,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAdminSettingsStore, useAppStore, useAuthStore, useOnboardingStore } from '@/stores'
 import VersionBadge from '@/components/common/VersionBadge.vue'
+import { Button } from '@/components/ui/button'
 import { sanitizeSvg } from '@/utils/sanitize'
 import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
 
@@ -845,6 +848,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.sidebar-shell {
+  /* width 与 transform 都参与折叠动画（transition-transform 工具类只覆盖 transform） */
+  transition-property: width, transform;
+}
+
+.sidebar-header-anim {
+  transition:
+    padding 0.15s ease,
+    gap 0.15s ease;
+}
+
 .sidebar-logo {
   flex: 0 0 2.25rem;
   min-width: 2.25rem;

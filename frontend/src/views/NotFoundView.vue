@@ -14,7 +14,7 @@
               class="flex h-24 w-24 items-center justify-center rounded-lg border border-border bg-secondary "
             >
               <svg
-                class="h-12 w-12 text-primary-200"
+                class="h-12 w-12 text-muted-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -43,14 +43,16 @@
 
       <!-- Action Buttons -->
       <div class="flex flex-col justify-center gap-3 sm:flex-row">
-        <button @click="goBack" class="btn btn-secondary">
+        <Button variant="outline" @click="goBack">
           <Icon name="arrowLeft" size="md" class="mr-2" />
           Go Back
-        </button>
-        <router-link to="/dashboard" class="btn btn-primary">
-          <Icon name="home" size="md" class="mr-2" />
-          Go to Dashboard
-        </router-link>
+        </Button>
+        <Button asChild>
+          <router-link to="/dashboard">
+            <Icon name="home" size="md" class="mr-2" />
+            Go to Dashboard
+          </router-link>
+        </Button>
       </div>
 
       <!-- Help Link -->
@@ -58,7 +60,7 @@
         Need help?
         <a
           href="#"
-          class="text-primary-200 transition-colors hover:text-foreground"
+          class="text-muted-foreground transition-colors hover:text-foreground"
         >
           Contact support
         </a>
@@ -71,6 +73,7 @@
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const router = useRouter()

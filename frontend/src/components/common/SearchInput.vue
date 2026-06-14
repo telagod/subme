@@ -3,23 +3,25 @@
     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
       <Icon name="search" size="md" class="text-muted-foreground" />
     </div>
-    <input
+    <Input
       ref="inputRef"
-      :value="modelValue"
+      :model-value="modelValue"
       type="text"
-      class="input pl-10 pr-8"
+      class="pl-10 pr-8"
       :placeholder="placeholder"
       @input="handleInput"
       @keydown.escape.prevent="handleClear"
     />
-    <button
+    <Button
       v-if="modelValue"
       type="button"
-      class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground transition-colors hover:text-foreground"
+      variant="ghost"
+      size="icon"
+      class="absolute inset-y-0 right-0 h-full w-8 text-muted-foreground hover:text-foreground"
       @click="handleClear"
     >
       <Icon name="x" size="sm" />
-    </button>
+    </Button>
   </div>
 </template>
 
@@ -27,6 +29,8 @@
 import { ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const props = withDefaults(defineProps<{
   modelValue: string

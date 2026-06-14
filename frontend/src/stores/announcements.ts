@@ -85,6 +85,14 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     }
   }
 
+  function skipPopup() {
+    if (!currentPopup.value) return
+    currentPopup.value = null
+    if (popupQueue.value.length > 0) {
+      setTimeout(() => showNextPopup(), 300)
+    }
+  }
+
   async function markAsRead(id: number) {
     try {
       await announcementsAPI.markRead(id)
@@ -136,6 +144,7 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     // Actions
     fetchAnnouncements,
     dismissPopup,
+    skipPopup,
     markAsRead,
     markAllAsRead,
     reset,

@@ -1,9 +1,9 @@
 <template>
   <div class="w-full">
-    <label v-if="label" :for="id" class="input-label mb-1.5 block">
+    <Label v-if="label" :for="id" class="mb-1.5 block">
       {{ label }}
-      <span v-if="required" class="text-red-400">*</span>
-    </label>
+      <span v-if="required" class="text-destructive">*</span>
+    </Label>
     <div class="relative">
       <!-- Prefix Icon Slot -->
       <div
@@ -24,11 +24,14 @@
         :autocomplete="autocomplete"
         :readonly="readonly"
         :class="[
-          'input w-full transition-all duration-200',
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-all duration-200',
+          'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+          'placeholder:text-muted-foreground',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'disabled:cursor-not-allowed disabled:opacity-50',
           $slots.prefix ? 'pl-11' : '',
           $slots.suffix ? 'pr-11' : '',
-          error ? 'input-error ring-2 ring-red-500/20' : '',
-          disabled ? 'cursor-not-allowed bg-muted opacity-60' : ''
+          error ? 'border-destructive focus-visible:ring-destructive' : '',
         ]"
         @input="onInput"
         @change="$emit('change', ($event.target as HTMLInputElement).value)"
@@ -46,10 +49,10 @@
       </div>
     </div>
     <!-- Hint / Error Text -->
-    <p v-if="error" class="input-error-text mt-1.5">
+    <p v-if="error" class="mt-1.5 text-sm text-destructive">
       {{ error }}
     </p>
-    <p v-else-if="hint" class="input-hint mt-1.5">
+    <p v-else-if="hint" class="mt-1.5 text-sm text-muted-foreground">
       {{ hint }}
     </p>
   </div>
@@ -57,6 +60,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { Label } from '@/components/ui/label'
 
 interface Props {
   modelValue: string | number | null | undefined

@@ -35,7 +35,7 @@
   position: fixed !important;
   z-index: 100000000 !important;
   background: linear-gradient(170deg, #15181e, #0d0f13 80%) !important;
-  border: 1px solid var(--line-1, #2f3540) !important;
+  border: 1px solid hsl(var(--border)) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 24px 64px rgba(0, 0, 0, 0.6),
@@ -43,7 +43,7 @@
   border-radius: 14px !important;
   padding: 0 !important;
   max-width: min(440px, 90vw) !important;
-  color: var(--ink-0, #e8ebf0) !important;
+  color: hsl(var(--foreground)) !important;
   font-family: 'Archivo', 'PingFang SC', 'Microsoft YaHei', sans-serif !important;
   overflow: hidden !important;
 }
@@ -62,7 +62,7 @@
   font-size: 16px !important;
   font-weight: 700 !important;
   letter-spacing: 0.01em !important;
-  color: var(--ink-0, #e8ebf0) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .theme-tour-popover .driver-popover-close-btn {
@@ -72,14 +72,14 @@
   width: 28px !important;
   height: 28px !important;
   border-radius: 8px !important;
-  color: var(--ink-2, #5c6470) !important;
+  color: hsl(var(--muted-foreground)) !important;
   background-color: transparent !important;
   border: none !important;
   font-size: 16px !important;
 }
 .theme-tour-popover .driver-popover-close-btn:hover {
-  background-color: var(--bg-2, #171a20) !important;
-  color: var(--ink-0, #e8ebf0) !important;
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 /* 4. Description */
@@ -88,7 +88,7 @@
   margin: 0 !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
-  color: var(--ink-1, #97a0af) !important;
+  color: hsl(var(--muted-foreground)) !important;
   background-color: transparent !important;
 }
 
@@ -100,7 +100,7 @@
   margin-bottom: 0 !important;
 }
 .theme-tour-popover .q-tour b {
-  color: var(--ink-0, #e8ebf0) !important;
+  color: hsl(var(--foreground)) !important;
   font-weight: 600 !important;
 }
 .theme-tour-popover .q-tour ul {
@@ -125,9 +125,9 @@
   padding: 8px 12px !important;
   font-size: 12.5px !important;
   background: rgba(92, 168, 255, 0.07) !important;
-  border-left: 2px solid var(--azure, #5ca8ff) !important;
+  border-left: 2px solid hsl(var(--primary)) !important;
   border-radius: 6px !important;
-  color: var(--ink-1, #97a0af) !important;
+  color: hsl(var(--muted-foreground)) !important;
 }
 .theme-tour-popover .q-tour-cta {
   margin-top: 12px !important;
@@ -143,7 +143,7 @@
   padding: 12px 24px !important;
   margin: 0 !important;
   background-color: rgba(8, 9, 11, 0.6) !important;
-  border-top: 1px solid var(--line-0, #20242c) !important;
+  border-top: 1px solid hsl(var(--border)) !important;
 }
 
 .footer-left {
@@ -162,7 +162,7 @@
 .theme-tour-popover .driver-popover-progress-text {
   font-family: 'IBM Plex Mono', ui-monospace, monospace !important;
   font-size: 11.5px !important;
-  color: var(--ink-2, #5c6470) !important;
+  color: hsl(var(--muted-foreground)) !important;
   margin: 0 !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
@@ -175,7 +175,7 @@
   align-items: center !important;
   gap: 12px !important;
   padding-left: 16px !important;
-  border-left: 1px solid var(--line-1, #2f3540) !important;
+  border-left: 1px solid hsl(var(--border)) !important;
   height: 20px !important;
 }
 
@@ -184,19 +184,19 @@
   align-items: center !important;
   gap: 4px !important;
   font-size: 12px !important;
-  color: var(--ink-2, #5c6470) !important;
+  color: hsl(var(--muted-foreground)) !important;
   white-space: nowrap !important;
 }
 
 .shortcut-item kbd {
   font-family: 'IBM Plex Mono', ui-monospace, monospace !important;
-  background-color: var(--bg-2, #171a20) !important;
-  border: 1px solid var(--line-1, #2f3540) !important;
+  background-color: hsl(var(--muted)) !important;
+  border: 1px solid hsl(var(--border)) !important;
   border-radius: 4px !important;
   padding: 1px 6px !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: var(--ink-1, #97a0af) !important;
+  color: hsl(var(--muted-foreground)) !important;
   min-width: 20px !important;
   text-align: center !important;
   display: inline-block !important;
@@ -220,7 +220,7 @@
 
 .theme-tour-popover .driver-popover-next-btn {
   background: linear-gradient(180deg, #272d37, #14171d) !important;
-  color: var(--ink-0, #e8ebf0) !important;
+  color: hsl(var(--foreground)) !important;
   border-color: #3a4250 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
@@ -234,12 +234,12 @@
 
 .theme-tour-popover .driver-popover-prev-btn {
   background-color: transparent !important;
-  color: var(--ink-1, #97a0af) !important;
-  border: 1px solid var(--line-1, #2f3540) !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
 }
 .theme-tour-popover .driver-popover-prev-btn:hover {
-  background-color: var(--bg-2, #171a20) !important;
-  color: var(--ink-0, #e8ebf0) !important;
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 /* Arrows — 指向锻面边色 */

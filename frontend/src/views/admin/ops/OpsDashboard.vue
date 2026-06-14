@@ -1,7 +1,7 @@
 <template>
-  <component :is="isFullscreen ? 'div' : AppLayout" :class="isFullscreen ? 'od-root flex min-h-screen flex-col justify-center' : 'od-root'">
+  <component :is="isFullscreen ? 'div' : AppLayout" :class="isFullscreen ? 'text-foreground flex min-h-screen flex-col justify-center' : 'text-foreground'">
     <div :class="[isFullscreen ? 'p-4 md:p-6' : 'space-y-6 pb-12']">
-      <div v-if="errorMessage" class="od-error-bar" style="margin-bottom:16px;">
+      <div v-if="errorMessage" class="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
         {{ errorMessage }}
       </div>
 
@@ -830,4 +830,3 @@ watch(showSettingsDialog, async (show) => {
 })
 </script>
 
-<style src="./ops-quench.css"></style>

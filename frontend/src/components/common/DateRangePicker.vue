@@ -1,74 +1,86 @@
 <template>
   <div class="relative" ref="containerRef">
-    <button
+    <Button
       type="button"
+      variant="outline"
       @click="toggle"
-      :class="['date-picker-trigger', isOpen && 'date-picker-trigger-open']"
+      :class="[
+        'flex cursor-pointer items-center gap-2 text-sm text-foreground/85',
+        isOpen && 'ring-2 ring-ring'
+      ]"
     >
-      <span class="date-picker-icon">
+      <span class="text-muted-foreground">
         <Icon name="calendar" size="sm" />
       </span>
-      <span class="date-picker-value">
+      <span class="font-medium">
         {{ displayValue }}
       </span>
-      <span class="date-picker-chevron">
+      <span class="text-muted-foreground">
         <Icon
           name="chevronDown"
           size="sm"
           :class="['transition-transform duration-200', isOpen && 'rotate-180']"
         />
       </span>
-    </button>
+    </Button>
 
     <Transition name="date-picker-dropdown">
-      <div v-if="isOpen" class="date-picker-dropdown">
+      <div
+        v-if="isOpen"
+        class="absolute left-0 z-[100] mt-2 min-w-[320px] overflow-hidden rounded-lg border border-border bg-card"
+      >
         <!-- Quick presets -->
-        <div class="date-picker-presets">
-          <button
+        <div class="grid grid-cols-2 gap-1 p-2">
+          <Button
             v-for="preset in presets"
             :key="preset.value"
+            variant="ghost"
+            size="sm"
             @click="selectPreset(preset)"
-            :class="['date-picker-preset', isPresetActive(preset) && 'date-picker-preset-active']"
+            :class="[
+              'justify-start rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors duration-150 hover:bg-accent',
+              isPresetActive(preset) && 'bg-accent text-foreground'
+            ]"
           >
             {{ t(preset.labelKey) }}
-          </button>
+          </Button>
         </div>
 
-        <div class="date-picker-divider"></div>
+        <Separator />
 
         <!-- Custom date range inputs -->
-        <div class="date-picker-custom">
-          <div class="date-picker-field">
-            <label class="date-picker-label">{{ t('dates.startDate') }}</label>
-            <input
+        <div class="flex items-end gap-2 p-3">
+          <div class="flex-1">
+            <Label class="mb-1 block text-xs font-medium text-muted-foreground">{{ t('dates.startDate') }}</Label>
+            <Input
               type="date"
               v-model="localStartDate"
               :max="localEndDate || tomorrow"
-              class="date-picker-input"
+              class="py-1.5 text-sm"
               @change="onDateChange"
             />
           </div>
-          <div class="date-picker-separator">
+          <div class="flex items-center justify-center pb-1">
             <Icon name="arrowRight" size="sm" class="text-muted-foreground" />
           </div>
-          <div class="date-picker-field">
-            <label class="date-picker-label">{{ t('dates.endDate') }}</label>
-            <input
+          <div class="flex-1">
+            <Label class="mb-1 block text-xs font-medium text-muted-foreground">{{ t('dates.endDate') }}</Label>
+            <Input
               type="date"
               v-model="localEndDate"
               :min="localStartDate"
               :max="tomorrow"
-              class="date-picker-input"
+              class="py-1.5 text-sm"
               @change="onDateChange"
             />
           </div>
         </div>
 
         <!-- Apply button -->
-        <div class="date-picker-actions">
-          <button @click="apply" class="date-picker-apply">
+        <div class="flex justify-end p-2 pt-0">
+          <Button size="sm" @click="apply">
             {{ t('dates.apply') }}
-          </button>
+          </Button>
         </div>
       </div>
     </Transition>
@@ -79,6 +91,10 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 interface DatePreset {
   labelKey: string
@@ -321,107 +337,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.date-picker-trigger {
-  @apply flex items-center gap-2;
-  @apply rounded-md px-3 py-2 text-sm;
-  @apply bg-card;
-  @apply border border-border;
-  @apply text-foreground/85;
-  @apply transition-all duration-200;
-  @apply focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-ring;
-  @apply hover:border-border;
-  @apply cursor-pointer;
-}
-
-.date-picker-trigger-open {
-  @apply border-primary-500 ring-2 ring-ring;
-}
-
-.date-picker-icon {
-  @apply text-muted-foreground;
-}
-
-.date-picker-value {
-  @apply font-medium;
-}
-
-.date-picker-chevron {
-  @apply text-muted-foreground;
-}
-
-.date-picker-dropdown {
-  @apply absolute left-0 z-[100] mt-2;
-  @apply bg-card;
-  @apply rounded-lg;
-  @apply border border-border;
-  @apply overflow-hidden;
-  @apply min-w-[320px];
-}
-
-.date-picker-presets {
-  @apply grid grid-cols-2 gap-1 p-2;
-}
-
-.date-picker-preset {
-  @apply rounded-md px-3 py-1.5 text-xs font-medium;
-  @apply text-muted-foreground;
-  @apply hover:bg-accent;
-  @apply transition-colors duration-150;
-}
-
-.date-picker-preset-active {
-  @apply bg-accent;
-  @apply text-primary-200;
-}
-
-.date-picker-divider {
-  @apply border-t border-border;
-}
-
-.date-picker-custom {
-  @apply flex items-end gap-2 p-3;
-}
-
-.date-picker-field {
-  @apply flex-1;
-}
-
-.date-picker-label {
-  @apply mb-1 block text-xs font-medium text-muted-foreground;
-}
-
-.date-picker-input {
-  @apply w-full rounded-md px-2 py-1.5 text-sm;
-  @apply bg-muted;
-  @apply border border-border;
-  @apply text-foreground;
-  @apply focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-ring;
-}
-
-.date-picker-input::-webkit-calendar-picker-indicator {
-  @apply cursor-pointer opacity-60 hover:opacity-100;
-  filter: invert(0.5);
-}
-
-.dark .date-picker-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.7);
-}
-
-.date-picker-separator {
-  @apply flex items-center justify-center pb-1;
-}
-
-.date-picker-actions {
-  @apply flex justify-end p-2 pt-0;
-}
-
-.date-picker-apply {
-  @apply rounded-md px-4 py-1.5 text-sm font-medium;
-  @apply bg-foreground text-foreground ;
-  @apply hover:brightness-110;
-  @apply transition-all duration-150;
-}
-
 /* Dropdown animation */
 .date-picker-dropdown-enter-active,
 .date-picker-dropdown-leave-active {

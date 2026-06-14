@@ -9,7 +9,7 @@
       <!-- Info -->
       <div class="rounded-md border border-border bg-card p-4">
         <p class="text-sm text-foreground/85">
-          <svg class="mr-1.5 inline h-5 w-5 text-primary-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="mr-1.5 inline h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -22,8 +22,8 @@
       </div>
 
       <!-- Mixed platform warning -->
-      <div v-if="isMixedPlatform" class="rounded-md border border-amber-500/30 bg-amber-500/10 p-4">
-        <p class="text-sm text-amber-400">
+      <div v-if="isMixedPlatform" class="rounded-md border border-destructive/30 bg-destructive/10 p-4">
+        <p class="text-sm text-destructive">
           <svg class="mr-1.5 inline h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
@@ -38,23 +38,20 @@
       >
         <div class="mb-3 flex items-center justify-between">
           <div class="flex-1 pr-4">
-            <label
+            <Label
               id="bulk-edit-openai-passthrough-label"
-              class="input-label mb-0"
               for="bulk-edit-openai-passthrough-enabled"
             >
               {{ t('admin.accounts.openai.oauthPassthrough') }}
-            </label>
+            </Label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.oauthPassthroughDesc') }}
             </p>
           </div>
-          <input
+          <Checkbox
             v-model="enableOpenAIPassthrough"
             id="bulk-edit-openai-passthrough-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-passthrough-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -63,54 +60,38 @@
           role="group"
           aria-labelledby="bulk-edit-openai-passthrough-label"
         >
-          <button
+          <Switch
             id="bulk-edit-openai-passthrough-toggle"
-            type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              openaiPassthroughEnabled ? 'bg-primary-600' : 'bg-secondary'
-            ]"
-            @click="openaiPassthroughEnabled = !openaiPassthroughEnabled"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground  ring-0 transition duration-200 ease-in-out',
-                openaiPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+            v-model="openaiPassthroughEnabled"
+          />
         </div>
       </div>
 
       <!-- Base URL (API Key only) -->
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-base-url-label"
-            class="input-label mb-0"
             for="bulk-edit-base-url-enabled"
           >
             {{ t('admin.accounts.baseUrl') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableBaseUrl"
             id="bulk-edit-base-url-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-base-url"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
-        <input
+        <Input
           v-model="baseUrl"
           id="bulk-edit-base-url"
           type="text"
           :disabled="!enableBaseUrl"
-          class="input"
           :class="!enableBaseUrl && 'cursor-not-allowed opacity-50'"
           :placeholder="t('admin.accounts.bulkEdit.baseUrlPlaceholder')"
           aria-labelledby="bulk-edit-base-url-label"
         />
-        <p class="input-hint">
+        <p class="mt-1 text-xs text-muted-foreground">
           {{ t('admin.accounts.bulkEdit.baseUrlNotice') }}
         </p>
       </div>
@@ -118,19 +99,16 @@
       <!-- Model restriction -->
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-model-restriction-label"
-            class="input-label mb-0"
             for="bulk-edit-model-restriction-enabled"
           >
             {{ t('admin.accounts.modelRestriction') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableModelRestriction"
             id="bulk-edit-model-restriction-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-model-restriction-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
 
@@ -142,9 +120,9 @@
         >
           <div
             v-if="isOpenAIModelRestrictionDisabled"
-            class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3"
+            class="rounded-md border border-destructive/30 bg-destructive/10 p-3"
           >
-            <p class="text-xs text-amber-400">
+            <p class="text-xs text-destructive">
               {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
             </p>
           </div>
@@ -152,13 +130,14 @@
           <template v-else>
             <!-- Mode Toggle -->
             <div class="mb-4 flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 :class="[
-                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                  'flex-1',
                   modelRestrictionMode === 'whitelist'
-                    ? 'bg-secondary text-primary-200 border border-border '
-                    : 'bg-muted text-muted-foreground hover:bg-accent'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'bg-muted text-muted-foreground'
                 ]"
                 @click="modelRestrictionMode = 'whitelist'"
               >
@@ -176,14 +155,15 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelWhitelist') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="outline"
                 :class="[
-                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                  'flex-1',
                   modelRestrictionMode === 'mapping'
-                    ? 'bg-secondary text-primary-200 border border-border '
-                    : 'bg-muted text-muted-foreground hover:bg-accent'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'bg-muted text-muted-foreground'
                 ]"
                 @click="modelRestrictionMode = 'mapping'"
               >
@@ -201,7 +181,7 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelMapping') }}
-              </button>
+              </Button>
             </div>
 
             <!-- Whitelist Mode -->
@@ -209,7 +189,7 @@
               <div class="mb-3 rounded-md border border-border bg-card p-3">
                 <p class="text-xs text-foreground/85">
                   <svg
-                    class="mr-1 inline h-4 w-4 text-primary-200"
+                    class="mr-1 inline h-4 w-4 text-muted-foreground"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -243,7 +223,7 @@
               <div class="mb-3 rounded-md border border-border bg-card p-3">
                 <p class="text-xs text-foreground/85">
                   <svg
-                    class="mr-1 inline h-4 w-4 text-primary-200"
+                    class="mr-1 inline h-4 w-4 text-muted-foreground"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -266,10 +246,10 @@
                   :key="index"
                   class="flex items-center gap-2"
                 >
-                  <input
+                  <Input
                     v-model="mapping.from"
                     type="text"
-                    class="input flex-1"
+                    class="flex-1"
                     :placeholder="t('admin.accounts.requestModel')"
                   />
                   <svg
@@ -285,15 +265,17 @@
                       d="M14 5l7 7m0 0l-7 7m7-7H3"
                     />
                   </svg>
-                  <input
+                  <Input
                     v-model="mapping.to"
                     type="text"
-                    class="input flex-1"
+                    class="flex-1"
                     :placeholder="t('admin.accounts.actualModel')"
                   />
-                  <button
+                  <Button
                     type="button"
-                    class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                    variant="ghost"
+                    size="icon"
+                    class="h-9 w-9 flex-shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive/80"
                     @click="removeModelMapping(index)"
                   >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -304,13 +286,14 @@
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                       />
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              <button
+              <Button
                 type="button"
-                class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300/40 hover:text-foreground/85"
+                variant="outline"
+                class="mb-3 w-full border-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/40 hover:text-foreground/85"
                 @click="addModelMapping"
               >
                 <svg
@@ -327,19 +310,21 @@
                   />
                 </svg>
                 {{ t('admin.accounts.addMapping') }}
-              </button>
+              </Button>
 
               <!-- Quick Add Buttons -->
               <div class="flex flex-wrap gap-2">
-                <button
+                <Button
                   v-for="preset in filteredPresets"
                   :key="preset.label"
                   type="button"
-                  :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+                  variant="outline"
+                  size="sm"
+                  :class="['h-auto px-3 py-1 text-xs', preset.color]"
                   @click="addPresetMapping(preset.from, preset.to)"
                 >
                   + {{ preset.label }}
-                </button>
+                </Button>
               </div>
             </div>
           </template>
@@ -350,29 +335,26 @@
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
           <div>
-            <label
+            <Label
               id="bulk-edit-custom-error-codes-label"
-              class="input-label mb-0"
               for="bulk-edit-custom-error-codes-enabled"
             >
               {{ t('admin.accounts.customErrorCodes') }}
-            </label>
+            </Label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.customErrorCodesHint') }}
             </p>
           </div>
-          <input
+          <Checkbox
             v-model="enableCustomErrorCodes"
             id="bulk-edit-custom-error-codes-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-custom-error-codes-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
 
         <div v-if="enableCustomErrorCodes" id="bulk-edit-custom-error-codes-body" class="space-y-3">
-          <div class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-            <p class="text-xs text-amber-400">
+          <div class="rounded-md border border-destructive/30 bg-destructive/10 p-3">
+            <p class="text-xs text-destructive">
               <Icon name="exclamationTriangle" size="sm" class="mr-1 inline" :stroke-width="2" />
               {{ t('admin.accounts.customErrorCodesWarning') }}
             </p>
@@ -380,36 +362,38 @@
 
           <!-- Error Code Buttons -->
           <div class="flex flex-wrap gap-2">
-            <button
+            <Button
               v-for="code in commonErrorCodes"
               :key="code.value"
               type="button"
+              variant="outline"
+              size="sm"
               :class="[
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                'h-auto px-3 py-1.5',
                 selectedErrorCodes.includes(code.value)
-                  ? 'bg-red-500/10 text-red-400 ring-1 ring-red-500/30'
-                  : 'bg-muted text-muted-foreground hover:bg-accent'
+                  ? 'bg-destructive/10 text-destructive ring-1 ring-destructive/30'
+                  : 'bg-muted text-muted-foreground'
               ]"
               @click="toggleErrorCode(code.value)"
             >
               {{ code.value }} {{ code.label }}
-            </button>
+            </Button>
           </div>
 
           <!-- Manual input -->
           <div class="flex items-center gap-2">
-            <input
+            <Input
               v-model="customErrorCodeInput"
               id="bulk-edit-custom-error-code-input"
               type="number"
               min="100"
               max="599"
-              class="input flex-1"
+              class="flex-1"
               :placeholder="t('admin.accounts.enterErrorCode')"
               aria-labelledby="bulk-edit-custom-error-codes-label"
               @keyup.enter="addCustomErrorCode"
             />
-            <button type="button" class="btn btn-secondary px-3" @click="addCustomErrorCode">
+            <Button type="button" variant="secondary" class="px-3" @click="addCustomErrorCode">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
@@ -418,25 +402,28 @@
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-            </button>
+            </Button>
           </div>
 
           <!-- Selected codes summary -->
           <div class="flex flex-wrap gap-1.5">
-            <span
+            <Badge
               v-for="code in selectedErrorCodes.sort((a, b) => a - b)"
               :key="code"
-              class="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-400"
+              variant="outline"
+              class="gap-1 border-destructive/30 bg-destructive/10 text-sm text-destructive"
             >
               {{ code }}
-              <button
+              <Button
                 type="button"
-                class="hover:text-red-300"
+                variant="ghost"
+                size="icon"
+                class="h-3.5 w-3.5 hover:bg-transparent hover:text-destructive/80"
                 @click="removeErrorCode(code)"
               >
                 <Icon name="x" size="xs" class="h-3.5 w-3.5" :stroke-width="2" />
-              </button>
-            </span>
+              </Button>
+            </Badge>
             <span v-if="selectedErrorCodes.length === 0" class="text-xs text-muted-foreground">
               {{ t('admin.accounts.noneSelectedUsesDefault') }}
             </span>
@@ -448,60 +435,40 @@
       <div class="border-t border-border pt-4">
         <div class="flex items-center justify-between">
           <div class="flex-1 pr-4">
-            <label
+            <Label
               id="bulk-edit-intercept-warmup-label"
-              class="input-label mb-0"
               for="bulk-edit-intercept-warmup-enabled"
             >
               {{ t('admin.accounts.interceptWarmupRequests') }}
-            </label>
+            </Label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.interceptWarmupRequestsDesc') }}
             </p>
           </div>
-          <input
+          <Checkbox
             v-model="enableInterceptWarmup"
             id="bulk-edit-intercept-warmup-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-intercept-warmup-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div v-if="enableInterceptWarmup" id="bulk-edit-intercept-warmup-body" class="mt-3">
-          <button
-            type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              interceptWarmupRequests ? 'bg-primary-600' : 'bg-secondary'
-            ]"
-            @click="interceptWarmupRequests = !interceptWarmupRequests"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground  ring-0 transition duration-200 ease-in-out',
-                interceptWarmupRequests ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="interceptWarmupRequests" />
         </div>
       </div>
 
       <!-- Proxy -->
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-proxy-label"
-            class="input-label mb-0"
             for="bulk-edit-proxy-enabled"
           >
             {{ t('admin.accounts.proxy') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableProxy"
             id="bulk-edit-proxy-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-proxy-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div id="bulk-edit-proxy-body" :class="!enableProxy && 'pointer-events-none opacity-50'">
@@ -517,139 +484,122 @@
       <div class="grid grid-cols-2 gap-4 border-t border-border pt-4 lg:grid-cols-4">
         <div>
           <div class="mb-3 flex items-center justify-between">
-            <label
+            <Label
               id="bulk-edit-concurrency-label"
-              class="input-label mb-0"
               for="bulk-edit-concurrency-enabled"
             >
               {{ t('admin.accounts.concurrency') }}
-            </label>
-            <input
+            </Label>
+            <Checkbox
               v-model="enableConcurrency"
               id="bulk-edit-concurrency-enabled"
-              type="checkbox"
               aria-controls="bulk-edit-concurrency"
-              class="rounded border-border text-primary-600 focus:ring-ring"
             />
           </div>
-          <input
-            v-model.number="concurrency"
+          <Input
+            :model-value="concurrency"
             id="bulk-edit-concurrency"
             type="number"
             min="1"
             :disabled="!enableConcurrency"
-            class="input"
             :class="!enableConcurrency && 'cursor-not-allowed opacity-50'"
             aria-labelledby="bulk-edit-concurrency-label"
-            @input="concurrency = Math.max(1, concurrency || 1)"
+            @update:model-value="concurrency = Math.max(1, Number($event) || 1)"
           />
         </div>
         <div>
           <div class="mb-3 flex items-center justify-between">
-            <label
+            <Label
               id="bulk-edit-load-factor-label"
-              class="input-label mb-0"
               for="bulk-edit-load-factor-enabled"
             >
               {{ t('admin.accounts.loadFactor') }}
-            </label>
-            <input
+            </Label>
+            <Checkbox
               v-model="enableLoadFactor"
               id="bulk-edit-load-factor-enabled"
-              type="checkbox"
               aria-controls="bulk-edit-load-factor"
-              class="rounded border-border text-primary-600 focus:ring-ring"
             />
           </div>
-          <input
-            v-model.number="loadFactor"
+          <Input
+            :model-value="loadFactor"
             id="bulk-edit-load-factor"
             type="number"
             min="1"
             :disabled="!enableLoadFactor"
-            class="input"
             :class="!enableLoadFactor && 'cursor-not-allowed opacity-50'"
             aria-labelledby="bulk-edit-load-factor-label"
-            @input="loadFactor = (loadFactor &amp;&amp; loadFactor >= 1) ? loadFactor : null"
+            @update:model-value="loadFactor = Number($event) >= 1 ? Number($event) : null"
           />
-          <p class="input-hint">{{ t('admin.accounts.loadFactorHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.loadFactorHint') }}</p>
         </div>
         <div>
           <div class="mb-3 flex items-center justify-between">
-            <label
+            <Label
               id="bulk-edit-priority-label"
-              class="input-label mb-0"
               for="bulk-edit-priority-enabled"
             >
               {{ t('admin.accounts.priority') }}
-            </label>
-            <input
+            </Label>
+            <Checkbox
               v-model="enablePriority"
               id="bulk-edit-priority-enabled"
-              type="checkbox"
               aria-controls="bulk-edit-priority"
-              class="rounded border-border text-primary-600 focus:ring-ring"
             />
           </div>
-          <input
-            v-model.number="priority"
+          <Input
+            :model-value="priority"
+            @update:model-value="priority = Number($event) || 1"
             id="bulk-edit-priority"
             type="number"
             min="1"
             :disabled="!enablePriority"
-            class="input"
             :class="!enablePriority && 'cursor-not-allowed opacity-50'"
             aria-labelledby="bulk-edit-priority-label"
           />
         </div>
         <div>
           <div class="mb-3 flex items-center justify-between">
-            <label
+            <Label
               id="bulk-edit-rate-multiplier-label"
-              class="input-label mb-0"
               for="bulk-edit-rate-multiplier-enabled"
             >
               {{ t('admin.accounts.billingRateMultiplier') }}
-            </label>
-            <input
+            </Label>
+            <Checkbox
               v-model="enableRateMultiplier"
               id="bulk-edit-rate-multiplier-enabled"
-              type="checkbox"
               aria-controls="bulk-edit-rate-multiplier"
-              class="rounded border-border text-primary-600 focus:ring-ring"
             />
           </div>
-          <input
-            v-model.number="rateMultiplier"
+          <Input
+            :model-value="rateMultiplier"
+            @update:model-value="rateMultiplier = Number($event) || 0"
             id="bulk-edit-rate-multiplier"
             type="number"
             min="0"
             step="0.01"
             :disabled="!enableRateMultiplier"
-            class="input"
             :class="!enableRateMultiplier && 'cursor-not-allowed opacity-50'"
             aria-labelledby="bulk-edit-rate-multiplier-label"
           />
-          <p class="input-hint">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
         </div>
       </div>
 
       <!-- Status -->
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-status-label"
-            class="input-label mb-0"
             for="bulk-edit-status-enabled"
           >
             {{ t('common.status') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableStatus"
             id="bulk-edit-status-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-status"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div id="bulk-edit-status" :class="!enableStatus && 'pointer-events-none opacity-50'">
@@ -664,19 +614,16 @@
       <!-- OpenAI OAuth WS mode -->
       <div v-if="allOpenAIOAuth" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-openai-ws-mode-label"
-            class="input-label mb-0"
             for="bulk-edit-openai-ws-mode-enabled"
           >
             {{ t('admin.accounts.openai.wsMode') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableOpenAIWSMode"
             id="bulk-edit-openai-ws-mode-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-ws-mode"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -701,19 +648,16 @@
       <!-- OpenAI OAuth Codex CLI only -->
       <div v-if="allOpenAIOAuth" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-openai-codex-cli-only-label"
-            class="input-label mb-0"
             for="bulk-edit-openai-codex-cli-only-enabled"
           >
             {{ t('admin.accounts.openai.codexCLIOnly') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableCodexCLIOnly"
             id="bulk-edit-openai-codex-cli-only-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-codex-cli-only"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -723,41 +667,26 @@
           <p class="mb-3 text-xs text-muted-foreground">
             {{ t('admin.accounts.openai.codexCLIOnlyDesc') }}
           </p>
-          <button
+          <Switch
             id="bulk-edit-openai-codex-cli-only-toggle"
-            type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              codexCLIOnlyEnabled ? 'bg-primary-600' : 'bg-secondary'
-            ]"
-            @click="codexCLIOnlyEnabled = !codexCLIOnlyEnabled"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground  ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+            v-model="codexCLIOnlyEnabled"
+          />
         </div>
       </div>
 
       <!-- OpenAI OAuth: 额外放行 Claude Code 的 Codex 插件 -->
       <div v-if="allOpenAIOAuth" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-openai-codex-allow-claude-code-label"
-            class="input-label mb-0"
             for="bulk-edit-openai-codex-allow-claude-code-enabled"
           >
             {{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCode') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableCodexCLIOnlyAllowClaudeCode"
             id="bulk-edit-openai-codex-allow-claude-code-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-codex-allow-claude-code"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -767,41 +696,26 @@
           <p class="mb-3 text-xs text-muted-foreground">
             {{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCodeDesc') }}
           </p>
-          <button
+          <Switch
             id="bulk-edit-openai-codex-allow-claude-code-toggle"
-            type="button"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              codexCLIOnlyAllowClaudeCodeEnabled ? 'bg-primary-600' : 'bg-secondary'
-            ]"
-            @click="codexCLIOnlyAllowClaudeCodeEnabled = !codexCLIOnlyAllowClaudeCodeEnabled"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground  ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyAllowClaudeCodeEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+            v-model="codexCLIOnlyAllowClaudeCodeEnabled"
+          />
         </div>
       </div>
 
       <!-- OpenAI API Key WS mode -->
       <div v-if="allOpenAIAPIKey" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-openai-apikey-ws-mode-label"
-            class="input-label mb-0"
             for="bulk-edit-openai-apikey-ws-mode-enabled"
           >
             {{ t('admin.accounts.openai.wsMode') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableOpenAIAPIKeyWSMode"
             id="bulk-edit-openai-apikey-ws-mode-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-apikey-ws-mode"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -827,23 +741,20 @@
       <div v-if="allOpenAIPassthroughCapable" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
           <div class="flex-1 pr-4">
-            <label
+            <Label
               id="bulk-edit-openai-compact-mode-label"
-              class="input-label mb-0"
               for="bulk-edit-openai-compact-mode-enabled"
             >
               {{ t('admin.accounts.openai.compactMode') }}
-            </label>
+            </Label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.compactModeDesc') }}
             </p>
           </div>
-          <input
+          <Checkbox
             v-model="enableOpenAICompactMode"
             id="bulk-edit-openai-compact-mode-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-compact-mode"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -863,23 +774,20 @@
       <div v-if="allOpenAIPassthroughCapable" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
           <div class="flex-1 pr-4">
-            <label
+            <Label
               id="bulk-edit-openai-compact-model-mapping-label"
-              class="input-label mb-0"
               for="bulk-edit-openai-compact-model-mapping-enabled"
             >
               {{ t('admin.accounts.openai.compactModelMapping') }}
-            </label>
+            </Label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.compactModelMappingDesc') }}
             </p>
           </div>
-          <input
+          <Checkbox
             v-model="enableOpenAICompactModelMapping"
             id="bulk-edit-openai-compact-model-mapping-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-openai-compact-model-mapping"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div
@@ -892,57 +800,57 @@
               :key="index"
               class="flex items-center gap-2"
             >
-              <input
+              <Input
                 v-model="mapping.from"
                 type="text"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.fromModel')"
                 data-testid="bulk-edit-openai-compact-model-mapping-input"
               />
               <span class="text-muted-foreground">→</span>
-              <input
+              <Input
                 v-model="mapping.to"
                 type="text"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.toModel')"
                 data-testid="bulk-edit-openai-compact-model-mapping-input"
               />
-              <button
+              <Button
                 type="button"
-                class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                variant="ghost"
+                size="icon"
+                class="h-9 w-9 flex-shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive/80"
                 @click="removeOpenAICompactModelMapping(index)"
               >
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
           </div>
-          <button
+          <Button
             type="button"
-            class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300/40 hover:text-foreground/85"
+            variant="outline"
+            class="mb-3 w-full border-2 border-dashed border-border bg-transparent text-muted-foreground hover:border-primary/40 hover:text-foreground/85"
             data-testid="bulk-edit-openai-compact-model-mapping-add"
             @click="addOpenAICompactModelMapping"
           >
             + {{ t('admin.accounts.addMapping') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- RPM Limit (仅全部为 Anthropic OAuth/SetupToken 时显示) -->
       <div v-if="allAnthropicOAuthOrSetupToken" class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-rpm-limit-label"
-            class="input-label mb-0"
             for="bulk-edit-rpm-limit-enabled"
           >
             {{ t('admin.accounts.quotaControl.rpmLimit.label') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableRpmLimit"
             id="bulk-edit-rpm-limit-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-rpm-limit-body"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
 
@@ -954,79 +862,67 @@
         >
           <div class="mb-3 flex items-center justify-between">
             <span class="text-sm text-foreground/85">{{ t('admin.accounts.quotaControl.rpmLimit.hint') }}</span>
-            <button
-              type="button"
-              @click="rpmLimitEnabled = !rpmLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                rpmLimitEnabled ? 'bg-primary-600' : 'bg-secondary'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-foreground  ring-0 transition duration-200 ease-in-out',
-                  rpmLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="rpmLimitEnabled" />
           </div>
 
           <div v-if="rpmLimitEnabled" class="space-y-3">
             <div>
-              <label class="input-label text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</label>
-              <input
-                v-model.number="bulkBaseRpm"
+              <Label class="text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</Label>
+              <Input
+                :model-value="bulkBaseRpm"
+                @update:model-value="bulkBaseRpm = $event === '' || $event == null ? null : Number($event)"
                 type="number"
                 min="1"
                 max="1000"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.baseRpmPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
             </div>
 
             <div>
-              <label class="input-label text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</label>
+              <Label class="text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</Label>
               <div class="flex gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   @click="bulkRpmStrategy = 'tiered'"
                   :class="[
-                    'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                    'flex-1',
                     bulkRpmStrategy === 'tiered'
-                      ? 'bg-secondary text-primary-200 border border-border '
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-muted text-muted-foreground'
                   ]"
                 >
                   {{ t('admin.accounts.quotaControl.rpmLimit.strategyTiered') }}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   @click="bulkRpmStrategy = 'sticky_exempt'"
                   :class="[
-                    'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                    'flex-1',
                     bulkRpmStrategy === 'sticky_exempt'
-                      ? 'bg-secondary text-primary-200 border border-border '
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-muted text-muted-foreground'
                   ]"
                 >
                   {{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExempt') }}
-                </button>
+                </Button>
               </div>
             </div>
 
             <div v-if="bulkRpmStrategy === 'tiered'">
-              <label class="input-label text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</label>
-              <input
-                v-model.number="bulkRpmStickyBuffer"
+              <Label class="text-xs">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</Label>
+              <Input
+                :model-value="bulkRpmStickyBuffer"
+                @update:model-value="bulkRpmStickyBuffer = $event === '' || $event == null ? null : Number($event)"
                 type="number"
                 min="1"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.stickyBufferPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
             </div>
 
             </div>
@@ -1034,21 +930,21 @@
 
         <!-- 用户消息限速模式（独立于 RPM 开关，始终可见） -->
         <div class="mt-4">
-          <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
+          <Label>{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</Label>
           <p class="mt-1 text-xs text-muted-foreground mb-2">
             {{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueueHint') }}
           </p>
           <div class="flex space-x-2">
-            <button type="button" v-for="opt in umqModeOptions" :key="opt.value"
+            <Button type="button" variant="outline" size="sm" v-for="opt in umqModeOptions" :key="opt.value"
               @click="userMsgQueueMode = userMsgQueueMode === opt.value ? null : opt.value"
               :class="[
-                'px-3 py-1.5 text-sm rounded-md border transition-colors',
+                'h-auto px-3 py-1.5',
                 userMsgQueueMode === opt.value
-                  ? 'bg-foreground text-primary-foreground border-border '
-                  : 'bg-card text-foreground/85 border-border hover:bg-accent'
+                  ? 'bg-foreground text-background'
+                  : 'bg-card text-foreground/85'
               ]">
               {{ opt.label }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1056,19 +952,16 @@
       <!-- Groups -->
       <div class="border-t border-border pt-4">
         <div class="mb-3 flex items-center justify-between">
-          <label
+          <Label
             id="bulk-edit-groups-label"
-            class="input-label mb-0"
             for="bulk-edit-groups-enabled"
           >
             {{ t('nav.groups') }}
-          </label>
-          <input
+          </Label>
+          <Checkbox
             v-model="enableGroups"
             id="bulk-edit-groups-enabled"
-            type="checkbox"
             aria-controls="bulk-edit-groups"
-            class="rounded border-border text-primary-600 focus:ring-ring"
           />
         </div>
         <div id="bulk-edit-groups" :class="!enableGroups && 'pointer-events-none opacity-50'">
@@ -1083,14 +976,13 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button" variant="secondary" @click="handleClose">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="bulk-edit-account-form"
           :disabled="submitting"
-          class="btn btn-primary"
         >
           <svg
             v-if="submitting"
@@ -1115,7 +1007,7 @@
           {{
             submitting ? t('admin.accounts.bulkEdit.updating') : t('admin.accounts.bulkEdit.submit')
           }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -1145,6 +1037,12 @@ import ProxySelector from '@/components/common/ProxySelector.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
 import ModelWhitelistSelector from '@/components/account/ModelWhitelistSelector.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   buildModelMappingObject as buildModelMappingPayload,
   getPresetMappingsByPlatform

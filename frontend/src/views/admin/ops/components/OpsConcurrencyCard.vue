@@ -2,6 +2,9 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { opsAPI, type OpsAccountAvailabilityStatsResponse, type OpsConcurrencyStatsResponse, type OpsUserConcurrencyStatsResponse } from '@/api/admin/ops'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 interface Props {
   platformFilter?: string
@@ -161,7 +164,7 @@ const groupRows = computed((): SummaryRow[] => {
         total_accounts: totalAccounts,
         available_accounts: availableAccounts,
         rate_limited_accounts: safeNumber(avail.rate_limit_count),
-  
+
         error_accounts: safeNumber(avail.error_count),
         total_concurrency: totalConcurrency,
         used_concurrency: usedConcurrency,
@@ -302,10 +305,10 @@ watch(
 )
 
 function getLoadBarClass(loadPct: number): string {
-  if (loadPct >= 90) return 'od-progress-fill bad'
-  if (loadPct >= 70) return 'od-progress-fill warn'
-  if (loadPct >= 50) return 'od-progress-fill warn'
-  return 'od-progress-fill ok'
+  const base = 'h-full rounded-full transition-all duration-300'
+  if (loadPct >= 90) return `${base} bg-red-500`
+  if (loadPct >= 50) return `${base} bg-amber-500`
+  return `${base} bg-emerald-500`
 }
 
 function getLoadBarStyle(loadPct: number): string {
@@ -313,10 +316,9 @@ function getLoadBarStyle(loadPct: number): string {
 }
 
 function getLoadTextClass(loadPct: number): string {
-  if (loadPct >= 90) return 'od-c-bad'
-  if (loadPct >= 70) return 'od-c-warn'
-  if (loadPct >= 50) return 'od-c-warn'
-  return 'od-c-ok'
+  if (loadPct >= 90) return 'text-red-500'
+  if (loadPct >= 50) return 'text-amber-500'
+  return 'text-emerald-500'
 }
 
 function formatDuration(seconds: number): string {
@@ -341,20 +343,22 @@ watch(
 </script>
 
 <template>
-  <div class="od-conc-card">
+  <Card class="p-5 flex flex-col h-full rounded-xl shadow-none">
     <!-- 头部 -->
-    <div class="od-conc-head">
-      <h3 class="od-conc-title">
-        <svg class="od-chart-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="flex items-center justify-between mb-3.5 flex-shrink-0">
+      <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">
+        <svg class="text-primary flex-shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         {{ t('admin.ops.concurrency.title') }}
       </h3>
       <div style="display:flex;align-items:center;gap:6px;">
         <!-- 用户视图切换按钮 -->
-        <button
-          class="od-btn od-btn-icon"
-          :class="showByUser ? 'od-btn-azure' : ''"
+        <Button
+          variant="outline"
+          size="icon"
+          class="h-8 w-8 flex-shrink-0"
+          :class="showByUser ? 'bg-primary/10 border-primary/35 text-primary' : ''"
           :title="showByUser ? t('admin.ops.concurrency.switchToPlatform') : t('admin.ops.concurrency.switchToUser')"
           :aria-label="showByUser ? t('admin.ops.concurrency.switchToPlatform') : t('admin.ops.concurrency.switchToUser')"
           @click="showByUser = !showByUser"
@@ -362,128 +366,135 @@ watch(
           <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-        </button>
+        </Button>
         <!-- 刷新按钮 -->
-        <button class="od-btn od-btn-icon" :disabled="loading" :title="t('common.refresh')" :aria-label="t('common.refresh')" @click="loadData">
+        <Button
+          variant="outline"
+          size="icon"
+          class="h-8 w-8 flex-shrink-0"
+          :disabled="loading"
+          :title="t('common.refresh')"
+          :aria-label="t('common.refresh')"
+          @click="loadData"
+        >
           <svg width="13" height="13" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- 错误提示 -->
-    <div v-if="errorMessage" style="margin-bottom:10px;border-radius:8px;background:var(--ops-bad-dim);border:1px solid var(--ops-bad-border);padding:9px 12px;font-size:11.5px;color:var(--ops-bad);">
+    <div v-if="errorMessage" class="mb-2.5 rounded-lg bg-destructive/10 border border-destructive/35 px-3 py-2 text-[11.5px] text-destructive">
       {{ errorMessage }}
     </div>
 
     <!-- 禁用状态 -->
     <div
       v-if="!realtimeEnabled"
-      style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px dashed var(--line-0,#20242C);font-size:13px;color:var(--ink-2,#5C6470);"
+      class="flex-1 flex items-center justify-center rounded-lg border border-dashed border-border text-[13px] text-muted-foreground"
     >
       {{ t('admin.ops.concurrency.disabledHint') }}
     </div>
 
     <!-- 数据展示区域 -->
-    <div v-else class="od-conc-body">
+    <div v-else class="flex-1 min-h-0 overflow-hidden rounded-lg border border-border flex flex-col">
       <!-- 维度标题栏 -->
-      <div class="od-conc-dim-bar">
-        <span class="od-conc-dim-label">{{ displayTitle }}</span>
-        <span style="font-size:10px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.concurrency.totalRows', { count: displayRows.length }) }}</span>
+      <div class="flex items-center justify-between px-3 py-1.5 bg-muted border-b border-border flex-shrink-0">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{{ displayTitle }}</span>
+        <span class="text-[10px] text-muted-foreground">{{ t('admin.ops.concurrency.totalRows', { count: displayRows.length }) }}</span>
       </div>
 
       <!-- 空状态 -->
-      <div v-if="displayRows.length === 0" style="flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ink-2,#5C6470);">
+      <div v-if="displayRows.length === 0" class="flex-1 flex items-center justify-center text-[13px] text-muted-foreground">
         {{ t('admin.ops.concurrency.empty') }}
       </div>
 
       <!-- 用户视图 -->
-      <div v-else-if="displayDimension === 'user'" class="od-conc-scroll" style="max-height:360px;">
-        <div v-for="row in (displayRows as UserRow[])" :key="row.key" class="od-conc-row">
+      <div v-else-if="displayDimension === 'user'" class="flex-1 overflow-y-auto p-2.5 scrollbar-thin" style="max-height:360px;">
+        <div v-for="row in (displayRows as UserRow[])" :key="row.key" class="bg-muted rounded-lg p-2.5 mb-1.5 last:mb-0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
             <div style="display:flex;min-width:0;flex:1;align-items:center;gap:5px;">
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:var(--ink-0,#E8EBF0);" :title="row.username || row.user_email">{{ row.username || row.user_email }}</span>
-              <span v-if="row.username" style="flex-shrink:0;font-size:10px;color:var(--ink-2,#5C6470);overflow:hidden;text-overflow:ellipsis;" :title="row.user_email">{{ row.user_email }}</span>
+              <span class="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-foreground" :title="row.username || row.user_email">{{ row.username || row.user_email }}</span>
+              <span v-if="row.username" class="flex-shrink-0 text-[10px] text-muted-foreground overflow-hidden text-ellipsis" :title="row.user_email">{{ row.user_email }}</span>
             </div>
             <div style="display:flex;flex-shrink:0;align-items:center;gap:6px;font-size:10px;">
-              <span class="od-mono" style="font-weight:700;color:var(--ink-0,#E8EBF0);">{{ row.current_in_use }}/{{ row.max_capacity }}</span>
-              <span :class="getLoadTextClass(row.load_percentage)" style="font-weight:700;">{{ Math.round(row.load_percentage) }}%</span>
+              <span class="font-mono tabular-nums font-bold text-foreground">{{ row.current_in_use }}/{{ row.max_capacity }}</span>
+              <span :class="getLoadTextClass(row.load_percentage)" class="font-bold">{{ Math.round(row.load_percentage) }}%</span>
             </div>
           </div>
-          <div class="od-progress"><div :class="getLoadBarClass(row.load_percentage)" :style="getLoadBarStyle(row.load_percentage)"></div></div>
-          <div v-if="row.waiting_in_queue > 0" style="margin-top:5px;display:flex;justify-content:flex-end;">
-            <span class="od-badge od-badge-azure">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</span>
+          <div class="h-[5px] rounded-full bg-background overflow-hidden my-1"><div :class="getLoadBarClass(row.load_percentage)" :style="getLoadBarStyle(row.load_percentage)"></div></div>
+          <div v-if="row.waiting_in_queue > 0" class="mt-1 flex justify-end">
+            <Badge class="bg-primary/10 border border-primary/35 text-primary text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</Badge>
           </div>
         </div>
       </div>
 
       <!-- 汇总视图（平台/分组） -->
-      <div v-else-if="displayDimension === 'platform' || displayDimension === 'group'" class="od-conc-scroll" style="max-height:360px;">
-        <div v-for="row in (displayRows as SummaryRow[])" :key="row.key" class="od-conc-row">
+      <div v-else-if="displayDimension === 'platform' || displayDimension === 'group'" class="flex-1 overflow-y-auto p-2.5 scrollbar-thin" style="max-height:360px;">
+        <div v-for="row in (displayRows as SummaryRow[])" :key="row.key" class="bg-muted rounded-lg p-2.5 mb-1.5 last:mb-0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:var(--ink-0,#E8EBF0);" :title="row.name">{{ row.name }}</span>
-              <span v-if="displayDimension === 'group' && row.platform" style="font-size:10px;color:var(--ink-2,#5C6470);">{{ row.platform.toUpperCase() }}</span>
+              <span class="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-foreground" :title="row.name">{{ row.name }}</span>
+              <span v-if="displayDimension === 'group' && row.platform" class="text-[10px] text-muted-foreground">{{ row.platform.toUpperCase() }}</span>
             </div>
             <div style="display:flex;flex-shrink:0;align-items:center;gap:6px;font-size:10px;">
-              <span class="od-mono" style="font-weight:700;color:var(--ink-0,#E8EBF0);">{{ row.used_concurrency }}/{{ row.total_concurrency }}</span>
-              <span :class="getLoadTextClass(row.concurrency_percentage)" style="font-weight:700;">{{ row.concurrency_percentage }}%</span>
+              <span class="font-mono tabular-nums font-bold text-foreground">{{ row.used_concurrency }}/{{ row.total_concurrency }}</span>
+              <span :class="getLoadTextClass(row.concurrency_percentage)" class="font-bold">{{ row.concurrency_percentage }}%</span>
             </div>
           </div>
-          <div class="od-progress" style="margin-bottom:6px;"><div :class="getLoadBarClass(row.concurrency_percentage)" :style="getLoadBarStyle(row.concurrency_percentage)"></div></div>
+          <div class="h-[5px] rounded-full bg-background overflow-hidden my-1 mb-1.5"><div :class="getLoadBarClass(row.concurrency_percentage)" :style="getLoadBarStyle(row.concurrency_percentage)"></div></div>
           <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:10px;">
             <div style="display:flex;align-items:center;gap:4px;">
-              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color:var(--ink-2,#5C6470);">
+              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-muted-foreground">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
-              <span style="color:var(--ink-1,#97A0AF);"><span class="od-c-ok" style="font-weight:700;">{{ row.available_accounts }}</span>/{{ row.total_accounts }}</span>
-              <span style="color:var(--ink-2,#5C6470);">{{ row.availability_percentage }}%</span>
+              <span class="text-muted-foreground"><span class="text-emerald-500 font-bold">{{ row.available_accounts }}</span>/{{ row.total_accounts }}</span>
+              <span class="text-muted-foreground">{{ row.availability_percentage }}%</span>
             </div>
-            <span v-if="row.rate_limited_accounts > 0" class="od-badge od-badge-warn">{{ t('admin.ops.concurrency.rateLimited', { count: row.rate_limited_accounts }) }}</span>
-            <span v-if="row.error_accounts > 0" class="od-badge od-badge-bad">{{ t('admin.ops.concurrency.errorAccounts', { count: row.error_accounts }) }}</span>
-            <span v-if="row.waiting_in_queue > 0" class="od-badge od-badge-azure">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</span>
+            <Badge v-if="row.rate_limited_accounts > 0" class="bg-amber-500/10 border border-amber-500/35 text-amber-500 text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.concurrency.rateLimited', { count: row.rate_limited_accounts }) }}</Badge>
+            <Badge v-if="row.error_accounts > 0" class="bg-destructive/10 border border-destructive/35 text-destructive text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.concurrency.errorAccounts', { count: row.error_accounts }) }}</Badge>
+            <Badge v-if="row.waiting_in_queue > 0" class="bg-primary/10 border border-primary/35 text-primary text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</Badge>
           </div>
         </div>
       </div>
 
       <!-- 账号详细视图 -->
-      <div v-else class="od-conc-scroll" style="max-height:360px;">
-        <div v-for="row in (displayRows as AccountRow[])" :key="row.key" class="od-conc-row">
+      <div v-else class="flex-1 overflow-y-auto p-2.5 scrollbar-thin" style="max-height:360px;">
+        <div v-for="row in (displayRows as AccountRow[])" :key="row.key" class="bg-muted rounded-lg p-2.5 mb-1.5 last:mb-0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
             <div style="min-width:0;flex:1;">
-              <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700;color:var(--ink-0,#E8EBF0);" :title="row.name">{{ row.name }}</div>
-              <div style="margin-top:1px;font-size:9px;color:var(--ink-2,#5C6470);">{{ row.group_name }}</div>
+              <div class="overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-foreground" :title="row.name">{{ row.name }}</div>
+              <div class="mt-px text-[9px] text-muted-foreground">{{ row.group_name }}</div>
             </div>
             <div style="display:flex;flex-shrink:0;align-items:center;gap:6px;">
-              <span class="od-mono" style="font-size:11px;font-weight:700;color:var(--ink-0,#E8EBF0);">{{ row.current_in_use }}/{{ row.max_capacity }}</span>
-              <span v-if="row.is_available" class="od-badge od-badge-ok">
+              <span class="font-mono tabular-nums text-[11px] font-bold text-foreground">{{ row.current_in_use }}/{{ row.max_capacity }}</span>
+              <Badge v-if="row.is_available" class="bg-emerald-500/10 border border-emerald-500/35 text-emerald-500 text-[10px] rounded-full px-2 py-0.5 gap-1">
                 <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 {{ t('admin.ops.accountAvailability.available') }}
-              </span>
-              <span v-else-if="row.is_rate_limited" class="od-badge od-badge-warn">
+              </Badge>
+              <Badge v-else-if="row.is_rate_limited" class="bg-amber-500/10 border border-amber-500/35 text-amber-500 text-[10px] rounded-full px-2 py-0.5 gap-1">
                 <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 {{ formatDuration(row.rate_limit_remaining_sec || 0) }}
-              </span>
-              <span v-else-if="row.is_overloaded" class="od-badge od-badge-bad">
+              </Badge>
+              <Badge v-else-if="row.is_overloaded" class="bg-destructive/10 border border-destructive/35 text-destructive text-[10px] rounded-full px-2 py-0.5 gap-1">
                 <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 {{ formatDuration(row.overload_remaining_sec || 0) }}
-              </span>
-              <span v-else-if="row.has_error" class="od-badge od-badge-bad">
+              </Badge>
+              <Badge v-else-if="row.has_error" class="bg-destructive/10 border border-destructive/35 text-destructive text-[10px] rounded-full px-2 py-0.5 gap-1">
                 <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 {{ t('admin.ops.accountAvailability.accountError') }}
-              </span>
-              <span v-else class="od-badge od-badge-dim">{{ t('admin.ops.accountAvailability.unavailable') }}</span>
+              </Badge>
+              <Badge v-else variant="secondary" class="text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.accountAvailability.unavailable') }}</Badge>
             </div>
           </div>
-          <div class="od-progress"><div :class="getLoadBarClass(row.load_percentage)" :style="getLoadBarStyle(row.load_percentage)"></div></div>
-          <div v-if="row.waiting_in_queue > 0" style="margin-top:5px;display:flex;justify-content:flex-end;">
-            <span class="od-badge od-badge-azure">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</span>
+          <div class="h-[5px] rounded-full bg-background overflow-hidden my-1"><div :class="getLoadBarClass(row.load_percentage)" :style="getLoadBarStyle(row.load_percentage)"></div></div>
+          <div v-if="row.waiting_in_queue > 0" class="mt-1 flex justify-end">
+            <Badge class="bg-primary/10 border border-primary/35 text-primary text-[10px] rounded-full px-2 py-0.5">{{ t('admin.ops.concurrency.queued', { count: row.waiting_in_queue }) }}</Badge>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </Card>
 </template>
 
-<style src="../ops-quench.css"></style>

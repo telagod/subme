@@ -1,31 +1,35 @@
 <template>
-  <div class="esw-body">
+  <div class="flex flex-col gap-2.5 px-5 py-4">
     <!-- Tag chip container -->
-    <div class="esw-chip-area">
-      <div class="esw-chips">
+    <div
+      class="rounded-[10px] border border-input bg-background px-2.5 py-2 transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/15"
+    >
+      <div class="flex flex-wrap items-center gap-1.5">
         <span
           v-for="suffix in localTags"
           :key="suffix"
-          class="esw-chip"
+          class="inline-flex items-center gap-1 rounded-md border border-border bg-muted py-[3px] pl-2.5 pr-2"
         >
-          <span class="esw-chip-text">{{ suffix }}</span>
-          <button
+          <span class="whitespace-nowrap font-mono text-[12px] text-foreground">{{ suffix }}</span>
+          <Button
             type="button"
-            class="esw-chip-del"
+            variant="ghost"
+            size="icon"
+            class="h-4 w-4 rounded p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             @click="removeTag(suffix)"
           >
-            <svg class="esw-chip-x" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </span>
 
         <!-- inline input -->
-        <div class="esw-input-wrap">
-          <input
+        <div class="flex min-w-[180px] flex-1">
+          <Input
             v-model="draft"
             type="text"
-            class="esw-input"
+            class="h-auto flex-1 border-none bg-transparent py-[3px] px-1 font-mono text-[12.5px] text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
             :placeholder="localTags.length === 0 ? t('admin.settings.registration.emailSuffixWhitelistPlaceholder') : ''"
             @input="onDraftInput"
             @keydown="onDraftKeydown"
@@ -36,13 +40,15 @@
       </div>
     </div>
 
-    <p class="esw-hint">{{ t('admin.settings.registration.emailSuffixWhitelistInputHint') }}</p>
+    <p class="m-0 text-[11px] leading-[1.55] text-muted-foreground">{{ t('admin.settings.registration.emailSuffixWhitelistInputHint') }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   isRegistrationEmailSuffixDomainValid,
   normalizeRegistrationEmailSuffixDomain,
@@ -155,101 +161,3 @@ function onPaste(event: ClipboardEvent) {
   }
 }
 </script>
-
-<style scoped>
-.esw-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* chip area container */
-.esw-chip-area {
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 10px;
-  background: var(--bg-0, #0C0E12);
-  padding: 8px 10px;
-  transition: border-color .15s, box-shadow .15s;
-}
-.esw-chip-area:focus-within {
-  border-color: var(--azure, #5CA8FF);
-  box-shadow: 0 0 0 3px rgba(92,168,255,.14);
-}
-
-/* chips flex row */
-.esw-chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-/* individual chip */
-.esw-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px 3px 10px;
-  border-radius: 6px;
-  background: var(--bg-2, #171A20);
-  border: 1px solid var(--line-1, #2F3540);
-}
-
-.esw-chip-text {
-  font-size: 12px;
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  color: var(--ink-0, #E8EBF0);
-  white-space: nowrap;
-}
-
-/* chip delete button */
-.esw-chip-del {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  padding: 0;
-  transition: color .1s, background .1s;
-}
-.esw-chip-del:hover {
-  color: var(--bad, #F25C69);
-  background: rgba(242,92,105,.12);
-}
-.esw-chip-del:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 1px; }
-
-.esw-chip-x { width: 10px; height: 10px; }
-
-/* inline input */
-.esw-input-wrap {
-  display: flex;
-  flex: 1;
-  min-width: 180px;
-}
-
-.esw-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--ink-0, #E8EBF0);
-  font-size: 12.5px;
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  outline: none;
-  padding: 3px 4px;
-}
-.esw-input::placeholder { color: var(--ink-2, #5C6470); }
-
-/* hint */
-.esw-hint {
-  font-size: 11px;
-  color: var(--ink-2, #5C6470);
-  line-height: 1.55;
-  margin: 0;
-}
-</style>

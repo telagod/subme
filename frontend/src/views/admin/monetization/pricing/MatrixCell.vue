@@ -8,28 +8,28 @@
     <div class="mc-row">
       <span class="mc-label">in</span>
       <span
-        class="q-money mc-price"
+        class="mc-price font-mono tabular-nums"
         :style="priceColorStyle(discountIn)"
       >{{ fmtPrice(cell.inputPrice) }}</span>
-      <span
+      <Badge
         v-if="discountIn !== null"
-        class="mc-badge"
+        variant="outline"
         :style="discountStyle(discountIn)"
-      >{{ discountLabel(discountIn) }}</span>
+      >{{ discountLabel(discountIn) }}</Badge>
     </div>
 
     <!-- output 价 -->
     <div class="mc-row">
       <span class="mc-label">out</span>
       <span
-        class="q-money mc-price"
+        class="mc-price font-mono tabular-nums"
         :style="priceColorStyle(discountOut)"
       >{{ fmtPrice(cell.outputPrice) }}</span>
-      <span
+      <Badge
         v-if="discountOut !== null"
-        class="mc-badge"
+        variant="outline"
         :style="discountStyle(discountOut)"
-      >{{ discountLabel(discountOut) }}</span>
+      >{{ discountLabel(discountOut) }}</Badge>
     </div>
 
     <!-- 分档角标 -->
@@ -38,7 +38,7 @@
       class="mc-tier-badge"
       @click.stop="openIntervals"
     >
-      <span :style="{ color: 'var(--azure)' }">▾</span>
+      <span class="text-primary">▾</span>
     </div>
 
     <!-- hover tooltip：拆分价 + 官方价对比 -->
@@ -54,19 +54,19 @@
         <div class="mc-tt-section">
           <div class="mc-tt-row">
             <span class="mc-tt-key">{{ t('admin.pricingDesk.ttInput') }}</span>
-            <span class="q-money mc-tt-val" :style="priceColorStyle(discountIn)">{{ fmtPrice(cell.inputPrice) }}</span>
+            <span class="mc-tt-val font-mono tabular-nums" :style="priceColorStyle(discountIn)">{{ fmtPrice(cell.inputPrice) }}</span>
           </div>
           <div class="mc-tt-row">
             <span class="mc-tt-key">{{ t('admin.pricingDesk.ttOutput') }}</span>
-            <span class="q-money mc-tt-val" :style="priceColorStyle(discountOut)">{{ fmtPrice(cell.outputPrice) }}</span>
+            <span class="mc-tt-val font-mono tabular-nums" :style="priceColorStyle(discountOut)">{{ fmtPrice(cell.outputPrice) }}</span>
           </div>
           <div v-if="cell.cacheReadPrice != null" class="mc-tt-row">
             <span class="mc-tt-key">{{ t('admin.pricingDesk.ttCacheRead') }}</span>
-            <span class="q-money mc-tt-val">{{ fmtPrice(cell.cacheReadPrice) }}</span>
+            <span class="mc-tt-val font-mono tabular-nums">{{ fmtPrice(cell.cacheReadPrice) }}</span>
           </div>
           <div v-if="cell.cacheWritePrice != null" class="mc-tt-row">
             <span class="mc-tt-key">{{ t('admin.pricingDesk.ttCacheWrite') }}</span>
-            <span class="q-money mc-tt-val">{{ fmtPrice(cell.cacheWritePrice) }}</span>
+            <span class="mc-tt-val font-mono tabular-nums">{{ fmtPrice(cell.cacheWritePrice) }}</span>
           </div>
         </div>
         <!-- 官方价对比 -->
@@ -76,11 +76,11 @@
             <div class="mc-tt-sub">{{ t('admin.pricingDesk.ttOfficialRef') }}</div>
             <div class="mc-tt-row">
               <span class="mc-tt-key">{{ t('admin.pricingDesk.ttInput') }}</span>
-              <span class="q-money mc-tt-val mc-tt-muted">{{ fmtPrice(resolvedOfficial.inputPrice ?? null) }}</span>
+              <span class="mc-tt-val mc-tt-muted font-mono tabular-nums">{{ fmtPrice(resolvedOfficial.inputPrice ?? null) }}</span>
             </div>
             <div class="mc-tt-row">
               <span class="mc-tt-key">{{ t('admin.pricingDesk.ttOutput') }}</span>
-              <span class="q-money mc-tt-val mc-tt-muted">{{ fmtPrice(resolvedOfficial.outputPrice ?? null) }}</span>
+              <span class="mc-tt-val mc-tt-muted font-mono tabular-nums">{{ fmtPrice(resolvedOfficial.outputPrice ?? null) }}</span>
             </div>
           </div>
         </template>
@@ -111,8 +111,8 @@
           <tbody>
             <tr v-for="iv in cell.intervals" :key="iv.sort_order ?? iv.min_tokens" class="mc-iv-tr">
               <td class="mc-iv-td">{{ iv.tier_label || fmtRange(iv.min_tokens, iv.max_tokens) }}</td>
-              <td class="mc-iv-td mc-iv-r q-money">{{ fmtPrice(iv.input_price) }}</td>
-              <td class="mc-iv-td mc-iv-r q-money">{{ fmtPrice(iv.output_price) }}</td>
+              <td class="mc-iv-td mc-iv-r font-mono tabular-nums">{{ fmtPrice(iv.input_price) }}</td>
+              <td class="mc-iv-td mc-iv-r font-mono tabular-nums">{{ fmtPrice(iv.output_price) }}</td>
             </tr>
           </tbody>
         </table>
@@ -125,6 +125,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Badge } from '@/components/ui/badge'
 import type { MatrixCell } from './usePricingMatrix'
 import type { OfficialPricing } from './usePricingMatrix'
 
@@ -222,15 +223,15 @@ const discountOut = computed<number | null>(() => {
 })
 
 function discountStyle(ratio: number): Record<string, string> {
-  if (ratio < 0.999) return { background: 'var(--ok-dim)', color: 'var(--ok)' }
-  if (ratio > 1.001) return { background: 'var(--bad-dim)', color: 'var(--bad)' }
-  return { background: 'var(--bg-2)', color: 'var(--ink-2)' }
+  if (ratio < 0.999) return { background: 'rgba(70,201,140,.15)', color: '#46C98C' }
+  if (ratio > 1.001) return { background: 'rgba(242,92,105,.15)', color: '#F25C69' }
+  return { background: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' }
 }
 
 function priceColorStyle(ratio: number | null): Record<string, string> {
   if (ratio === null) return {}
-  if (ratio < 0.999) return { color: 'var(--ok)' }
-  if (ratio > 1.001) return { color: 'var(--bad)' }
+  if (ratio < 0.999) return { color: '#46C98C' }
+  if (ratio > 1.001) return { color: '#F25C69' }
   return {}
 }
 
@@ -253,8 +254,8 @@ function discountLabel(ratio: number): string {
   transition: background .15s, box-shadow .15s;
 }
 .mc-root:hover {
-  background: var(--azure-dim, rgba(92,168,255,.1));
-  box-shadow: 0 0 0 1px rgba(92,168,255,.22);
+  background: hsl(var(--primary) / 0.08);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
 }
 @media (prefers-reduced-motion: reduce) {
   .mc-root { transition: none; }
@@ -275,19 +276,10 @@ function discountLabel(ratio: number): string {
   font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   text-align: left;
 }
 .mc-price { font-size: 11px; text-align: right; white-space: nowrap; }
-.mc-badge {
-  font-size: 9.5px;
-  font-weight: 600;
-  border-radius: 4px;
-  padding: 0 3px;
-  line-height: 1.5;
-  text-align: center;
-  justify-self: start;
-}
 
 .mc-tier-badge {
   position: absolute;
@@ -304,16 +296,16 @@ function discountLabel(ratio: number): string {
   min-width: 200px;
   max-width: 240px;
   padding: 10px 12px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-1);
-  border-radius: var(--q-radius, 12px);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 12px 32px rgba(0,0,0,.5);
   pointer-events: none;
 }
 .mc-tt-title {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 10.5px;
-  color: var(--azure);
+  color: hsl(var(--primary));
   font-weight: 600;
   margin-bottom: 6px;
   white-space: nowrap;
@@ -322,7 +314,7 @@ function discountLabel(ratio: number): string {
 }
 .mc-tt-sep {
   height: 1px;
-  background: var(--line-0);
+  background: hsl(var(--border) / 0.5);
   margin: 6px 0;
 }
 .mc-tt-section { display: flex; flex-direction: column; gap: 4px; }
@@ -331,15 +323,15 @@ function discountLabel(ratio: number): string {
   font-weight: 600;
   letter-spacing: .07em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   margin-bottom: 2px;
 }
 .mc-tt-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.mc-tt-key { font-size: 10.5px; color: var(--ink-1); }
+.mc-tt-key { font-size: 10.5px; color: hsl(var(--foreground) / 0.8); }
 .mc-tt-val { font-size: 11px; }
-.mc-tt-muted { color: var(--ink-2) !important; text-shadow: none !important; }
-.mc-tt-loading { font-size: 10px; color: var(--ink-2); text-align: center; padding: 4px 0; }
-.mc-tt-channel { font-size: 9.5px; color: var(--ink-2); text-align: right; }
+.mc-tt-muted { color: hsl(var(--muted-foreground)) !important; text-shadow: none !important; }
+.mc-tt-loading { font-size: 10px; color: hsl(var(--muted-foreground)); text-align: center; padding: 4px 0; }
+.mc-tt-channel { font-size: 9.5px; color: hsl(var(--muted-foreground)); text-align: right; }
 
 /* ── 分档浮层 ── */
 .mc-intervals {
@@ -347,15 +339,15 @@ function discountLabel(ratio: number): string {
   z-index: 9998;
   min-width: 200px;
   padding: 10px 12px;
-  background: var(--bg-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--q-radius, 12px);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0,0,0,.4);
 }
 .mc-iv-title {
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-0);
+  color: hsl(var(--foreground));
   margin-bottom: 8px;
 }
 .mc-iv-table { width: 100%; border-collapse: collapse; }
@@ -364,12 +356,12 @@ function discountLabel(ratio: number): string {
   font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   padding-bottom: 4px;
   text-align: left;
 }
 .mc-iv-r { text-align: right; }
-.mc-iv-tr { border-top: 1px solid var(--line-0); }
-.mc-iv-td { padding: 3px 0; font-size: 11px; color: var(--ink-1); }
-.mc-iv-foot { margin-top: 6px; font-size: 9.5px; color: var(--ink-2); text-align: right; }
+.mc-iv-tr { border-top: 1px solid hsl(var(--border) / 0.5); }
+.mc-iv-td { padding: 3px 0; font-size: 11px; color: hsl(var(--foreground) / 0.8); }
+.mc-iv-foot { margin-top: 6px; font-size: 9.5px; color: hsl(var(--muted-foreground)); text-align: right; }
 </style>

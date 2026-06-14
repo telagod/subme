@@ -1,56 +1,56 @@
 <template>
-  <div class="cms-body">
+  <div class="flex flex-col gap-6 px-5 py-4">
     <!-- ── Custom Endpoints ─────────────────────────────────────────── -->
-    <div class="cms-block">
-      <p class="cms-block-hint">{{ t('admin.settings.site.customEndpoints.description') }}</p>
+    <div class="flex flex-col gap-3">
+      <p class="m-0 text-[11.5px] leading-[1.55] text-muted-foreground">{{ t('admin.settings.site.customEndpoints.description') }}</p>
 
-      <div v-if="localEndpoints.length > 0" class="cms-list">
+      <div v-if="localEndpoints.length > 0" class="flex flex-col gap-2.5">
         <div
           v-for="(ep, index) in localEndpoints"
           :key="index"
-          class="cms-item-card"
+          class="overflow-hidden rounded-[10px] border border-border bg-card"
         >
-          <div class="cms-item-head">
-            <span class="cms-item-label">
+          <div class="flex items-center justify-between gap-2.5 border-b border-border px-3.5 py-2.5">
+            <span class="text-[12.5px] font-semibold text-foreground">
               {{ t('admin.settings.site.customEndpoints.itemLabel', { n: index + 1 }) }}
             </span>
-            <button
+            <Button
               type="button"
-              class="cms-del-btn"
+              variant="ghost"
+              size="icon"
+              class="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
               @click="removeEndpoint(index)"
             >
-              <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-            </button>
+            </Button>
           </div>
-          <div class="cms-grid-2">
+          <div class="grid grid-cols-2 gap-3 p-3.5 max-[600px]:grid-cols-1">
             <div>
-              <label class="cms-field-label">{{ t('admin.settings.site.customEndpoints.name') }}</label>
-              <input
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.site.customEndpoints.name') }}</Label>
+              <Input
                 v-model="ep.name"
                 type="text"
-                class="cms-input"
                 :placeholder="t('admin.settings.site.customEndpoints.namePlaceholder')"
                 @input="emitEndpoints"
               />
             </div>
             <div>
-              <label class="cms-field-label">{{ t('admin.settings.site.customEndpoints.endpointUrl') }}</label>
-              <input
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.site.customEndpoints.endpointUrl') }}</Label>
+              <Input
                 v-model="ep.endpoint"
                 type="url"
-                class="cms-input cms-mono"
+                class="font-mono text-xs"
                 :placeholder="t('admin.settings.site.customEndpoints.endpointUrlPlaceholder')"
                 @input="emitEndpoints"
               />
             </div>
-            <div class="cms-span-2">
-              <label class="cms-field-label">{{ t('admin.settings.site.customEndpoints.descriptionLabel') }}</label>
-              <input
+            <div class="col-span-full max-[600px]:col-span-1">
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.site.customEndpoints.descriptionLabel') }}</Label>
+              <Input
                 v-model="ep.description"
                 type="text"
-                class="cms-input"
                 :placeholder="t('admin.settings.site.customEndpoints.descriptionPlaceholder')"
                 @input="emitEndpoints"
               />
@@ -59,75 +59,85 @@
         </div>
       </div>
 
-      <button type="button" class="cms-add-btn" @click="addEndpoint">
-        <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <Button
+        type="button"
+        variant="outline"
+        class="w-full border-dashed text-[12.5px] text-muted-foreground hover:border-ring hover:text-foreground"
+        @click="addEndpoint"
+      >
+        <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         {{ t('admin.settings.site.customEndpoints.add') }}
-      </button>
+      </Button>
     </div>
 
     <!-- ── Custom Menu Items ────────────────────────────────────────── -->
-    <div class="cms-block">
-      <p class="cms-block-hint">{{ t('admin.settings.customMenu.description') }}</p>
+    <div class="flex flex-col gap-3 border-t border-border pt-5">
+      <p class="m-0 text-[11.5px] leading-[1.55] text-muted-foreground">{{ t('admin.settings.customMenu.description') }}</p>
 
-      <div v-if="localMenuItems.length > 0" class="cms-list">
+      <div v-if="localMenuItems.length > 0" class="flex flex-col gap-2.5">
         <div
           v-for="(item, index) in localMenuItems"
           :key="item.id || index"
-          class="cms-item-card"
+          class="overflow-hidden rounded-[10px] border border-border bg-card"
         >
-          <div class="cms-item-head">
-            <span class="cms-item-label">
+          <div class="flex items-center justify-between gap-2.5 border-b border-border px-3.5 py-2.5">
+            <span class="text-[12.5px] font-semibold text-foreground">
               {{ t('admin.settings.customMenu.itemLabel', { n: index + 1 }) }}
             </span>
-            <div class="cms-item-actions">
+            <div class="flex items-center gap-1">
               <!-- Move up -->
-              <button
+              <Button
                 v-if="index > 0"
                 type="button"
-                class="cms-order-btn"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 text-muted-foreground hover:text-foreground"
                 :title="t('admin.settings.customMenu.moveUp')"
                 @click="moveMenuItem(index, -1)"
               >
-                <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
                 </svg>
-              </button>
+              </Button>
               <!-- Move down -->
-              <button
+              <Button
                 v-if="index < localMenuItems.length - 1"
                 type="button"
-                class="cms-order-btn"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 text-muted-foreground hover:text-foreground"
                 :title="t('admin.settings.customMenu.moveDown')"
                 @click="moveMenuItem(index, 1)"
               >
-                <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </Button>
               <!-- Delete -->
-              <button
+              <Button
                 type="button"
-                class="cms-del-btn"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 :title="t('admin.settings.customMenu.remove')"
                 @click="removeMenuItem(index)"
               >
-                <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div class="cms-grid-2">
+          <div class="grid grid-cols-2 gap-3 p-3.5 max-[600px]:grid-cols-1">
             <!-- Label -->
             <div>
-              <label class="cms-field-label">{{ t('admin.settings.customMenu.name') }}</label>
-              <input
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.customMenu.name') }}</Label>
+              <Input
                 v-model="item.label"
                 type="text"
-                class="cms-input"
                 :placeholder="t('admin.settings.customMenu.namePlaceholder')"
                 @input="emitMenuItems"
               />
@@ -135,28 +145,33 @@
 
             <!-- Visibility -->
             <div>
-              <label class="cms-field-label">{{ t('admin.settings.customMenu.visibility') }}</label>
-              <select v-model="item.visibility" class="cms-input" @change="emitMenuItems">
-                <option value="user">{{ t('admin.settings.customMenu.visibilityUser') }}</option>
-                <option value="admin">{{ t('admin.settings.customMenu.visibilityAdmin') }}</option>
-              </select>
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.customMenu.visibility') }}</Label>
+              <Select :model-value="item.visibility" @update:model-value="(v) => { item.visibility = v as 'user' | 'admin'; emitMenuItems() }">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">{{ t('admin.settings.customMenu.visibilityUser') }}</SelectItem>
+                  <SelectItem value="admin">{{ t('admin.settings.customMenu.visibilityAdmin') }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <!-- URL (full width) -->
-            <div class="cms-span-2">
-              <label class="cms-field-label">{{ t('admin.settings.customMenu.url') }}</label>
-              <input
+            <div class="col-span-full max-[600px]:col-span-1">
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.customMenu.url') }}</Label>
+              <Input
                 v-model="item.url"
                 type="url"
-                class="cms-input cms-mono"
+                class="font-mono text-xs"
                 :placeholder="t('admin.settings.customMenu.urlPlaceholder')"
                 @input="emitMenuItems"
               />
             </div>
 
             <!-- SVG Icon (full width) -->
-            <div class="cms-span-2">
-              <label class="cms-field-label">{{ t('admin.settings.customMenu.iconSvg') }}</label>
+            <div class="col-span-full max-[600px]:col-span-1">
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.customMenu.iconSvg') }}</Label>
               <ImageUpload
                 :model-value="item.icon_svg"
                 mode="svg"
@@ -170,12 +185,17 @@
         </div>
       </div>
 
-      <button type="button" class="cms-add-btn" @click="addMenuItem">
-        <svg class="cms-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <Button
+        type="button"
+        variant="outline"
+        class="w-full border-dashed text-[12.5px] text-muted-foreground hover:border-ring hover:text-foreground"
+        @click="addMenuItem"
+      >
+        <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         {{ t('admin.settings.customMenu.add') }}
-      </button>
+      </Button>
     </div>
   </div>
 </template>
@@ -183,6 +203,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 
 const ImageUpload = defineAsyncComponent(() => import('@/components/common/ImageUpload.vue'))
 
@@ -313,174 +337,3 @@ function removeEndpoint(index: number) {
   emitEndpoints()
 }
 </script>
-
-<style scoped>
-.cms-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.cms-block {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cms-block-hint {
-  font-size: 11.5px;
-  color: var(--ink-2, #5C6470);
-  line-height: 1.55;
-  margin: 0;
-}
-
-.cms-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Item card */
-.cms-item-card {
-  border: 1px solid var(--line-0, #20242C);
-  border-radius: 10px;
-  background: var(--bg-1, #101216);
-  overflow: hidden;
-}
-
-/* Card head row */
-.cms-item-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--line-0, #20242C);
-  background: linear-gradient(180deg, rgba(255,255,255,.018) 0%, transparent 100%);
-}
-
-.cms-item-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-0, #E8EBF0);
-}
-
-.cms-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Order buttons */
-.cms-order-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  transition: color .12s, background .12s, border-color .12s;
-}
-.cms-order-btn:hover {
-  color: var(--ink-0, #E8EBF0);
-  background: var(--bg-2, #171A20);
-  border-color: var(--line-1, #2F3540);
-}
-.cms-order-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-/* Delete button */
-.cms-del-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--bad, #F25C69);
-  cursor: pointer;
-  transition: color .12s, background .12s, border-color .12s;
-}
-.cms-del-btn:hover {
-  background: rgba(242,92,105,.1);
-  border-color: rgba(242,92,105,.25);
-}
-.cms-del-btn:focus-visible { outline: 2px solid var(--bad, #F25C69); outline-offset: 2px; }
-
-/* Field grid */
-.cms-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 14px;
-}
-@media (max-width: 600px) { .cms-grid-2 { grid-template-columns: 1fr; } }
-
-.cms-span-2 { grid-column: 1 / -1; }
-
-.cms-field-label {
-  display: block;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-2, #5C6470);
-  margin-bottom: 4px;
-}
-
-.cms-input {
-  width: 100%;
-  padding: 7px 11px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s;
-  box-sizing: border-box;
-}
-.cms-input:focus, .cms-input:focus-visible {
-  border-color: var(--azure, #5CA8FF);
-  box-shadow: 0 0 0 3px rgba(92,168,255,.14);
-}
-
-.cms-mono { font-family: var(--font-mono, "IBM Plex Mono", monospace); font-size: 12px; }
-
-/* Add button */
-.cms-add-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 9px 14px;
-  border-radius: 8px;
-  border: 2px dashed var(--line-1, #2F3540);
-  background: transparent;
-  color: var(--ink-2, #5C6470);
-  font-size: 12.5px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color .15s, color .15s;
-}
-.cms-add-btn:hover {
-  border-color: var(--azure, #5CA8FF);
-  color: var(--azure, #5CA8FF);
-}
-.cms-add-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-.cms-icon { width: 14px; height: 14px; flex-shrink: 0; }
-
-/* divider between the two blocks */
-.cms-block + .cms-block {
-  border-top: 1px solid var(--line-0, #20242C);
-  padding-top: 20px;
-}
-</style>

@@ -10,6 +10,8 @@ import { formatHistoryLabel, sumNumbers } from '../utils/opsFormatters'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { formatNumber } from '@/utils/format'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, Filler)
 
@@ -172,69 +174,65 @@ function downloadChart() {
 </script>
 
 <template>
-  <div class="od-chart-card">
-    <div class="od-chart-head">
-      <h3 class="od-chart-title">
-        <svg class="od-chart-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <div class="bg-card border border-border rounded-xl p-5 flex flex-col h-full">
+    <div class="flex items-center justify-between mb-[14px] flex-shrink-0">
+      <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">
+        <svg class="text-primary flex-shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
         {{ t('admin.ops.throughputTrend') }}
         <HelpTooltip v-if="!props.fullscreen" :content="t('admin.ops.tooltips.throughputTrend')" />
       </h3>
-      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2,#5C6470);">
-        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ops-azure);display:inline-block;"></span>QPS</span>
-        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ops-ok);display:inline-block;"></span>{{ t('admin.ops.tpsK') }}</span>
+      <div class="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span class="inline-flex items-center gap-1"><span class="w-[7px] h-[7px] rounded-full bg-[#5CA8FF] inline-block"></span>QPS</span>
+        <span class="inline-flex items-center gap-1"><span class="w-[7px] h-[7px] rounded-full bg-[#46C98C] inline-block"></span>{{ t('admin.ops.tpsK') }}</span>
         <template v-if="!props.fullscreen">
-          <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="state !== 'ready'" :title="t('admin.ops.requestDetails.title')" @click="emit('openDetails')">
+          <Button variant="outline" size="sm" class="h-auto py-[3px] px-2 text-[11px]" :disabled="state !== 'ready'" :title="t('admin.ops.requestDetails.title')" @click="emit('openDetails')">
             {{ t('admin.ops.requestDetails.details') }}
-          </button>
-          <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="state !== 'ready'" :title="t('admin.ops.charts.resetZoomHint')" @click="resetZoom">
+          </Button>
+          <Button variant="outline" size="sm" class="h-auto py-[3px] px-2 text-[11px]" :disabled="state !== 'ready'" :title="t('admin.ops.charts.resetZoomHint')" @click="resetZoom">
             {{ t('admin.ops.charts.resetZoom') }}
-          </button>
-          <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="state !== 'ready'" :title="t('admin.ops.charts.downloadChartHint')" @click="downloadChart">
+          </Button>
+          <Button variant="outline" size="sm" class="h-auto py-[3px] px-2 text-[11px]" :disabled="state !== 'ready'" :title="t('admin.ops.charts.downloadChartHint')" @click="downloadChart">
             {{ t('admin.ops.charts.downloadChart') }}
-          </button>
+          </Button>
         </template>
       </div>
     </div>
 
     <!-- Drilldown chips -->
-    <div v-if="(props.topGroups?.length ?? 0) > 0" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-      <button
+    <div v-if="(props.topGroups?.length ?? 0) > 0" class="flex flex-wrap gap-1.5 mb-[10px]">
+      <Badge
         v-for="g in props.topGroups"
         :key="g.group_id"
-        type="button"
-        class="od-badge od-badge-dim"
-        style="cursor:pointer;border-radius:100px;"
+        variant="secondary"
+        class="cursor-pointer rounded-full inline-flex items-center gap-1"
         @click="emit('selectGroup', g.group_id)"
       >
-        <span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ g.group_name || `#${g.group_id}` }}</span>
-        <span style="color:var(--ink-2,#5C6470);">{{ formatNumber(g.request_count) }}</span>
-      </button>
+        <span class="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">{{ g.group_name || `#${g.group_id}` }}</span>
+        <span class="text-muted-foreground">{{ formatNumber(g.request_count) }}</span>
+      </Badge>
     </div>
 
-    <div v-else-if="(props.byPlatform?.length ?? 0) > 0" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-      <button
+    <div v-else-if="(props.byPlatform?.length ?? 0) > 0" class="flex flex-wrap gap-1.5 mb-[10px]">
+      <Badge
         v-for="p in props.byPlatform"
         :key="p.platform"
-        type="button"
-        class="od-badge od-badge-dim"
-        style="cursor:pointer;border-radius:100px;"
+        variant="secondary"
+        class="cursor-pointer rounded-full inline-flex items-center gap-1"
         @click="emit('selectPlatform', p.platform)"
       >
-        <span style="text-transform:uppercase;">{{ p.platform }}</span>
-        <span style="color:var(--ink-2,#5C6470);">{{ formatNumber(p.request_count) }}</span>
-      </button>
+        <span class="uppercase">{{ p.platform }}</span>
+        <span class="text-muted-foreground">{{ formatNumber(p.request_count) }}</span>
+      </Badge>
     </div>
 
-    <div style="flex:1;min-height:0;">
+    <div class="flex-1 min-h-0">
       <Line v-if="state === 'ready' && chartData" ref="throughputChartRef" :data="chartData" :options="options" />
-      <div v-else style="display:flex;height:100%;align-items:center;justify-content:center;">
-        <div v-if="state === 'loading'" style="font-size:13px;color:var(--ink-2,#5C6470);" class="animate-pulse">{{ t('common.loading') }}</div>
+      <div v-else class="flex h-full items-center justify-center">
+        <div v-if="state === 'loading'" class="text-[13px] text-muted-foreground animate-pulse">{{ t('common.loading') }}</div>
         <EmptyState v-else :title="t('common.noData')" :description="t('admin.ops.charts.emptyRequest')" />
       </div>
     </div>
   </div>
 </template>
-
-<style src="../ops-quench.css"></style>

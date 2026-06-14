@@ -1,40 +1,58 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card'">
-    <div
-      v-if="!props.embedded"
-      class="border-b border-border px-6 py-4"
-    >
+  <Card v-if="!props.embedded">
+    <CardHeader class="border-b border-border py-4">
       <h2 class="text-lg font-medium text-foreground">
         {{ t('profile.editProfile') }}
       </h2>
-    </div>
-    <div :class="props.embedded ? '' : 'px-6 py-6'">
+    </CardHeader>
+    <CardContent class="py-6">
       <form @submit.prevent="handleUpdateProfile" class="space-y-4">
-        <div v-if="props.embedded">
-          <p class="text-sm font-semibold text-foreground">
-            {{ t('profile.editProfile') }}
-          </p>
-        </div>
         <div>
-          <label for="username" class="input-label">
+          <Label for="username" class="mb-1.5 block">
             {{ t('profile.username') }}
-          </label>
-          <input
+          </Label>
+          <Input
             id="username"
             v-model="username"
             type="text"
-            class="input"
             :placeholder="t('profile.enterUsername')"
           />
         </div>
 
         <div class="flex justify-end pt-4">
-          <button type="submit" :disabled="loading" class="btn btn-primary">
+          <Button type="submit" :disabled="loading">
             {{ loading ? t('profile.updating') : t('profile.updateProfile') }}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </CardContent>
+  </Card>
+
+  <div v-else class="space-y-4">
+    <form @submit.prevent="handleUpdateProfile" class="space-y-4">
+      <div>
+        <p class="text-sm font-semibold text-foreground">
+          {{ t('profile.editProfile') }}
+        </p>
+      </div>
+      <div>
+        <Label for="username" class="mb-1.5 block">
+          {{ t('profile.username') }}
+        </Label>
+        <Input
+          id="username"
+          v-model="username"
+          type="text"
+          :placeholder="t('profile.enterUsername')"
+        />
+      </div>
+
+      <div class="flex justify-end pt-4">
+        <Button type="submit" :disabled="loading">
+          {{ loading ? t('profile.updating') : t('profile.updateProfile') }}
+        </Button>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -44,6 +62,10 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
 import { userAPI } from '@/api'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 
 const props = withDefaults(defineProps<{
   initialUsername: string

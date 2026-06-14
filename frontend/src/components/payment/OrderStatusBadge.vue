@@ -26,10 +26,10 @@ const statusMap: Record<OrderStatus, { key: string; class: string }> = {
   EXPIRED: { key: 'payment.status.expired', class: 'bg-accent text-muted-foreground' },
   CANCELLED: { key: 'payment.status.cancelled', class: 'bg-accent text-muted-foreground' },
   FAILED: { key: 'payment.status.failed', class: 'bg-red-500/10 text-red-400' },
-  REFUND_REQUESTED: { key: 'payment.status.refund_requested', class: 'bg-orange-900/30 text-orange-400' },
-  REFUNDING: { key: 'payment.status.refunding', class: 'bg-orange-900/30 text-orange-400' },
-  REFUNDED: { key: 'payment.status.refunded', class: 'bg-purple-900/30 text-purple-400' },
-  PARTIALLY_REFUNDED: { key: 'payment.status.partially_refunded', class: 'bg-purple-900/30 text-purple-400' },
+  REFUND_REQUESTED: { key: 'payment.status.refund_requested', class: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+  REFUNDING: { key: 'payment.status.refunding', class: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+  REFUNDED: { key: 'payment.status.refunded', class: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  PARTIALLY_REFUNDED: { key: 'payment.status.partially_refunded', class: 'bg-purple-500/10 text-purple-600 dark:text-purple-400' },
   REFUND_FAILED: { key: 'payment.status.refund_failed', class: 'bg-red-500/10 text-red-400' },
 }
 

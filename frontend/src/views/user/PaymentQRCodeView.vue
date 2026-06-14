@@ -12,22 +12,22 @@
         {{ scanHint }}
       </p>
       <div v-if="expired" class="text-center">
-        <p class="text-lg font-medium text-[var(--bad)]">{{ t('payment.qr.expired') }}</p>
-        <button class="btn btn-primary mt-4" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
+        <p class="text-lg font-medium text-destructive">{{ t('payment.qr.expired') }}</p>
+        <Button class="mt-4" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
       </div>
       <div v-else class="text-center">
         <p class="text-sm text-muted-foreground">{{ qrUrl ? t('payment.qr.expiresIn') : t('payment.qr.payInNewWindowHint') }}</p>
         <p class="mt-1 text-2xl font-bold tabular-nums text-foreground">{{ countdownDisplay }}</p>
         <p class="mt-2 text-sm text-muted-foreground">{{ t('payment.qr.waitingPayment') }}</p>
       </div>
-      <a v-if="payUrl && !qrUrl && !expired" :href="payUrl" target="_blank" rel="noopener noreferrer"
-        class="btn btn-primary w-full py-3">
+      <Button v-if="payUrl && !qrUrl && !expired" as="a" :href="payUrl" target="_blank" rel="noopener noreferrer"
+        class="w-full">
         {{ t('payment.qr.openPayWindow') }}
-      </a>
+      </Button>
       <!-- Cancel button -->
-      <button v-if="!expired && orderId" class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
+      <Button v-if="!expired && orderId" variant="secondary" class="w-full" :disabled="cancelling" @click="handleCancel">
         {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
-      </button>
+      </Button>
     </div>
   </AppLayout>
 </template>
@@ -37,6 +37,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import { Button } from '@/components/ui/button'
 import { usePaymentStore } from '@/stores/payment'
 import { paymentAPI } from '@/api/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'

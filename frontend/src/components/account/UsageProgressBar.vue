@@ -35,10 +35,10 @@ const { t } = useI18n()
 const { now } = useSharedClock()
 
 const labelClass = computed(() => ({
-  indigo: 'bg-indigo-900/40 text-indigo-300',
-  emerald: 'bg-emerald-900/40 text-emerald-400',
-  purple: 'bg-purple-900/40 text-purple-300',
-  amber: 'bg-amber-900/40 text-amber-400'
+  indigo: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+  emerald: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
 }[props.color]))
 
 const percentClass = computed(() => {

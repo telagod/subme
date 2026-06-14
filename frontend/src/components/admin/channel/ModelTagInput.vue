@@ -9,19 +9,21 @@
         :class="getPlatformTagClass(props.platform || '')"
       >
         {{ model }}
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           @click="removeModel(idx)"
-          class="ml-0.5 rounded-full p-0.5 hover:bg-primary-200"
+          class="ml-0.5 h-4 w-4 rounded-full p-0.5"
         >
           <Icon name="x" size="xs" />
-        </button>
+        </Button>
       </span>
-      <input
+      <Input
         ref="inputRef"
         v-model="inputValue"
         type="text"
-        class="flex-1 min-w-[120px] border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground text-foreground"
+        class="flex-1 min-w-[120px] h-auto border-none bg-transparent text-sm shadow-none outline-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground text-foreground px-0 py-0"
         :placeholder="models.length === 0 ? placeholder : ''"
         @keydown.enter.prevent="addModel"
         @keydown.tab.prevent="addModel"
@@ -40,6 +42,8 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { getPlatformTagClass } from './types'
 
 const { t } = useI18n()

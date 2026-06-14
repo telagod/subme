@@ -12,41 +12,47 @@
     <div v-else v-html="homeContent"></div>
   </div>
 
-  <!-- Default Home Page — QUENCH 淬钢 landing -->
-  <div v-else class="q-home relative flex min-h-screen flex-col overflow-hidden">
-    <!-- Ambient: 车间顶灯 + 坐标纸网格 -->
-    <div class="q-ambient pointer-events-none absolute inset-0"></div>
-
+  <!-- Default Home Page -->
+  <div v-else class="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
     <!-- Header -->
-    <header class="q-header sticky top-0 z-30">
+    <header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
       <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <div class="flex items-center gap-3">
           <div class="h-8 w-8 overflow-hidden rounded-lg">
             <img :src="siteLogo || '/logo.svg'" alt="Logo" class="h-full w-full object-contain" />
           </div>
-          <span class="q-brand">{{ siteName }}</span>
+          <span class="text-[15px] font-bold tracking-tight">{{ siteName }}</span>
         </div>
 
         <div class="flex items-center gap-2">
           <LocaleSwitcher />
-          <a
+          <Button
             v-if="docUrl"
-            :href="docUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="q-navlink"
+            as-child
+            variant="ghost"
+            size="sm"
           >
-            <BookOpen :size="14" />
-            <span class="hidden sm:inline">{{ t('home.docs') }}</span>
-          </a>
-          <a :href="githubUrl" target="_blank" rel="noopener noreferrer" class="q-navlink">
-            <Github :size="14" />
-            <span class="hidden sm:inline">GitHub</span>
-          </a>
-          <router-link :to="isAuthenticated ? dashboardPath : '/login'" class="q-btn-metal">
-            {{ isAuthenticated ? t('home.dashboard') : t('home.login') }}
-            <ArrowRight :size="13" />
-          </router-link>
+            <a
+              :href="docUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <BookOpen :size="14" />
+              <span class="hidden sm:inline">{{ t('home.docs') }}</span>
+            </a>
+          </Button>
+          <Button as-child variant="ghost" size="sm">
+            <a :href="githubUrl" target="_blank" rel="noopener noreferrer">
+              <Github :size="14" />
+              <span class="hidden sm:inline">GitHub</span>
+            </a>
+          </Button>
+          <Button as-child size="sm">
+            <router-link :to="isAuthenticated ? dashboardPath : '/login'">
+              {{ isAuthenticated ? t('home.dashboard') : t('home.login') }}
+              <ArrowRight :size="13" />
+            </router-link>
+          </Button>
         </div>
       </nav>
     </header>
@@ -58,143 +64,176 @@
         <section class="flex flex-col items-center gap-14 pb-20 pt-20 lg:flex-row lg:gap-16 lg:pt-24">
           <!-- Left -->
           <div class="q-rise flex-1 text-center lg:text-left">
-            <div class="q-eyebrow">
-              <i class="q-eyebrow-dot"></i>
+            <div
+              class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 font-mono text-[10.5px] font-semibold tracking-[0.22em] text-primary"
+            >
+              <i class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></i>
               {{ t('home.quench.eyebrow') }}
             </div>
 
-            <h1 class="q-hero-title">{{ siteName }}</h1>
-            <p class="q-hero-sub">{{ siteSubtitle }}</p>
-            <p class="q-hero-desc">{{ t('home.heroDescription') }}</p>
+            <h1 class="mt-5 text-[clamp(40px,6vw,64px)] font-extrabold leading-[1.05] tracking-tight">
+              {{ siteName }}
+            </h1>
+            <p class="mt-4 text-[clamp(18px,2.2vw,23px)] font-semibold text-foreground">{{ siteSubtitle }}</p>
+            <p class="mt-2.5 max-w-[480px] text-sm leading-7 text-muted-foreground max-lg:mx-auto">
+              {{ t('home.heroDescription') }}
+            </p>
 
             <div class="mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <router-link
-                :to="isAuthenticated ? dashboardPath : '/login'"
-                class="q-btn-metal q-btn-lg"
-              >
-                {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
-                <ArrowRight :size="15" />
-              </router-link>
-              <a
+              <Button as-child size="lg">
+                <router-link :to="isAuthenticated ? dashboardPath : '/login'">
+                  {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
+                  <ArrowRight :size="15" />
+                </router-link>
+              </Button>
+              <Button
                 v-if="docUrl"
-                :href="docUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="q-btn-ghost q-btn-lg"
+                as-child
+                variant="outline"
+                size="lg"
               >
-                {{ t('home.viewDocs') }}
-              </a>
+                <a
+                  :href="docUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ t('home.viewDocs') }}
+                </a>
+              </Button>
             </div>
 
             <!-- Stats -->
-            <div class="q-stats">
-              <div class="q-stat">{{ t('home.quench.stats.providers') }}</div>
-              <div class="q-stat-sep"></div>
-              <div class="q-stat">{{ t('home.quench.stats.protocol') }}</div>
-              <div class="q-stat-sep"></div>
-              <div class="q-stat">{{ t('home.quench.stats.billing') }}</div>
+            <div class="mt-9 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
+              <div class="font-mono text-xs text-muted-foreground">{{ t('home.quench.stats.providers') }}</div>
+              <Separator orientation="vertical" class="h-3.5" />
+              <div class="font-mono text-xs text-muted-foreground">{{ t('home.quench.stats.protocol') }}</div>
+              <Separator orientation="vertical" class="h-3.5" />
+              <div class="font-mono text-xs text-muted-foreground">{{ t('home.quench.stats.billing') }}</div>
             </div>
           </div>
 
           <!-- Right: Gateway Trace -->
           <div class="q-rise flex flex-1 justify-center lg:justify-end" style="animation-delay: 0.12s">
-            <div class="q-trace">
-              <div class="q-trace-head">
-                <div class="q-trace-dots"><i></i><i></i><i></i></div>
-                <span class="q-trace-title">gateway · trace</span>
-                <span class="q-trace-live"><i></i>LIVE</span>
+            <Card class="w-[440px] max-w-full overflow-hidden shadow-xl">
+              <div class="flex items-center gap-2.5 border-b border-border px-4 py-3">
+                <div class="flex gap-1.5">
+                  <i class="h-2.5 w-2.5 rounded-full border border-border bg-muted"></i>
+                  <i class="h-2.5 w-2.5 rounded-full border border-border bg-muted"></i>
+                  <i class="h-2.5 w-2.5 rounded-full border border-border bg-muted"></i>
+                </div>
+                <span class="font-mono text-[11px] text-muted-foreground">gateway · trace</span>
+                <span class="ml-auto inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-widest text-primary">
+                  <i class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></i>LIVE
+                </span>
               </div>
-              <div class="q-trace-body">
-                <div class="q-line q-l1">
-                  <span class="q-method">POST</span>
-                  <span class="q-path">/v1/messages</span>
-                  <span class="q-ok">200</span>
-                  <span class="q-lat">1.24s</span>
+              <div class="px-5 py-[18px] font-mono text-[13px] leading-[2.1]">
+                <div class="q-line q-l1 flex items-center gap-2.5">
+                  <span class="font-semibold text-primary">POST</span>
+                  <span class="text-foreground">/v1/messages</span>
+                  <span class="ml-auto rounded bg-emerald-500/10 px-2 py-px text-[11px] font-semibold text-emerald-500">200</span>
+                  <span class="text-[11px] text-muted-foreground">1.24s</span>
                 </div>
-                <div class="q-line q-l2">
-                  <span class="q-tree">├─</span><span class="q-step">auth</span>
-                  <span class="q-val">key sk-…f8a2</span><span class="q-check">✓</span>
+                <div class="q-line q-l2 flex items-center gap-2.5">
+                  <span class="text-muted-foreground">├─</span><span class="w-14 text-muted-foreground">auth</span>
+                  <span class="text-xs text-foreground">key sk-…f8a2</span><span class="ml-auto text-xs text-emerald-500">✓</span>
                 </div>
-                <div class="q-line q-l3">
-                  <span class="q-tree">├─</span><span class="q-step">route</span>
-                  <span class="q-val">claude-pro <span class="q-arrow">→</span> pool-01</span><span class="q-check">✓</span>
+                <div class="q-line q-l3 flex items-center gap-2.5">
+                  <span class="text-muted-foreground">├─</span><span class="w-14 text-muted-foreground">route</span>
+                  <span class="text-xs text-foreground">claude-pro <span class="text-primary">→</span> pool-01</span><span class="ml-auto text-xs text-emerald-500">✓</span>
                 </div>
-                <div class="q-line q-l4">
-                  <span class="q-tree">├─</span><span class="q-step">stream</span>
-                  <span class="q-val">first token <b>380ms</b></span><span class="q-check">✓</span>
+                <div class="q-line q-l4 flex items-center gap-2.5">
+                  <span class="text-muted-foreground">├─</span><span class="w-14 text-muted-foreground">stream</span>
+                  <span class="text-xs text-foreground">first token <b class="font-semibold text-primary">380ms</b></span><span class="ml-auto text-xs text-emerald-500">✓</span>
                 </div>
-                <div class="q-line q-l5">
-                  <span class="q-tree">└─</span><span class="q-step">billing</span>
-                  <span class="q-val q-cost">$0.0042 deducted</span><span class="q-check">✓</span>
+                <div class="q-line q-l5 flex items-center gap-2.5">
+                  <span class="text-muted-foreground">└─</span><span class="w-14 text-muted-foreground">billing</span>
+                  <span class="text-xs font-medium text-foreground">$0.0042 deducted</span><span class="ml-auto text-xs text-emerald-500">✓</span>
                 </div>
-                <div class="q-line q-l6">
-                  <span class="q-prompt">$</span><span class="q-cursor"></span>
+                <div class="q-line q-l6 flex items-center gap-2.5">
+                  <span class="font-bold text-primary">$</span><span class="q-cursor"></span>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </section>
 
         <!-- ═══ Capabilities ═══ -->
         <section class="pb-20">
           <div class="mb-10 text-center">
-            <h2 class="q-sec-title">{{ t('home.quench.capabilitiesTitle') }}</h2>
-            <p class="q-sec-desc">{{ t('home.quench.capabilitiesDesc') }}</p>
+            <h2 class="text-[26px] font-bold tracking-tight">{{ t('home.quench.capabilitiesTitle') }}</h2>
+            <p class="mt-2 text-[13px] text-muted-foreground">{{ t('home.quench.capabilitiesDesc') }}</p>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="(cap, i) in capabilities" :key="cap.title" class="q-card q-rise" :style="{ animationDelay: `${0.05 * i}s` }">
-              <div class="q-card-icon">
-                <component :is="cap.icon" :size="18" />
-              </div>
-              <h3 class="q-card-title">{{ cap.title }}</h3>
-              <p class="q-card-desc">{{ cap.desc }}</p>
-            </div>
+            <Card
+              v-for="(cap, i) in capabilities"
+              :key="cap.title"
+              class="q-rise transition-colors hover:border-primary/40"
+              :style="{ animationDelay: `${0.05 * i}s` }"
+            >
+              <CardContent class="p-[22px]">
+                <div
+                  class="grid h-[38px] w-[38px] place-items-center rounded-[9px] border border-primary/20 bg-primary/10 text-primary"
+                >
+                  <component :is="cap.icon" :size="18" />
+                </div>
+                <h3 class="mt-4 text-[14.5px] font-semibold">{{ cap.title }}</h3>
+                <p class="mt-[7px] text-[12.5px] leading-7 text-muted-foreground">{{ cap.desc }}</p>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
         <!-- ═══ Providers ═══ -->
         <section class="pb-20">
           <div class="mb-8 text-center">
-            <h2 class="q-sec-title">{{ t('home.providers.title') }}</h2>
-            <p class="q-sec-desc">{{ t('home.providers.description') }}</p>
+            <h2 class="text-[26px] font-bold tracking-tight">{{ t('home.providers.title') }}</h2>
+            <p class="mt-2 text-[13px] text-muted-foreground">{{ t('home.providers.description') }}</p>
           </div>
           <div class="flex flex-wrap items-center justify-center gap-3">
-            <div v-for="p in providers" :key="p.name" class="q-provider" :class="{ 'opacity-50': p.soon }">
-              <span class="q-provider-mark">{{ p.mark }}</span>
-              <span class="q-provider-name">{{ p.name }}</span>
-              <span class="q-provider-badge" :class="p.soon ? 'is-soon' : 'is-on'">
+            <div
+              v-for="p in providers"
+              :key="p.name"
+              class="inline-flex items-center gap-2.5 rounded-[10px] border border-border bg-card px-3.5 py-2.5"
+              :class="{ 'opacity-50': p.soon }"
+            >
+              <span
+                class="grid h-[26px] w-[26px] place-items-center rounded-[7px] border border-border bg-muted text-[11px] font-extrabold text-foreground"
+              >{{ p.mark }}</span>
+              <span class="text-[13px] font-medium">{{ p.name }}</span>
+              <Badge :variant="p.soon ? 'secondary' : 'outline'" :class="p.soon ? '' : 'text-emerald-500'">
                 {{ p.soon ? t('home.providers.soon') : t('home.providers.supported') }}
-              </span>
+              </Badge>
             </div>
           </div>
         </section>
 
         <!-- ═══ CTA band ═══ -->
         <section class="pb-24">
-          <div class="q-cta">
+          <Card
+            class="flex flex-wrap items-center justify-between gap-6 px-[38px] py-[34px] shadow-lg"
+          >
             <div>
-              <h2 class="q-cta-title">{{ t('home.quench.ctaTitle') }}</h2>
-              <p class="q-cta-desc">{{ t('home.quench.ctaDesc') }}</p>
+              <h2 class="text-[21px] font-bold">{{ t('home.quench.ctaTitle') }}</h2>
+              <p class="mt-1.5 text-[13px] text-muted-foreground">{{ t('home.quench.ctaDesc') }}</p>
             </div>
-            <router-link
-              :to="isAuthenticated ? dashboardPath : '/login'"
-              class="q-btn-metal q-btn-lg shrink-0"
-            >
-              {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
-              <ArrowRight :size="15" />
-            </router-link>
-          </div>
+            <Button as-child size="lg" class="shrink-0">
+              <router-link :to="isAuthenticated ? dashboardPath : '/login'">
+                {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
+                <ArrowRight :size="15" />
+              </router-link>
+            </Button>
+          </Card>
         </section>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer class="q-footer relative z-10 px-6 py-8">
+    <footer class="relative z-10 border-t border-border px-6 py-8">
       <div
         class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left"
       >
-        <p class="q-foot-text">
+        <p class="text-[12.5px] text-muted-foreground">
           &copy; {{ currentYear }} {{ siteName }}. {{ t('home.footer.allRightsReserved') }}
         </p>
         <div class="flex items-center gap-5">
@@ -203,11 +242,16 @@
             :href="docUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="q-foot-link"
+            class="text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
           >
             {{ t('home.docs') }}
           </a>
-          <a :href="githubUrl" target="_blank" rel="noopener noreferrer" class="q-foot-link">
+          <a
+            :href="githubUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-[12.5px] text-muted-foreground transition-colors hover:text-foreground"
+          >
             GitHub
           </a>
         </div>
@@ -221,6 +265,10 @@ import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import {
   ArrowRight,
   BookOpen,
@@ -291,235 +339,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ════ 基底与氛围 ════ */
-.q-home {
-  background: var(--bg-0, #08090b);
-  color: var(--ink-0, #e8ebf0);
-}
-.q-ambient {
-  background:
-    radial-gradient(880px 460px at 70% -140px, rgba(92, 168, 255, 0.06), transparent 65%),
-    radial-gradient(700px 420px at 8% 108%, rgba(92, 168, 255, 0.03), transparent 60%),
-    linear-gradient(rgba(232, 235, 240, 0.016) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(232, 235, 240, 0.016) 1px, transparent 1px);
-  background-size: auto, auto, 48px 48px, 48px 48px;
-}
-
-/* ════ 入场编排 ════ */
+/* 入场编排（纯视觉，无 QUENCH 变量） */
 .q-rise {
   opacity: 0;
   transform: translateY(10px);
   animation: q-rise 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 @keyframes q-rise {
-  to { opacity: 1; transform: none; }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-/* ════ Header ════ */
-.q-header {
-  background: rgba(10, 11, 14, 0.72);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line-0, #20242c);
-}
-.q-brand {
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.02em;
-}
-.q-navlink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ink-1, #97a0af);
-  transition: all 0.15s;
-}
-.q-navlink:hover {
-  color: var(--ink-0, #e8ebf0);
-  background: var(--bg-2, #171a20);
-}
-
-/* ════ 按钮：金属凸面 / ghost ════ */
-.q-btn-metal {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 15px;
-  border-radius: 10px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-0, #e8ebf0);
-  background: var(--metal-raised, linear-gradient(180deg, #272d37, #14171d));
-  border: 1px solid #3a4250;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 10px rgba(0, 0, 0, 0.4);
-  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.q-btn-metal:hover {
-  border-color: rgba(92, 168, 255, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 16px rgba(92, 168, 255, 0.22),
-    0 2px 10px rgba(0, 0, 0, 0.4);
-}
-.q-btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 15px;
-  border-radius: 10px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-1, #97a0af);
-  border: 1px solid var(--line-1, #2f3540);
-  transition: all 0.15s;
-}
-.q-btn-ghost:hover {
-  color: var(--ink-0, #e8ebf0);
-  background: var(--bg-2, #171a20);
-}
-.q-btn-lg {
-  padding: 10px 20px;
-  font-size: 13.5px;
-  border-radius: 11px;
-}
-
-/* ════ Hero ════ */
-.q-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border-radius: 99px;
-  border: 1px solid rgba(92, 168, 255, 0.25);
-  background: rgba(92, 168, 255, 0.08);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  color: #8cc4ff;
-}
-.q-eyebrow-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--azure, #5ca8ff);
-  animation: q-pulse 2s infinite;
-}
-@keyframes q-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(92, 168, 255, 0.5); }
-  50% { box-shadow: 0 0 0 6px rgba(92, 168, 255, 0); }
-}
-.q-hero-title {
-  margin-top: 22px;
-  font-size: clamp(40px, 6vw, 64px);
-  font-weight: 800;
-  font-stretch: 110%;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
-}
-.q-hero-sub {
-  margin-top: 18px;
-  font-size: clamp(18px, 2.2vw, 23px);
-  font-weight: 600;
-  color: rgba(232, 235, 240, 0.92);
-}
-.q-hero-desc {
-  margin-top: 10px;
-  max-width: 480px;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--ink-1, #97a0af);
-}
-@media (max-width: 1023px) {
-  .q-hero-desc { margin-inline: auto; }
-}
-
-.q-stats {
-  margin-top: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-@media (min-width: 1024px) {
-  .q-stats { justify-content: flex-start; }
-}
-.q-stat {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--ink-1, #97a0af);
-}
-.q-stat-sep {
-  width: 1px;
-  height: 14px;
-  background: var(--line-1, #2f3540);
-}
-
-/* ════ Gateway Trace ════ */
-.q-trace {
-  width: 440px;
-  max-width: 100%;
-  border-radius: 14px;
-  background: linear-gradient(170deg, #14171d, #0c0e12 75%);
-  border: 1px solid var(--line-1, #2f3540);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 30px 70px rgba(0, 0, 0, 0.55),
-    0 0 50px rgba(92, 168, 255, 0.05);
-  overflow: hidden;
-}
-.q-trace-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 16px;
-  border-bottom: 1px solid var(--line-0, #20242c);
-}
-.q-trace-dots { display: flex; gap: 6px; }
-.q-trace-dots i {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--bg-3, #1f232b);
-  border: 1px solid var(--line-1, #2f3540);
-}
-.q-trace-title {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--ink-2, #5c6470);
-}
-.q-trace-live {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: #8cc4ff;
-}
-.q-trace-live i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--azure, #5ca8ff);
-  animation: q-pulse 1.8s infinite;
-}
-.q-trace-body {
-  padding: 18px 20px;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 13px;
-  line-height: 2.1;
-}
+/* Gateway Trace: 逐行入场 + 光标闪烁 */
 .q-line {
-  display: flex;
-  align-items: center;
-  gap: 9px;
   opacity: 0;
   animation: q-rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
@@ -529,34 +363,11 @@ onMounted(() => {
 .q-l4 { animation-delay: 1.5s; }
 .q-l5 { animation-delay: 1.85s; }
 .q-l6 { animation-delay: 2.3s; }
-.q-method { color: #8cc4ff; font-weight: 600; }
-.q-path { color: var(--ink-0, #e8ebf0); }
-.q-ok {
-  margin-left: auto;
-  padding: 1px 8px;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ok, #46c98c);
-  background: rgba(70, 201, 140, 0.12);
-}
-.q-lat { font-size: 11px; color: var(--ink-2, #5c6470); }
-.q-tree { color: var(--ink-2, #5c6470); }
-.q-step { color: var(--ink-1, #97a0af); width: 56px; }
-.q-val { color: var(--ink-0, #e8ebf0); font-size: 12px; }
-.q-val b { color: #8cc4ff; font-weight: 600; }
-.q-arrow { color: var(--azure, #5ca8ff); }
-.q-cost {
-  color: #f2f5fa;
-  text-shadow: 0 0 16px rgba(214, 232, 255, 0.25);
-}
-.q-check { margin-left: auto; color: var(--ok, #46c98c); font-size: 12px; }
-.q-prompt { color: var(--azure, #5ca8ff); font-weight: 700; }
 .q-cursor {
   display: inline-block;
   width: 8px;
   height: 15px;
-  background: var(--azure, #5ca8ff);
+  background: hsl(var(--primary));
   animation: q-blink 1.1s step-end infinite;
 }
 @keyframes q-blink {
@@ -564,144 +375,16 @@ onMounted(() => {
   51%, 100% { opacity: 0; }
 }
 
-/* ════ Section 标题 ════ */
-.q-sec-title {
-  font-size: 26px;
-  font-weight: 700;
-  font-stretch: 106%;
-}
-.q-sec-desc {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--ink-1, #97a0af);
-}
-
-/* ════ 能力卡：锻面 ════ */
-.q-card {
-  padding: 22px 22px 20px;
-  border-radius: 12px;
-  background: var(--metal, linear-gradient(180deg, #15181e, #0e1014));
-  border: 1px solid var(--line-0, #20242c);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 28px rgba(0, 0, 0, 0.35);
-  transition: border-color 0.18s, transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s;
-}
-.q-card:hover {
-  border-color: rgba(92, 168, 255, 0.35);
-  transform: translateY(-3px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 14px 36px rgba(0, 0, 0, 0.45),
-    0 0 20px rgba(92, 168, 255, 0.08);
-}
-.q-card-icon {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  color: #8cc4ff;
-  background: rgba(92, 168, 255, 0.08);
-  border: 1px solid rgba(92, 168, 255, 0.18);
-}
-.q-card-title {
-  margin-top: 16px;
-  font-size: 14.5px;
-  font-weight: 650;
-}
-.q-card-desc {
-  margin-top: 7px;
-  font-size: 12.5px;
-  line-height: 1.7;
-  color: var(--ink-1, #97a0af);
-}
-
-/* ════ Providers ════ */
-.q-provider {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 14px;
-  border-radius: 10px;
-  background: var(--bg-1, #101216);
-  border: 1px solid var(--line-0, #20242c);
-}
-.q-provider-mark {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #d7dee8;
-  background: linear-gradient(180deg, #2a303a, #1b1f26);
-  border: 1px solid #3a4250;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-}
-.q-provider-name {
-  font-size: 13px;
-  font-weight: 500;
-}
-.q-provider-badge {
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 600;
-}
-.q-provider-badge.is-on {
-  color: var(--ok, #46c98c);
-  background: rgba(70, 201, 140, 0.12);
-}
-.q-provider-badge.is-soon {
-  color: var(--ink-2, #5c6470);
-  background: var(--bg-3, #1f232b);
-}
-
-/* ════ CTA band ════ */
-.q-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding: 34px 38px;
-  border-radius: 16px;
-  background: linear-gradient(170deg, #15181e, #0c0e12);
-  border: 1px solid var(--line-1, #2f3540);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 20px 50px rgba(0, 0, 0, 0.4),
-    0 0 40px rgba(92, 168, 255, 0.05);
-}
-.q-cta-title {
-  font-size: 21px;
-  font-weight: 700;
-}
-.q-cta-desc {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--ink-1, #97a0af);
-}
-
-/* ════ Footer ════ */
-.q-footer {
-  border-top: 1px solid var(--line-0, #20242c);
-}
-.q-foot-text,
-.q-foot-link {
-  font-size: 12.5px;
-  color: var(--ink-2, #5c6470);
-}
-.q-foot-link {
-  transition: color 0.15s;
-}
-.q-foot-link:hover {
-  color: var(--ink-0, #e8ebf0);
-}
-
-/* ════ 动效降级 ════ */
+/* 动效降级 */
 @media (prefers-reduced-motion: reduce) {
-  .q-rise, .q-line { opacity: 1; transform: none; animation: none; }
-  .q-cursor, .q-eyebrow-dot, .q-trace-live i { animation: none; }
+  .q-rise,
+  .q-line {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .q-cursor {
+    animation: none;
+  }
 }
 </style>

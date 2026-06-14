@@ -7,23 +7,26 @@
         class="cursor-pointer rounded-md border border-border bg-card px-3 py-2"
       >
         <div class="grid grid-cols-2 gap-1.5">
-          <span
+          <Badge
             v-for="model in modelValue"
             :key="model"
-            class="inline-flex items-center justify-between gap-1 rounded bg-secondary px-2 py-1 text-xs text-foreground/85"
+            variant="secondary"
+            class="inline-flex items-center justify-between gap-1 px-2 py-1 text-xs text-foreground/85"
           >
             <span class="flex items-center gap-1 truncate">
               <ModelIcon :model="model" size="14px" />
               <span class="truncate">{{ model }}</span>
             </span>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               @click.stop="removeModel(model)"
-              class="shrink-0 rounded-full hover:bg-accent"
+              class="h-3.5 w-3.5 shrink-0 rounded-full p-0"
             >
               <Icon name="x" size="xs" class="h-3.5 w-3.5" :stroke-width="2" />
-            </button>
-          </span>
+            </Button>
+          </Badge>
         </div>
         <div class="mt-2 flex items-center justify-between border-t border-border pt-2">
           <span class="text-xs text-muted-foreground">{{ t('admin.accounts.modelCount', { count: modelValue.length }) }}</span>
@@ -38,27 +41,28 @@
         class="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border bg-card "
       >
         <div class="sticky top-0 border-b border-border bg-card p-2">
-          <input
+          <Input
             v-model="searchQuery"
             type="text"
-            class="input w-full text-sm"
+            class="w-full text-sm"
             :placeholder="t('admin.accounts.searchModels')"
             @click.stop
           />
         </div>
         <div class="max-h-52 overflow-auto">
-          <button
+          <Button
             v-for="model in filteredModels"
             :key="model.value"
             type="button"
+            variant="ghost"
             @click="toggleModel(model.value)"
-            class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+            class="flex h-auto w-full items-center justify-start gap-2 rounded-none px-3 py-2 text-left text-sm"
           >
             <span
               :class="[
                 'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
                 modelValue.includes(model.value)
-                  ? 'border-primary-400 bg-foreground text-primary-950'
+                  ? 'border-primary bg-primary text-primary-foreground'
                   : 'border-border'
               ]"
             >
@@ -68,7 +72,7 @@
             </span>
             <ModelIcon :model="model.value" size="18px" />
             <span class="truncate text-foreground">{{ model.value }}</span>
-          </button>
+          </Button>
           <div v-if="filteredModels.length === 0" class="px-3 py-4 text-center text-sm text-muted-foreground">
             {{ t('admin.accounts.noMatchingModels') }}
           </div>
@@ -78,51 +82,56 @@
 
     <!-- Quick Actions -->
     <div class="mb-4 flex flex-wrap gap-2">
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         @click="fillRelated"
-        class="rounded-md border border-border px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent"
+        class="text-foreground/85"
       >
         {{ t('admin.accounts.fillRelatedModels') }}
-      </button>
-      <button
+      </Button>
+      <Button
         v-if="canSyncUpstream"
         type="button"
+        variant="outline"
+        size="sm"
         @click="syncUpstreamModels"
         :disabled="isSyncingUpstream"
-        class="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-400 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        class="border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-500"
       >
         {{ isSyncingUpstream ? t('admin.accounts.syncUpstreamModelsLoading') : t('admin.accounts.syncUpstreamModels') }}
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         @click="clearAll"
-        class="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20"
+        class="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
       >
         {{ t('admin.accounts.clearAllModels') }}
-      </button>
+      </Button>
     </div>
 
     <!-- Custom Model Input -->
     <div class="mb-3">
-      <label class="mb-1.5 block text-sm font-medium text-foreground/85">{{ t('admin.accounts.customModelName') }}</label>
+      <Label class="mb-1.5 block text-sm font-medium text-foreground/85">{{ t('admin.accounts.customModelName') }}</Label>
       <div class="flex gap-2">
-        <input
+        <Input
           v-model="customModel"
           type="text"
-          class="input flex-1"
+          class="flex-1"
           :placeholder="t('admin.accounts.enterCustomModelName')"
           @keydown.enter.prevent="handleEnter"
           @compositionstart="isComposing = true"
           @compositionend="isComposing = false"
         />
-        <button
+        <Button
           type="button"
           @click="addCustom"
-          class="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-primary-950  hover:bg-secondary hover:text-foreground"
         >
           {{ t('admin.accounts.addModel') }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
@@ -137,6 +146,10 @@ import type { SyncUpstreamPreviewParams } from '@/api/admin/accounts'
 import ModelIcon from '@/components/common/ModelIcon.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { allModels, getModelsByPlatform } from '@/composables/useModelWhitelist'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 

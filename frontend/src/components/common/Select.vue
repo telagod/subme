@@ -1,47 +1,48 @@
 <template>
   <div class="relative" ref="containerRef">
-    <button
+    <Button
       ref="triggerRef"
       type="button"
+      variant="outline"
       @click="toggle"
       :disabled="disabled"
       :aria-expanded="isOpen"
       :aria-haspopup="true"
       aria-label="Select option"
       :class="[
-        'select-trigger',
-        isOpen && 'select-trigger-open',
-        error && 'select-trigger-error',
-        disabled && 'select-trigger-disabled'
+        'flex w-full items-center justify-between gap-2 px-4 py-2.5 text-sm font-normal',
+        isOpen && 'border-ring ring-2 ring-ring/30',
+        error && 'border-destructive/50 focus-visible:ring-destructive/30',
+        disabled && 'cursor-not-allowed bg-muted opacity-60'
       ]"
       @keydown.down.prevent="onTriggerKeyDown"
       @keydown.up.prevent="onTriggerKeyDown"
     >
-      <span class="select-value">
+      <span class="flex-1 truncate text-left">
         <slot name="selected" :option="selectedOption">
           {{ selectedLabel }}
         </slot>
       </span>
       <span
         v-if="clearable && hasValue && !disabled"
-        class="select-clear"
         role="button"
         tabindex="-1"
         aria-label="Clear selection"
+        class="inline-flex h-5 w-5 flex-shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-foreground"
         @click.stop="clearSelection"
         @mousedown.stop
         @keydown.enter.stop.prevent="clearSelection"
       >
         <Icon name="x" size="sm" />
       </span>
-      <span class="select-icon">
+      <span class="flex-shrink-0 text-muted-foreground">
         <Icon
           name="chevronDown"
           size="md"
           :class="['transition-transform duration-200', isOpen && 'rotate-180']"
         />
       </span>
-    </button>
+    </Button>
 
     <!-- Teleport dropdown to body to escape stacking context -->
     <Teleport to="body">
@@ -60,12 +61,12 @@
           <!-- Search input -->
           <div v-if="isSearchable" class="select-search">
             <Icon name="search" size="sm" class="text-muted-foreground" />
-            <input
+            <Input
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               :placeholder="searchPlaceholderText"
-              class="select-search-input"
+              class="flex-1 border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
               @click.stop
             />
           </div>
@@ -100,7 +101,7 @@
                   v-if="isSelected(option)"
                   name="check"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-primary"
                   :stroke-width="2"
                 />
               </slot>
@@ -121,6 +122,8 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 const { t } = useI18n()
 
@@ -453,45 +456,6 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-.select-trigger {
-  @apply flex w-full items-center justify-between gap-2;
-  @apply rounded-md px-4 py-2.5 text-sm;
-  @apply bg-card;
-  @apply border border-border;
-  @apply text-foreground;
-  @apply transition-all duration-200;
-  @apply focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30;
-  @apply hover:border-border;
-  @apply cursor-pointer;
-}
-
-.select-trigger-open {
-  @apply border-ring ring-2 ring-ring/30;
-}
-
-.select-trigger-error {
-  @apply border-red-500/50 focus:border-red-500/50 focus:ring-red-500/30;
-}
-
-.select-trigger-disabled {
-  @apply cursor-not-allowed bg-muted opacity-60;
-}
-
-.select-value {
-  @apply flex-1 truncate text-left;
-}
-
-.select-icon {
-  @apply flex-shrink-0 text-muted-foreground;
-}
-
-.select-clear {
-  @apply flex flex-shrink-0 cursor-pointer items-center justify-center;
-  @apply rounded text-muted-foreground transition-colors;
-  @apply hover:text-foreground;
-}
-</style>
 
 <style>
 .select-dropdown-portal {
@@ -529,8 +493,8 @@ onUnmounted(() => {
 }
 
 .select-dropdown-portal .select-option-selected {
-  @apply bg-primary-300/10;
-  @apply text-primary-200;
+  @apply bg-primary/10;
+  @apply text-primary;
 }
 
 .select-dropdown-portal .select-option-focused {

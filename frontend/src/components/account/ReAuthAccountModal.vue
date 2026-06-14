@@ -23,7 +23,7 @@
                     : ''
             ]"
           >
-            <Icon name="sparkles" size="md" class="text-primary-200" />
+            <Icon name="sparkles" size="md" class="text-muted-foreground" />
           </div>
           <div>
             <span class="block font-semibold text-foreground">{{
@@ -46,14 +46,14 @@
 
       <!-- Add Method Selection (Claude only) -->
       <fieldset v-if="isAnthropic" class="border-0 p-0">
-        <legend class="input-label">{{ t('admin.accounts.oauth.authMethod') }}</legend>
+        <legend class="text-sm font-medium leading-none text-foreground">{{ t('admin.accounts.oauth.authMethod') }}</legend>
         <div class="mt-2 flex gap-4">
           <label class="flex cursor-pointer items-center">
             <input
               v-model="addMethod"
               type="radio"
               value="oauth"
-              class="mr-2 text-primary-600 focus:ring-ring"
+              class="mr-2 text-primary focus:ring-ring"
             />
             <span class="text-sm text-foreground/85">{{
               t('admin.accounts.types.oauth')
@@ -64,7 +64,7 @@
               v-model="addMethod"
               type="radio"
               value="setup-token"
-              class="mr-2 text-primary-600 focus:ring-ring"
+              class="mr-2 text-primary focus:ring-ring"
             />
             <span class="text-sm text-foreground/85">{{
               t('admin.accounts.setupTokenLongLived')
@@ -81,7 +81,7 @@
         <div class="flex items-center gap-3">
           <div
             :class="[
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ',
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground ',
               geminiOAuthType === 'google_one'
                 ? ''
                 : geminiOAuthType === 'code_assist'
@@ -138,14 +138,13 @@
 
     <template #footer>
       <div v-if="account" class="flex justify-between gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button" variant="outline" @click="handleClose">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           v-if="isManualInputMethod"
           type="button"
           :disabled="!canExchangeCode"
-          class="btn btn-primary"
           @click="handleExchangeCode"
         >
           <svg
@@ -173,7 +172,7 @@
               ? t('admin.accounts.oauth.verifying')
               : t('admin.accounts.oauth.completeAuth')
           }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -193,6 +192,7 @@ import { useOpenAIOAuth } from '@/composables/useOpenAIOAuth'
 import { useGeminiOAuth } from '@/composables/useGeminiOAuth'
 import { useAntigravityOAuth } from '@/composables/useAntigravityOAuth'
 import type { Account } from '@/types'
+import { Button } from '@/components/ui/button'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
 import OAuthAuthorizationFlow from './OAuthAuthorizationFlow.vue'

@@ -1,9 +1,9 @@
 <template>
-  <div :id="`sr-section-${section.id}`" class="sr-section-card">
+  <div :id="`sr-section-${section.id}`" class="overflow-hidden rounded-xl border border-border bg-card shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_4px_16px_rgba(0,0,0,.25)] scroll-mt-24">
     <!-- card header -->
-    <div class="sr-section-header">
-      <h2 class="sr-section-title">{{ resolveLabel(section.title) }}</h2>
-      <p v-if="section.description" class="sr-section-desc">{{ resolveLabel(section.description) }}</p>
+    <div class="border-b border-border bg-gradient-to-b from-white/[.025] to-transparent px-5 py-3.5">
+      <h2 class="mb-0.5 text-[13.5px] font-semibold tracking-tight text-foreground">{{ resolveLabel(section.title) }}</h2>
+      <p v-if="section.description" class="text-[11.5px] leading-[1.55] text-muted-foreground">{{ resolveLabel(section.description) }}</p>
     </div>
 
     <!-- custom component escape hatch -->
@@ -16,14 +16,13 @@
     />
 
     <!-- field grid -->
-    <div v-else class="sr-section-body">
+    <div v-else class="grid gap-5 p-5 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
       <FieldRenderer
         v-for="field in section.fields"
         :key="field.key"
         :field="field"
         :model-value="form[field.key]"
         :form-values="form"
-        class="sr-field-item"
         @update:model-value="onFieldUpdate(field.key, $event)"
       />
     </div>
@@ -60,43 +59,3 @@ function onFieldUpdate(key: string, value: unknown) {
   emit('update:field', key, value)
 }
 </script>
-
-<style scoped>
-/* QUENCH metal surface — same surface grammar as DashboardQuenchView */
-.sr-section-card {
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-0, #20242C);
-  border-radius: var(--q-radius, 12px);
-  overflow: hidden;
-  scroll-margin-top: 6rem;
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.04)), 0 4px 16px rgba(0,0,0,.25);
-}
-.sr-section-header {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--line-0, #20242C);
-  /* top-lit edge gives the header a slight raised feel against the card body */
-  background: linear-gradient(180deg, rgba(255,255,255,.025) 0%, transparent 100%);
-}
-.sr-section-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink-0, #E8EBF0);
-  margin: 0 0 2px;
-  letter-spacing: -.15px;
-}
-.sr-section-desc {
-  font-size: 11.5px;
-  color: var(--ink-2, #5C6470);
-  margin: 0;
-  line-height: 1.55;
-}
-.sr-section-body {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-.sr-field-item {
-  /* individual field cells — can span full width if needed via a future :class binding */
-}
-</style>

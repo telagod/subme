@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { QUOTA_THRESHOLD_TYPE_FIXED, QUOTA_THRESHOLD_TYPE_PERCENTAGE, type QuotaThresholdType } from '@/constants/account'
+import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 defineProps<{
   enabled: boolean | null
@@ -16,39 +19,32 @@ const emit = defineEmits<{
 
 <template>
   <div class="flex items-center gap-1.5">
-    <button
-      type="button"
-      @click="emit('update:enabled', !enabled)"
-      :class="[
-        'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-        enabled ? 'bg-primary-600' : 'bg-muted'
-      ]"
-    >
-      <span
-        :class="[
-          'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-          enabled ? 'translate-x-4' : 'translate-x-0'
-        ]"
-      />
-    </button>
+    <Switch
+      :checked="enabled ?? false"
+      @update:checked="emit('update:enabled', $event)"
+    />
     <template v-if="enabled">
-      <input
-        :value="threshold"
+      <Input
+        :value="threshold ?? ''"
         @input="emit('update:threshold', parseFloat(($event.target as HTMLInputElement).value) || null)"
         type="number"
         min="0"
         :max="thresholdType === QUOTA_THRESHOLD_TYPE_PERCENTAGE ? 100 : undefined"
         :step="thresholdType === QUOTA_THRESHOLD_TYPE_PERCENTAGE ? 1 : 0.01"
-        class="input py-1 text-sm flex-1 min-w-0"
+        class="h-8 flex-1 min-w-0 py-1 text-sm"
       />
-      <select
-        :value="thresholdType || QUOTA_THRESHOLD_TYPE_FIXED"
-        @change="emit('update:thresholdType', ($event.target as HTMLSelectElement).value as QuotaThresholdType)"
-        class="input py-1 text-xs w-[4.5rem] flex-shrink-0 text-center"
+      <Select
+        :model-value="thresholdType || QUOTA_THRESHOLD_TYPE_FIXED"
+        @update:model-value="emit('update:thresholdType', $event as QuotaThresholdType)"
       >
-        <option :value="QUOTA_THRESHOLD_TYPE_FIXED">$</option>
-        <option :value="QUOTA_THRESHOLD_TYPE_PERCENTAGE">%</option>
-      </select>
+        <SelectTrigger class="h-8 w-[4.5rem] flex-shrink-0 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem :value="QUOTA_THRESHOLD_TYPE_FIXED">$</SelectItem>
+          <SelectItem :value="QUOTA_THRESHOLD_TYPE_PERCENTAGE">%</SelectItem>
+        </SelectContent>
+      </Select>
     </template>
   </div>
 </template>

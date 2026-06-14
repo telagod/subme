@@ -4,16 +4,16 @@
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
         <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-[var(--azure)] border-t-transparent"
+          class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
         ></div>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="subscriptions.length === 0" class="card p-12 text-center">
+      <div v-else-if="subscriptions.length === 0" class="rounded-lg border bg-card p-12 text-center">
         <div
           class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary"
         >
-          <Icon name="creditCard" size="xl" class="text-primary-200" />
+          <Icon name="creditCard" size="xl" class="text-muted-foreground" />
         </div>
         <h3 class="mb-2 text-lg font-semibold text-foreground">
           {{ t('userSubscriptions.noActiveSubscriptions') }}
@@ -52,24 +52,25 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <span
-                :class="[
+              <Badge
+                :variant="
                   subscription.status === 'active'
-                    ? 'badge badge-success'
+                    ? 'default'
                     : subscription.status === 'expired'
-                      ? 'badge badge-gray'
-                      : 'badge badge-danger'
-                ]"
+                      ? 'secondary'
+                      : 'destructive'
+                "
               >
                 {{ t(`userSubscriptions.status.${subscription.status}`) }}
-              </span>
-              <button
+              </Badge>
+              <Button
                 v-if="subscription.status === 'active'"
-                :class="['rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition-colors', platformButtonClass(subscription.group?.platform || '')]"
+                size="sm"
+                :class="['text-xs font-semibold text-white', platformButtonClass(subscription.group?.platform || '')]"
                 @click="router.push({ path: '/purchase', query: { tab: 'subscription', group: String(subscription.group_id) } })"
               >
                 {{ t('payment.renewNow') }}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -99,7 +100,7 @@
                 <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.daily') }}
                 </span>
-                <span class="q-money text-sm">
+                <span class="text-sm font-medium tabular-nums text-foreground">
                   ${{ (subscription.daily_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.daily_limit_usd.toFixed(2)
                   }}
@@ -136,7 +137,7 @@
                 <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.weekly') }}
                 </span>
-                <span class="q-money text-sm">
+                <span class="text-sm font-medium tabular-nums text-foreground">
                   ${{ (subscription.weekly_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.weekly_limit_usd.toFixed(2)
                   }}
@@ -177,7 +178,7 @@
                 <span class="text-sm font-medium text-foreground/85">
                   {{ t('userSubscriptions.monthly') }}
                 </span>
-                <span class="q-money text-sm">
+                <span class="text-sm font-medium tabular-nums text-foreground">
                   ${{ (subscription.monthly_usage_usd || 0).toFixed(2) }} / ${{
                     subscription.group.monthly_limit_usd.toFixed(2)
                   }}
@@ -222,7 +223,7 @@
               class="flex items-center justify-center rounded-md border border-border bg-secondary py-6 "
             >
               <div class="flex items-center gap-3">
-                <span class="text-4xl text-primary-200">∞</span>
+                <span class="text-4xl text-muted-foreground">∞</span>
                 <div>
                   <p class="text-sm font-medium text-foreground">
                     {{ t('userSubscriptions.unlimited') }}
@@ -249,6 +250,8 @@ import subscriptionsAPI from '@/api/subscriptions'
 import type { UserSubscription } from '@/types'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { formatDateOnly } from '@/utils/format'
 import { platformBorderClass, platformBadgeClass, platformButtonClass, platformLabel } from '@/utils/platformColors'
 import { getRemainingDurationParts, isOneTimeDailyQuota, type RemainingDurationParts } from '@/utils/subscriptionQuota'
@@ -291,9 +294,9 @@ function getProgressWidth(used: number | undefined, limit: number | null | undef
 function getProgressBarClass(used: number | undefined, limit: number | null | undefined): string {
   if (!limit || limit === 0) return 'bg-muted-foreground'
   const percentage = ((used || 0) / limit) * 100
-  if (percentage >= 90) return 'bg-[var(--bad)]'
-  if (percentage >= 70) return 'bg-[var(--warn)]'
-  return 'bg-[var(--ok)]'
+  if (percentage >= 90) return 'bg-destructive'
+  if (percentage >= 70) return 'bg-amber-500'
+  return 'bg-emerald-500'
 }
 
 function formatExpirationDate(expiresAt: string): string {
@@ -324,9 +327,9 @@ function getExpirationClass(expiresAt: string): string {
   const diff = expires.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
-  if (days <= 0) return 'text-[var(--bad)] font-medium'
-  if (days <= 3) return 'text-[var(--bad)]'
-  if (days <= 7) return 'text-[var(--warn)]'
+  if (days <= 0) return 'text-destructive font-medium'
+  if (days <= 3) return 'text-destructive'
+  if (days <= 7) return 'text-amber-500'
   return 'text-foreground/85'
 }
 

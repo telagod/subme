@@ -1,57 +1,65 @@
 <template>
-  <div v-if="visible" class="sr-field">
+  <div v-if="visible" class="flex flex-col">
     <!-- switch -->
     <template v-if="field.type === 'switch'">
-      <div class="sr-field-row">
-        <div class="sr-field-info">
-          <label class="sr-label">{{ resolveLabel(field.label) }}</label>
-          <p v-if="field.help" class="sr-help">{{ resolveLabel(field.help) }}</p>
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0 flex-1">
+          <Label class="text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+          <p v-if="field.help" class="mt-0.5 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
         </div>
-        <button
-          type="button"
-          class="sr-toggle"
-          :class="{ on: !!modelValue }"
-          :aria-checked="!!modelValue"
-          role="switch"
-          @click="emit('update:modelValue', !modelValue)"
-        >
-          <span class="sr-toggle-thumb" />
-        </button>
+        <Switch
+          :model-value="!!modelValue"
+          @update:model-value="emit('update:modelValue', $event)"
+        />
       </div>
     </template>
 
     <!-- select -->
     <template v-else-if="field.type === 'select'">
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
-      <select class="sr-input" :value="modelValue" @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)">
-        <option v-for="opt in field.options" :key="String(opt.value)" :value="opt.value">{{ resolveLabel(opt.label) }}</option>
-      </select>
-      <p v-if="field.help" class="sr-help mt-1">{{ resolveLabel(field.help) }}</p>
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+      <Select :model-value="String(modelValue ?? '')" @update:model-value="emit('update:modelValue', $event)">
+        <SelectTrigger class="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in field.options" :key="String(opt.value)" :value="String(opt.value)">
+            {{ resolveLabel(opt.label) }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <p v-if="field.help" class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
     </template>
 
     <!-- password -->
     <template v-else-if="field.type === 'password'">
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
-      <div class="sr-pw-wrap">
-        <input
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+      <div class="relative">
+        <Input
           :type="showPassword ? 'text' : 'password'"
-          class="sr-input sr-input-pw"
-          :value="modelValue ?? ''"
+          class="pr-10"
+          :model-value="String(modelValue ?? '')"
           :placeholder="passwordPlaceholder"
           autocomplete="new-password"
-          @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+          @update:model-value="emit('update:modelValue', $event)"
         />
-        <button type="button" class="sr-pw-eye" :aria-label="showPassword ? 'Hide' : 'Show'" @click="showPassword = !showPassword">
-          <svg v-if="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sr-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" /></svg>
-          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sr-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-        </button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
+          :aria-label="showPassword ? 'Hide' : 'Show'"
+          @click="showPassword = !showPassword"
+        >
+          <svg v-if="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" /></svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+        </Button>
       </div>
-      <p v-if="field.help" class="sr-help mt-1">{{ resolveLabel(field.help) }}</p>
+      <p v-if="field.help" class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
     </template>
 
     <!-- image -->
     <template v-else-if="field.type === 'image'">
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
       <ImageUpload
         :model-value="String(modelValue ?? '')"
         mode="image"
@@ -64,42 +72,41 @@
 
     <!-- json / textarea -->
     <template v-else-if="field.type === 'json' || field.type === 'textarea'">
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
-      <textarea
-        class="sr-input sr-mono"
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+      <Textarea
+        class="font-mono text-xs"
         rows="4"
-        :value="jsonDisplay"
+        :model-value="jsonDisplay"
         :placeholder="field.placeholder ? resolveLabel(field.placeholder) : ''"
-        @change="handleJsonChange(($event.target as HTMLTextAreaElement).value)"
+        @update:model-value="handleJsonChange(String($event))"
       />
-      <p v-if="jsonError" class="sr-error mt-1">{{ jsonError }}</p>
-      <p v-else-if="field.help" class="sr-help mt-1">{{ resolveLabel(field.help) }}</p>
+      <p v-if="jsonError" class="mt-1 text-xs text-destructive">{{ jsonError }}</p>
+      <p v-else-if="field.help" class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
     </template>
 
     <!-- number -->
     <template v-else-if="field.type === 'number'">
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
-      <input
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+      <Input
         type="number"
-        class="sr-input sr-input-num"
-        :value="modelValue ?? ''"
+        class="w-[120px]"
+        :model-value="String(modelValue ?? '')"
         :placeholder="field.placeholder ? resolveLabel(field.placeholder) : ''"
-        @input="emit('update:modelValue', Number(($event.target as HTMLInputElement).value))"
+        @update:model-value="emit('update:modelValue', Number($event))"
       />
-      <p v-if="field.help" class="sr-help mt-1">{{ resolveLabel(field.help) }}</p>
+      <p v-if="field.help" class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
     </template>
 
     <!-- text (default) -->
     <template v-else>
-      <label class="sr-label mb-1 block">{{ resolveLabel(field.label) }}</label>
-      <input
+      <Label class="mb-1 block text-sm font-medium text-foreground">{{ resolveLabel(field.label) }}</Label>
+      <Input
         type="text"
-        class="sr-input"
-        :value="modelValue ?? ''"
+        :model-value="String(modelValue ?? '')"
         :placeholder="field.placeholder ? resolveLabel(field.placeholder) : ''"
-        @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        @update:model-value="emit('update:modelValue', $event)"
       />
-      <p v-if="field.help" class="sr-help mt-1">{{ resolveLabel(field.help) }}</p>
+      <p v-if="field.help" class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ resolveLabel(field.help) }}</p>
     </template>
   </div>
 </template>
@@ -108,6 +115,18 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImageUpload from '@/components/common/ImageUpload.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { SettingsField } from './types'
 
 const props = defineProps<{
@@ -181,85 +200,3 @@ function handleJsonChange(raw: string) {
   }
 }
 </script>
-
-<style scoped>
-.sr-field { display: flex; flex-direction: column; }
-
-/* switch row */
-.sr-field-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.sr-field-info { flex: 1; min-width: 0; }
-
-/* labels + help */
-.sr-label { font-size: 13px; font-weight: 500; color: var(--ink-0, #E8EBF0); }
-.sr-help  { font-size: 11.5px; color: var(--ink-2, #5C6470); margin-top: 3px; line-height: 1.5; }
-.sr-error { font-size: 11.5px; color: var(--bad, #F25C69); margin-top: 3px; }
-
-/* input */
-.sr-input {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s;
-  box-sizing: border-box;
-}
-.sr-input:focus,
-.sr-input:focus-visible { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.14); }
-.sr-input-num { width: 120px; }
-.sr-mono { font-family: var(--font-mono, "IBM Plex Mono", monospace); font-size: 12px; resize: vertical; }
-
-/* password wrapper */
-.sr-pw-wrap { position: relative; }
-.sr-input-pw { padding-right: 40px; }
-.sr-pw-eye {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-2, #5C6470); padding: 2px; border-radius: 4px;
-  transition: color .12s;
-}
-.sr-pw-eye:hover { color: var(--ink-0, #E8EBF0); }
-.sr-pw-eye:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.sr-icon { width: 16px; height: 16px; }
-
-/* toggle */
-.sr-toggle {
-  flex-shrink: 0;
-  width: 40px; height: 22px;
-  border-radius: 11px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-2, #171A20);
-  cursor: pointer;
-  position: relative;
-  transition: background .15s, border-color .15s, box-shadow .15s;
-  padding: 0;
-  outline: none;
-}
-.sr-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(92,168,255,.3);
-  border-color: var(--azure, #5CA8FF);
-}
-.sr-toggle.on {
-  background: var(--azure, #5CA8FF);
-  border-color: var(--azure, #5CA8FF);
-}
-.sr-toggle-thumb {
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--ink-2, #5C6470);
-  transition: transform .15s, background .15s;
-}
-.sr-toggle.on .sr-toggle-thumb {
-  transform: translateX(18px);
-  background: var(--bg-00, var(--bg-0, #0E1014));
-}
-@media (prefers-reduced-motion: reduce) {
-  .sr-toggle, .sr-toggle-thumb { transition: none; }
-}
-</style>

@@ -25,13 +25,9 @@
     </div>
 
     <template #footer>
-      <button
-        @click="handleCancel"
-        type="button"
-        class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/85 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-      >
+      <Button @click="handleCancel" type="button" variant="outline">
         {{ t('usage.cancelExport') }}
-      </button>
+      </Button>
     </template>
   </BaseDialog>
 </template>
@@ -40,6 +36,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from './BaseDialog.vue'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   show: boolean

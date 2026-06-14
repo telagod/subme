@@ -4,10 +4,10 @@
       <UsageStatsCards :stats="usageStats" />
       <!-- Charts Section -->
       <div class="space-y-4">
-        <div class="card p-4">
+        <Card class="p-4">
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-foreground/85">{{ t('admin.dashboard.timeRange') }}:</span>
+              <span class="text-sm font-medium text-muted-foreground">{{ t('admin.dashboard.timeRange') }}:</span>
               <DateRangePicker
                 v-model:start-date="startDate"
                 v-model:end-date="endDate"
@@ -15,13 +15,13 @@
               />
             </div>
             <div class="ml-auto flex items-center gap-2">
-              <span class="text-sm font-medium text-foreground/85">{{ t('admin.dashboard.granularity') }}:</span>
+              <span class="text-sm font-medium text-muted-foreground">{{ t('admin.dashboard.granularity') }}:</span>
               <div class="w-28">
                 <Select v-model="granularity" :options="granularityOptions" @change="loadChartData" />
               </div>
             </div>
           </div>
-        </div>
+        </Card>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <ModelDistributionChart
             v-model:source="modelDistributionSource"
@@ -67,46 +67,59 @@
       <UsageFilters v-model="filters" :start-date="startDate" :end-date="endDate" :exporting="exporting" :model-options="modelNameOptions" @change="applyFilters" @refresh="refreshData" @reset="resetFilters" @cleanup="openCleanupDialog" @export="exportToExcel">
         <template #after-reset>
           <div class="relative" ref="columnDropdownRef">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               @click="showColumnDropdown = !showColumnDropdown"
-              class="btn btn-secondary px-2 md:px-3"
+              class="px-2 md:px-3"
               :title="t('admin.users.columnSettings')"
             >
               <svg class="h-4 w-4 md:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />
               </svg>
               <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-            </button>
+            </Button>
             <div
               v-if="showColumnDropdown"
-              class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-md border border-border bg-card py-1 "
+              class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-md border border-border bg-popover py-1 shadow-md"
             >
-              <button
+              <Button
                 v-for="col in toggleableColumns"
                 :key="col.key"
+                variant="ghost"
                 @click="toggleColumn(col.key)"
-                class="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-between rounded-none px-4 py-2 text-left text-sm font-normal text-popover-foreground"
               >
                 <span>{{ col.label }}</span>
                 <Icon
                   v-if="isColumnVisible(col.key)"
                   name="check"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-primary"
                   :stroke-width="2"
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </template>
       </UsageFilters>
       <div class="mb-4 flex gap-2 border-b border-border">
-        <button class="tab" :class="{ 'tab-active': activeTab === 'usage' }" @click="activeTab = 'usage'">
+        <Button
+          variant="ghost"
+          class="-mb-px h-auto rounded-none bg-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-transparent border-b-2"
+          :class="activeTab === 'usage' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          @click="activeTab = 'usage'"
+        >
           {{ t('usage.tabs.usage') }}
-        </button>
-        <button class="tab" :class="{ 'tab-active': activeTab === 'errors' }" @click="switchToErrorsTab">
+        </Button>
+        <Button
+          variant="ghost"
+          class="-mb-px h-auto rounded-none bg-transparent px-3 py-2 text-sm font-medium transition-colors hover:bg-transparent border-b-2"
+          :class="activeTab === 'errors' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'"
+          @click="switchToErrorsTab"
+        >
           {{ t('usage.tabs.errors') }}
-        </button>
+        </Button>
       </div>
       <div v-show="activeTab === 'usage'">
         <UsageTable
@@ -170,6 +183,8 @@ import type { OpsErrorLog } from '@/api/admin/ops'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'; import GroupDistributionChart from '@/components/charts/GroupDistributionChart.vue'; import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import type { AdminUsageLog, TrendDataPoint, ModelStat, GroupStat, EndpointStat, AdminUser } from '@/types'; import type { AdminUsageStatsResponse, AdminUsageQueryParams } from '@/api/admin/usage'
 
 const { t } = useI18n()

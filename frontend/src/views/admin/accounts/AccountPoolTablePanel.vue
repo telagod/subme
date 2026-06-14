@@ -1,57 +1,65 @@
 <template>
   <!-- 表格模式面板，对齐旧视图全量列能力 -->
-  <div class="apt-wrap">
+  <div class="flex flex-col gap-2">
     <!-- 批量操作 Bar（进度条 + 快捷按钮） -->
     <div
       v-if="selectedIds.length > 0 || bulkDeleteProgress"
-      class="apt-bulk"
+      class="flex flex-wrap items-center gap-2.5 rounded-[10px] border border-border bg-card px-3.5 py-2.5 shadow-sm"
     >
-      <div class="apt-bulk-info">
+      <div class="flex items-center gap-2 text-[13px] text-foreground">
         {{ t('admin.accountTablePanel.bulkSelected', { n: selectedIds.length }) }}
-        <button class="apt-bulk-link" @click="$emit('select-page')">{{ t('admin.accountTablePanel.bulkSelectPage') }}</button>
-        <button class="apt-bulk-link" @click="$emit('clear-selection')">{{ t('admin.accountTablePanel.bulkClear') }}</button>
+        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('select-page')">{{ t('admin.accountTablePanel.bulkSelectPage') }}</Button>
+        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('clear-selection')">{{ t('admin.accountTablePanel.bulkClear') }}</Button>
       </div>
-      <div class="apt-bulk-actions">
-        <button
-          class="apt-btn apt-btn-danger"
+      <div class="ml-auto flex flex-wrap gap-1.5">
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
+          class="text-destructive border-destructive/40 hover:bg-destructive/10"
           @click="$emit('bulk-delete')"
-        >{{ t('admin.accountTablePanel.bulkDelete') }}</button>
-        <button
-          class="apt-btn"
+        >{{ t('admin.accountTablePanel.bulkDelete') }}</Button>
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
           @click="$emit('bulk-reset-status')"
-        >{{ t('admin.accountTablePanel.bulkResetStatus') }}</button>
-        <button
-          class="apt-btn"
+        >{{ t('admin.accountTablePanel.bulkResetStatus') }}</Button>
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
           @click="$emit('bulk-refresh-token')"
-        >{{ t('admin.accountTablePanel.bulkRefreshToken') }}</button>
-        <button
-          class="apt-btn"
+        >{{ t('admin.accountTablePanel.bulkRefreshToken') }}</Button>
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
           @click="$emit('bulk-toggle-schedulable', true)"
-        >{{ t('admin.accountTablePanel.bulkEnableSchedule') }}</button>
-        <button
-          class="apt-btn"
+        >{{ t('admin.accountTablePanel.bulkEnableSchedule') }}</Button>
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
           @click="$emit('bulk-toggle-schedulable', false)"
-        >{{ t('admin.accountTablePanel.bulkDisableSchedule') }}</button>
-        <button
-          class="apt-btn apt-btn-primary"
+        >{{ t('admin.accountTablePanel.bulkDisableSchedule') }}</Button>
+        <Button
+          variant="outline"
+          size="sm"
           :disabled="!!bulkDeleteProgress"
+          class="text-primary border-primary/40 hover:bg-primary/10"
           @click="$emit('bulk-edit-selected')"
-        >{{ t('admin.accountTablePanel.bulkEdit') }}</button>
+        >{{ t('admin.accountTablePanel.bulkEdit') }}</Button>
       </div>
       <!-- 进度条 -->
-      <div v-if="bulkDeleteProgress" class="apt-progress">
-        <div class="apt-progress-bg">
+      <div v-if="bulkDeleteProgress" class="mt-0.5 flex w-full items-center gap-2">
+        <div class="h-1 flex-1 overflow-hidden rounded-full bg-muted">
           <div
-            class="apt-progress-fill"
+            class="h-full rounded-full bg-destructive transition-[width] duration-300"
             :style="{ width: progressPercent + '%' }"
           ></div>
         </div>
-        <span class="apt-progress-label">{{ bulkDeleteProgress.current }}/{{ bulkDeleteProgress.total }}</span>
+        <span class="whitespace-nowrap font-mono text-[11px] text-muted-foreground">{{ bulkDeleteProgress.current }}/{{ bulkDeleteProgress.total }}</span>
       </div>
     </div>
 
@@ -74,9 +82,9 @@
     >
       <!-- 账号名 + 平台 chip -->
       <template #cell-name="{ row }">
-        <div class="apt-name-cell">
-          <div class="apt-name-row">
-            <span class="apt-name">{{ row.name }}</span>
+        <div class="flex min-w-0 flex-col gap-0.5">
+          <div class="flex min-w-0 items-center gap-1">
+            <span class="truncate text-[13px] font-medium text-foreground">{{ row.name }}</span>
             <PlatformTypeBadge
               :platform="(row as any).platform"
               :type="(row as any).type"
@@ -85,7 +93,7 @@
               :compact="true"
             />
           </div>
-          <span v-if="accountEmail(row)" class="apt-email">{{ accountEmail(row) }}</span>
+          <span v-if="accountEmail(row)" class="truncate text-[10px] text-muted-foreground">{{ accountEmail(row) }}</span>
         </div>
       </template>
 
@@ -104,15 +112,12 @@
 
       <!-- 调度开关 -->
       <template #cell-schedulable="{ row }">
-        <button
-          class="apt-toggle"
-          :class="row.schedulable ? 'apt-toggle-on' : 'apt-toggle-off'"
-          :title="row.schedulable ? t('admin.accountTablePanel.scheduleEnabled') : t('admin.accountTablePanel.scheduleDisabled')"
+        <Switch
+          :checked="row.schedulable"
           :disabled="togglingSchedulable === row.id"
+          :title="row.schedulable ? t('admin.accountTablePanel.scheduleEnabled') : t('admin.accountTablePanel.scheduleDisabled')"
           @click="$emit('toggle-schedulable', row)"
-        >
-          <span class="apt-toggle-thumb" :class="row.schedulable ? 'apt-toggle-thumb-on' : ''"></span>
-        </button>
+        />
       </template>
 
       <!-- 分组 -->
@@ -141,45 +146,45 @@
 
       <!-- 代理 -->
       <template #cell-proxy="{ row }">
-        <div v-if="row.proxy" class="apt-proxy">
+        <div v-if="row.proxy" class="flex items-center gap-1 text-[12px] text-foreground">
           <span>{{ (row.proxy as any).name }}</span>
-          <span v-if="(row.proxy as any).country_code" class="apt-muted">({{ (row.proxy as any).country_code }})</span>
+          <span v-if="(row.proxy as any).country_code" class="text-muted-foreground">({{ (row.proxy as any).country_code }})</span>
         </div>
-        <span v-else class="apt-muted">-</span>
+        <span v-else class="text-[12px] text-muted-foreground">-</span>
       </template>
 
       <!-- 优先级 -->
       <template #cell-priority="{ value }">
-        <span class="apt-mono">{{ value }}</span>
+        <span class="font-mono text-[12px] text-foreground">{{ value }}</span>
       </template>
 
       <!-- 倍率 -->
       <template #cell-rate_multiplier="{ value }">
-        <span class="apt-mono">{{ ((value as number | null) ?? 1).toFixed(2) }}x</span>
+        <span class="font-mono text-[12px] text-foreground">{{ ((value as number | null) ?? 1).toFixed(2) }}x</span>
       </template>
 
       <!-- 最后使用 -->
       <template #cell-last_used_at="{ value }">
-        <span class="apt-muted apt-sm">{{ formatRelativeTime(value as string | null) }}</span>
+        <span class="text-[11px] text-muted-foreground">{{ formatRelativeTime(value as string | null) }}</span>
       </template>
 
       <!-- 创建时间 -->
       <template #cell-created_at="{ value }">
-        <span class="apt-muted apt-sm">{{ formatDateTime(value as string | Date | null | undefined) }}</span>
+        <span class="text-[11px] text-muted-foreground">{{ formatDateTime(value as string | Date | null | undefined) }}</span>
       </template>
 
       <!-- 操作列 -->
       <template #cell-actions="{ row }">
-        <div class="apt-row-actions">
-          <button class="apt-icon-btn" :title="t('admin.accountTablePanel.editBtn')" :aria-label="t('admin.accountTablePanel.editBtn')" @click="$emit('edit', row)">
+        <div class="flex items-center gap-0.5">
+          <Button variant="ghost" size="icon" class="h-[26px] w-[26px]" :title="t('admin.accountTablePanel.editBtn')" :aria-label="t('admin.accountTablePanel.editBtn')" @click="$emit('edit', row)">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-          </button>
-          <button class="apt-icon-btn apt-icon-btn-danger" :title="t('admin.accountTablePanel.deleteBtn')" :aria-label="t('admin.accountTablePanel.deleteBtn')" @click="$emit('delete', row)">
+          </Button>
+          <Button variant="ghost" size="icon" class="h-[26px] w-[26px] hover:bg-destructive/10 hover:text-destructive" :title="t('admin.accountTablePanel.deleteBtn')" :aria-label="t('admin.accountTablePanel.deleteBtn')" @click="$emit('delete', row)">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
-          </button>
-          <button class="apt-icon-btn" :title="t('admin.accountTablePanel.moreBtn')" :aria-label="t('admin.accountTablePanel.moreBtn')" @click="$emit('more', row, $event)">
+          </Button>
+          <Button variant="ghost" size="icon" class="h-[26px] w-[26px]" :title="t('admin.accountTablePanel.moreBtn')" :aria-label="t('admin.accountTablePanel.moreBtn')" @click="$emit('more', row, $event)">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
-          </button>
+          </Button>
         </div>
       </template>
     </DataTableV2>
@@ -199,6 +204,8 @@ import AccountUsageCell from '@/components/account/AccountUsageCell.vue'
 import AccountTodayStatsCell from '@/components/account/AccountTodayStatsCell.vue'
 import AccountGroupsCell from '@/components/account/AccountGroupsCell.vue'
 import { formatDateTime, formatRelativeTime } from '@/utils/format'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 
 const props = defineProps<{
   accounts: Account[]
@@ -270,172 +277,3 @@ function onSelected(rows: Record<string, unknown>[]) {
   emit('update:selectedIds', ids)
 }
 </script>
-
-<style scoped>
-.apt-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 批量操作（锻面卡）*/
-.apt-bulk {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--metal);
-  border: 1px solid var(--line-0);
-  border-radius: 10px;
-  box-shadow: var(--edge-hi), 0 4px 12px rgba(0,0,0,.18);
-}
-
-.apt-bulk-info {
-  font-size: 13px;
-  color: var(--ink-0);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.apt-bulk-link {
-  font-size: 12px;
-  color: var(--azure);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-}
-
-.apt-bulk-link:hover { text-decoration: underline; }
-.apt-bulk-link:focus-visible { outline: none; box-shadow: var(--glow-focus); border-radius: 3px; }
-
-.apt-bulk-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.apt-btn {
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--line-0);
-  background: var(--bg-2);
-  color: var(--ink-0);
-  cursor: pointer;
-  transition: background 0.12s;
-}
-
-.apt-btn:hover { background: var(--line-0); }
-.apt-btn:focus-visible { outline: none; box-shadow: var(--glow-focus); }
-.apt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.apt-btn-danger  { color: var(--bad); border-color: var(--bad-dim); }
-.apt-btn-danger:hover  { background: var(--bad-dim); }
-.apt-btn-primary { color: var(--azure); border-color: var(--azure-dim); }
-.apt-btn-primary:hover { background: var(--azure-dim); }
-
-/* 进度条 */
-.apt-progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  margin-top: 2px;
-}
-
-.apt-progress-bg {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--bg-2);
-  overflow: hidden;
-}
-
-.apt-progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  background: var(--bad);
-  transition: width 0.3s;
-}
-
-.apt-progress-label {
-  font-size: 11px;
-  font-family: monospace;
-  color: var(--ink-2);
-  white-space: nowrap;
-}
-
-/* 单元格内样式 */
-.apt-name-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.apt-name-row  { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.apt-name      { font-size: 13px; font-weight: 500; color: var(--ink-0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.apt-email     { font-size: 10px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.apt-muted     { color: var(--ink-2); font-size: 12px; }
-.apt-sm        { font-size: 11px; }
-.apt-mono      { font-family: monospace; font-size: 12px; color: var(--ink-1); }
-.apt-proxy     { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-1); }
-
-/* 调度开关 */
-.apt-toggle {
-  position: relative;
-  display: inline-flex;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.apt-toggle-on  { background: var(--ok); }
-.apt-toggle-off { background: var(--bg-2); border-color: var(--line-1); }
-.apt-toggle:focus-visible { outline: none; box-shadow: var(--glow-focus); }
-.apt-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.apt-toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.2s;
-}
-
-.apt-toggle-thumb-on { transform: translateX(16px); }
-
-/* 行内 icon 按钮 */
-.apt-row-actions { display: flex; align-items: center; gap: 2px; }
-
-.apt-icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: var(--ink-2);
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-
-.apt-icon-btn:hover { background: var(--bg-2); color: var(--ink-0); }
-.apt-icon-btn:focus-visible { outline: none; box-shadow: var(--glow-focus); }
-.apt-icon-btn-danger:hover { background: var(--bad-dim); color: var(--bad); }
-
-@media (prefers-reduced-motion: reduce) {
-  .apt-progress-fill { transition: none; }
-  .apt-toggle-thumb  { transition: none; }
-  .apt-toggle        { transition: none; }
-  .apt-btn           { transition: none; }
-  .apt-icon-btn      { transition: none; }
-}
-</style>

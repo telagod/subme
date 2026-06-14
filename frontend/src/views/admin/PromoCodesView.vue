@@ -24,18 +24,19 @@
             />
           </template>
           <template #actions>
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               @click="loadCodes"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="showCreateDialog = true" class="btn btn-primary">
+            </Button>
+            <Button @click="showCreateDialog = true">
               <Icon name="plus" size="md" class="mr-1" />
               {{ t('admin.promo.createCode') }}
-            </button>
+            </Button>
           </template>
         </CollapsibleFilters>
       </template>
@@ -53,12 +54,14 @@
           <template #cell-code="{ value }">
             <div class="flex items-center space-x-2">
               <code class="font-mono text-sm text-foreground">{{ value }}</code>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="copyToClipboard(value)"
                 :class="[
-                  'flex items-center transition-colors',
+                  'h-6 w-6',
                   copiedCode === value
-                    ? 'text-emerald-400'
+                    ? 'text-emerald-500'
                     : 'text-muted-foreground hover:text-foreground'
                 ]"
                 :title="copiedCode === value ? t('admin.promo.copied') : t('keys.copyToClipboard')"
@@ -72,7 +75,7 @@
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -89,14 +92,16 @@
           </template>
 
           <template #cell-status="{ value, row }">
-            <span
-              :class="[
-                'badge',
-                getStatusClass(value, row)
-              ]"
+            <Badge
+              variant="outline"
+              :class="{
+                'badge-success': 'border-emerald-500/35 bg-emerald-500/10 text-emerald-500',
+                'badge-gray': 'text-muted-foreground',
+                'badge-danger': 'border-destructive/35 bg-destructive/10 text-destructive'
+              }[getStatusClass(value, row)]"
             >
               {{ getStatusLabel(value, row) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-expires_at="{ value }">
@@ -113,34 +118,42 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center space-x-1">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="copyRegisterLink(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-green-50 hover:text-emerald-400"
+                class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-emerald-500"
                 :title="t('admin.promo.copyRegisterLink')"
               >
                 <Icon name="link" size="sm" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="handleViewUsages(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-blue-50 hover:text-sky-400"
+                class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground"
                 :title="t('admin.promo.viewUsages')"
               >
                 <Icon name="eye" size="sm" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="handleEdit(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/85/75"
+                class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-foreground"
                 :title="t('common.edit')"
               >
                 <Icon name="edit" size="sm" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="handleDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-400"
+                class="h-8 w-8 text-muted-foreground hover:bg-accent hover:text-destructive"
                 :title="t('common.delete')"
               >
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
           </template>
         </DataTable>
@@ -167,72 +180,68 @@
     >
       <form id="create-promo-form" @submit.prevent="handleCreate" class="space-y-4">
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.code') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.autoGenerate') }})</span>
-          </label>
-          <input
+          </Label>
+          <Input
             v-model="createForm.code"
             type="text"
-            class="input font-mono uppercase"
+            class="font-mono uppercase"
             :placeholder="t('admin.promo.codePlaceholder')"
           />
         </div>
         <div>
-          <label class="input-label">{{ t('admin.promo.bonusAmount') }}</label>
-          <input
+          <Label class="mb-2 block">{{ t('admin.promo.bonusAmount') }}</Label>
+          <Input
             v-model.number="createForm.bonus_amount"
             type="number"
             step="0.01"
             min="0"
             required
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.maxUses') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.zeroUnlimited') }})</span>
-          </label>
-          <input
+          </Label>
+          <Input
             v-model.number="createForm.max_uses"
             type="number"
             min="0"
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.expiresAt') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
-          </label>
-          <input
+          </Label>
+          <Input
             v-model="createForm.expires_at_str"
             type="datetime-local"
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.notes') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             v-model="createForm.notes"
             rows="2"
-            class="input"
             :placeholder="t('admin.promo.notesPlaceholder')"
-          ></textarea>
+          />
         </div>
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="showCreateDialog = false" class="btn btn-secondary">
+          <Button type="button" variant="outline" @click="showCreateDialog = false">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="create-promo-form" :disabled="creating" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="create-promo-form" :disabled="creating">
             {{ creating ? t('common.creating') : t('common.create') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -246,71 +255,67 @@
     >
       <form id="edit-promo-form" @submit.prevent="handleUpdate" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.promo.code') }}</label>
-          <input
+          <Label class="mb-2 block">{{ t('admin.promo.code') }}</Label>
+          <Input
             v-model="editForm.code"
             type="text"
-            class="input font-mono uppercase"
+            class="font-mono uppercase"
           />
         </div>
         <div>
-          <label class="input-label">{{ t('admin.promo.bonusAmount') }}</label>
-          <input
+          <Label class="mb-2 block">{{ t('admin.promo.bonusAmount') }}</Label>
+          <Input
             v-model.number="editForm.bonus_amount"
             type="number"
             step="0.01"
             min="0"
             required
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.maxUses') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('admin.promo.zeroUnlimited') }})</span>
-          </label>
-          <input
+          </Label>
+          <Input
             v-model.number="editForm.max_uses"
             type="number"
             min="0"
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">{{ t('admin.promo.status') }}</label>
+          <Label class="mb-2 block">{{ t('admin.promo.status') }}</Label>
           <Select v-model="editForm.status" :options="statusOptions" />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.expiresAt') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
-          </label>
-          <input
+          </Label>
+          <Input
             v-model="editForm.expires_at_str"
             type="datetime-local"
-            class="input"
           />
         </div>
         <div>
-          <label class="input-label">
+          <Label class="mb-2 block">
             {{ t('admin.promo.notes') }}
             <span class="ml-1 text-xs font-normal text-muted-foreground">({{ t('common.optional') }})</span>
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             v-model="editForm.notes"
             rows="2"
-            class="input"
-          ></textarea>
+          />
         </div>
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="closeEditDialog" class="btn btn-secondary">
+          <Button type="button" variant="outline" @click="closeEditDialog">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="edit-promo-form" :disabled="updating" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="edit-promo-form" :disabled="updating">
             {{ updating ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -336,7 +341,7 @@
         >
           <div class="flex items-center gap-3">
             <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10">
-              <Icon name="user" size="sm" class="text-emerald-400" />
+              <Icon name="user" size="sm" class="text-emerald-500" />
             </div>
             <div>
               <p class="text-sm font-medium text-foreground">
@@ -348,7 +353,7 @@
             </div>
           </div>
           <div class="text-right">
-            <span class="text-sm font-medium text-emerald-400">
+            <span class="text-sm font-medium text-emerald-500">
               +${{ usage.bonus_amount.toFixed(2) }}
             </span>
           </div>
@@ -366,9 +371,9 @@
       </div>
       <template #footer>
         <div class="flex justify-end">
-          <button type="button" @click="showUsagesDialog = false" class="btn btn-secondary">
+          <Button type="button" variant="outline" @click="showUsagesDialog = false">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -407,6 +412,11 @@ import Select from '@/components/common/Select.vue'
 import CollapsibleFilters from '@/components/common/CollapsibleFilters.vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const appStore = useAppStore()

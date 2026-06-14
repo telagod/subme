@@ -19,20 +19,24 @@
     <div v-else>
       <!-- 全选/全不选 -->
       <div class="mb-2 flex items-center gap-3 text-xs">
-        <button
+        <Button
           type="button"
-          class="text-primary-200 hover:underline"
+          variant="link"
+          size="sm"
+          class="h-auto p-0 text-xs"
           @click="selectAll"
         >
           {{ t('common.selectAll') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="text-muted-foreground hover:underline"
+          variant="ghost"
+          size="sm"
+          class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
           @click="selectNone"
         >
           {{ t('admin.channelMonitor.template.selectNone') }}
-        </button>
+        </Button>
         <span class="ml-auto text-muted-foreground">
           {{ t('admin.channelMonitor.template.selectedCount', {
             n: selectedIds.length,
@@ -48,39 +52,38 @@
           class="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-accent"
           @click="toggle(m.id)"
         >
-          <input
-            type="checkbox"
+          <Checkbox
             :checked="selectedSet.has(m.id)"
-            class="h-4 w-4 rounded border-border text-primary-600 focus:ring-ring"
             @click.stop="toggle(m.id)"
           />
           <span class="font-medium text-foreground">{{ m.name }}</span>
           <span class="text-xs text-muted-foreground">{{ m.provider }}</span>
           <span v-if="m.provider === 'openai'" class="text-xs text-muted-foreground">{{ m.api_mode }}</span>
-          <span
+          <Badge
             v-if="!m.enabled"
-            class="ml-auto rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+            variant="secondary"
+            class="ml-auto text-xs"
           >
             {{ t('admin.channelMonitor.onlyDisabled').replace(/^仅|^Only /, '') }}
-          </span>
+          </Badge>
         </li>
       </ul>
     </div>
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <button class="btn btn-secondary" @click="$emit('close')">
+        <Button variant="outline" size="sm" @click="$emit('close')">
           {{ t('common.cancel') }}
-        </button>
-        <button
-          class="btn btn-primary"
+        </Button>
+        <Button
+          size="sm"
           :disabled="submitting || selectedIds.length === 0"
           @click="handleApply"
         >
           {{ submitting
             ? t('common.submitting')
             : t('admin.channelMonitor.template.applyPickerConfirm', { n: selectedIds.length }) }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -94,6 +97,9 @@ import { extractApiErrorMessage } from '@/utils/apiError'
 import { adminAPI } from '@/api/admin'
 import type { AssociatedMonitorBrief } from '@/api/admin/channelMonitorTemplate'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const props = defineProps<{
   show: boolean

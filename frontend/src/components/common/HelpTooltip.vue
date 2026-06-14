@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, useTemplateRef, nextTick } from 'vue'
+import { Button } from '@/components/ui/button'
 
 const props = withDefaults(defineProps<{
   content?: string
@@ -126,17 +127,19 @@ onBeforeUnmount(() => {
         ]"
         :style="{ top: `calc(${tooltipStyle.top} - 8px)`, left: tooltipStyle.left }"
       >
-        <button
+        <Button
           v-if="props.trigger === 'click'"
           type="button"
-          class="absolute right-1.5 top-1.5 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          variant="ghost"
+          size="icon"
+          class="absolute right-1.5 top-1.5 h-5 w-5 text-muted-foreground"
           aria-label="Close"
           @click.stop="closeTooltip"
         >
           <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </button>
+        </Button>
         <slot>{{ content }}</slot>
         <div class="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-secondary"></div>
       </div>

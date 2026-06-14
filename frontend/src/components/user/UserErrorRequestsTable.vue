@@ -3,7 +3,7 @@
     <div class="px-6 py-4 flex-shrink-0">
       <div class="flex flex-wrap items-end gap-4">
         <div class="min-w-[180px]">
-          <label class="input-label">{{ t('usage.errors.model') }}</label>
+          <Label class="mb-1 block">{{ t('usage.errors.model') }}</Label>
           <Select
             v-model="localModel"
             :options="modelOptions"
@@ -15,7 +15,7 @@
           />
         </div>
         <div class="min-w-[160px]">
-          <label class="input-label">{{ t('usage.errors.keyName') }}</label>
+          <Label class="mb-1 block">{{ t('usage.errors.keyName') }}</Label>
           <Select
             v-model="localApiKeyId"
             :options="keyOptions"
@@ -24,7 +24,7 @@
           />
         </div>
         <div class="min-w-[140px]">
-          <label class="input-label">{{ t('usage.errors.category') }}</label>
+          <Label class="mb-1 block">{{ t('usage.errors.category') }}</Label>
           <Select
             v-model="localCategory"
             :options="categoryOptions"
@@ -32,54 +32,59 @@
             @change="apply"
           />
         </div>
-        <button class="btn btn-primary" @click="apply">
+        <Button variant="default" size="sm" @click="apply">
           <Icon name="search" size="sm" />
           {{ t('common.search') }}
-        </button>
+        </Button>
       </div>
     </div>
 
     <div class="min-h-0 flex-1 overflow-auto">
-      <table class="min-w-full text-sm">
-        <thead>
-          <tr>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.model') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.keyName') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.endpoint') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.status') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.category') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.message') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.platform') }}</th>
-            <th class="px-4 py-2 text-left">{{ t('usage.errors.time') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
+      <Table class="min-w-full text-sm">
+        <TableHeader>
+          <TableRow>
+            <TableHead class="text-left">{{ t('usage.errors.model') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.keyName') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.endpoint') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.status') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.category') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.message') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.platform') }}</TableHead>
+            <TableHead class="text-left">{{ t('usage.errors.time') }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow
             v-for="(row, i) in rows"
             :key="i"
-            class="border-t border-border cursor-pointer hover:bg-accent"
+            class="cursor-pointer"
             @click="openDetail(row.id)"
           >
-            <td class="px-4 py-2">{{ row.model || '-' }}</td>
-            <td class="px-4 py-2">
+            <TableCell>{{ row.model || '-' }}</TableCell>
+            <TableCell>
               <span>{{ row.key_name || '-' }}</span>
-              <span
+              <Badge
                 v-if="row.key_deleted"
-                class="ml-1 inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-secondary border border-border text-muted-foreground"
-              >{{ t('usage.errors.keyDeleted') }}</span>
-            </td>
-            <td class="px-4 py-2">{{ row.inbound_endpoint || '-' }}</td>
-            <td class="px-4 py-2"><span class="badge" :class="statusClass(row.status_code)">{{ row.status_code || '-' }}</span></td>
-            <td class="px-4 py-2">{{ t('usage.errors.categories.' + row.category) }}</td>
-            <td class="px-4 py-2 max-w-[280px] truncate" :title="row.message">{{ row.message || '-' }}</td>
-            <td class="px-4 py-2">{{ row.platform || '-' }}</td>
-            <td class="px-4 py-2">{{ formatDateTime(row.created_at) }}</td>
-          </tr>
-          <tr v-if="!loading && rows.length === 0">
-            <td colspan="8" class="px-4 py-8 text-center text-muted-foreground">{{ t('usage.errors.empty') }}</td>
-          </tr>
-        </tbody>
-      </table>
+                variant="outline"
+                class="ml-1 text-[10px] font-medium leading-tight text-muted-foreground"
+              >{{ t('usage.errors.keyDeleted') }}</Badge>
+            </TableCell>
+            <TableCell>{{ row.inbound_endpoint || '-' }}</TableCell>
+            <TableCell>
+              <Badge
+                :variant="row.status_code >= 500 ? 'destructive' : row.status_code === 429 ? 'secondary' : 'outline'"
+              >{{ row.status_code || '-' }}</Badge>
+            </TableCell>
+            <TableCell>{{ t('usage.errors.categories.' + row.category) }}</TableCell>
+            <TableCell class="max-w-[280px] truncate" :title="row.message">{{ row.message || '-' }}</TableCell>
+            <TableCell>{{ row.platform || '-' }}</TableCell>
+            <TableCell>{{ formatDateTime(row.created_at) }}</TableCell>
+          </TableRow>
+          <TableRow v-if="!loading && rows.length === 0">
+            <TableCell colspan="8" class="px-4 py-8 text-center text-muted-foreground">{{ t('usage.errors.empty') }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
 
     <div class="flex-shrink-0">
@@ -101,6 +106,10 @@ import Icon from '@/components/icons/Icon.vue'
 import UserErrorDetailModal from '@/components/user/UserErrorDetailModal.vue'
 import { formatDateTime } from '@/utils/format'
 import type { UserErrorRequest, ApiKey } from '@/types'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 
 const props = defineProps<{
   rows: UserErrorRequest[]
@@ -165,9 +174,4 @@ function apply() {
   })
 }
 
-function statusClass(code: number) {
-  if (code >= 500) return 'badge-danger'
-  if (code === 429) return 'badge-warning'
-  return 'badge-gray'
-}
 </script>

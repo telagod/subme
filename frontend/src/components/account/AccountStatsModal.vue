@@ -9,13 +9,13 @@
       <!-- Account Info Header -->
       <div
         v-if="account"
-        class="flex items-center justify-between rounded-lg border border-border bg-secondary p-3 "
+        class="flex items-center justify-between rounded-lg border border-border bg-muted p-3"
       >
         <div class="flex items-center gap-3">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-foreground "
+            class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-primary"
           >
-            <Icon name="chartBar" size="md" class="text-primary-200" :stroke-width="2" />
+            <Icon name="chartBar" size="md" class="text-primary-foreground" :stroke-width="2" />
           </div>
           <div>
             <div class="font-semibold text-foreground">{{ account.name }}</div>
@@ -24,16 +24,12 @@
             </div>
           </div>
         </div>
-        <span
-          :class="[
-            'rounded-full px-2.5 py-1 text-xs font-semibold',
-            account.status === 'active'
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'bg-muted text-muted-foreground'
-          ]"
+        <Badge
+          :variant="account.status === 'active' ? 'outline' : 'secondary'"
+          :class="account.status === 'active' ? 'border-emerald-500/30 text-emerald-500' : ''"
         >
           {{ account.status }}
-        </span>
+        </Badge>
       </div>
 
       <!-- Loading State -->
@@ -45,16 +41,14 @@
         <!-- Row 1: Main Stats Cards -->
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- 30-Day Total Cost -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.totalCost')
               }}</span>
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <svg
-                  class="h-4 w-4 text-primary-200"
+                  class="h-4 w-4 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -80,18 +74,16 @@
                 }})
               </span>
             </p>
-          </div>
+          </Card>
 
           <!-- 30-Day Total Requests -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.totalRequests')
               }}</span>
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="bolt" size="sm" class="text-primary-200" :stroke-width="2" />
+              <div class="rounded-md border border-border bg-muted p-1.5">
+                <Icon name="bolt" size="sm" class="text-muted-foreground" :stroke-width="2" />
               </div>
             </div>
             <p class="text-2xl font-bold text-foreground">
@@ -100,21 +92,19 @@
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.stats.totalCalls') }}
             </p>
-          </div>
+          </Card>
 
           <!-- Daily Average Cost -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.avgDailyCost')
               }}</span>
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <Icon
                   name="calculator"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                   :stroke-width="2"
                 />
               </div>
@@ -132,19 +122,17 @@
                 ({{ t('usage.userBilled') }}: ${{ formatCost(stats.summary.avg_daily_user_cost) }})
               </span>
             </p>
-          </div>
+          </Card>
 
           <!-- Daily Average Requests -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.avgDailyRequests')
               }}</span>
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <svg
-                  class="h-4 w-4 text-primary-200"
+                  class="h-4 w-4 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -164,17 +152,17 @@
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.stats.avgDailyUsage') }}
             </p>
-          </div>
+          </Card>
         </div>
 
         <!-- Row 2: Today, Highest Cost, Highest Requests -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <!-- Today Overview -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <svg
-                  class="h-4 w-4 text-primary-200"
+                  class="h-4 w-4 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -221,16 +209,16 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Highest Cost Day -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <Icon
                   name="fire"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                   :stroke-width="2"
                 />
               </div>
@@ -249,7 +237,7 @@
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">{{ t('usage.accountBilled') }}</span>
-                <span class="text-sm font-semibold text-amber-400"
+                <span class="text-sm font-semibold text-amber-500"
                   >${{ formatCost(stats.summary.highest_cost_day?.cost || 0) }}</span
                 >
               </div>
@@ -268,16 +256,16 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Highest Request Day -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <Icon
                   name="trendingUp"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                   :stroke-width="2"
                 />
               </div>
@@ -298,7 +286,7 @@
                 <span class="text-xs text-muted-foreground">{{
                   t('admin.accounts.stats.requests')
                 }}</span>
-                <span class="text-sm font-semibold text-primary-200">{{
+                <span class="text-sm font-semibold text-foreground">{{
                   formatNumber(stats.summary.highest_request_day?.requests || 0)
                 }}</span>
               </div>
@@ -315,16 +303,16 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Row 3: Token Stats -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <!-- Accumulated Tokens -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="cube" size="sm" class="text-primary-200" :stroke-width="2" />
+              <div class="rounded-md border border-border bg-muted p-1.5">
+                <Icon name="cube" size="sm" class="text-muted-foreground" :stroke-width="2" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.accumulatedTokens')
@@ -348,13 +336,13 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Performance -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="bolt" size="sm" class="text-primary-200" :stroke-width="2" />
+              <div class="rounded-md border border-border bg-muted p-1.5">
+                <Icon name="bolt" size="sm" class="text-muted-foreground" :stroke-width="2" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.performance')
@@ -378,16 +366,16 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Recent Activity -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
-              <div class="rounded-md border border-border bg-secondary p-1.5 ">
+              <div class="rounded-md border border-border bg-muted p-1.5">
                 <Icon
                   name="clipboard"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                   :stroke-width="2"
                 />
               </div>
@@ -425,11 +413,11 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Usage Trend Chart -->
-        <div class="card p-4">
+        <Card class="p-4">
           <h3 class="mb-4 text-sm font-semibold text-foreground">
             {{ t('admin.accounts.stats.usageTrend') }}
           </h3>
@@ -442,7 +430,7 @@
               {{ t('admin.dashboard.noDataAvailable') }}
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Model Distribution -->
         <ModelDistributionChart :model-stats="stats.models" :loading="false" />
@@ -472,12 +460,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button
-          @click="handleClose"
-          class="rounded-md bg-accent px-4 py-2 text-sm font-medium text-foreground/85 transition-colors hover:bg-muted"
-        >
+        <Button variant="secondary" @click="handleClose">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -500,6 +485,9 @@ import {
 import { Line } from 'vue-chartjs'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
 import Icon from '@/components/icons/Icon.vue'

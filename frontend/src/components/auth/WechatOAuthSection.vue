@@ -1,28 +1,28 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="buttonDisabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" variant="secondary" :disabled="buttonDisabled" class="w-full" @click="startLogin">
       <span
-        class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-secondary border border-border text-xs font-semibold text-primary-200 "
+        class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-secondary border border-border text-xs font-semibold text-foreground"
       >
         W
       </span>
       {{ t('auth.oidc.signIn', { providerName }) }}
-    </button>
+    </Button>
 
     <p
       v-if="disabledHint"
       data-testid="wechat-oauth-hint"
-      class="text-sm text-amber-400"
+      class="text-sm text-amber-500"
     >
       {{ disabledHint }}
     </p>
 
     <div v-if="showDivider" class="flex items-center gap-3">
-      <div class="h-px flex-1 bg-border"></div>
+      <Separator class="flex-1" />
       <span class="text-xs text-muted-foreground">
         {{ t('auth.oauthOrContinue') }}
       </span>
-      <div class="h-px flex-1 bg-border"></div>
+      <Separator class="flex-1" />
     </div>
   </div>
 </template>
@@ -34,6 +34,8 @@ import { useI18n } from 'vue-i18n'
 import { resolveWeChatOAuthStart } from '@/api/auth'
 import { useAppStore } from '@/stores'
 import { resolveAffiliateReferralCode, storeOAuthAffiliateCode } from '@/utils/oauthAffiliate'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean

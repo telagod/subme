@@ -3,25 +3,25 @@
     <div class="w-full max-w-md space-y-6">
       <!-- Loading -->
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-[var(--azure)] border-t-transparent"></div>
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
       <template v-else>
         <!-- Status Icon -->
         <div class="text-center">
           <div v-if="isSuccess"
-            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[var(--ok)]/30 bg-[var(--ok-dim)]">
-            <svg class="h-10 w-10 text-[var(--ok)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+            <svg class="h-10 w-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
               stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div v-else-if="isPending"
-            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[var(--warn)]/30 bg-[var(--warn-dim)]">
-            <div class="h-10 w-10 animate-spin rounded-full border-4 border-[var(--warn)] border-t-transparent"></div>
+            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
+            <div class="h-10 w-10 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"></div>
           </div>
           <div v-else
-            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-[var(--bad)]/30 bg-[var(--bad-dim)]">
-            <svg class="h-10 w-10 text-[var(--bad)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            class="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10">
+            <svg class="h-10 w-10 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
@@ -33,7 +33,8 @@
           </p>
         </div>
         <!-- Order Info -->
-        <div v-if="order" class="rounded-md bg-card p-5 ">
+        <Card v-if="order">
+          <CardContent class="p-5">
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
               <span class="text-muted-foreground">{{ t('payment.orders.orderId') }}</span>
@@ -53,7 +54,7 @@
             </div>
             <div class="flex justify-between">
               <span class="text-muted-foreground">{{ t('payment.orders.payAmount') }}</span>
-              <span class="font-bold text-primary-200">{{ formatGatewayAmount(order.pay_amount) }}</span>
+              <span class="font-bold text-primary">{{ formatGatewayAmount(order.pay_amount) }}</span>
             </div>
             <div v-if="order.amount !== order.pay_amount" class="flex justify-between">
               <span class="text-muted-foreground">{{ t('payment.orders.creditedAmount') }}</span>
@@ -68,9 +69,11 @@
               <OrderStatusBadge :status="order.status" />
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
         <!-- EasyPay return info (when no order loaded) -->
-        <div v-else-if="returnInfo" class="rounded-md bg-card p-5 ">
+        <Card v-else-if="returnInfo">
+          <CardContent class="p-5">
           <div class="space-y-3 text-sm">
             <div v-if="returnInfo.outTradeNo" class="flex justify-between">
               <span class="text-muted-foreground">{{ t('payment.orders.orderId') }}</span>
@@ -85,11 +88,12 @@
               <span class="font-medium text-foreground">{{ t(paymentMethodI18nKey(returnInfo.type), normalizedOrderPaymentType(returnInfo.type)) }}</span>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
         <!-- Actions -->
         <div class="flex gap-3">
-          <button class="btn btn-secondary flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
-          <button class="btn btn-primary flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</button>
+          <Button variant="outline" class="flex-1" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
+          <Button variant="default" class="flex-1" @click="router.push('/orders')">{{ t('payment.result.viewOrders') }}</Button>
         </div>
       </template>
     </div>
@@ -100,6 +104,8 @@
 import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import OrderStatusBadge from '@/components/payment/OrderStatusBadge.vue'
 import {
   PAYMENT_RECOVERY_STORAGE_KEY,

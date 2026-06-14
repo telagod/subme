@@ -1,10 +1,10 @@
 <template>
   <AppLayout>
     <div class="custom-page-layout">
-      <div class="card flex-1 min-h-0 overflow-hidden">
+      <Card class="flex-1 min-h-0 overflow-hidden">
         <div v-if="loading" class="flex h-full items-center justify-center py-12">
           <div
-            class="h-8 w-8 animate-spin rounded-full border-2 border-[var(--azure)] border-t-transparent"
+            class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
           ></div>
         </div>
 
@@ -16,7 +16,7 @@
             <div
               class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-secondary "
             >
-              <Icon name="link" size="lg" class="text-primary-200" />
+              <Icon name="link" size="lg" class="text-muted-foreground" />
             </div>
             <h3 class="text-lg font-semibold text-foreground">
               {{ t('customPage.notFoundTitle') }}
@@ -36,9 +36,9 @@
           >
             <div class="toc-header">
               <span class="toc-title">目录</span>
-              <button class="toc-close-btn" @click="tocVisible = false">
+              <Button variant="ghost" size="icon" class="h-7 w-7" @click="tocVisible = false">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-              </button>
+              </Button>
             </div>
             <nav class="toc-nav">
               <a
@@ -58,14 +58,15 @@
           </aside>
 
           <!-- TOC Toggle Button (when collapsed) -->
-          <button
+          <Button
             v-show="!tocVisible && tocItems.length > 0"
-            class="toc-toggle-btn"
+            variant="ghost"
+            class="absolute left-2 top-2 z-10 flex items-center gap-1 px-2 py-1.5 h-auto rounded-md text-sm bg-card border border-border text-muted-foreground hover:bg-accent"
             @click="tocVisible = true"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            <span class="ml-1 text-xs">目录</span>
-          </button>
+            <span class="text-xs">目录</span>
+          </Button>
 
           <!-- Content -->
           <div
@@ -82,7 +83,7 @@
             <div
               class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-border bg-secondary "
             >
-              <Icon name="link" size="lg" class="text-primary-200" />
+              <Icon name="link" size="lg" class="text-muted-foreground" />
             </div>
             <h3 class="text-lg font-semibold text-foreground">
               {{ t('customPage.notConfiguredTitle') }}
@@ -95,22 +96,25 @@
 
         <!-- Iframe embed mode -->
         <div v-else class="custom-embed-shell">
-          <a
+          <Button
+            as="a"
+            variant="secondary"
+            size="sm"
             :href="embeddedUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="btn btn-secondary btn-sm custom-open-fab"
+            class="custom-open-fab"
           >
             <Icon name="externalLink" size="sm" class="mr-1.5" :stroke-width="2" />
             {{ t('customPage.openInNewTab') }}
-          </a>
+          </Button>
           <iframe
             :src="embeddedUrl"
             class="custom-embed-frame"
             allowfullscreen
           ></iframe>
         </div>
-      </div>
+      </Card>
     </div>
   </AppLayout>
 </template>
@@ -124,6 +128,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useAdminSettingsStore } from '@/stores/adminSettings'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { buildEmbeddedUrl, detectTheme } from '@/utils/embedded-url'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -229,7 +235,7 @@ async function fetchAndRenderMarkdown(slug: string) {
       headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},
     })
     if (!resp.ok) {
-      renderedHtml.value = '<p style="color:var(--bad)">Page not found</p>'
+      renderedHtml.value = '<p style="color:hsl(var(--destructive))">Page not found</p>'
       return
     }
     let raw = await resp.text()
@@ -262,7 +268,7 @@ async function fetchAndRenderMarkdown(slug: string) {
     renderedHtml.value = withIds
     tocItems.value = toc
   } catch {
-    renderedHtml.value = '<p style="color:var(--bad)">Failed to load page</p>'
+    renderedHtml.value = '<p style="color:hsl(var(--destructive))">Failed to load page</p>'
   } finally {
     loading.value = false
     await nextTick()
@@ -407,10 +413,6 @@ onUnmounted(() => {
   @apply text-sm font-semibold text-foreground/85;
 }
 
-.toc-close-btn {
-  @apply p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors;
-}
-
 .toc-nav {
   @apply flex-1 overflow-y-auto py-2 px-2;
 }
@@ -421,20 +423,13 @@ onUnmounted(() => {
 }
 
 .toc-item.toc-active {
-  @apply text-primary-200 bg-accent font-medium;
+  @apply text-primary bg-accent font-medium;
 }
 
 .toc-level-1 { padding-left: 8px; }
 .toc-level-2 { padding-left: 20px; }
 .toc-level-3 { padding-left: 32px; }
 .toc-level-4 { padding-left: 44px; }
-
-.toc-toggle-btn {
-  @apply absolute left-2 top-2 z-10 flex items-center px-2 py-1.5 rounded-md text-sm;
-  @apply bg-card border border-border;
-  @apply text-muted-foreground hover:bg-accent;
-  @apply  transition-colors cursor-pointer;
-}
 
 .custom-embed-shell {
   @apply relative;
@@ -473,7 +468,7 @@ onUnmounted(() => {
 .markdown-page-content ul { @apply list-disc pl-6 mb-4; }
 .markdown-page-content ol { @apply list-decimal pl-6 mb-4; }
 .markdown-page-content li { @apply mb-1; }
-.markdown-page-content a { @apply text-primary-200 hover:text-primary-100 underline; }
+.markdown-page-content a { @apply text-primary hover:text-primary/80 underline; }
 .markdown-page-content blockquote { @apply border-l-4 border-border pl-4 italic text-muted-foreground my-4; }
 .markdown-page-content img { @apply max-w-full h-auto rounded-md my-4; }
 .markdown-page-content table { @apply w-full border-collapse my-4; }
@@ -491,14 +486,14 @@ onUnmounted(() => {
   padding: 4px 10px;
   font-size: 12px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #c0c4cc;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s, background 0.2s;
   font-family: inherit;
 }
-.copy-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.copy-btn:hover { background: hsl(var(--accent)); }
 pre:hover .copy-btn { opacity: 1; }
 </style>

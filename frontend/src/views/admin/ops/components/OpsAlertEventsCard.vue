@@ -2,9 +2,11 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
-import Select from '@/components/common/Select.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { opsAPI, type AlertEventsQuery } from '@/api/admin/ops'
 import type { AlertEvent } from '../types'
 import { formatDateTime } from '../utils/opsFormatters'
@@ -325,22 +327,6 @@ watch(historyRange, () => {
   if (showDetail.value) loadHistory()
 })
 
-function severityBadgeClass(severity: string | undefined): string {
-  const s = String(severity || '').trim().toLowerCase()
-  if (s === 'p0' || s === 'critical') return 'od-badge od-badge-bad'
-  if (s === 'p1' || s === 'warning') return 'od-badge od-badge-warn'
-  if (s === 'p2' || s === 'info') return 'od-badge od-badge-azure'
-  return 'od-badge od-badge-dim'
-}
-
-function statusBadgeClass(status: string | undefined): string {
-  const s = String(status || '').trim().toLowerCase()
-  if (s === 'firing') return 'od-badge od-badge-bad'
-  if (s === 'resolved') return 'od-badge od-badge-ok'
-  if (s === 'manual_resolved') return 'od-badge od-badge-dim'
-  return 'od-badge od-badge-dim'
-}
-
 function formatStatusLabel(status: string | undefined): string {
   const s = String(status || '').trim().toLowerCase()
   if (!s) return '-'
@@ -354,143 +340,207 @@ const empty = computed(() => events.value.length === 0 && !loading.value)
 </script>
 
 <template>
-  <div class="od-card od-card-pad">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+  <div class="bg-card border border-border rounded-xl p-6">
+    <!-- Header toolbar -->
+    <div class="flex flex-wrap items-start justify-between gap-3.5 mb-3.5">
       <div>
-        <h3 class="od-chart-title">{{ t('admin.ops.alertEvents.title') }}</h3>
-        <p style="margin-top:3px;font-size:11.5px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertEvents.description') }}</p>
+        <h3 class="flex items-center gap-2 text-sm font-bold text-foreground">{{ t('admin.ops.alertEvents.title') }}</h3>
+        <p class="mt-1 text-[11.5px] text-muted-foreground">{{ t('admin.ops.alertEvents.description') }}</p>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <Select :model-value="timeRange" :options="timeRangeOptions" class="w-[120px]" @change="timeRange = String($event || '24h')" />
-        <Select :model-value="severity" :options="severityOptions" class="w-[88px]" @change="severity = String($event || '')" />
-        <Select :model-value="status" :options="statusOptions" class="w-[110px]" @change="status = String($event || '')" />
-        <Select :model-value="emailSent" :options="emailSentOptions" class="w-[110px]" @change="emailSent = String($event || '')" />
-        <button class="od-btn" style="display:flex;align-items:center;gap:5px;" :disabled="loading" @click="loadFirstPage">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <Select v-model="timeRange">
+          <SelectTrigger class="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in timeRangeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="severity">
+          <SelectTrigger class="w-[88px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in severityOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="status">
+          <SelectTrigger class="w-[110px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in statusOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="emailSent">
+          <SelectTrigger class="w-[110px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in emailSentOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm" class="flex items-center gap-1.5" :disabled="loading" @click="loadFirstPage">
           <svg width="13" height="13" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           {{ t('common.refresh') }}
-        </button>
+        </Button>
       </div>
     </div>
 
-    <div v-if="loading" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2,#5C6470);" role="status" :aria-label="t('admin.ops.alertEvents.loading')">
+    <!-- Loading state -->
+    <div v-if="loading" class="flex items-center gap-2 text-[13px] text-muted-foreground" role="status" :aria-label="t('admin.ops.alertEvents.loading')">
       <svg width="14" height="14" class="animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path opacity=".75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
       {{ t('admin.ops.alertEvents.loading') }}
     </div>
 
-    <div v-else-if="empty" style="border-radius:8px;border:1px dashed var(--line-0,#20242C);padding:28px;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">
+    <!-- Empty state -->
+    <div v-else-if="empty" class="rounded-lg border border-dashed border-border p-7 text-center text-[13px] text-muted-foreground">
       {{ t('admin.ops.alertEvents.empty') }}
     </div>
 
-    <div v-else class="od-table-card">
+    <!-- Table -->
+    <div v-else class="bg-card border border-border rounded-xl overflow-hidden">
       <div style="max-height:600px;overflow-y:auto;" @scroll="onScroll">
         <table style="min-width:100%;border-collapse:collapse;font-size:12px;">
-          <thead class="od-table-head-row" style="position:sticky;top:0;z-index:10;">
+          <thead class="bg-muted border-b border-border" style="position:sticky;top:0;z-index:10;">
             <tr>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.time') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.severity') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.platform') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.ruleId') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.title') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.duration') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.dimensions') }}</th>
-              <th style="padding:9px 14px;text-align:right;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.email') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.time') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.severity') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.platform') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.ruleId') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.title') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.duration') }}</th>
+              <th style="padding:9px 14px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.dimensions') }}</th>
+              <th style="padding:9px 14px;text-align:right;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.email') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="row in events"
               :key="row.id"
-              class="od-tr-border"
+              class="border-b border-border last:border-0 hover:bg-muted/50 transition-colors"
               style="cursor:pointer;"
               :title="row.title || ''"
               @click="openDetail(row)"
             >
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);">{{ formatDateTime(row.fired_at || row.created_at) }}</td>
+              <td style="padding:9px 14px;white-space:nowrap;" class="text-muted-foreground">{{ formatDateTime(row.fired_at || row.created_at) }}</td>
               <td style="padding:9px 14px;white-space:nowrap;">
                 <div style="display:flex;align-items:center;gap:5px;">
-                  <span :class="severityBadgeClass(String(row.severity || ''))">{{ row.severity || '-' }}</span>
-                  <span :class="statusBadgeClass(row.status)">{{ formatStatusLabel(row.status) }}</span>
+                  <Badge :class="[
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold border',
+                    ['p0','critical'].includes(String(row.severity||'').toLowerCase()) ? 'bg-destructive/15 border-destructive/40 text-destructive' :
+                    ['p1','warning'].includes(String(row.severity||'').toLowerCase()) ? 'bg-amber-500/15 border-amber-500/40 text-amber-500' :
+                    ['p2','info'].includes(String(row.severity||'').toLowerCase()) ? 'bg-blue-500/15 border-blue-500/40 text-blue-500' :
+                    'bg-muted border-border text-muted-foreground'
+                  ]" variant="outline">{{ row.severity || '-' }}</Badge>
+                  <Badge :class="[
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold border',
+                    String(row.status||'').toLowerCase() === 'firing' ? 'bg-destructive/15 border-destructive/40 text-destructive' :
+                    String(row.status||'').toLowerCase() === 'resolved' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-500' :
+                    'bg-muted border-border text-muted-foreground'
+                  ]" variant="outline">{{ formatStatusLabel(row.status) }}</Badge>
                 </div>
               </td>
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);">{{ getDimensionString(row, 'platform') || '-' }}</td>
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);"><span class="od-mono">#{{ row.rule_id }}</span></td>
+              <td style="padding:9px 14px;white-space:nowrap;" class="text-muted-foreground">{{ getDimensionString(row, 'platform') || '-' }}</td>
+              <td style="padding:9px 14px;white-space:nowrap;" class="text-muted-foreground"><span class="font-mono">#{{ row.rule_id }}</span></td>
               <td style="padding:9px 14px;min-width:260px;">
-                <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;color:var(--ink-0,#E8EBF0);">{{ row.title || '-' }}</div>
-                <div v-if="row.description" style="margin-top:2px;font-size:11px;color:var(--ink-2,#5C6470);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ row.description }}</div>
+                <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;" class="text-foreground">{{ row.title || '-' }}</div>
+                <div v-if="row.description" style="margin-top:2px;font-size:11px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;" class="text-muted-foreground">{{ row.description }}</div>
               </td>
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);">{{ formatDurationLabel(row) }}</td>
-              <td style="padding:9px 14px;white-space:nowrap;font-size:11px;color:var(--ink-2,#5C6470);">{{ formatDimensionsSummary(row) }}</td>
+              <td style="padding:9px 14px;white-space:nowrap;" class="text-muted-foreground">{{ formatDurationLabel(row) }}</td>
+              <td style="padding:9px 14px;white-space:nowrap;font-size:11px;" class="text-muted-foreground">{{ formatDimensionsSummary(row) }}</td>
               <td style="padding:9px 14px;white-space:nowrap;text-align:right;">
                 <span style="display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;" :title="row.email_sent ? t('admin.ops.alertEvents.table.emailSent') : t('admin.ops.alertEvents.table.emailIgnored')">
-                  <Icon v-if="row.email_sent" name="checkCircle" size="sm" class="od-c-ok" />
-                  <Icon v-else name="ban" size="sm" class="od-c-muted" />
-                  <span style="font-size:11px;font-weight:600;color:var(--ink-1,#97A0AF);">{{ row.email_sent ? t('admin.ops.alertEvents.table.emailSent') : t('admin.ops.alertEvents.table.emailIgnored') }}</span>
+                  <Icon v-if="row.email_sent" name="checkCircle" size="sm" class="text-emerald-500" />
+                  <Icon v-else name="ban" size="sm" class="text-muted-foreground" />
+                  <span style="font-size:11px;font-weight:600;" class="text-muted-foreground">{{ row.email_sent ? t('admin.ops.alertEvents.table.emailSent') : t('admin.ops.alertEvents.table.emailIgnored') }}</span>
                 </span>
               </td>
             </tr>
           </tbody>
         </table>
-        <div v-if="loadingMore" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;font-size:11.5px;color:var(--ink-2,#5C6470);" role="status" :aria-label="t('admin.ops.alertEvents.loading')">
+        <div v-if="loadingMore" class="flex items-center justify-center gap-2 p-2.5 text-[11.5px] text-muted-foreground" role="status" :aria-label="t('admin.ops.alertEvents.loading')">
           <svg width="13" height="13" class="animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle opacity=".25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path opacity=".75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
           {{ t('admin.ops.alertEvents.loading') }}
         </div>
-        <div v-else-if="!hasMore && events.length > 0" style="padding:10px;text-align:center;font-size:11px;color:var(--ink-2,#5C6470);">-</div>
+        <div v-else-if="!hasMore && events.length > 0" class="p-2.5 text-center text-[11px] text-muted-foreground">-</div>
       </div>
     </div>
 
+    <!-- Detail Dialog -->
     <BaseDialog :show="showDetail" :title="t('admin.ops.alertEvents.detail.title')" width="wide" :close-on-click-outside="true" @close="closeDetail">
-      <div v-if="detailLoading" style="display:flex;align-items:center;justify-content:center;padding:36px 0;font-size:13px;color:var(--ink-2,#5C6470);">
+      <div v-if="detailLoading" class="flex items-center justify-center py-9 text-[13px] text-muted-foreground">
         {{ t('admin.ops.alertEvents.detail.loading') }}
       </div>
-      <div v-else-if="!selected" style="padding:36px 0;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">
+      <div v-else-if="!selected" class="py-9 text-center text-[13px] text-muted-foreground">
         {{ t('admin.ops.alertEvents.detail.empty') }}
       </div>
-      <div v-else style="display:flex;flex-direction:column;gap:16px;">
-        <div class="od-card" style="padding:14px;background:var(--bg-2,#171A20);">
-          <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:flex-start;">
+      <div v-else class="flex flex-col gap-4">
+        <!-- Summary card -->
+        <div class="bg-muted/50 border border-border rounded-xl p-3.5">
+          <div class="flex flex-wrap gap-2.5 justify-between items-start">
             <div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-                <span :class="severityBadgeClass(String(selected.severity || ''))">{{ selected.severity || '-' }}</span>
-                <span :class="statusBadgeClass(selected.status)">{{ formatStatusLabel(selected.status) }}</span>
+              <div class="flex flex-wrap gap-1.5 items-center">
+                <Badge :class="[
+                  'rounded-full px-2 py-0.5 text-[10px] font-semibold border',
+                  ['p0','critical'].includes(String(selected.severity||'').toLowerCase()) ? 'bg-destructive/15 border-destructive/40 text-destructive' :
+                  ['p1','warning'].includes(String(selected.severity||'').toLowerCase()) ? 'bg-amber-500/15 border-amber-500/40 text-amber-500' :
+                  ['p2','info'].includes(String(selected.severity||'').toLowerCase()) ? 'bg-blue-500/15 border-blue-500/40 text-blue-500' :
+                  'bg-muted border-border text-muted-foreground'
+                ]" variant="outline">{{ selected.severity || '-' }}</Badge>
+                <Badge :class="[
+                  'rounded-full px-2 py-0.5 text-[10px] font-semibold border',
+                  String(selected.status||'').toLowerCase() === 'firing' ? 'bg-destructive/15 border-destructive/40 text-destructive' :
+                  String(selected.status||'').toLowerCase() === 'resolved' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-500' :
+                  'bg-muted border-border text-muted-foreground'
+                ]" variant="outline">{{ formatStatusLabel(selected.status) }}</Badge>
               </div>
-              <div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--ink-0,#E8EBF0);">{{ selected.title || '-' }}</div>
-              <div v-if="selected.description" style="margin-top:4px;font-size:11.5px;white-space:pre-wrap;color:var(--ink-1,#97A0AF);">{{ selected.description }}</div>
+              <div class="mt-2 text-[13px] font-semibold text-foreground">{{ selected.title || '-' }}</div>
+              <div v-if="selected.description" class="mt-1 text-[11.5px] whitespace-pre-wrap text-muted-foreground">{{ selected.description }}</div>
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <div class="od-card" style="display:flex;align-items:center;gap:6px;padding:6px 10px;">
-                <span style="font-size:11px;font-weight:600;color:var(--ink-1,#97A0AF);">{{ t('admin.ops.alertEvents.detail.silence') }}</span>
-                <Select :model-value="silenceDuration" :options="silenceDurationOptions" class="w-[110px]" @change="silenceDuration = String($event || '1h')" />
-                <button type="button" class="od-btn" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;" :disabled="detailActionLoading" @click="silenceAlert">
+            <div class="flex flex-wrap gap-1.5">
+              <div class="bg-card border border-border rounded-lg flex items-center gap-1.5 px-2.5 py-1.5">
+                <span class="text-[11px] font-semibold text-muted-foreground">{{ t('admin.ops.alertEvents.detail.silence') }}</span>
+                <Select v-model="silenceDuration">
+                  <SelectTrigger class="w-[110px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="opt in silenceDurationOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="sm" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px]" :disabled="detailActionLoading" @click="silenceAlert">
                   <Icon name="ban" size="sm" />{{ t('common.apply') }}
-                </button>
+                </Button>
               </div>
-              <button type="button" class="od-btn" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;" :disabled="detailActionLoading" @click="manualResolve">
+              <Button type="button" variant="outline" size="sm" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px]" :disabled="detailActionLoading" @click="manualResolve">
                 <Icon name="checkCircle" size="sm" />{{ t('admin.ops.alertEvents.detail.manualResolve') }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
 
+        <!-- Meta grid -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.alertEvents.detail.firedAt') }}</div>
-            <div style="margin-top:4px;font-size:13px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ formatDateTime(selected.fired_at || selected.created_at) }}</div>
+          <div class="bg-card border border-border rounded-xl p-3">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.detail.firedAt') }}</div>
+            <div class="mt-1 text-[13px] font-medium text-foreground">{{ formatDateTime(selected.fired_at || selected.created_at) }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.alertEvents.detail.resolvedAt') }}</div>
-            <div style="margin-top:4px;font-size:13px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ selected.resolved_at ? formatDateTime(selected.resolved_at) : '-' }}</div>
+          <div class="bg-card border border-border rounded-xl p-3">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.detail.resolvedAt') }}</div>
+            <div class="mt-1 text-[13px] font-medium text-foreground">{{ selected.resolved_at ? formatDateTime(selected.resolved_at) : '-' }}</div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.alertEvents.detail.ruleId') }}</div>
-            <div style="margin-top:4px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
-              <span class="od-mono" style="font-size:13px;font-weight:700;color:var(--ink-0,#E8EBF0);">#{{ selected.rule_id }}</span>
-              <a class="od-btn" style="padding:2px 8px;font-size:10px;display:inline-flex;align-items:center;gap:3px;text-decoration:none;" :href="`/admin/ops?open_alert_rules=1&alert_rule_id=${selected.rule_id}`"><Icon name="externalLink" size="xs"/>{{ t('admin.ops.alertEvents.detail.viewRule') }}</a>
-              <a class="od-btn" style="padding:2px 8px;font-size:10px;display:inline-flex;align-items:center;gap:3px;text-decoration:none;" :href="`/admin/ops?platform=${encodeURIComponent(getDimensionString(selected,'platform')||'')}&group_id=${selected.dimensions?.group_id || ''}&error_type=request&open_error_details=1`"><Icon name="externalLink" size="xs"/>{{ t('admin.ops.alertEvents.detail.viewLogs') }}</a>
+          <div class="bg-card border border-border rounded-xl p-3">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.detail.ruleId') }}</div>
+            <div class="mt-1 flex flex-wrap items-center gap-1.5">
+              <span class="font-mono text-[13px] font-bold text-foreground">#{{ selected.rule_id }}</span>
+              <a class="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground no-underline transition-colors hover:text-foreground" :href="`/admin/ops?open_alert_rules=1&alert_rule_id=${selected.rule_id}`"><Icon name="externalLink" size="xs"/>{{ t('admin.ops.alertEvents.detail.viewRule') }}</a>
+              <a class="inline-flex items-center gap-1 rounded border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground no-underline transition-colors hover:text-foreground" :href="`/admin/ops?platform=${encodeURIComponent(getDimensionString(selected,'platform')||'')}&group_id=${selected.dimensions?.group_id || ''}&error_type=request&open_error_details=1`"><Icon name="externalLink" size="xs"/>{{ t('admin.ops.alertEvents.detail.viewLogs') }}</a>
             </div>
           </div>
-          <div class="od-sys-card">
-            <div class="od-sys-label">{{ t('admin.ops.alertEvents.detail.dimensions') }}</div>
-            <div style="margin-top:4px;font-size:12px;color:var(--ink-1,#97A0AF);">
+          <div class="bg-card border border-border rounded-xl p-3">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.detail.dimensions') }}</div>
+            <div class="mt-1 text-[12px] text-muted-foreground">
               <div v-if="getDimensionString(selected, 'platform')">platform={{ getDimensionString(selected, 'platform') }}</div>
               <div v-if="selected.dimensions?.group_id">group_id={{ selected.dimensions.group_id }}</div>
               <div v-if="getDimensionString(selected, 'region')">region={{ getDimensionString(selected, 'region') }}</div>
@@ -498,30 +548,43 @@ const empty = computed(() => events.value.length === 0 && !loading.value)
           </div>
         </div>
 
-        <div class="od-card" style="padding:14px;">
-          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;">
+        <!-- History card -->
+        <div class="bg-card border border-border rounded-xl p-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
             <div>
-              <div style="font-size:13px;font-weight:700;color:var(--ink-0,#E8EBF0);">{{ t('admin.ops.alertEvents.detail.historyTitle') }}</div>
-              <div style="margin-top:2px;font-size:11px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertEvents.detail.historyHint') }}</div>
+              <div class="text-[13px] font-bold text-foreground">{{ t('admin.ops.alertEvents.detail.historyTitle') }}</div>
+              <div class="mt-0.5 text-[11px] text-muted-foreground">{{ t('admin.ops.alertEvents.detail.historyHint') }}</div>
             </div>
-            <Select :model-value="historyRange" :options="historyRangeOptions" class="w-[140px]" @change="historyRange = String($event || '7d')" />
+            <Select v-model="historyRange">
+              <SelectTrigger class="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in historyRangeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div v-if="historyLoading" style="padding:20px 0;text-align:center;font-size:11.5px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertEvents.detail.historyLoading') }}</div>
-          <div v-else-if="history.length === 0" style="padding:20px 0;text-align:center;font-size:11.5px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertEvents.detail.historyEmpty') }}</div>
-          <div v-else class="od-table-card">
+          <div v-if="historyLoading" class="py-5 text-center text-[11.5px] text-muted-foreground">{{ t('admin.ops.alertEvents.detail.historyLoading') }}</div>
+          <div v-else-if="history.length === 0" class="py-5 text-center text-[11.5px] text-muted-foreground">{{ t('admin.ops.alertEvents.detail.historyEmpty') }}</div>
+          <div v-else class="bg-card border border-border rounded-xl overflow-hidden">
             <table style="min-width:100%;border-collapse:collapse;font-size:11.5px;">
-              <thead class="od-table-head-row">
+              <thead class="bg-muted border-b border-border">
                 <tr>
-                  <th style="padding:6px 12px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.time') }}</th>
-                  <th style="padding:6px 12px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.status') }}</th>
-                  <th style="padding:6px 12px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertEvents.table.metric') }}</th>
+                  <th style="padding:6px 12px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.time') }}</th>
+                  <th style="padding:6px 12px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.status') }}</th>
+                  <th style="padding:6px 12px;text-align:left;" class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{{ t('admin.ops.alertEvents.table.metric') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="it in history" :key="it.id" class="od-tr-border">
-                  <td style="padding:6px 12px;color:var(--ink-1,#97A0AF);">{{ formatDateTime(it.fired_at || it.created_at) }}</td>
-                  <td style="padding:6px 12px;"><span :class="statusBadgeClass(it.status)">{{ formatStatusLabel(it.status) }}</span></td>
-                  <td style="padding:6px 12px;color:var(--ink-1,#97A0AF);">
+                <tr v-for="it in history" :key="it.id" class="border-b border-border last:border-0">
+                  <td style="padding:6px 12px;" class="text-muted-foreground">{{ formatDateTime(it.fired_at || it.created_at) }}</td>
+                  <td style="padding:6px 12px;"><Badge :class="[
+                    'rounded-full px-2 py-0.5 text-[10px] font-semibold border',
+                    String(it.status||'').toLowerCase() === 'firing' ? 'bg-destructive/15 border-destructive/40 text-destructive' :
+                    String(it.status||'').toLowerCase() === 'resolved' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-500' :
+                    'bg-muted border-border text-muted-foreground'
+                  ]" variant="outline">{{ formatStatusLabel(it.status) }}</Badge></td>
+                  <td style="padding:6px 12px;" class="text-muted-foreground">
                     <span v-if="typeof it.metric_value === 'number' && typeof it.threshold_value === 'number'">{{ it.metric_value.toFixed(2) }} / {{ it.threshold_value.toFixed(2) }}</span>
                     <span v-else>-</span>
                   </td>
@@ -534,6 +597,3 @@ const empty = computed(() => events.value.length === 0 && !loading.value)
     </BaseDialog>
   </div>
 </template>
-
-<style src="../ops-quench.css"></style>
-

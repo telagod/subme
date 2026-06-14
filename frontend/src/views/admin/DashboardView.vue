@@ -10,63 +10,63 @@
         <!-- Row 1: Core Stats -->
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- Total API Keys -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="key" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="key" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.apiKeys') }}</p>
                 <p class="kpi-value">{{ stats.total_api_keys }}</p>
                 <p class="kpi-sub"><span class="text-emerald-400">{{ stats.active_api_keys }}</span> {{ t('common.active') }}</p>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Service Accounts -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="server" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="server" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.accounts') }}</p>
                 <p class="kpi-value">{{ stats.total_accounts }}</p>
                 <p class="kpi-sub">
                   <span class="text-emerald-400">{{ stats.normal_accounts }} {{ t('common.active') }}</span>
-                  <span v-if="stats.error_accounts > 0" class="ml-1 text-red-400">{{ stats.error_accounts }} {{ t('common.error') }}</span>
+                  <span v-if="stats.error_accounts > 0" class="ml-1 text-destructive">{{ stats.error_accounts }} {{ t('common.error') }}</span>
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Today Requests -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="chart" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="chart" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.todayRequests') }}</p>
                 <p class="kpi-value">{{ stats.today_requests }}</p>
                 <p class="kpi-sub">{{ t('common.total') }}: {{ formatNumber(stats.total_requests) }}</p>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- New Users Today -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="userPlus" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="userPlus" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.users') }}</p>
                 <p class="kpi-value text-emerald-400">+{{ stats.today_new_users }}</p>
                 <p class="kpi-sub">{{ t('common.total') }}: {{ formatNumber(stats.total_users) }}</p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Row 2: Token Stats -->
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- Today Tokens -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="cube" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="cube" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.todayTokens') }}</p>
                 <p class="kpi-value">{{ formatTokens(stats.today_tokens) }}</p>
@@ -79,12 +79,12 @@
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Total Tokens -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="database" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="database" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.totalTokens') }}</p>
                 <p class="kpi-value">{{ formatTokens(stats.total_tokens) }}</p>
@@ -97,12 +97,12 @@
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Performance (RPM/TPM) -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="bolt" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="bolt" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.performance') }}</p>
                 <div class="flex items-baseline gap-2">
@@ -110,30 +110,30 @@
                   <span class="text-xs text-muted-foreground">RPM</span>
                 </div>
                 <div class="mt-0.5 flex items-baseline gap-2">
-                  <p class="text-sm font-semibold text-primary-200">{{ formatTokens(stats.tpm) }}</p>
+                  <p class="text-sm font-semibold text-foreground">{{ formatTokens(stats.tpm) }}</p>
                   <span class="text-xs text-muted-foreground">TPM</span>
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Avg Response Time -->
-          <div class="card card-hover p-5">
+          <Card class="p-5 transition-colors hover:border-foreground/20">
             <div class="flex items-start gap-3">
-              <div class="kpi-icon"><Icon name="clock" size="md" class="text-primary-200" :stroke-width="1.75" /></div>
+              <div class="kpi-icon"><Icon name="clock" size="md" class="text-muted-foreground" :stroke-width="1.75" /></div>
               <div class="min-w-0 flex-1">
                 <p class="kpi-label">{{ t('admin.dashboard.avgResponse') }}</p>
                 <p class="kpi-value">{{ formatDuration(stats.average_duration_ms) }}</p>
                 <p class="kpi-sub">{{ stats.active_users }} {{ t('admin.dashboard.activeUsers') }}</p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Charts Section -->
         <div class="space-y-6">
           <!-- Date Range Filter -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="flex flex-wrap items-center gap-4">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-muted-foreground">{{ t('admin.dashboard.timeRange') }}:</span>
@@ -143,9 +143,9 @@
                   @change="onDateRangeChange"
                 />
               </div>
-              <button @click="loadDashboardStats" :disabled="chartsLoading" class="btn btn-secondary btn-sm">
+              <Button variant="outline" size="sm" @click="loadDashboardStats" :disabled="chartsLoading">
                 {{ t('common.refresh') }}
-              </button>
+              </Button>
               <div class="ml-auto flex items-center gap-2">
                 <span class="text-sm font-medium text-muted-foreground">{{ t('admin.dashboard.granularity') }}:</span>
                 <div class="w-28">
@@ -153,7 +153,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Charts Grid -->
           <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -175,7 +175,7 @@
           </div>
 
           <!-- User Usage Trend (Full Width) -->
-          <div class="card p-5">
+          <Card class="p-5">
             <h3 class="mb-4 text-sm font-semibold text-foreground">
               {{ t('admin.dashboard.recentUsage') }} (Top 12)
             </h3>
@@ -188,7 +188,7 @@
                 {{ t('admin.dashboard.noDataAvailable') }}
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </template>
     </div>
@@ -217,6 +217,8 @@ import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 import {
   Chart as ChartJS,

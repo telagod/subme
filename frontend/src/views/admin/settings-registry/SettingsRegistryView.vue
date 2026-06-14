@@ -1,34 +1,37 @@
 <template>
   <AppLayout>
-    <div class="srg-root">
+    <div class="relative px-7 pb-32 pt-6 text-foreground">
       <!-- Loading splash -->
-      <div v-if="loading" class="srg-loading">
-        <div class="srg-spinner" />
+      <div v-if="loading" class="flex h-[60vh] items-center justify-center">
+        <div class="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
 
       <template v-else>
-        <div class="srg-layout">
+        <div class="flex gap-6 items-start">
           <!-- Left anchor nav -->
-          <aside class="srg-nav">
-            <div class="srg-search-wrap">
-              <input
+          <aside class="w-[200px] shrink-0 sticky top-20 max-h-[calc(100vh-7rem)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div class="mb-3">
+              <Input
                 v-model="searchQuery"
                 type="search"
-                class="srg-search"
+                class="text-[12.5px]"
                 :placeholder="t('admin.settingsRegistry.searchPlaceholder')"
                 @input="onSearch"
               />
             </div>
-            <nav class="srg-toc">
+            <nav class="flex flex-col gap-1">
               <template v-for="[tab, sections] in visibleSectionsByTab" :key="tab">
-                <div class="srg-toc-group">
-                  <span class="srg-toc-tab">{{ tabLabel(tab) }}</span>
+                <div class="mb-2 flex flex-col gap-px">
+                  <span class="px-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{{ tabLabel(tab) }}</span>
                   <a
                     v-for="section in sections"
                     :key="section.id"
                     :href="`#sr-section-${section.id}`"
-                    class="srg-toc-item"
-                    :class="{ active: activeSection === section.id, highlight: matchingSections.has(section.id) }"
+                    class="block overflow-hidden text-ellipsis whitespace-nowrap rounded-md border-l-2 border-transparent px-2 py-1.5 pl-2.5 text-xs text-muted-foreground no-underline transition-colors duration-100 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+                    :class="{
+                      'border-l-primary bg-primary/8 text-foreground': activeSection === section.id,
+                      'font-medium text-primary': matchingSections.has(section.id)
+                    }"
                     @click.prevent="scrollToSection(section.id)"
                   >{{ resolveLabel(section.title) }}</a>
                 </div>
@@ -37,7 +40,7 @@
           </aside>
 
           <!-- Right scroll area -->
-          <main class="srg-main" ref="mainEl" @scroll="onMainScroll">
+          <main class="min-w-0 flex-1 flex flex-col gap-4" ref="mainEl" @scroll="onMainScroll">
             <template v-for="[, sections] in visibleSectionsByTab" :key="sections[0]?.tab">
               <SectionRenderer
                 v-for="section in sections"
@@ -45,8 +48,8 @@
                 :section="section"
                 :form="form"
                 :settings="savedSettings"
-                class="srg-section"
-                :class="{ 'srg-highlight': matchingSections.has(section.id) }"
+                class="transition-[outline] duration-150"
+                :class="{ 'outline outline-1 outline-primary/35': matchingSections.has(section.id) }"
                 @update:field="onFieldUpdate"
               />
             </template>
@@ -55,14 +58,17 @@
 
         <!-- Sticky save bar -->
         <Transition name="srg-bar">
-          <div v-if="dirtyCount > 0" class="srg-save-bar">
-            <span class="srg-dirty-count">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
-            <div class="srg-bar-acts">
-              <button class="srg-btn" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</button>
-              <button class="srg-btn srg-btn-metal" :disabled="saving" @click="saveChanges">
-                <span v-if="saving" class="srg-spinner srg-spinner-sm" />
+          <div
+            v-if="dirtyCount > 0"
+            class="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 whitespace-nowrap rounded-xl border border-border bg-card px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,.45)]"
+          >
+            <span class="font-mono text-[12.5px] tabular-nums text-muted-foreground">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
+            <div class="flex gap-2">
+              <Button variant="ghost" size="sm" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</Button>
+              <Button variant="default" size="sm" :disabled="saving" @click="saveChanges">
+                <span v-if="saving" class="mr-1.5 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-border border-t-primary-foreground align-[-3px]" />
                 {{ saving ? t('admin.settingsRegistry.savingBtn') : t('admin.settingsRegistry.saveBtn') }}
-              </button>
+              </Button>
             </div>
           </div>
         </Transition>
@@ -80,6 +86,8 @@ import { adminAPI } from '@/api'
 import type { TabId } from './types'
 import { allSections, getSectionsByTab } from './registry'
 import SectionRenderer from './SectionRenderer.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -252,96 +260,10 @@ function tabLabel(tab: string): string {
 </script>
 
 <style scoped>
-.srg-root { padding: 24px 28px 120px; font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif); color: var(--ink-0, #E8EBF0); position: relative; }
-
-/* layout */
-.srg-layout { display: flex; gap: 24px; align-items: flex-start; }
-.srg-nav { width: 200px; flex-shrink: 0; position: sticky; top: 5rem; max-height: calc(100vh - 7rem); overflow-y: auto; scrollbar-width: none; }
-.srg-nav::-webkit-scrollbar { display: none; }
-.srg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-
-/* search */
-.srg-search-wrap { margin-bottom: 12px; }
-.srg-search {
-  width: 100%; padding: 6px 10px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540); background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0); font-size: 12.5px; font-family: inherit; outline: none;
-  transition: border-color .15s; box-sizing: border-box;
-}
-.srg-search:focus,
-.srg-search:focus-visible { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.12); }
-
-/* toc */
-.srg-toc { display: flex; flex-direction: column; gap: 4px; }
-.srg-toc-group { display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
-.srg-toc-tab { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2, #5C6470); padding: 0 8px 4px; }
-.srg-toc-item {
-  display: block; padding: 5px 8px 5px 10px; border-radius: 6px;
-  font-size: 12px; color: var(--ink-1, #97A0AF); text-decoration: none;
-  border-left: 2px solid transparent;
-  transition: background .12s, color .12s, border-color .12s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.srg-toc-item:hover { background: var(--bg-2, #171A20); color: var(--ink-0, #E8EBF0); }
-.srg-toc-item:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 1px; }
-.srg-toc-item.active {
-  background: rgba(92,168,255,.08);
-  color: var(--ink-0, #E8EBF0);
-  border-left-color: var(--azure, #5CA8FF);
-}
-.srg-toc-item.highlight { color: var(--azure, #5CA8FF); font-weight: 500; }
-.srg-toc-item.active.highlight { color: var(--azure, #5CA8FF); }
-
-/* section highlight on search */
-.srg-section { transition: outline .15s; }
-.srg-highlight { outline: 1px solid rgba(92,168,255,.35); }
-
-/* loading */
-.srg-loading { display: flex; align-items: center; justify-content: center; height: 60vh; }
-.srg-spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-1, #2F3540); border-top-color: var(--azure, #5CA8FF); animation: srg-spin .7s linear infinite; }
-.srg-spinner-sm { display: inline-block; width: 14px; height: 14px; border-width: 2px; vertical-align: -3px; margin-right: 6px; }
-@keyframes srg-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .srg-spinner, .srg-spinner-sm { animation: none; border-top-color: var(--azure, #5CA8FF); opacity: .7; }
-  .srg-bar-enter-active, .srg-bar-leave-active { transition: none; }
-}
-
-/* save bar — QUENCH metal surface */
-.srg-save-bar {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 16px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 12px; padding: 10px 16px;
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06)), 0 12px 40px rgba(0,0,0,.65);
-  z-index: 50; white-space: nowrap;
-}
-.srg-dirty-count {
-  font-size: 12.5px; color: var(--ink-1, #97A0AF);
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-variant-numeric: tabular-nums;
-}
-.srg-mono { font-family: var(--font-mono, "IBM Plex Mono", monospace); color: var(--azure, #5CA8FF); }
-.srg-bar-acts { display: flex; gap: 8px; }
-.srg-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 6px 14px; border-radius: 8px;
-  border: 1px solid transparent; background: transparent;
-  color: var(--ink-2, #5C6470); font-size: 12.5px; font-weight: 500;
-  cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s, background .15s;
-}
-.srg-btn:hover:not(:disabled) { border-color: var(--line-1, #2F3540); color: var(--ink-0, #E8EBF0); background: var(--bg-2, #171A20); }
-.srg-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.srg-btn:disabled { opacity: .4; cursor: not-allowed; }
-.srg-btn-metal {
-  background: var(--metal-raised, linear-gradient(180deg,#272D37,#14171D));
-  border-color: rgba(255,255,255,.1); color: var(--ink-0, #E8EBF0);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06));
-}
-.srg-btn-metal:hover:not(:disabled) { border-color: rgba(92,168,255,.4); box-shadow: var(--edge-hi), 0 0 12px rgba(92,168,255,.14); }
-.srg-btn-metal:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
 /* bar transition */
 .srg-bar-enter-active, .srg-bar-leave-active { transition: opacity .2s, transform .2s; }
 .srg-bar-enter-from, .srg-bar-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
-
+@media (prefers-reduced-motion: reduce) {
+  .srg-bar-enter-active, .srg-bar-leave-active { transition: none; }
+}
 </style>

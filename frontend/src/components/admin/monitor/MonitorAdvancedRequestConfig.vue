@@ -2,52 +2,55 @@
   <div class="space-y-4">
     <!-- Headers key-value rows -->
     <div>
-      <label class="input-label">{{ t('admin.channelMonitor.advanced.headers') }}</label>
+      <Label class="mb-1.5 block">{{ t('admin.channelMonitor.advanced.headers') }}</Label>
       <div class="space-y-1.5">
         <div
           v-for="(row, i) in headerRows"
           :key="i"
           class="flex items-center gap-2"
         >
-          <input
+          <Input
             v-model="row.name"
             type="text"
             spellcheck="false"
             :placeholder="t('admin.channelMonitor.advanced.headerNamePlaceholder')"
-            class="input w-52 flex-none font-mono text-xs"
+            class="w-52 flex-none font-mono text-xs"
             @blur="commitHeaders"
           />
-          <input
+          <Input
             v-model="row.value"
             type="text"
             spellcheck="false"
             :placeholder="t('admin.channelMonitor.advanced.headerValuePlaceholder')"
-            class="input flex-1 font-mono text-xs"
+            class="flex-1 font-mono text-xs"
             @blur="commitHeaders"
           />
-          <button
+          <Button
             type="button"
-            class="flex-none rounded p-1 text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
+            variant="ghost"
+            size="icon"
+            class="flex-none h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             :title="t('common.delete')"
             @click="removeRow(i)"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           type="button"
-          class="inline-flex items-center gap-1 rounded border border-dashed border-border px-2 py-1 text-xs text-muted-foreground hover:border-primary-400 hover:text-primary-200"
+          variant="outline"
+          class="h-auto gap-1 border-dashed px-2 py-1 text-xs text-muted-foreground hover:border-primary hover:text-primary"
           @click="addRow"
         >
           <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           {{ t('admin.channelMonitor.advanced.headerAddRow') }}
-        </button>
+        </Button>
       </div>
-      <p v-if="headersError" class="mt-1 text-xs text-red-400">{{ headersError }}</p>
+      <p v-if="headersError" class="mt-1 text-xs text-destructive">{{ headersError }}</p>
       <p v-else class="mt-1 text-xs text-muted-foreground">
         {{ t('admin.channelMonitor.advanced.headersHint') }}
       </p>
@@ -55,18 +58,19 @@
 
     <!-- Body mode radio -->
     <div>
-      <label class="input-label">{{ t('admin.channelMonitor.advanced.bodyMode') }}</label>
+      <Label class="mb-1.5 block">{{ t('admin.channelMonitor.advanced.bodyMode') }}</Label>
       <div class="grid grid-cols-3 gap-3">
-        <button
+        <Button
           v-for="opt in bodyModeOptions"
           :key="opt.value"
           type="button"
-          class="rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors"
+          variant="outline"
+          class="rounded-lg border-2 px-3 py-2 text-sm font-medium transition-colors h-auto w-full"
           :class="bodyModeButtonClass(opt.value)"
           @click="updateBodyMode(opt.value)"
         >
           {{ opt.label }}
-        </button>
+        </Button>
       </div>
       <p class="mt-1 text-xs text-muted-foreground">
         {{ bodyModeHint }}
@@ -76,26 +80,27 @@
     <!-- Body JSON (仅当 mode != off) -->
     <div v-if="bodyOverrideMode !== 'off'">
       <div class="mb-1 flex items-center justify-between">
-        <label class="input-label !mb-0">{{ t('admin.channelMonitor.advanced.bodyJson') }}</label>
-        <button
+        <Label class="!mb-0">{{ t('admin.channelMonitor.advanced.bodyJson') }}</Label>
+        <Button
           type="button"
-          class="text-xs text-primary-200 hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
+          variant="link"
+          class="h-auto p-0 text-xs disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline"
           :disabled="!bodyText.trim()"
           @click="formatBody"
         >
           {{ t('admin.channelMonitor.advanced.bodyJsonFormat') }}
-        </button>
+        </Button>
       </div>
-      <textarea
+      <Textarea
         v-model="bodyText"
         rows="10"
         :placeholder="bodyPlaceholder"
-        class="input font-mono text-xs"
+        class="font-mono text-xs"
         style="white-space: pre; overflow-wrap: normal; overflow-x: auto;"
         spellcheck="false"
         @blur="commitBody"
       />
-      <p v-if="bodyError" class="mt-1 text-xs text-red-400">{{ bodyError }}</p>
+      <p v-if="bodyError" class="mt-1 text-xs text-destructive">{{ bodyError }}</p>
       <p v-else class="mt-1 text-xs text-muted-foreground">
         {{ t('admin.channelMonitor.advanced.bodyJsonHint') }}
       </p>
@@ -111,6 +116,10 @@ import {
   API_MODE_RESPONSES,
   PROVIDER_OPENAI,
 } from '@/constants/channelMonitor'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 const props = defineProps<{
   provider?: Provider
@@ -282,9 +291,9 @@ const bodyModeOptions = computed<{ value: BodyOverrideMode; label: string }[]>((
 function bodyModeButtonClass(mode: BodyOverrideMode): string {
   const active = props.bodyOverrideMode === mode
   if (active) {
-    return 'border-primary-500 bg-primary-500/15 text-primary-300  '
+    return 'border-primary bg-primary/15 text-primary'
   }
-  return 'border-border bg-card text-muted-foreground hover:border-primary-300'
+  return 'border-border bg-card text-muted-foreground hover:border-primary'
 }
 
 const bodyModeHint = computed(() => {

@@ -13,11 +13,11 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('admin.groups.searchGroups')"
-                class="input pl-10"
+                class="pl-10"
                 @input="handleSearch"
               />
             </div>
@@ -48,10 +48,10 @@
           <div
             class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto"
           >
-            <button
+            <Button
+              variant="secondary"
               @click="loadGroups"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon
@@ -59,23 +59,22 @@
                 size="md"
                 :class="loading ? 'animate-spin' : ''"
               />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               @click="openSortModal"
-              class="btn btn-secondary"
               :title="t('admin.groups.sortOrder')"
             >
               <Icon name="arrowsUpDown" size="md" class="mr-2" />
               {{ t("admin.groups.sortOrder") }}
-            </button>
-            <button
+            </Button>
+            <Button
               @click="openCreateModal"
-              class="btn btn-primary"
               data-tour="groups-create-btn"
             >
               <Icon name="plus" size="md" class="mr-2" />
               {{ t("admin.groups.createGroup") }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -112,7 +111,7 @@
                 :class="[
                   'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
                   row.subscription_type === 'subscription'
-                    ? 'bg-violet-900/30 text-violet-400'
+                    ? 'bg-accent text-accent-foreground'
                     : 'bg-muted text-foreground/75',
                 ]"
               >
@@ -177,11 +176,11 @@
           </template>
 
           <template #cell-is_exclusive="{ value }">
-            <span :class="['badge', value ? 'badge-primary' : 'badge-gray']">
+            <Badge :variant="value ? 'secondary' : 'outline'">
               {{
                 value ? t("admin.groups.exclusive") : t("admin.groups.public")
               }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-account_count="{ row }">
@@ -191,7 +190,7 @@
                   t("admin.groups.accountsAvailable")
                 }}</span>
                 <span
-                  class="ml-1 font-medium text-emerald-400"
+                  class="ml-1 font-medium text-emerald-500"
                   >{{ row.active_account_count || 0 }}</span
                 >
                 <span
@@ -204,7 +203,7 @@
                   t("admin.groups.accountsRateLimited")
                 }}</span>
                 <span
-                  class="ml-1 font-medium text-amber-400"
+                  class="ml-1 font-medium text-amber-500"
                   >{{ row.rate_limited_account_count }}</span
                 >
                 <span
@@ -268,50 +267,56 @@
           </template>
 
           <template #cell-status="{ value }">
-            <span
-              :class="[
-                'badge',
-                value === 'active' ? 'badge-success' : 'badge-danger',
-              ]"
+            <Badge
+              variant="secondary"
+              :class="
+                value === 'active'
+                  ? 'bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/15'
+                  : 'bg-destructive/15 text-destructive hover:bg-destructive/15'
+              "
             >
               {{ t("admin.accounts.status." + value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
                 @click="handleEdit(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary-600"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <Icon name="edit" size="sm" />
                 <span class="text-xs">{{ t("common.edit") }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 @click="handleRateMultipliers(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-purple-400"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <Icon name="dollar" size="sm" />
                 <span class="text-xs">{{
                   t("admin.groups.rateMultipliers")
                 }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 @click="handleRPMOverrides(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-orange-400"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 <Icon name="bolt" size="sm" />
                 <span class="text-xs">{{
                   t("admin.groups.rpmOverrides")
                 }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 @click="handleDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-400"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="trash" size="sm" />
                 <span class="text-xs">{{ t("common.delete") }}</span>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -351,38 +356,36 @@
         class="space-y-5"
       >
         <div>
-          <label class="input-label">{{ t("admin.groups.form.name") }}</label>
-          <input
+          <Label class="mb-1.5 block">{{ t("admin.groups.form.name") }}</Label>
+          <Input
             v-model="createForm.name"
             type="text"
             required
-            class="input"
             :placeholder="t('admin.groups.enterGroupName')"
             data-tour="group-form-name"
           />
         </div>
         <div>
-          <label class="input-label">{{
+          <Label class="mb-1.5 block">{{
             t("admin.groups.form.description")
-          }}</label>
-          <textarea
+          }}</Label>
+          <Textarea
             v-model="createForm.description"
             rows="3"
-            class="input"
             :placeholder="t('admin.groups.optionalDescription')"
-          ></textarea>
+          ></Textarea>
         </div>
         <div>
-          <label class="input-label">{{
+          <Label class="mb-1.5 block">{{
             t("admin.groups.form.platform")
-          }}</label>
+          }}</Label>
           <Select
             v-model="createForm.platform"
             :options="platformOptions"
             data-tour="group-form-platform"
             @change="createForm.copy_accounts_from_group_ids = []"
           />
-          <p class="input-hint">{{ t("admin.groups.platformHint") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.platformHint") }}</p>
         </div>
         <!-- 从分组复制账号 -->
         <div v-if="copyAccountsGroupOptions.length > 0">
@@ -395,19 +398,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.copyAccounts.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -421,13 +424,14 @@
             <span
               v-for="groupId in createForm.copy_accounts_from_group_ids"
               :key="groupId"
-              class="inline-flex items-center gap-1 rounded-full bg-primary-900/30 px-2.5 py-1 text-xs font-medium text-primary-300  "
+              class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground  "
             >
               {{
                 copyAccountsGroupOptions.find((o) => o.value === groupId)
                   ?.label || `#${groupId}`
               }}
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 @click="
                   createForm.copy_accounts_from_group_ids =
@@ -435,15 +439,15 @@
                       (id) => id !== groupId,
                     )
                 "
-                class="ml-0.5 text-primary-500 hover:text-primary-700"
+                class="ml-0.5 h-auto w-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               >
                 <Icon name="x" size="xs" />
-              </button>
+              </Button>
             </span>
           </div>
           <!-- 分组选择下拉 -->
           <select
-            class="input"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             @change="
               (e) => {
                 const val = Number((e.target as HTMLSelectElement).value);
@@ -471,34 +475,32 @@
               {{ opt.label }}
             </option>
           </select>
-          <p class="input-hint">{{ t("admin.groups.copyAccounts.hint") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.copyAccounts.hint") }}</p>
         </div>
         <div>
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.form.rateMultiplier")
           }}</label>
-          <input
+          <Input
             v-model.number="createForm.rate_multiplier"
             type="number"
             step="0.001"
             min="0.001"
             required
-            class="input"
             data-tour="group-form-multiplier"
           />
-          <p class="input-hint">{{ t("admin.groups.rateMultiplierHint") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.rateMultiplierHint") }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t("admin.groups.form.rpmLimit") }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t("admin.groups.form.rpmLimit") }}</label>
+          <Input
             v-model.number="createForm.rpm_limit"
             type="number"
             min="0"
             step="1"
-            class="input"
             :placeholder="t('admin.groups.form.rpmLimitPlaceholder')"
           />
-          <p class="input-hint">{{ t("admin.groups.form.rpmLimitHint") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.form.rpmLimitHint") }}</p>
         </div>
         <div
           v-if="createForm.subscription_type !== 'subscription'"
@@ -514,14 +516,14 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <!-- Tooltip Popover -->
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="mb-2 text-xs font-medium">
                     {{ t("admin.groups.exclusiveTooltip.title") }}
@@ -532,7 +534,7 @@
                   <div class="rounded bg-card p-2">
                     <p class="text-xs leading-relaxed text-foreground/75">
                       <span
-                        class="inline-flex items-center gap-1 text-primary-400"
+                        class="inline-flex items-center gap-1 text-foreground"
                         ><Icon name="lightbulb" size="xs" />
                         {{ t("admin.groups.exclusiveTooltip.example") }}</span
                       >
@@ -541,30 +543,14 @@
                   </div>
                   <!-- Arrow -->
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="createForm.is_exclusive = !createForm.is_exclusive"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                createForm.is_exclusive
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  createForm.is_exclusive ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="createForm.is_exclusive" />
             <span class="text-sm text-muted-foreground">
               {{
                 createForm.is_exclusive
@@ -578,14 +564,14 @@
         <!-- Subscription Configuration -->
         <div class="mt-4 border-t pt-4">
           <div>
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.subscription.type")
             }}</label>
             <Select
               v-model="createForm.subscription_type"
               :options="subscriptionTypeOptions"
             />
-            <p class="input-hint">
+            <p class="mt-1 text-xs text-muted-foreground">
               {{ t("admin.groups.subscription.typeHint") }}
             </p>
           </div>
@@ -593,44 +579,41 @@
           <!-- Subscription limits (only show when subscription type is selected) -->
           <div
             v-if="createForm.subscription_type === 'subscription'"
-            class="space-y-4 border-l-2 border-primary-800 pl-4"
+            class="space-y-4 border-l-2 border-border pl-4"
           >
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.dailyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="createForm.daily_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.weeklyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="createForm.weekly_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.monthlyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="createForm.monthly_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
@@ -647,23 +630,7 @@
                 {{ t("admin.groups.modelsList.hint") }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="createModelsListState.enabled = !createModelsListState.enabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors',
-                createModelsListState.enabled
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  createModelsListState.enabled ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="createModelsListState.enabled" />
           </div>
           <div
             v-if="createModelsListState.enabled"
@@ -678,20 +645,22 @@
                 {{ createModelsListState.items.length }}
               </span>
               <div class="flex items-center gap-1.5">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
-                  class="rounded px-2 py-1 font-medium text-primary-400 transition-colors hover:bg-primary-50 "
+                  class="h-auto px-2 py-1 font-medium text-foreground hover:bg-accent"
                   @click="selectAllModelsListItems(createModelsListState)"
                 >
                   全选
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
-                  class="rounded px-2 py-1 font-medium text-foreground/75 transition-colors hover:bg-muted"
+                  class="h-auto px-2 py-1 font-medium text-foreground/75 hover:bg-muted"
                   @click="invertModelsListSelection(createModelsListState)"
                 >
                   反选
-                </button>
+                </Button>
               </div>
             </div>
             <div
@@ -711,30 +680,30 @@
                 :key="item.id"
                 class="flex items-center gap-2 rounded border border-border bg-card px-3 py-2  "
               >
-                <input
+                <Checkbox
                   v-model="item.selected"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
-                />
+                  class="h-4 w-4 rounded border-border text-primary focus:ring-ring" />
                 <span class="min-w-0 flex-1 break-all text-sm text-foreground/85">
                   {{ item.id }}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   :disabled="index === 0"
-                  class="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
+                  class="h-auto w-auto p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
                   @click="moveCreateModelsListItem(index, index - 1)"
                 >
                   <Icon name="arrowUp" size="sm" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   :disabled="index === createModelsListState.items.length - 1"
-                  class="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
+                  class="h-auto w-auto p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
                   @click="moveCreateModelsListItem(index, index + 1)"
                 >
                   <Icon name="arrowDown" size="sm" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -759,19 +728,15 @@
           </p>
           <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             <label class="flex items-center gap-2 text-sm text-foreground/85">
-              <input
+              <Checkbox
                 v-model="createForm.allow_image_generation"
-                type="checkbox"
-                class="rounded border-border text-sky-400 focus:ring-blue-500"
-              />
+                class="rounded border-border text-primary focus:ring-ring" />
               {{ t("admin.groups.imagePricing.allowImageGeneration") }}
             </label>
             <label class="flex items-center gap-2 text-sm text-foreground/85">
-              <input
+              <Checkbox
                 v-model="createForm.image_rate_independent"
-                type="checkbox"
-                class="rounded border-border text-sky-400 focus:ring-blue-500"
-              />
+                class="rounded border-border text-primary focus:ring-ring" />
               {{ t("admin.groups.imagePricing.independentMultiplier") }}
             </label>
           </div>
@@ -779,49 +744,45 @@
             v-if="createForm.image_rate_independent"
             class="mb-4"
           >
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.imagePricing.imageMultiplier")
             }}</label>
-            <input
+            <Input
               v-model.number="createForm.image_rate_multiplier"
               type="number"
               step="0.0001"
               min="0"
-              class="input"
               placeholder="1"
             />
           </div>
           <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="input-label">1K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">1K ($)</label>
+              <Input
                 v-model.number="createForm.image_price_1k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.134"
               />
             </div>
             <div>
-              <label class="input-label">2K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">2K ($)</label>
+              <Input
                 v-model.number="createForm.image_price_2k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.201"
               />
             </div>
             <div>
-              <label class="input-label">4K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">4K ($)</label>
+              <Input
                 v-model.number="createForm.image_price_4k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.268"
               />
             </div>
@@ -856,19 +817,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.supportedScopes.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -876,37 +837,34 @@
           </div>
           <div class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="createForm.supported_model_scopes.includes('claude')"
-                @change="toggleCreateScope('claude')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+              <Checkbox
+                :model-value="createForm.supported_model_scopes.includes('claude')"
+                @update:model-value="toggleCreateScope('claude')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.claude")
               }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="
+              <Checkbox
+                :model-value="
                   createForm.supported_model_scopes.includes('gemini_text')
                 "
-                @change="toggleCreateScope('gemini_text')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+                @update:model-value="toggleCreateScope('gemini_text')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.geminiText")
               }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="
+              <Checkbox
+                :model-value="
                   createForm.supported_model_scopes.includes('gemini_image')
                 "
-                @change="toggleCreateScope('gemini_image')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+                @update:model-value="toggleCreateScope('gemini_image')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.geminiImage")
@@ -929,42 +887,26 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.mcpXml.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="createForm.mcp_xml_inject = !createForm.mcp_xml_inject"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                createForm.mcp_xml_inject
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  createForm.mcp_xml_inject ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="createForm.mcp_xml_inject" />
             <span class="text-sm text-muted-foreground">
               {{
                 createForm.mcp_xml_inject
@@ -987,46 +929,26 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.claudeCode.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="
-                createForm.claude_code_only = !createForm.claude_code_only
-              "
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                createForm.claude_code_only
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  createForm.claude_code_only
-                    ? 'translate-x-6'
-                    : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="createForm.claude_code_only" />
             <span class="text-sm text-muted-foreground">
               {{
                 createForm.claude_code_only
@@ -1037,7 +959,7 @@
           </div>
           <!-- 降级分组选择（仅当启用 claude_code_only 时显示） -->
           <div v-if="createForm.claude_code_only" class="mt-3">
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.claudeCode.fallbackGroup")
             }}</label>
             <Select
@@ -1045,7 +967,7 @@
               :options="fallbackGroupOptions"
               :placeholder="t('admin.groups.claudeCode.noFallback')"
             />
-            <p class="input-hint">
+            <p class="mt-1 text-xs text-muted-foreground">
               {{ t("admin.groups.claudeCode.fallbackHint") }}
             </p>
           </div>
@@ -1065,28 +987,7 @@
             <label class="text-sm text-foreground/75">{{
               t("admin.groups.openaiMessages.allowDispatch")
             }}</label>
-            <button
-              type="button"
-              @click="
-                createForm.allow_messages_dispatch =
-                  !createForm.allow_messages_dispatch
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                createForm.allow_messages_dispatch
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  createForm.allow_messages_dispatch
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="createForm.allow_messages_dispatch" />
           </div>
           <p class="text-xs text-muted-foreground mt-1">
             {{ t("admin.groups.openaiMessages.allowDispatchHint") }}
@@ -1100,7 +1001,7 @@
                 class="border-b border-border bg-card/80 px-4 py-3  "
               >
                 <div class="flex items-center gap-2">
-                  <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <div class="h-2 w-2 rounded-full bg-primary"></div>
                   <label
                     class="text-sm font-medium text-foreground"
                     >{{
@@ -1115,42 +1016,39 @@
               <div class="p-4">
                 <div class="grid gap-4 md:grid-cols-3">
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.opusModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="createForm.opus_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.opusModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.sonnetModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="createForm.sonnet_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.sonnetModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.haikuModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="createForm.haiku_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.haikuModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                 </div>
@@ -1158,24 +1056,24 @@
             </div>
 
             <div
-              class="mt-5 relative overflow-hidden rounded-lg border border-primary-900/50 bg-card shadow-sm  "
+              class="mt-5 relative overflow-hidden rounded-lg border border-border bg-card shadow-sm  "
             >
               <div
-                class="border-b border-primary-900/40 bg-primary-900/20 px-4 py-3"
+                class="border-b border-border bg-muted px-4 py-3"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div>
                     <div class="flex items-center gap-2">
-                      <div class="h-2 w-2 rounded-full bg-primary-500"></div>
+                      <div class="h-2 w-2 rounded-full bg-primary"></div>
                       <label
-                        class="text-sm font-medium text-primary-100"
+                        class="text-sm font-medium text-foreground"
                         >{{
                           t("admin.groups.openaiMessages.exactMappingTitle")
                         }}</label
                       >
                     </div>
                     <p
-                      class="mt-1 text-xs text-primary-400/90"
+                      class="mt-1 text-xs text-muted-foreground"
                     >
                       {{ t("admin.groups.openaiMessages.exactMappingHint") }}
                     </p>
@@ -1186,48 +1084,48 @@
               <div class="p-4 bg-card/30 ">
                 <div
                   v-if="createForm.exact_model_mappings.length === 0"
-                  class="flex items-center justify-between gap-3 rounded-lg border-2 border-dashed border-primary-900/40 bg-card px-5 py-4 text-sm text-primary-300 transition-colors hover:border-primary-300   "
+                  class="flex items-center justify-between gap-3 rounded-lg border-2 border-dashed border-border bg-card px-5 py-4 text-sm text-muted-foreground transition-colors hover:border-foreground/30   "
                 >
                   <span>{{
                     t("admin.groups.openaiMessages.noExactMappings")
                   }}</span>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     @click="addCreateMessagesDispatchMapping"
-                    class="flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-primary-400"
+                    class="h-auto gap-1.5 p-0 text-sm font-medium text-foreground hover:bg-transparent hover:text-foreground/80"
                   >
                     <Icon name="plus" size="sm" />
                     {{ t("admin.groups.openaiMessages.addExactMapping") }}
-                  </button>
+                  </Button>
                 </div>
 
                 <div v-else class="space-y-3">
                   <div
                     v-for="row in createForm.exact_model_mappings"
                     :key="getCreateMessagesDispatchRowKey(row)"
-                    class="group relative rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-primary-300 hover:shadow-md  "
+                    class="group relative rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-foreground/30 hover:shadow-md  "
                   >
                     <div class="flex items-center gap-4">
                       <div
                         class="grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start"
                       >
                         <div>
-                          <label class="input-label">{{
+                          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                             t("admin.groups.openaiMessages.claudeModel")
                           }}</label>
-                          <input
+                          <Input
                             v-model="row.claude_model"
                             type="text"
                             :placeholder="
                               t(
                                 'admin.groups.openaiMessages.claudeModelPlaceholder',
                               )
-                            "
-                            class="input bg-card focus:bg-card "
+                            " class="bg-card focus:bg-card"
                           />
                         </div>
                         <div
-                          class="hidden md:flex md:justify-center md:pt-7 text-primary-700"
+                          class="hidden md:flex md:justify-center md:pt-7 text-muted-foreground"
                         >
                           <Icon
                             name="arrowRight"
@@ -1236,42 +1134,44 @@
                           />
                         </div>
                         <div>
-                          <label class="input-label">{{
+                          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                             t("admin.groups.openaiMessages.targetModel")
                           }}</label>
-                          <input
+                          <Input
                             v-model="row.target_model"
                             type="text"
                             :placeholder="
                               t(
                                 'admin.groups.openaiMessages.targetModelPlaceholder',
                               )
-                            "
-                            class="input bg-card focus:bg-card "
+                            " class="bg-card focus:bg-card"
                           />
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         type="button"
                         @click="removeCreateMessagesDispatchMapping(row)"
-                        class="mt-6 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-400"
+                        class="mt-6 h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         :title="
                           t('admin.groups.openaiMessages.removeExactMapping')
                         "
                       >
                         <Icon name="trash" size="sm" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     @click="addCreateMessagesDispatchMapping"
-                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-card py-3 text-sm font-medium text-muted-foreground transition-all hover:border-primary-300 hover:bg-primary-50/50 hover:text-primary-600  "
+                    class="h-auto w-full gap-2 rounded-lg border-2 border-dashed border-border bg-card py-3 text-sm font-medium text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground"
                   >
                     <Icon name="plus" size="sm" />
                     {{ t("admin.groups.openaiMessages.addExactMapping") }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1305,27 +1205,7 @@
                 }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="
-                createForm.require_oauth_only = !createForm.require_oauth_only
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                createForm.require_oauth_only
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  createForm.require_oauth_only
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="createForm.require_oauth_only" />
           </div>
 
           <!-- require_privacy_set toggle -->
@@ -1342,27 +1222,7 @@
                 }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="
-                createForm.require_privacy_set = !createForm.require_privacy_set
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                createForm.require_privacy_set
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  createForm.require_privacy_set
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="createForm.require_privacy_set" />
           </div>
         </div>
 
@@ -1374,7 +1234,7 @@
           "
           class="border-t pt-4"
         >
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.invalidRequestFallback.title")
           }}</label>
           <Select
@@ -1382,7 +1242,7 @@
             :options="invalidRequestFallbackOptions"
             :placeholder="t('admin.groups.invalidRequestFallback.noFallback')"
           />
-          <p class="input-hint">
+          <p class="mt-1 text-xs text-muted-foreground">
             {{ t("admin.groups.invalidRequestFallback.hint") }}
           </p>
         </div>
@@ -1399,19 +1259,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-80 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.modelRouting.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -1419,28 +1279,7 @@
           </div>
           <!-- 启用开关 -->
           <div class="flex items-center gap-3 mb-3">
-            <button
-              type="button"
-              @click="
-                createForm.model_routing_enabled =
-                  !createForm.model_routing_enabled
-              "
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                createForm.model_routing_enabled
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  createForm.model_routing_enabled
-                    ? 'translate-x-6'
-                    : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="createForm.model_routing_enabled" />
             <span class="text-sm text-muted-foreground">
               {{
                 createForm.model_routing_enabled
@@ -1468,20 +1307,19 @@
               <div class="flex items-start gap-3">
                 <div class="flex-1 space-y-2">
                   <div>
-                    <label class="input-label text-xs">{{
+                    <label class="mb-1.5 block text-xs font-medium text-foreground">{{
                       t("admin.groups.modelRouting.modelPattern")
                     }}</label>
-                    <input
+                    <Input
                       v-model="rule.pattern"
-                      type="text"
-                      class="input text-sm"
+                      type="text" class="text-sm"
                       :placeholder="
                         t('admin.groups.modelRouting.modelPatternPlaceholder')
                       "
                     />
                   </div>
                   <div>
-                    <label class="input-label text-xs">{{
+                    <label class="mb-1.5 block text-xs font-medium text-foreground">{{
                       t("admin.groups.modelRouting.accounts")
                     }}</label>
                     <!-- 已选账号标签 -->
@@ -1492,26 +1330,25 @@
                       <span
                         v-for="account in rule.accounts"
                         :key="account.id"
-                        class="inline-flex items-center gap-1 rounded-full bg-primary-900/30 px-2.5 py-1 text-xs font-medium text-primary-300  "
+                        class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground  "
                       >
                         {{ account.name }}
-                        <button
+                        <Button variant="ghost"
                           type="button"
                           @click="removeSelectedAccount(rule, account.id)"
-                          class="ml-0.5 text-primary-500 hover:text-primary-700"
-                        >
+                          
+                        class="ml-0.5 h-auto w-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground">
                           <Icon name="x" size="xs" />
-                        </button>
+                        </Button>
                       </span>
                     </div>
                     <!-- 账号搜索输入框 -->
                     <div class="relative account-search-container">
-                      <input
+                      <Input
                         v-model="
                           accountSearchKeyword[getCreateRuleSearchKey(rule)]
                         "
-                        type="text"
-                        class="input text-sm"
+                        type="text" class="text-sm"
                         :placeholder="
                           t(
                             'admin.groups.modelRouting.searchAccountPlaceholder',
@@ -1529,14 +1366,15 @@
                         "
                         class="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-lg border bg-card shadow-lg  "
                       >
-                        <button
+                        <Button
                           v-for="account in accountSearchResults[
                             getCreateRuleSearchKey(rule)
                           ]"
                           :key="account.id"
+                          variant="ghost"
                           type="button"
                           @click="selectAccount(rule, account)"
-                          class="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                          class="h-auto w-full justify-start rounded-none px-3 py-2 text-left text-sm font-normal hover:bg-muted"
                           :class="{
                             'opacity-50': rule.accounts.some(
                               (a) => a.id === account.id,
@@ -1550,7 +1388,7 @@
                           <span class="ml-2 text-xs text-muted-foreground"
                             >#{{ account.id }}</span
                           >
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <p class="text-xs text-muted-foreground mt-1">
@@ -1558,44 +1396,46 @@
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   @click="removeCreateRoutingRule(rule)"
-                  class="mt-5 p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
+                  class="mt-5 h-auto w-auto p-1.5 text-muted-foreground hover:bg-transparent hover:text-destructive"
                   :title="t('admin.groups.modelRouting.removeRule')"
                 >
                   <Icon name="trash" size="sm" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
           <!-- 添加规则按钮（仅在启用时显示） -->
-          <button
+          <Button
             v-if="createForm.model_routing_enabled"
+            variant="ghost"
             type="button"
             @click="addCreateRoutingRule"
-            class="mt-3 flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-400"
+            class="mt-3 h-auto gap-1.5 p-0 text-sm text-foreground hover:bg-transparent hover:text-foreground/80"
           >
             <Icon name="plus" size="sm" />
             {{ t("admin.groups.modelRouting.addRule") }}
-          </button>
+          </Button>
         </div>
       </form>
 
       <template #footer>
         <div class="flex justify-end gap-3 pt-4">
-          <button
+          <Button
+            variant="secondary"
             @click="closeCreateModal"
             type="button"
-            class="btn btn-secondary"
           >
             {{ t("common.cancel") }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="create-group-form"
             :disabled="submitting"
-            class="btn btn-primary"
             data-tour="group-form-submit"
           >
             <svg
@@ -1619,7 +1459,7 @@
               ></path>
             </svg>
             {{ submitting ? t("admin.groups.creating") : t("common.create") }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -1638,27 +1478,25 @@
         class="space-y-5"
       >
         <div>
-          <label class="input-label">{{ t("admin.groups.form.name") }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t("admin.groups.form.name") }}</label>
+          <Input
             v-model="editForm.name"
             type="text"
             required
-            class="input"
             data-tour="edit-group-form-name"
           />
         </div>
         <div>
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.form.description")
           }}</label>
-          <textarea
+          <Textarea
             v-model="editForm.description"
             rows="3"
-            class="input"
-          ></textarea>
+          ></Textarea>
         </div>
         <div>
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.form.platform")
           }}</label>
           <Select
@@ -1667,7 +1505,7 @@
             :disabled="true"
             data-tour="group-form-platform"
           />
-          <p class="input-hint">{{ t("admin.groups.platformNotEditable") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.platformNotEditable") }}</p>
         </div>
         <!-- 从分组复制账号（编辑时） -->
         <div v-if="copyAccountsGroupOptionsForEdit.length > 0">
@@ -1680,19 +1518,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.copyAccounts.tooltipEdit") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -1706,13 +1544,14 @@
             <span
               v-for="groupId in editForm.copy_accounts_from_group_ids"
               :key="groupId"
-              class="inline-flex items-center gap-1 rounded-full bg-primary-900/30 px-2.5 py-1 text-xs font-medium text-primary-300  "
+              class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground  "
             >
               {{
                 copyAccountsGroupOptionsForEdit.find((o) => o.value === groupId)
                   ?.label || `#${groupId}`
               }}
-              <button
+              <Button
+                variant="ghost"
                 type="button"
                 @click="
                   editForm.copy_accounts_from_group_ids =
@@ -1720,15 +1559,15 @@
                       (id) => id !== groupId,
                     )
                 "
-                class="ml-0.5 text-primary-500 hover:text-primary-700"
+                class="ml-0.5 h-auto w-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               >
                 <Icon name="x" size="xs" />
-              </button>
+              </Button>
             </span>
           </div>
           <!-- 分组选择下拉 -->
           <select
-            class="input"
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             @change="
               (e) => {
                 const val = Number((e.target as HTMLSelectElement).value);
@@ -1756,35 +1595,33 @@
               {{ opt.label }}
             </option>
           </select>
-          <p class="input-hint">
+          <p class="mt-1 text-xs text-muted-foreground">
             {{ t("admin.groups.copyAccounts.hintEdit") }}
           </p>
         </div>
         <div>
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.form.rateMultiplier")
           }}</label>
-          <input
+          <Input
             v-model.number="editForm.rate_multiplier"
             type="number"
             step="0.001"
             min="0.001"
             required
-            class="input"
             data-tour="group-form-multiplier"
           />
         </div>
         <div>
-          <label class="input-label">{{ t("admin.groups.form.rpmLimit") }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t("admin.groups.form.rpmLimit") }}</label>
+          <Input
             v-model.number="editForm.rpm_limit"
             type="number"
             min="0"
             step="1"
-            class="input"
             :placeholder="t('admin.groups.form.rpmLimitPlaceholder')"
           />
-          <p class="input-hint">{{ t("admin.groups.form.rpmLimitHint") }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t("admin.groups.form.rpmLimitHint") }}</p>
         </div>
         <div v-if="editForm.subscription_type !== 'subscription'">
           <div class="mb-1.5 flex items-center gap-1">
@@ -1797,14 +1634,14 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <!-- Tooltip Popover -->
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="mb-2 text-xs font-medium">
                     {{ t("admin.groups.exclusiveTooltip.title") }}
@@ -1815,7 +1652,7 @@
                   <div class="rounded bg-card p-2">
                     <p class="text-xs leading-relaxed text-foreground/75">
                       <span
-                        class="inline-flex items-center gap-1 text-primary-400"
+                        class="inline-flex items-center gap-1 text-foreground"
                         ><Icon name="lightbulb" size="xs" />
                         {{ t("admin.groups.exclusiveTooltip.example") }}</span
                       >
@@ -1824,30 +1661,14 @@
                   </div>
                   <!-- Arrow -->
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="editForm.is_exclusive = !editForm.is_exclusive"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                editForm.is_exclusive
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  editForm.is_exclusive ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="editForm.is_exclusive" />
             <span class="text-sm text-muted-foreground">
               {{
                 editForm.is_exclusive
@@ -1858,14 +1679,14 @@
           </div>
         </div>
         <div>
-          <label class="input-label">{{ t("admin.groups.form.status") }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t("admin.groups.form.status") }}</label>
           <Select v-model="editForm.status" :options="editStatusOptions" />
         </div>
 
         <!-- Subscription Configuration -->
         <div class="mt-4 border-t pt-4">
           <div>
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.subscription.type")
             }}</label>
             <Select
@@ -1873,7 +1694,7 @@
               :options="subscriptionTypeOptions"
               :disabled="true"
             />
-            <p class="input-hint">
+            <p class="mt-1 text-xs text-muted-foreground">
               {{ t("admin.groups.subscription.typeNotEditable") }}
             </p>
           </div>
@@ -1881,44 +1702,41 @@
           <!-- Subscription limits (only show when subscription type is selected) -->
           <div
             v-if="editForm.subscription_type === 'subscription'"
-            class="space-y-4 border-l-2 border-primary-800 pl-4"
+            class="space-y-4 border-l-2 border-border pl-4"
           >
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.dailyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="editForm.daily_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.weeklyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="editForm.weekly_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
             <div>
-              <label class="input-label">{{
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                 t("admin.groups.subscription.monthlyLimit")
               }}</label>
-              <input
+              <Input
                 v-model.number="editForm.monthly_limit_usd"
                 type="number"
                 step="0.01"
                 min="0"
-                class="input"
                 :placeholder="t('admin.groups.subscription.noLimit')"
               />
             </div>
@@ -1935,23 +1753,7 @@
                 {{ t("admin.groups.modelsList.hint") }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="editModelsListState.enabled = !editModelsListState.enabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors',
-                editModelsListState.enabled
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  editModelsListState.enabled ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="editModelsListState.enabled" />
           </div>
           <div
             v-if="editModelsListState.enabled"
@@ -1966,20 +1768,22 @@
                 {{ editModelsListState.items.length }}
               </span>
               <div class="flex items-center gap-1.5">
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
-                  class="rounded px-2 py-1 font-medium text-primary-400 transition-colors hover:bg-primary-50 "
+                  class="h-auto px-2 py-1 font-medium text-foreground hover:bg-accent"
                   @click="selectAllModelsListItems(editModelsListState)"
                 >
                   全选
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
-                  class="rounded px-2 py-1 font-medium text-foreground/75 transition-colors hover:bg-muted"
+                  class="h-auto px-2 py-1 font-medium text-foreground/75 hover:bg-muted"
                   @click="invertModelsListSelection(editModelsListState)"
                 >
                   反选
-                </button>
+                </Button>
               </div>
             </div>
             <div
@@ -1999,30 +1803,30 @@
                 :key="item.id"
                 class="flex items-center gap-2 rounded border border-border bg-card px-3 py-2  "
               >
-                <input
+                <Checkbox
                   v-model="item.selected"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500"
-                />
+                  class="h-4 w-4 rounded border-border text-primary focus:ring-ring" />
                 <span class="min-w-0 flex-1 break-all text-sm text-foreground/85">
                   {{ item.id }}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   :disabled="index === 0"
-                  class="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
+                  class="h-auto w-auto p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
                   @click="moveEditModelsListItem(index, index - 1)"
                 >
                   <Icon name="arrowUp" size="sm" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   :disabled="index === editModelsListState.items.length - 1"
-                  class="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
+                  class="h-auto w-auto p-1 text-muted-foreground hover:bg-muted hover:text-foreground/85 disabled:opacity-40"
                   @click="moveEditModelsListItem(index, index + 1)"
                 >
                   <Icon name="arrowDown" size="sm" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -2047,19 +1851,15 @@
           </p>
           <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             <label class="flex items-center gap-2 text-sm text-foreground/85">
-              <input
+              <Checkbox
                 v-model="editForm.allow_image_generation"
-                type="checkbox"
-                class="rounded border-border text-sky-400 focus:ring-blue-500"
-              />
+                class="rounded border-border text-primary focus:ring-ring" />
               {{ t("admin.groups.imagePricing.allowImageGeneration") }}
             </label>
             <label class="flex items-center gap-2 text-sm text-foreground/85">
-              <input
+              <Checkbox
                 v-model="editForm.image_rate_independent"
-                type="checkbox"
-                class="rounded border-border text-sky-400 focus:ring-blue-500"
-              />
+                class="rounded border-border text-primary focus:ring-ring" />
               {{ t("admin.groups.imagePricing.independentMultiplier") }}
             </label>
           </div>
@@ -2067,49 +1867,45 @@
             v-if="editForm.image_rate_independent"
             class="mb-4"
           >
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.imagePricing.imageMultiplier")
             }}</label>
-            <input
+            <Input
               v-model.number="editForm.image_rate_multiplier"
               type="number"
               step="0.0001"
               min="0"
-              class="input"
               placeholder="1"
             />
           </div>
           <div class="grid grid-cols-3 gap-3">
             <div>
-              <label class="input-label">1K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">1K ($)</label>
+              <Input
                 v-model.number="editForm.image_price_1k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.134"
               />
             </div>
             <div>
-              <label class="input-label">2K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">2K ($)</label>
+              <Input
                 v-model.number="editForm.image_price_2k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.201"
               />
             </div>
             <div>
-              <label class="input-label">4K ($)</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">4K ($)</label>
+              <Input
                 v-model.number="editForm.image_price_4k"
                 type="number"
                 step="0.001"
                 min="0"
-                class="input"
                 placeholder="0.268"
               />
             </div>
@@ -2144,19 +1940,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.supportedScopes.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -2164,37 +1960,34 @@
           </div>
           <div class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="editForm.supported_model_scopes.includes('claude')"
-                @change="toggleEditScope('claude')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+              <Checkbox
+                :model-value="editForm.supported_model_scopes.includes('claude')"
+                @update:model-value="toggleEditScope('claude')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.claude")
               }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="
+              <Checkbox
+                :model-value="
                   editForm.supported_model_scopes.includes('gemini_text')
                 "
-                @change="toggleEditScope('gemini_text')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+                @update:model-value="toggleEditScope('gemini_text')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.geminiText")
               }}</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="
+              <Checkbox
+                :model-value="
                   editForm.supported_model_scopes.includes('gemini_image')
                 "
-                @change="toggleEditScope('gemini_image')"
-                class="h-4 w-4 rounded border-border text-primary-600 focus:ring-primary-500  "
+                @update:model-value="toggleEditScope('gemini_image')"
+                class="h-4 w-4 rounded border-border text-primary focus:ring-ring  "
               />
               <span class="text-sm text-foreground/85">{{
                 t("admin.groups.supportedScopes.geminiImage")
@@ -2217,42 +2010,26 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.mcpXml.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="editForm.mcp_xml_inject = !editForm.mcp_xml_inject"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                editForm.mcp_xml_inject
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  editForm.mcp_xml_inject ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="editForm.mcp_xml_inject" />
             <span class="text-sm text-muted-foreground">
               {{
                 editForm.mcp_xml_inject
@@ -2275,42 +2052,26 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-72 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.claudeCode.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="editForm.claude_code_only = !editForm.claude_code_only"
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                editForm.claude_code_only
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  editForm.claude_code_only ? 'translate-x-6' : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="editForm.claude_code_only" />
             <span class="text-sm text-muted-foreground">
               {{
                 editForm.claude_code_only
@@ -2321,7 +2082,7 @@
           </div>
           <!-- 降级分组选择（仅当启用 claude_code_only 时显示） -->
           <div v-if="editForm.claude_code_only" class="mt-3">
-            <label class="input-label">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{
               t("admin.groups.claudeCode.fallbackGroup")
             }}</label>
             <Select
@@ -2329,7 +2090,7 @@
               :options="fallbackGroupOptionsForEdit"
               :placeholder="t('admin.groups.claudeCode.noFallback')"
             />
-            <p class="input-hint">
+            <p class="mt-1 text-xs text-muted-foreground">
               {{ t("admin.groups.claudeCode.fallbackHint") }}
             </p>
           </div>
@@ -2349,28 +2110,7 @@
             <label class="text-sm text-foreground/75">{{
               t("admin.groups.openaiMessages.allowDispatch")
             }}</label>
-            <button
-              type="button"
-              @click="
-                editForm.allow_messages_dispatch =
-                  !editForm.allow_messages_dispatch
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                editForm.allow_messages_dispatch
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  editForm.allow_messages_dispatch
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="editForm.allow_messages_dispatch" />
           </div>
           <p class="text-xs text-muted-foreground mt-1">
             {{ t("admin.groups.openaiMessages.allowDispatchHint") }}
@@ -2384,7 +2124,7 @@
                 class="border-b border-border bg-card/80 px-4 py-3  "
               >
                 <div class="flex items-center gap-2">
-                  <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <div class="h-2 w-2 rounded-full bg-primary"></div>
                   <label
                     class="text-sm font-medium text-foreground"
                     >{{
@@ -2399,42 +2139,39 @@
               <div class="p-4">
                 <div class="grid gap-4 md:grid-cols-3">
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.opusModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="editForm.opus_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.opusModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.sonnetModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="editForm.sonnet_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.sonnetModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                   <div>
-                    <label class="input-label">{{
+                    <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                       t("admin.groups.openaiMessages.haikuModel")
                     }}</label>
-                    <input
+                    <Input
                       v-model="editForm.haiku_mapped_model"
                       type="text"
                       :placeholder="
                         t('admin.groups.openaiMessages.haikuModelPlaceholder')
                       "
-                      class="input"
                     />
                   </div>
                 </div>
@@ -2442,24 +2179,24 @@
             </div>
 
             <div
-              class="mt-5 relative overflow-hidden rounded-lg border border-primary-900/50 bg-card shadow-sm  "
+              class="mt-5 relative overflow-hidden rounded-lg border border-border bg-card shadow-sm  "
             >
               <div
-                class="border-b border-primary-900/40 bg-primary-900/20 px-4 py-3"
+                class="border-b border-border bg-muted px-4 py-3"
               >
                 <div class="flex items-start justify-between gap-3">
                   <div>
                     <div class="flex items-center gap-2">
-                      <div class="h-2 w-2 rounded-full bg-primary-500"></div>
+                      <div class="h-2 w-2 rounded-full bg-primary"></div>
                       <label
-                        class="text-sm font-medium text-primary-100"
+                        class="text-sm font-medium text-foreground"
                         >{{
                           t("admin.groups.openaiMessages.exactMappingTitle")
                         }}</label
                       >
                     </div>
                     <p
-                      class="mt-1 text-xs text-primary-400/90"
+                      class="mt-1 text-xs text-muted-foreground"
                     >
                       {{ t("admin.groups.openaiMessages.exactMappingHint") }}
                     </p>
@@ -2470,48 +2207,48 @@
               <div class="p-4 bg-card/30 ">
                 <div
                   v-if="editForm.exact_model_mappings.length === 0"
-                  class="flex items-center justify-between gap-3 rounded-lg border-2 border-dashed border-primary-900/40 bg-card px-5 py-4 text-sm text-primary-300 transition-colors hover:border-primary-300   "
+                  class="flex items-center justify-between gap-3 rounded-lg border-2 border-dashed border-border bg-card px-5 py-4 text-sm text-muted-foreground transition-colors hover:border-foreground/30   "
                 >
                   <span>{{
                     t("admin.groups.openaiMessages.noExactMappings")
                   }}</span>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     @click="addEditMessagesDispatchMapping"
-                    class="flex items-center gap-1.5 text-sm font-medium text-primary-600 transition-colors hover:text-primary-400"
+                    class="h-auto gap-1.5 p-0 text-sm font-medium text-foreground hover:bg-transparent hover:text-foreground/80"
                   >
                     <Icon name="plus" size="sm" />
                     {{ t("admin.groups.openaiMessages.addExactMapping") }}
-                  </button>
+                  </Button>
                 </div>
 
                 <div v-else class="space-y-3">
                   <div
                     v-for="row in editForm.exact_model_mappings"
                     :key="getEditMessagesDispatchRowKey(row)"
-                    class="group relative rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-primary-300 hover:shadow-md  "
+                    class="group relative rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-foreground/30 hover:shadow-md  "
                   >
                     <div class="flex items-center gap-4">
                       <div
                         class="grid flex-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start"
                       >
                         <div>
-                          <label class="input-label">{{
+                          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                             t("admin.groups.openaiMessages.claudeModel")
                           }}</label>
-                          <input
+                          <Input
                             v-model="row.claude_model"
                             type="text"
                             :placeholder="
                               t(
                                 'admin.groups.openaiMessages.claudeModelPlaceholder',
                               )
-                            "
-                            class="input bg-card focus:bg-card "
+                            " class="bg-card focus:bg-card"
                           />
                         </div>
                         <div
-                          class="hidden md:flex md:justify-center md:pt-7 text-primary-700"
+                          class="hidden md:flex md:justify-center md:pt-7 text-muted-foreground"
                         >
                           <Icon
                             name="arrowRight"
@@ -2520,42 +2257,44 @@
                           />
                         </div>
                         <div>
-                          <label class="input-label">{{
+                          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
                             t("admin.groups.openaiMessages.targetModel")
                           }}</label>
-                          <input
+                          <Input
                             v-model="row.target_model"
                             type="text"
                             :placeholder="
                               t(
                                 'admin.groups.openaiMessages.targetModelPlaceholder',
                               )
-                            "
-                            class="input bg-card focus:bg-card "
+                            " class="bg-card focus:bg-card"
                           />
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         type="button"
                         @click="removeEditMessagesDispatchMapping(row)"
-                        class="mt-6 flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-400"
+                        class="mt-6 h-9 w-9 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         :title="
                           t('admin.groups.openaiMessages.removeExactMapping')
                         "
                       >
                         <Icon name="trash" size="sm" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     @click="addEditMessagesDispatchMapping"
-                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-card py-3 text-sm font-medium text-muted-foreground transition-all hover:border-primary-300 hover:bg-primary-50/50 hover:text-primary-600  "
+                    class="h-auto w-full gap-2 rounded-lg border-2 border-dashed border-border bg-card py-3 text-sm font-medium text-muted-foreground hover:border-foreground/30 hover:bg-accent hover:text-foreground"
                   >
                     <Icon name="plus" size="sm" />
                     {{ t("admin.groups.openaiMessages.addExactMapping") }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -2589,27 +2328,7 @@
                 }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="
-                editForm.require_oauth_only = !editForm.require_oauth_only
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                editForm.require_oauth_only
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  editForm.require_oauth_only
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="editForm.require_oauth_only" />
           </div>
 
           <!-- require_privacy_set toggle -->
@@ -2626,27 +2345,7 @@
                 }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="
-                editForm.require_privacy_set = !editForm.require_privacy_set
-              "
-              class="relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="
-                editForm.require_privacy_set
-                  ? 'bg-primary-500'
-                  : 'bg-muted '
-              "
-            >
-              <span
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out"
-                :class="
-                  editForm.require_privacy_set
-                    ? 'translate-x-6'
-                    : 'translate-x-1'
-                "
-              />
-            </button>
+            <Switch v-model="editForm.require_privacy_set" />
           </div>
         </div>
 
@@ -2658,7 +2357,7 @@
           "
           class="border-t pt-4"
         >
-          <label class="input-label">{{
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{
             t("admin.groups.invalidRequestFallback.title")
           }}</label>
           <Select
@@ -2666,7 +2365,7 @@
             :options="invalidRequestFallbackOptionsForEdit"
             :placeholder="t('admin.groups.invalidRequestFallback.noFallback')"
           />
-          <p class="input-hint">
+          <p class="mt-1 text-xs text-muted-foreground">
             {{ t("admin.groups.invalidRequestFallback.hint") }}
           </p>
         </div>
@@ -2683,19 +2382,19 @@
                 name="questionCircle"
                 size="sm"
                 :stroke-width="2"
-                class="cursor-help text-muted-foreground transition-colors hover:text-primary-500"
+                class="cursor-help text-muted-foreground transition-colors hover:text-foreground"
               />
               <div
                 class="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-80 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100"
               >
                 <div
-                  class="rounded-lg bg-background p-3 text-white shadow-lg"
+                  class="rounded-lg bg-popover p-3 text-popover-foreground shadow-lg"
                 >
                   <p class="text-xs leading-relaxed text-foreground/75">
                     {{ t("admin.groups.modelRouting.tooltip") }}
                   </p>
                   <div
-                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-background"
+                    class="absolute -bottom-1.5 left-3 h-3 w-3 rotate-45 bg-popover"
                   ></div>
                 </div>
               </div>
@@ -2703,27 +2402,7 @@
           </div>
           <!-- 启用开关 -->
           <div class="flex items-center gap-3 mb-3">
-            <button
-              type="button"
-              @click="
-                editForm.model_routing_enabled = !editForm.model_routing_enabled
-              "
-              :class="[
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                editForm.model_routing_enabled
-                  ? 'bg-primary-500'
-                  : 'bg-muted ',
-              ]"
-            >
-              <span
-                :class="[
-                  'inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform',
-                  editForm.model_routing_enabled
-                    ? 'translate-x-6'
-                    : 'translate-x-1',
-                ]"
-              />
-            </button>
+            <Switch v-model="editForm.model_routing_enabled" />
             <span class="text-sm text-muted-foreground">
               {{
                 editForm.model_routing_enabled
@@ -2751,20 +2430,19 @@
               <div class="flex items-start gap-3">
                 <div class="flex-1 space-y-2">
                   <div>
-                    <label class="input-label text-xs">{{
+                    <label class="mb-1.5 block text-xs font-medium text-foreground">{{
                       t("admin.groups.modelRouting.modelPattern")
                     }}</label>
-                    <input
+                    <Input
                       v-model="rule.pattern"
-                      type="text"
-                      class="input text-sm"
+                      type="text" class="text-sm"
                       :placeholder="
                         t('admin.groups.modelRouting.modelPatternPlaceholder')
                       "
                     />
                   </div>
                   <div>
-                    <label class="input-label text-xs">{{
+                    <label class="mb-1.5 block text-xs font-medium text-foreground">{{
                       t("admin.groups.modelRouting.accounts")
                     }}</label>
                     <!-- 已选账号标签 -->
@@ -2775,26 +2453,25 @@
                       <span
                         v-for="account in rule.accounts"
                         :key="account.id"
-                        class="inline-flex items-center gap-1 rounded-full bg-primary-900/30 px-2.5 py-1 text-xs font-medium text-primary-300  "
+                        class="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground  "
                       >
                         {{ account.name }}
-                        <button
+                        <Button variant="ghost"
                           type="button"
                           @click="removeSelectedAccount(rule, account.id, true)"
-                          class="ml-0.5 text-primary-500 hover:text-primary-700"
-                        >
+                          
+                        class="ml-0.5 h-auto w-auto p-0 text-muted-foreground hover:bg-transparent hover:text-foreground">
                           <Icon name="x" size="xs" />
-                        </button>
+                        </Button>
                       </span>
                     </div>
                     <!-- 账号搜索输入框 -->
                     <div class="relative account-search-container">
-                      <input
+                      <Input
                         v-model="
                           accountSearchKeyword[getEditRuleSearchKey(rule)]
                         "
-                        type="text"
-                        class="input text-sm"
+                        type="text" class="text-sm"
                         :placeholder="
                           t(
                             'admin.groups.modelRouting.searchAccountPlaceholder',
@@ -2812,14 +2489,15 @@
                         "
                         class="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-lg border bg-card shadow-lg  "
                       >
-                        <button
+                        <Button
                           v-for="account in accountSearchResults[
                             getEditRuleSearchKey(rule)
                           ]"
                           :key="account.id"
+                          variant="ghost"
                           type="button"
                           @click="selectAccount(rule, account, true)"
-                          class="w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                          class="h-auto w-full justify-start rounded-none px-3 py-2 text-left text-sm font-normal hover:bg-muted"
                           :class="{
                             'opacity-50': rule.accounts.some(
                               (a) => a.id === account.id,
@@ -2833,7 +2511,7 @@
                           <span class="ml-2 text-xs text-muted-foreground"
                             >#{{ account.id }}</span
                           >
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     <p class="text-xs text-muted-foreground mt-1">
@@ -2841,44 +2519,46 @@
                     </p>
                   </div>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   @click="removeEditRoutingRule(rule)"
-                  class="mt-5 p-1.5 text-muted-foreground hover:text-red-400 transition-colors"
+                  class="mt-5 h-auto w-auto p-1.5 text-muted-foreground hover:bg-transparent hover:text-destructive"
                   :title="t('admin.groups.modelRouting.removeRule')"
                 >
                   <Icon name="trash" size="sm" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
           <!-- 添加规则按钮（仅在启用时显示） -->
-          <button
+          <Button
             v-if="editForm.model_routing_enabled"
+            variant="ghost"
             type="button"
             @click="addEditRoutingRule"
-            class="mt-3 flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-400"
+            class="mt-3 h-auto gap-1.5 p-0 text-sm text-foreground hover:bg-transparent hover:text-foreground/80"
           >
             <Icon name="plus" size="sm" />
             {{ t("admin.groups.modelRouting.addRule") }}
-          </button>
+          </Button>
         </div>
       </form>
 
       <template #footer>
         <div class="flex justify-end gap-3 pt-4">
-          <button
+          <Button
+            variant="secondary"
             @click="closeEditModal"
             type="button"
-            class="btn btn-secondary"
           >
             {{ t("common.cancel") }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="edit-group-form"
             :disabled="submitting"
-            class="btn btn-primary"
             data-tour="group-form-submit"
           >
             <svg
@@ -2902,7 +2582,7 @@
               ></path>
             </svg>
             {{ submitting ? t("admin.groups.updating") : t("common.update") }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -2952,12 +2632,12 @@
                   :class="[
                     'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                     group.platform === 'anthropic'
-                      ? 'bg-orange-900/30 text-orange-400'
+                      ? 'bg-accent text-accent-foreground'
                       : group.platform === 'openai'
-                        ? 'bg-emerald-500/10 text-emerald-400'
+                        ? 'bg-accent text-accent-foreground'
                         : group.platform === 'antigravity'
-                          ? 'bg-purple-900/30 text-purple-400'
-                          : 'bg-sky-500/10 text-sky-400',
+                          ? 'bg-accent text-accent-foreground'
+                          : 'bg-accent text-accent-foreground',
                   ]"
                 >
                   {{ t("admin.groups.platforms." + group.platform) }}
@@ -2971,17 +2651,16 @@
 
       <template #footer>
         <div class="flex justify-end gap-3 pt-4">
-          <button
+          <Button
+            variant="secondary"
             @click="closeSortModal"
             type="button"
-            class="btn btn-secondary"
           >
             {{ t("common.cancel") }}
-          </button>
-          <button
+          </Button>
+          <Button
             @click="saveSortOrder"
             :disabled="sortSubmitting"
-            class="btn btn-primary"
           >
             <svg
               v-if="sortSubmitting"
@@ -3004,7 +2683,7 @@
               ></path>
             </svg>
             {{ sortSubmitting ? t("common.saving") : t("common.save") }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -3045,6 +2724,13 @@ import EmptyState from "@/components/common/EmptyState.vue";
 import Select from "@/components/common/Select.vue";
 import PlatformIcon from "@/components/common/PlatformIcon.vue";
 import Icon from "@/components/icons/Icon.vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { defineAsyncComponent } from 'vue'
 const GroupRateMultipliersModal = defineAsyncComponent(() => import("@/components/admin/group/GroupRateMultipliersModal.vue"))
 const GroupRPMOverridesModal = defineAsyncComponent(() => import("@/components/admin/group/GroupRPMOverridesModal.vue"))

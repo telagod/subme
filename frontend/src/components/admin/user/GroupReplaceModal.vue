@@ -9,10 +9,10 @@
       <!-- 当前分组 -->
       <div class="rounded-md border border-border bg-accent p-3">
         <div class="flex items-center gap-2">
-          <Icon name="shield" size="sm" class="text-primary-200" />
+          <Icon name="shield" size="sm" class="text-primary" />
           <span class="font-medium text-foreground">{{ oldGroup.name }}</span>
           <Icon name="arrowRight" size="sm" class="ml-auto text-muted-foreground" />
-          <span v-if="selectedGroupId" class="font-medium text-primary-200">
+          <span v-if="selectedGroupId" class="font-medium text-primary">
             {{ availableGroups.find(g => g.id === selectedGroupId)?.name }}
           </span>
           <span v-else class="text-sm text-muted-foreground">?</span>
@@ -26,8 +26,8 @@
           :key="group.id"
           class="flex cursor-pointer items-center gap-3 rounded-md border-2 p-3 transition-all"
           :class="selectedGroupId === group.id
-            ? 'border-primary-400 bg-primary-300/10'
-            : 'border-border hover:border-primary-200/40'"
+            ? 'border-primary bg-primary/10'
+            : 'border-border hover:border-primary/40'"
         >
           <input
             type="radio"
@@ -38,7 +38,7 @@
           <div
             class="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
             :class="selectedGroupId === group.id
-              ? 'border-primary-400 bg-primary-400'
+              ? 'border-primary bg-primary'
               : 'border-border'"
           >
             <div v-if="selectedGroupId === group.id" class="h-2 w-2 rounded-full bg-card"></div>
@@ -58,18 +58,17 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" class="btn btn-secondary px-5">{{ t('common.cancel') }}</button>
-        <button
+        <Button variant="outline" @click="$emit('close')">{{ t('common.cancel') }}</Button>
+        <Button
           @click="handleReplace"
           :disabled="!selectedGroupId || submitting"
-          class="btn btn-primary px-6"
         >
           <svg v-if="submitting" class="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           {{ submitting ? t('common.saving') : t('admin.users.replaceGroupConfirm') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -83,6 +82,7 @@ import { adminAPI } from '@/api/admin'
 import type { AdminUser, AdminGroup } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 
 interface Props {
   show: boolean

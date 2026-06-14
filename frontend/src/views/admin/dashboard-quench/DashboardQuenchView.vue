@@ -11,10 +11,10 @@
             <span>{{ t('admin.dashboardQuench.updatedAt', { time: lastUpdated }) }}</span>
           </p>
         </div>
-        <button class="dq-btn" :disabled="loading" @click="reload">
-          <span class="dq-btn-ico" :class="{ 'dq-spinning': loading }">⟳</span>
+        <Button variant="outline" size="sm" :disabled="loading" @click="reload">
+          <span class="inline-block text-[13px] leading-none" :class="{ 'animate-spin': loading }">⟳</span>
           {{ t('admin.dashboardQuench.refresh') }}
-        </button>
+        </Button>
       </div>
 
       <div v-if="loading && !stats" class="dq-spin">
@@ -26,13 +26,12 @@
         <div class="dq-kpi-row">
           <!-- 英雄：今日营收 -->
           <div class="dq-kpi dq-kpi-hero rise" style="animation-delay:.04s">
-            <div class="dq-kpi-glow"></div>
             <div class="dq-kpi-label">{{ t('admin.dashboardQuench.kpiRevenue') }}</div>
-            <div class="dq-kpi-value dq-hero-value q-money">${{ fmtMoney(tickRevenue) }}</div>
+            <div class="dq-kpi-value dq-hero-value text-emerald-500">${{ fmtMoney(tickRevenue) }}</div>
             <div class="dq-kpi-foot">
               <span class="dq-kpi-sub">{{ t('admin.dashboardQuench.kpiOrdersSub', { n: payDash?.today_count ?? 0 }) }}</span>
               <span v-if="payDash" class="dq-margin" :class="todayMargin >= 0 ? 'dq-ok' : 'dq-bad'">
-                {{ t('admin.dashboardQuench.kpiMargin') }} <b class="q-money">${{ fmtMoney(todayMargin) }}</b>
+                {{ t('admin.dashboardQuench.kpiMargin') }} <b class="text-emerald-500">${{ fmtMoney(todayMargin) }}</b>
               </span>
               <span v-else class="dq-kpi-sub dq-muted">{{ t('admin.dashboardQuench.kpiMarginNa') }}</span>
             </div>
@@ -49,8 +48,8 @@
           </div>
           <div class="dq-kpi rise" style="animation-delay:.16s">
             <div class="dq-kpi-label">{{ t('admin.dashboardQuench.kpiCostToday') }}</div>
-            <div class="dq-kpi-value q-money">${{ fmtMoney(stats?.today_actual_cost ?? 0) }}</div>
-            <div class="dq-kpi-sub">{{ t('admin.dashboardQuench.kpiCostSub') }} <span class="q-money">${{ fmtMoney(stats?.today_account_cost ?? 0) }}</span></div>
+            <div class="dq-kpi-value text-emerald-500">${{ fmtMoney(stats?.today_actual_cost ?? 0) }}</div>
+            <div class="dq-kpi-sub">{{ t('admin.dashboardQuench.kpiCostSub') }} <span class="text-emerald-500">${{ fmtMoney(stats?.today_account_cost ?? 0) }}</span></div>
           </div>
         </div>
 
@@ -137,6 +136,7 @@ import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
 import DashAnomalyRow from './DashAnomalyRow.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -291,48 +291,35 @@ onUnmounted(() => clearInterval(heartbeat))
 @media (prefers-reduced-motion: reduce) { .rise { animation: none; opacity: 1; transform: none; } .dq-live-dot { animation: none; box-shadow: none; } .dq-btn-ico.dq-spinning { animation: none; } }
 
 .dq-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.dq-title { font-size: 21px; font-weight: 700; letter-spacing: .01em; color: var(--ink-0, #E8EBF0); margin: 0; }
-.dq-desc { font-size: 12px; color: var(--ink-2, #5C6470); margin: 4px 0 0; display: flex; align-items: center; gap: 7px; }
+.dq-title { font-size: 21px; font-weight: 700; letter-spacing: .01em; color: hsl(var(--foreground)); margin: 0; }
+.dq-desc { font-size: 12px; color: hsl(var(--muted-foreground)); margin: 4px 0 0; display: flex; align-items: center; gap: 7px; }
 .dq-desc-sep { opacity: .5; }
-.dq-live { display: inline-flex; align-items: center; gap: 6px; color: var(--azure, #5CA8FF); font-weight: 600; font-family: var(--font-mono, monospace); letter-spacing: .04em; }
-.dq-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 15px; border-radius: 10px; font-size: 12.5px; font-weight: 600;
-  background: var(--metal-raised, linear-gradient(180deg,#272D37,#14171D)); border: 1px solid var(--line-1, #2F3540); color: var(--ink-0, #E8EBF0);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06)), 0 2px 8px rgba(0,0,0,.35);
-  cursor: pointer; transition: border-color .18s, box-shadow .18s;
-}
-.dq-btn:hover:not(:disabled) { border-color: rgba(92,168,255,.5); box-shadow: var(--edge-hi), 0 0 14px rgba(92,168,255,.18); }
-.dq-btn:disabled { opacity: .5; cursor: default; }
+.dq-live { display: inline-flex; align-items: center; gap: 6px; color: hsl(var(--primary)); font-weight: 600; font-family: monospace; letter-spacing: .04em; }
 .dq-btn-ico { display: inline-block; font-size: 13px; line-height: 1; }
 .dq-btn-ico.dq-spinning { animation: dq-spin 1s linear infinite; }
 @keyframes dq-spin { to { transform: rotate(360deg); } }
 
-/* 锻面卡（QUENCH metal surface，替代扁平 card） */
+/* 卡片面 */
 .dq-kpi {
   position: relative; overflow: hidden; padding: 15px 16px 13px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-0, #20242C); border-radius: var(--q-radius, 12px);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.04)), 0 8px 22px rgba(0,0,0,.3);
-}
-.dq-kpi-glow {
-  position: absolute; right: -28px; top: -28px; width: 96px; height: 96px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(92,168,255,.14), transparent 70%); pointer-events: none;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border)); border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 22px rgba(0,0,0,.3);
 }
 .dq-kpi-label {
   font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--ink-2, #5C6470); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  color: hsl(var(--muted-foreground)); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
 }
-.dq-kpi-value { font-family: var(--font-mono, monospace); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-0, #E8EBF0); line-height: 1.05; letter-spacing: -.01em; }
-.dq-kpi-sub { font-size: 11px; color: var(--ink-2, #5C6470); margin-top: 6px; }
+.dq-kpi-value { font-family: monospace; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: hsl(var(--foreground)); line-height: 1.05; letter-spacing: -.01em; }
+.dq-kpi-sub { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 6px; }
 .dq-muted { opacity: .85; }
-.dq-ok    { color: var(--ok, #46C98C); }
-.dq-bad   { color: var(--bad, #F25C69); }
-.dq-azure { color: var(--azure, #5CA8FF); }
-.dq-kpi-azure { border-color: rgba(92,168,255,.28); }
+.dq-ok    { color: #10b981; }
+.dq-bad   { color: hsl(var(--destructive)); }
+.dq-azure { color: hsl(var(--primary)); }
+.dq-kpi-azure { border-color: color-mix(in srgb, hsl(var(--primary)) 28%, transparent); }
 
 /* 英雄卡：今日营收 */
-.dq-kpi-hero { background: linear-gradient(165deg, #181D26, #0E1014 75%); border-color: rgba(92,168,255,.18); }
+.dq-kpi-hero { background: hsl(var(--card)); border-color: color-mix(in srgb, hsl(var(--primary)) 18%, transparent); }
 .dq-hero-value { font-size: 32px; }
 .dq-kpi-foot { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-top: 7px; }
 .dq-margin { font-size: 11px; }
@@ -344,9 +331,9 @@ onUnmounted(() => clearInterval(heartbeat))
 
 .dq-live-dot {
   display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--azure, #5CA8FF); animation: pulse-b 1.8s infinite;
+  background: hsl(var(--primary)); animation: pulse-b 1.8s infinite;
 }
-@keyframes pulse-b { 0%,100%{ box-shadow:0 0 0 0 rgba(92,168,255,.55);} 50%{ box-shadow:0 0 0 5px rgba(92,168,255,0);} }
+@keyframes pulse-b { 0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb, hsl(var(--primary)) 55%, transparent);} 50%{ box-shadow:0 0 0 5px transparent;} }
 
 .dq-kpi-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; }
 @media (max-width: 900px) { .dq-kpi-row { grid-template-columns: repeat(2, 1fr); } }
@@ -357,9 +344,9 @@ onUnmounted(() => clearInterval(heartbeat))
 
 .dq-charts-panel {
   padding: 14px; display: flex; flex-direction: column; gap: 12px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-0, #20242C); border-radius: var(--q-radius, 12px);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.04)), 0 8px 22px rgba(0,0,0,.3);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border)); border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 8px 22px rgba(0,0,0,.3);
 }
 .dq-chart-filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .dq-gran-sel { width: 90px; }

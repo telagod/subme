@@ -10,30 +10,20 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <label class="flex items-center gap-2 text-sm text-foreground/85">
-          <input
-            type="radio"
-            name="announcement-targeting-mode"
-            value="all"
-            :checked="mode === 'all'"
-            @change="setMode('all')"
-            class="h-4 w-4"
-          />
-          {{ t('admin.announcements.form.targetingAll') }}
-        </label>
-        <label class="flex items-center gap-2 text-sm text-foreground/85">
-          <input
-            type="radio"
-            name="announcement-targeting-mode"
-            value="custom"
-            :checked="mode === 'custom'"
-            @change="setMode('custom')"
-            class="h-4 w-4"
-          />
-          {{ t('admin.announcements.form.targetingCustom') }}
-        </label>
-      </div>
+      <RadioGroup :model-value="mode" @update:model-value="setMode($event as Mode)" class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <RadioGroupItem value="all" id="targeting-all" />
+          <Label for="targeting-all" class="cursor-pointer text-sm font-normal text-foreground/85">
+            {{ t('admin.announcements.form.targetingAll') }}
+          </Label>
+        </div>
+        <div class="flex items-center gap-2">
+          <RadioGroupItem value="custom" id="targeting-custom" />
+          <Label for="targeting-custom" class="cursor-pointer text-sm font-normal text-foreground/85">
+            {{ t('admin.announcements.form.targetingCustom') }}
+          </Label>
+        </div>
+      </RadioGroup>
     </div>
 
     <div v-if="mode === 'custom'" class="mt-4 space-y-4">
@@ -44,15 +34,16 @@
             ({{ anyOf.length }}/50)
           </span>
         </div>
-        <button
+        <Button
           type="button"
-          class="btn btn-secondary"
+          variant="outline"
+          size="sm"
           :disabled="anyOf.length >= 50"
           @click="addOrGroup"
         >
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.announcements.form.addOrGroup') }}
-        </button>
+        </Button>
       </div>
 
       <div v-if="anyOf.length === 0" class="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
@@ -75,14 +66,15 @@
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
-            class="btn btn-secondary"
+            variant="outline"
+            size="sm"
             @click="removeOrGroup(groupIndex)"
           >
             <Icon name="trash" size="sm" class="mr-1" />
             {{ t('common.delete') }}
-          </button>
+          </Button>
         </div>
 
         <div class="mt-4 space-y-3">
@@ -93,16 +85,20 @@
           >
             <div class="flex flex-col gap-3 md:flex-row md:items-end">
               <div class="w-full md:w-52">
-                <label class="input-label">{{ t('admin.announcements.form.conditionType') }}</label>
+                <Label class="mb-1 block">{{ t('admin.announcements.form.conditionType') }}</Label>
                 <Select
                   :model-value="cond.type"
-                  :options="conditionTypeOptions"
                   @update:model-value="(v) => setConditionType(groupIndex, condIndex, v as any)"
-                />
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="opt in conditionTypeOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div v-if="cond.type === 'subscription'" class="flex-1">
-                <label class="input-label">{{ t('admin.announcements.form.selectPackages') }}</label>
+                <Label class="mb-1 block">{{ t('admin.announcements.form.selectPackages') }}</Label>
                 <GroupSelector
                   v-model="subscriptionSelections[groupIndex][condIndex]"
                   :groups="groups"
@@ -111,53 +107,58 @@
 
               <div v-else class="flex flex-1 flex-col gap-3 sm:flex-row">
                 <div class="w-full sm:w-44">
-                  <label class="input-label">{{ t('admin.announcements.form.operator') }}</label>
+                  <Label class="mb-1 block">{{ t('admin.announcements.form.operator') }}</Label>
                   <Select
                     :model-value="cond.operator"
-                    :options="balanceOperatorOptions"
                     @update:model-value="(v) => setOperator(groupIndex, condIndex, v as any)"
-                  />
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="opt in balanceOperatorOptions" :key="String(opt.value)" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div class="w-full sm:flex-1">
-                  <label class="input-label">{{ t('admin.announcements.form.balanceValue') }}</label>
-                  <input
-                    :value="String(cond.value ?? '')"
+                  <Label class="mb-1 block">{{ t('admin.announcements.form.balanceValue') }}</Label>
+                  <Input
+                    :model-value="String(cond.value ?? '')"
                     type="number"
                     step="any"
-                    class="input"
-                    @input="(e) => setBalanceValue(groupIndex, condIndex, (e.target as HTMLInputElement).value)"
+                    @update:model-value="(val) => setBalanceValue(groupIndex, condIndex, String(val))"
                   />
                 </div>
               </div>
 
               <div class="flex justify-end">
-                <button
+                <Button
                   type="button"
-                  class="btn btn-secondary"
+                  variant="outline"
+                  size="sm"
                   @click="removeAndCondition(groupIndex, condIndex)"
                 >
                   <Icon name="trash" size="sm" class="mr-1" />
                   {{ t('common.delete') }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           <div class="flex justify-end">
-            <button
+            <Button
               type="button"
-              class="btn btn-secondary"
+              variant="outline"
+              size="sm"
               :disabled="(group.all_of?.length || 0) >= 50"
               @click="addAndCondition(groupIndex)"
             >
               <Icon name="plus" size="sm" class="mr-1" />
               {{ t('admin.announcements.form.addAndCondition') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div v-if="validationError" class="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+      <div v-if="validationError" class="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
         {{ validationError }}
       </div>
     </div>
@@ -176,9 +177,13 @@ import type {
   AnnouncementOperator
 } from '@/types'
 
-import Select from '@/components/common/Select.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { t } = useI18n()
 

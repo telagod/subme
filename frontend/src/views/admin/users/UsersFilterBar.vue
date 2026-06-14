@@ -1,21 +1,32 @@
 <template>
-  <div class="ufb-bar">
+  <div class="mb-3 flex flex-wrap items-center gap-2">
     <!-- 搜索框 -->
-    <div class="ufb-search" :class="{ 'ufb-search-focus': focused }">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <div class="relative min-w-[220px]">
+      <svg
+        width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+        class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 shrink-0 text-muted-foreground"
+      >
         <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/>
         <path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
       </svg>
-      <input
+      <Input
         :value="search"
         :placeholder="t('admin.usersQuench.searchPlaceholder')"
-        class="ufb-input"
+        class="h-8 pl-8 text-[12.5px]"
+        :class="{ 'pr-8': search }"
         @focus="focused = true"
         @blur="focused = false"
         @input="$emit('update:search', ($event.target as HTMLInputElement).value)"
         @keyup.enter="$emit('commit-search')"
       />
-      <button v-if="search" class="ufb-clear-x" @click="$emit('update:search', ''); $emit('commit-search')" :aria-label="t('admin.usersQuench.clearSearch')">✕</button>
+      <Button
+        v-if="search"
+        variant="ghost"
+        size="icon"
+        class="absolute right-0 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        :aria-label="t('admin.usersQuench.clearSearch')"
+        @click="$emit('update:search', ''); $emit('commit-search')"
+      >✕</Button>
     </div>
 
     <!-- 高级筛选 -->
@@ -28,9 +39,19 @@
     />
 
     <!-- 密度切换 -->
-    <div class="ufb-seg">
-      <button :class="{ on: density === 'comfortable' }" @click="$emit('update:density', 'comfortable')">{{ t('admin.usersQuench.densityComfortable') }}</button>
-      <button :class="{ on: density === 'compact' }" @click="$emit('update:density', 'compact')">{{ t('admin.usersQuench.densityCompact') }}</button>
+    <div class="ml-auto inline-flex overflow-hidden rounded-lg border border-border">
+      <Button
+        variant="ghost"
+        class="rounded-none px-2.5 py-1 text-[11.5px] transition-colors"
+        :class="density === 'comfortable' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'"
+        @click="$emit('update:density', 'comfortable')"
+      >{{ t('admin.usersQuench.densityComfortable') }}</Button>
+      <Button
+        variant="ghost"
+        class="rounded-none px-2.5 py-1 text-[11.5px] transition-colors"
+        :class="density === 'compact' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'"
+        @click="$emit('update:density', 'compact')"
+      >{{ t('admin.usersQuench.densityCompact') }}</Button>
     </div>
   </div>
 </template>
@@ -38,6 +59,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { AdvancedFilter } from '@/components/datatable'
 import type { FilterFieldDef, AdvancedFilterValues } from '@/components/datatable'
 
@@ -61,68 +84,3 @@ defineEmits<{
 
 const focused = ref(false)
 </script>
-
-<style scoped>
-.ufb-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
-}
-
-.ufb-search {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--bg-1, #101216);
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 9px;
-  padding: 5px 10px;
-  min-width: 220px;
-  color: var(--ink-2, #5C6470);
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.ufb-search-focus {
-  border-color: rgba(92, 168, 255, 0.5);
-  box-shadow: var(--glow-focus, 0 0 0 1.5px rgba(92,168,255,.65), 0 0 20px rgba(92,168,255,.28));
-}
-.ufb-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--ink-0, #E8EBF0);
-  font-size: 12.5px;
-  font-family: inherit;
-  outline: none;
-}
-.ufb-input::placeholder { color: var(--ink-2, #5C6470); }
-.ufb-clear-x {
-  font-size: 10px; color: var(--ink-2, #5C6470); background: transparent;
-  border: none; cursor: pointer; padding: 2px;
-}
-.ufb-clear-x:hover { color: var(--ink-0, #E8EBF0); }
-
-.ufb-seg {
-  display: inline-flex; border: 1px solid var(--line-1,#2F3540);
-  border-radius: 8px; overflow: hidden; margin-left: auto;
-}
-.ufb-seg button {
-  padding: 4px 10px; background: transparent; border: none;
-  color: var(--ink-2,#5C6470); font-size: 11.5px; font-family: inherit;
-  cursor: pointer; transition: background 0.12s, color 0.12s;
-}
-.ufb-seg button.on { background: var(--bg-2,#171A20); color: var(--ink-0,#E8EBF0); }
-
-.ufb-search:focus-visible,
-.ufb-seg button:focus-visible {
-  outline: none;
-  box-shadow: var(--glow-focus, 0 0 0 1.5px rgba(92,168,255,.65), 0 0 20px rgba(92,168,255,.28));
-  border-color: rgba(92,168,255,.5);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ufb-search, .ufb-seg button { transition: none; }
-}
-</style>

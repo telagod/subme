@@ -1,10 +1,10 @@
 <template>
-  <div class="wc-body">
+  <div class="flex flex-col gap-5 px-5 py-4">
     <!-- Master switch -->
-    <div class="wc-row wc-master-row">
-      <div class="wc-label-group">
-        <label class="wc-label">{{ t('admin.settings.wechatConnect.enabledLabel') }}</label>
-        <p class="wc-hint">{{ t('admin.settings.wechatConnect.enabledHint') }}</p>
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex-1">
+        <label class="text-sm font-medium text-foreground">{{ t('admin.settings.wechatConnect.enabledLabel') }}</label>
+        <p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.enabledHint') }}</p>
       </div>
       <Toggle
         :model-value="local.wechat_connect_enabled"
@@ -15,14 +15,14 @@
 
     <template v-if="local.wechat_connect_enabled">
       <!-- ── Mode panels ─────────────────────────────────────────────── -->
-      <div class="wc-panels">
+      <div class="flex flex-col gap-3">
 
         <!-- PC App (open platform) -->
-        <div class="wc-panel">
-          <div class="wc-panel-head">
+        <div class="rounded-lg border border-border p-4">
+          <div class="flex items-start justify-between gap-4">
             <div>
-              <h3 class="wc-panel-title">{{ t('admin.settings.wechatConnect.open.title') }}</h3>
-              <p class="wc-panel-desc">{{ t('admin.settings.wechatConnect.open.description') }}</p>
+              <h3 class="mb-1 text-[13.5px] font-medium text-foreground">{{ t('admin.settings.wechatConnect.open.title') }}</h3>
+              <p class="m-0 text-xs leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.open.description') }}</p>
             </div>
             <Toggle
               :model-value="local.wechat_connect_open_enabled"
@@ -30,25 +30,25 @@
               @update:model-value="handleOpenEnabledChange"
             />
           </div>
-          <div v-if="local.wechat_connect_open_enabled" class="wc-cred-grid">
+          <div v-if="local.wechat_connect_open_enabled" class="mt-4 grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))">
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.open.appId') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.open.appId') }}</Label>
+              <Input
                 :value="local.wechat_connect_open_app_id"
                 data-testid="wechat-connect-open-app-id"
                 type="text"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="t('admin.settings.wechatConnect.open.appIdPlaceholder')"
                 @input="setField('wechat_connect_open_app_id', ($event.target as HTMLInputElement).value)"
               />
             </div>
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.open.appSecret') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.open.appSecret') }}</Label>
+              <Input
                 :value="local.wechat_connect_open_app_secret"
                 data-testid="wechat-connect-open-app-secret"
                 type="password"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="local.wechat_connect_open_app_secret_configured
                   ? t('admin.settings.wechatConnect.appSecretConfiguredPlaceholder')
                   : t('admin.settings.wechatConnect.open.appSecretPlaceholder')"
@@ -59,11 +59,11 @@
         </div>
 
         <!-- Official Account (mp) -->
-        <div class="wc-panel">
-          <div class="wc-panel-head">
+        <div class="rounded-lg border border-border p-4">
+          <div class="flex items-start justify-between gap-4">
             <div>
-              <h3 class="wc-panel-title">{{ t('admin.settings.wechatConnect.mp.title') }}</h3>
-              <p class="wc-panel-desc">{{ t('admin.settings.wechatConnect.mp.description') }}</p>
+              <h3 class="mb-1 text-[13.5px] font-medium text-foreground">{{ t('admin.settings.wechatConnect.mp.title') }}</h3>
+              <p class="m-0 text-xs leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.mp.description') }}</p>
             </div>
             <Toggle
               :model-value="local.wechat_connect_mp_enabled"
@@ -71,25 +71,25 @@
               @update:model-value="handleMPEnabledChange"
             />
           </div>
-          <div v-if="local.wechat_connect_mp_enabled" class="wc-cred-grid">
+          <div v-if="local.wechat_connect_mp_enabled" class="mt-4 grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))">
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.mp.appId') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.mp.appId') }}</Label>
+              <Input
                 :value="local.wechat_connect_mp_app_id"
                 data-testid="wechat-connect-mp-app-id"
                 type="text"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="t('admin.settings.wechatConnect.mp.appIdPlaceholder')"
                 @input="setField('wechat_connect_mp_app_id', ($event.target as HTMLInputElement).value)"
               />
             </div>
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.mp.appSecret') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.mp.appSecret') }}</Label>
+              <Input
                 :value="local.wechat_connect_mp_app_secret"
                 data-testid="wechat-connect-mp-app-secret"
                 type="password"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="local.wechat_connect_mp_app_secret_configured
                   ? t('admin.settings.wechatConnect.appSecretConfiguredPlaceholder')
                   : t('admin.settings.wechatConnect.mp.appSecretPlaceholder')"
@@ -100,11 +100,11 @@
         </div>
 
         <!-- Mobile App -->
-        <div class="wc-panel">
-          <div class="wc-panel-head">
+        <div class="rounded-lg border border-border p-4">
+          <div class="flex items-start justify-between gap-4">
             <div>
-              <h3 class="wc-panel-title">{{ t('admin.settings.wechatConnect.mobile.title') }}</h3>
-              <p class="wc-panel-desc">{{ t('admin.settings.wechatConnect.mobile.description') }}</p>
+              <h3 class="mb-1 text-[13.5px] font-medium text-foreground">{{ t('admin.settings.wechatConnect.mobile.title') }}</h3>
+              <p class="m-0 text-xs leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.mobile.description') }}</p>
             </div>
             <Toggle
               :model-value="local.wechat_connect_mobile_enabled"
@@ -112,25 +112,25 @@
               @update:model-value="handleMobileEnabledChange"
             />
           </div>
-          <div v-if="local.wechat_connect_mobile_enabled" class="wc-cred-grid">
+          <div v-if="local.wechat_connect_mobile_enabled" class="mt-4 grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))">
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.mobile.appId') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.mobile.appId') }}</Label>
+              <Input
                 :value="local.wechat_connect_mobile_app_id"
                 data-testid="wechat-connect-mobile-app-id"
                 type="text"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="t('admin.settings.wechatConnect.mobile.appIdPlaceholder')"
                 @input="setField('wechat_connect_mobile_app_id', ($event.target as HTMLInputElement).value)"
               />
             </div>
             <div>
-              <label class="wc-field-label">{{ t('admin.settings.wechatConnect.mobile.appSecret') }}</label>
-              <input
+              <Label class="mb-1.5 block text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.mobile.appSecret') }}</Label>
+              <Input
                 :value="local.wechat_connect_mobile_app_secret"
                 data-testid="wechat-connect-mobile-app-secret"
                 type="password"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="local.wechat_connect_mobile_app_secret_configured
                   ? t('admin.settings.wechatConnect.appSecretConfiguredPlaceholder')
                   : t('admin.settings.wechatConnect.mobile.appSecretPlaceholder')"
@@ -144,50 +144,52 @@
       <!-- UnionID warning: open + (mp OR mobile) -->
       <div
         v-if="local.wechat_connect_open_enabled && (local.wechat_connect_mp_enabled || local.wechat_connect_mobile_enabled)"
-        class="wc-unionid-warn"
+        class="rounded-md border border-amber-500/30 bg-amber-500/8 px-3.5 py-2.5 text-[12.5px] leading-snug text-amber-400"
       >
         {{ t('admin.settings.wechatConnect.unionIdWarning') }}
       </div>
 
       <!-- Redirect URL -->
-      <div class="wc-field-wrap">
-        <label class="wc-field-label">{{ t('admin.settings.wechatConnect.redirectUrlLabel') }}</label>
-        <input
+      <div class="flex flex-col gap-1.5">
+        <Label class="text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.redirectUrlLabel') }}</Label>
+        <Input
           :value="local.wechat_connect_redirect_url"
           data-testid="wechat-connect-redirect-url"
           type="url"
-          class="input font-mono text-sm"
+          class="font-mono text-sm"
           :placeholder="t('admin.settings.wechatConnect.redirectUrlPlaceholder')"
           @input="setField('wechat_connect_redirect_url', ($event.target as HTMLInputElement).value)"
         />
-        <p class="wc-help">{{ t('admin.settings.wechatConnect.redirectUrlHint') }}</p>
-        <div class="wc-redirect-actions">
-          <button
+        <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.redirectUrlHint') }}</p>
+        <div class="mt-1 flex flex-wrap items-center gap-2.5">
+          <Button
             type="button"
-            class="btn btn-secondary btn-sm w-fit"
+            variant="secondary"
+            size="sm"
+            class="w-fit"
             @click="generateAndCopyRedirectUrl"
           >
             {{ t('admin.settings.wechatConnect.generateAndCopy') }}
-          </button>
+          </Button>
           <code
             v-if="redirectUrlSuggestion"
-            class="wc-suggestion-code"
+            class="break-all rounded px-2 py-0.5 font-mono text-[11.5px] text-muted-foreground bg-muted select-all"
           >{{ redirectUrlSuggestion }}</code>
         </div>
       </div>
 
       <!-- Frontend Redirect URL -->
-      <div class="wc-field-wrap">
-        <label class="wc-field-label">{{ t('admin.settings.wechatConnect.frontendRedirectUrlLabel') }}</label>
-        <input
+      <div class="flex flex-col gap-1.5">
+        <Label class="text-[12.5px] font-medium">{{ t('admin.settings.wechatConnect.frontendRedirectUrlLabel') }}</Label>
+        <Input
           :value="local.wechat_connect_frontend_redirect_url"
           data-testid="wechat-connect-frontend-redirect-url"
           type="text"
-          class="input font-mono text-sm"
+          class="font-mono text-sm"
           :placeholder="t('admin.settings.wechatConnect.frontendRedirectUrlPlaceholder')"
           @input="setField('wechat_connect_frontend_redirect_url', ($event.target as HTMLInputElement).value)"
         />
-        <p class="wc-help">{{ t('admin.settings.wechatConnect.frontendRedirectUrlHint') }}</p>
+        <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.wechatConnect.frontendRedirectUrlHint') }}</p>
       </div>
     </template>
   </div>
@@ -197,6 +199,9 @@
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Toggle from '@/components/common/Toggle.vue'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   resolveWeChatConnectModeCapabilities,
   deriveWeChatConnectStoredMode,
@@ -382,136 +387,3 @@ async function generateAndCopyRedirectUrl() {
   }
 }
 </script>
-
-<style scoped>
-.wc-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* master switch row */
-.wc-master-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.wc-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.wc-label-group {
-  flex: 1;
-}
-
-.wc-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink-0, #E8EBF0);
-}
-
-.wc-hint {
-  font-size: 12px;
-  color: var(--ink-2, #5C6470);
-  margin: 2px 0 0;
-  line-height: 1.5;
-}
-
-/* mode panels */
-.wc-panels {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.wc-panel {
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.wc-panel-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.wc-panel-title {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--ink-0, #E8EBF0);
-  margin: 0 0 4px;
-}
-
-.wc-panel-desc {
-  font-size: 12px;
-  color: var(--ink-2, #5C6470);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.wc-cred-grid {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-.wc-field-label {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: rgba(232, 235, 240, 0.85);
-  margin-bottom: 6px;
-}
-
-/* UnionID warning banner */
-.wc-unionid-warn {
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.08);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 12.5px;
-  color: rgb(251, 191, 36);
-  line-height: 1.55;
-}
-
-/* redirect URL area */
-.wc-field-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.wc-help {
-  font-size: 11.5px;
-  color: var(--ink-2, #5C6470);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.wc-redirect-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.wc-suggestion-code {
-  font-size: 11.5px;
-  font-family: ui-monospace, monospace;
-  color: var(--ink-2, #5C6470);
-  background: var(--bg-2, #171A20);
-  border-radius: 4px;
-  padding: 3px 8px;
-  word-break: break-all;
-  user-select: all;
-}
-</style>

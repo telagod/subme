@@ -1,31 +1,32 @@
 <template>
-  <div class="ud-tab-content">
-    <div v-if="loading" class="ud-loading">{{ t('admin.userTabs.loading') }}</div>
-    <div v-else-if="error" class="ud-error">{{ error }}</div>
-    <div v-else-if="!items.length" class="ud-empty">{{ t('admin.userTabs.noOrders') }}</div>
-    <div v-else class="ud-list">
-      <div v-for="order in items" :key="order.id" class="ud-order-card">
-        <div class="ud-order-header">
-          <span class="ud-mono ud-order-no">{{ order.out_trade_no || ('#' + order.id) }}</span>
-          <span
-            class="ud-badge"
+  <div class="flex flex-col gap-2.5">
+    <div v-if="loading" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.loading') }}</div>
+    <div v-else-if="error" class="text-[12.5px] text-destructive">{{ error }}</div>
+    <div v-else-if="!items.length" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.noOrders') }}</div>
+    <div v-else class="flex flex-col gap-2">
+      <div v-for="order in items" :key="order.id" class="flex flex-col gap-1.5 rounded-[10px] border border-border bg-muted/40 px-3.5 py-3">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs text-foreground">{{ order.out_trade_no || ('#' + order.id) }}</span>
+          <Badge
+            variant="outline"
             :class="statusClass(order.status)"
-          >{{ order.status }}</span>
+          >{{ order.status }}</Badge>
         </div>
-        <div class="ud-order-meta">
-          <span class="ud-meta-item q-money">${{ (order.amount / 100).toFixed(2) }}</span>
-          <span class="ud-meta-item" v-if="order.payment_type">{{ order.payment_type }}</span>
-          <span class="ud-meta-item">{{ fmt(order.created_at) }}</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="text-xs font-medium text-emerald-500">${{ (order.amount / 100).toFixed(2) }}</span>
+          <span class="text-xs text-muted-foreground" v-if="order.payment_type">{{ order.payment_type }}</span>
+          <span class="text-xs text-muted-foreground">{{ fmt(order.created_at) }}</span>
         </div>
       </div>
     </div>
-    <div v-if="total > items.length" class="ud-more">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
+    <div v-if="total > items.length" class="text-center text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Badge } from '@/components/ui/badge'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser } from '@/types'
 import type { PaymentOrder } from '@/types/payment'
@@ -63,28 +64,8 @@ onMounted(() => { if (props.active) load() })
 </script>
 
 <style scoped>
-.ud-tab-content { display: flex; flex-direction: column; gap: 10px; }
-.ud-loading, .ud-empty { color: var(--ink-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
-.ud-error { color: var(--bad); font-size: 12.5px; }
-.ud-list { display: flex; flex-direction: column; gap: 8px; }
-.ud-order-card {
-  padding: 12px 14px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-0);
-  border-radius: 10px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.ud-order-header { display: flex; align-items: center; justify-content: space-between; }
-.ud-order-no { font-size: 12px; color: var(--ink-1); }
-.ud-order-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-.ud-meta-item { font-size: 12px; color: var(--ink-2); }
-.ud-badge {
-  font-size: 10.5px; font-weight: 600; padding: 2px 7px;
-  border-radius: 5px; letter-spacing: 0.04em;
-}
-.ud-badge-ok { background: var(--ok-dim); color: var(--ok); border: 1px solid rgba(70,201,140,.3); }
-.ud-badge-warn { background: var(--warn-dim); color: var(--warn); border: 1px solid rgba(224,179,78,.3); }
-.ud-badge-bad { background: var(--bad-dim); color: var(--bad); border: 1px solid rgba(242,92,105,.3); }
-.ud-mono { font-family: 'IBM Plex Mono', monospace; }
-.ud-more { font-size: 11.5px; color: var(--ink-2); text-align: center; }
+/* 状态色 — 由 statusClass() 动态绑定，必须保留 */
+.ud-badge-ok   { background: rgba(70, 201, 140, .15); color: #46C98C; border-color: rgba(70, 201, 140, .3); }
+.ud-badge-warn { background: rgba(224, 179, 78, .15);  color: #E0B34E; border-color: rgba(224, 179, 78, .3); }
+.ud-badge-bad  { background: rgba(242, 92, 105, .15);  color: #F25C69; border-color: rgba(242, 92, 105, .3); }
 </style>

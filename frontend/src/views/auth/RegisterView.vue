@@ -1,26 +1,30 @@
 <template>
   <AuthLayout>
-    <div class="rv-body">
+    <div>
       <!-- 标题 -->
-      <div class="rv-head">
-        <h2 class="rv-title">{{ t('auth.createAccount') }}</h2>
-        <p class="rv-sub">{{ t('auth.signUpToStart', { siteName }) }}</p>
+      <div class="mb-6 text-center">
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">{{ t('auth.createAccount') }}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{{ t('auth.signUpToStart', { siteName }) }}</p>
       </div>
 
       <!-- 注册已关闭提示 -->
-      <div v-if="!registrationEnabled && settingsLoaded" class="rv-notice rv-notice--warn">
-        <Icon name="exclamationCircle" size="md" class="rv-notice-icon rv-notice-icon--warn" />
-        <p class="rv-notice-txt rv-notice-txt--warn">{{ t('auth.registrationDisabled') }}</p>
-      </div>
+      <Alert v-if="!registrationEnabled && settingsLoaded" class="mb-5 border-amber-500/30 bg-amber-500/10">
+        <Icon name="exclamationCircle" size="md" class="text-amber-500" />
+        <AlertDescription class="text-amber-500">{{ t('auth.registrationDisabled') }}</AlertDescription>
+      </Alert>
 
       <!-- 注册表单 -->
-      <form v-else @submit.prevent="handleRegister" class="rv-form">
+      <form v-else @submit.prevent="handleRegister" class="flex flex-col">
         <!-- Email -->
-        <div class="rv-field">
-          <label for="email" class="rv-label">{{ t('auth.emailLabel') }}</label>
-          <div class="rv-inp-wrap" :class="{ 'rv-inp-wrap--error': errors.email }">
-            <Icon name="mail" size="md" class="rv-inp-icon" />
-            <input
+        <div class="mb-4">
+          <Label for="email" class="mb-2 block">{{ t('auth.emailLabel') }}</Label>
+          <div class="relative">
+            <Icon
+              name="mail"
+              size="md"
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               id="email"
               v-model="formData.email"
               type="email"
@@ -28,138 +32,142 @@
               autofocus
               autocomplete="email"
               :disabled="registrationActionDisabled"
-              class="rv-inp"
+              class="pl-10"
+              :class="{ 'border-destructive focus-visible:ring-destructive': errors.email }"
               :placeholder="t('auth.emailPlaceholder')"
             />
           </div>
         </div>
 
         <!-- Password -->
-        <div class="rv-field">
-          <label for="password" class="rv-label">{{ t('auth.passwordLabel') }}</label>
-          <div class="rv-inp-wrap" :class="{ 'rv-inp-wrap--error': errors.password }">
-            <Icon name="lock" size="md" class="rv-inp-icon" />
-            <input
+        <div class="mb-4">
+          <Label for="password" class="mb-2 block">{{ t('auth.passwordLabel') }}</Label>
+          <div class="relative">
+            <Icon
+              name="lock"
+              size="md"
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               id="password"
               v-model="formData.password"
               :type="showPassword ? 'text' : 'password'"
               required
               autocomplete="new-password"
               :disabled="registrationActionDisabled"
-              class="rv-inp"
+              class="px-10"
+              :class="{ 'border-destructive focus-visible:ring-destructive': errors.password }"
               :placeholder="t('auth.createPasswordPlaceholder')"
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               :disabled="registrationActionDisabled"
               @click="showPassword = !showPassword"
-              class="rv-eye"
+              class="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
               :aria-label="showPassword ? '隐藏密码' : '显示密码'"
             >
               <Icon v-if="showPassword" name="eyeOff" size="md" />
               <Icon v-else name="eye" size="md" />
-            </button>
+            </Button>
           </div>
-          <p class="rv-hint">{{ t('auth.passwordHint') }}</p>
+          <p class="mt-1.5 text-xs text-muted-foreground">{{ t('auth.passwordHint') }}</p>
         </div>
 
         <!-- 邀请码（必填，开启时） -->
-        <div v-if="invitationCodeEnabled" class="rv-field">
-          <label for="invitation_code" class="rv-label">{{ t('auth.invitationCodeLabel') }}</label>
-          <div
-            class="rv-inp-wrap"
-            :class="{
-              'rv-inp-wrap--ok': invitationValidation.valid,
-              'rv-inp-wrap--error': invitationValidation.invalid || errors.invitation_code
-            }"
-          >
+        <div v-if="invitationCodeEnabled" class="mb-4">
+          <Label for="invitation_code" class="mb-2 block">{{ t('auth.invitationCodeLabel') }}</Label>
+          <div class="relative">
             <Icon
               name="key"
               size="md"
-              class="rv-inp-icon"
-              :class="invitationValidation.valid ? 'rv-inp-icon--ok' : ''"
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              :class="invitationValidation.valid ? 'text-emerald-500' : 'text-muted-foreground'"
             />
-            <input
+            <Input
               id="invitation_code"
               v-model="formData.invitation_code"
               type="text"
               :disabled="registrationActionDisabled"
-              class="rv-inp"
+              class="px-10"
+              :class="{
+                'border-emerald-500/55 focus-visible:ring-emerald-500': invitationValidation.valid,
+                'border-destructive focus-visible:ring-destructive': invitationValidation.invalid || errors.invitation_code
+              }"
               :placeholder="t('auth.invitationCodePlaceholder')"
               @input="handleInvitationCodeInput"
             />
-            <div v-if="invitationValidating" class="rv-inp-indicator">
-              <svg class="rv-spin" fill="none" viewBox="0 0 24 24">
+            <div v-if="invitationValidating" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <svg class="h-4 w-4 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             </div>
-            <div v-else-if="invitationValidation.valid" class="rv-inp-indicator">
-              <Icon name="checkCircle" size="md" class="rv-icon-ok" />
+            <div v-else-if="invitationValidation.valid" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <Icon name="checkCircle" size="md" class="text-emerald-500" />
             </div>
-            <div v-else-if="invitationValidation.invalid || errors.invitation_code" class="rv-inp-indicator">
-              <Icon name="exclamationCircle" size="md" class="rv-icon-err" />
+            <div v-else-if="invitationValidation.invalid || errors.invitation_code" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <Icon name="exclamationCircle" size="md" class="text-destructive" />
             </div>
           </div>
           <transition name="rv-fade">
-            <div v-if="invitationValidation.valid" class="rv-validation-ok">
-              <Icon name="checkCircle" size="sm" class="rv-icon-ok" />
+            <div v-if="invitationValidation.valid" class="mt-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-500">
+              <Icon name="checkCircle" size="sm" class="text-emerald-500" />
               <span>{{ t('auth.invitationCodeValid') }}</span>
             </div>
           </transition>
         </div>
 
         <!-- 推广码（选填） -->
-        <div v-if="promoCodeEnabled" class="rv-field">
-          <label for="promo_code" class="rv-label">
+        <div v-if="promoCodeEnabled" class="mb-4">
+          <Label for="promo_code" class="mb-2 block">
             {{ t('auth.promoCodeLabel') }}
-            <span class="rv-optional">({{ t('common.optional') }})</span>
-          </label>
-          <div
-            class="rv-inp-wrap"
-            :class="{
-              'rv-inp-wrap--ok': promoValidation.valid,
-              'rv-inp-wrap--error': promoValidation.invalid
-            }"
-          >
+            <span class="ml-1 text-xs text-muted-foreground">({{ t('common.optional') }})</span>
+          </Label>
+          <div class="relative">
             <Icon
               name="gift"
               size="md"
-              class="rv-inp-icon"
-              :class="promoValidation.valid ? 'rv-inp-icon--ok' : ''"
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
+              :class="promoValidation.valid ? 'text-emerald-500' : 'text-muted-foreground'"
             />
-            <input
+            <Input
               id="promo_code"
               v-model="formData.promo_code"
               type="text"
               :disabled="registrationActionDisabled"
-              class="rv-inp"
+              class="px-10"
+              :class="{
+                'border-emerald-500/55 focus-visible:ring-emerald-500': promoValidation.valid,
+                'border-destructive focus-visible:ring-destructive': promoValidation.invalid
+              }"
               :placeholder="t('auth.promoCodePlaceholder')"
               @input="handlePromoCodeInput"
             />
-            <div v-if="promoValidating" class="rv-inp-indicator">
-              <svg class="rv-spin" fill="none" viewBox="0 0 24 24">
+            <div v-if="promoValidating" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <svg class="h-4 w-4 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             </div>
-            <div v-else-if="promoValidation.valid" class="rv-inp-indicator">
-              <Icon name="checkCircle" size="md" class="rv-icon-ok" />
+            <div v-else-if="promoValidation.valid" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <Icon name="checkCircle" size="md" class="text-emerald-500" />
             </div>
-            <div v-else-if="promoValidation.invalid" class="rv-inp-indicator">
-              <Icon name="exclamationCircle" size="md" class="rv-icon-err" />
+            <div v-else-if="promoValidation.invalid" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <Icon name="exclamationCircle" size="md" class="text-destructive" />
             </div>
           </div>
           <transition name="rv-fade">
-            <div v-if="promoValidation.valid" class="rv-validation-ok">
-              <Icon name="gift" size="sm" class="rv-icon-ok" />
+            <div v-if="promoValidation.valid" class="mt-2 flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-500">
+              <Icon name="gift" size="sm" class="text-emerald-500" />
               <span>{{ t('auth.promoCodeValid', { amount: promoValidation.bonusAmount?.toFixed(2) }) }}</span>
             </div>
           </transition>
         </div>
 
         <!-- Turnstile -->
-        <div v-if="turnstileEnabled && turnstileSiteKey">
+        <div v-if="turnstileEnabled && turnstileSiteKey" class="mb-4">
           <TurnstileWidget
             ref="turnstileRef"
             :site-key="turnstileSiteKey"
@@ -183,12 +191,12 @@
         />
 
         <!-- 注册按钮 -->
-        <button
+        <Button
           type="submit"
           :disabled="registrationActionDisabled || (turnstileEnabled && !turnstileToken)"
-          class="rv-submit"
+          class="mb-4 w-full"
         >
-          <svg v-if="isLoading" class="rv-spin" fill="none" viewBox="0 0 24 24">
+          <svg v-if="isLoading" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -200,15 +208,15 @@
                 ? t('auth.continue')
                 : t('auth.createAccount')
           }}
-        </button>
+        </Button>
       </form>
 
       <!-- OAuth -->
-      <div v-if="showOAuthLogin" class="rv-oauth">
-        <div class="rv-divider">
-          <span class="rv-divider-line"></span>
-          <span class="rv-divider-txt">{{ t('auth.oauthOrContinue') }}</span>
-          <span class="rv-divider-line"></span>
+      <div v-if="showOAuthLogin" class="flex flex-col gap-2">
+        <div class="mb-1 flex items-center gap-2.5">
+          <Separator class="flex-1" />
+          <span class="whitespace-nowrap text-xs text-muted-foreground">{{ t('auth.oauthOrContinue') }}</span>
+          <Separator class="flex-1" />
         </div>
         <EmailOAuthButtons
           :disabled="registrationActionDisabled"
@@ -241,9 +249,9 @@
 
     <!-- 页脚 -->
     <template #footer>
-      <p class="rv-footer-txt">
+      <p class="text-sm text-muted-foreground">
         {{ t('auth.alreadyHaveAccount') }}
-        <router-link to="/login" class="rv-footer-link">{{ t('auth.signIn') }}</router-link>
+        <router-link to="/login" class="ml-1 text-foreground transition-colors hover:text-primary">{{ t('auth.signIn') }}</router-link>
       </p>
     </template>
   </AuthLayout>
@@ -254,6 +262,11 @@ import { computed, ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import LinuxDoOAuthSection from '@/components/auth/LinuxDoOAuthSection.vue'
 import OidcOAuthSection from '@/components/auth/OidcOAuthSection.vue'
 import WechatOAuthSection from '@/components/auth/WechatOAuthSection.vue'
@@ -870,120 +883,11 @@ async function handleRegister(): Promise<void> {
 </script>
 
 <style scoped>
-.rv-body { display: flex; flex-direction: column; gap: 0; }
-
-.rv-head { margin-bottom: 24px; text-align: center; }
-.rv-title { font-size: 17px; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-0); margin-bottom: 4px; }
-.rv-sub { font-size: 12px; color: var(--ink-2); }
-
-/* 注册关闭提示 */
-.rv-notice {
-  display: flex; align-items: flex-start; gap: 10px;
-  border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
-}
-.rv-notice--warn { background: rgba(224,179,78,.1); border: 1px solid rgba(224,179,78,.3); }
-.rv-notice-icon--warn { color: #E0B34E; flex: none; }
-.rv-notice-txt--warn { font-size: 13px; color: #E0B34E; }
-
-.rv-form { display: flex; flex-direction: column; gap: 0; }
-.rv-field { margin-bottom: 18px; }
-.rv-label { display: block; font-size: 12px; color: var(--ink-1); margin-bottom: 7px; }
-.rv-optional { font-size: 11px; color: var(--ink-2); margin-left: 4px; }
-.rv-hint { font-size: 11px; color: var(--ink-2); margin-top: 5px; }
-
-/* 输入框包裹 */
-.rv-inp-wrap {
-  display: flex; align-items: center;
-  background: #0a0c0f; border: 1px solid var(--line-1);
-  border-radius: 12px; padding: 0 14px; height: 46px;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
-  gap: 10px;
-}
-.rv-inp-wrap:focus-within {
-  border-color: rgba(92,168,255,.75);
-  box-shadow: var(--glow-focus);
-}
-.rv-inp-wrap--ok { border-color: rgba(70,201,140,.55); }
-.rv-inp-wrap--ok:focus-within { border-color: rgba(92,168,255,.75); box-shadow: var(--glow-focus); }
-.rv-inp-wrap--error { border-color: rgba(242,92,105,.6); }
-.rv-inp-wrap--error:focus-within { border-color: rgba(92,168,255,.75); box-shadow: var(--glow-focus); }
-
-.rv-inp-icon { flex: none; color: var(--ink-2); }
-.rv-inp-icon--ok { color: #46C98C; }
-
-.rv-inp {
-  flex: 1; min-width: 0;
-  background: none; border: none; outline: none;
-  color: var(--ink-0); font: inherit; font-size: 13.5px;
-}
-.rv-inp::placeholder { color: var(--ink-2); }
-.rv-inp:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.rv-eye {
-  flex: none; background: none; border: none; cursor: pointer;
-  color: var(--ink-2); display: flex; align-items: center; padding: 0;
-  transition: color 0.15s ease;
-}
-.rv-eye:hover { color: var(--ink-0); }
-.rv-eye:focus-visible { outline: 1.5px solid var(--azure); outline-offset: 2px; border-radius: 4px; }
-.rv-eye:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.rv-inp-indicator { flex: none; display: flex; align-items: center; }
-.rv-icon-ok { color: #46C98C; }
-.rv-icon-err { color: #F25C69; }
-
-/* 校验成功 badge */
-.rv-validation-ok {
-  display: flex; align-items: center; gap: 7px;
-  border-radius: 8px; border: 1px solid rgba(70,201,140,.3);
-  background: rgba(70,201,140,.08); padding: 7px 12px; margin-top: 8px;
-  font-size: 12px; color: #46C98C;
-}
-
-/* 主提交按钮 */
-.rv-submit {
-  width: 100%; height: 46px; border-radius: 12px;
-  border: 1px solid #3a4250; background: var(--metal-raised);
-  color: var(--ink-0); font: inherit; font-size: 14px; font-weight: 600;
-  letter-spacing: 0.2em; cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: var(--edge-hi), 0 2px 10px rgba(0,0,0,.4);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-  margin-bottom: 16px;
-}
-.rv-submit:hover:not(:disabled) {
-  border-color: rgba(92,168,255,.55);
-  box-shadow: var(--edge-hi), 0 0 16px rgba(92,168,255,.22), 0 2px 10px rgba(0,0,0,.4);
-}
-.rv-submit:focus-visible {
-  outline: none; border-color: rgba(92,168,255,.75);
-  box-shadow: var(--glow-focus), 0 2px 10px rgba(0,0,0,.4);
-}
-.rv-submit:disabled { opacity: 0.45; cursor: not-allowed; }
-.rv-submit:active:not(:disabled) { transform: scale(0.985); }
-
-/* OAuth 区 */
-.rv-oauth { display: flex; flex-direction: column; gap: 8px; }
-.rv-divider { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.rv-divider-line { flex: 1; height: 1px; background: var(--line-0); }
-.rv-divider-txt { font-size: 11px; color: var(--ink-2); white-space: nowrap; }
-
-/* 页脚 */
-.rv-footer-txt { color: var(--ink-2); font-size: 13px; }
-.rv-footer-link { color: var(--ink-1); text-decoration: none; margin-left: 4px; transition: color 0.15s ease; }
-.rv-footer-link:hover { color: var(--azure); }
-
-/* 转圈 */
-.rv-spin { width: 16px; height: 16px; animation: rv-spin 0.8s linear infinite; flex: none; }
-@keyframes rv-spin { to { transform: rotate(360deg); } }
-
-/* 淡入 transition */
+/* 校验成功 badge 淡入 transition（仍被 <transition name="rv-fade"> 引用） */
 .rv-fade-enter-active, .rv-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .rv-fade-enter-from, .rv-fade-leave-to { opacity: 0; transform: translateY(-6px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv-spin { animation: none; }
-  .rv-inp-wrap, .rv-submit { transition: none; }
   .rv-fade-enter-active, .rv-fade-leave-active { transition: none; }
 }
 </style>

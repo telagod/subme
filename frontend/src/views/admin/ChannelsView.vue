@@ -9,13 +9,13 @@
               <Icon
                 name="search"
                 size="md"
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('admin.channels.searchChannels', 'Search channels...')"
-                class="input pl-10"
+                class="pl-10"
                 @input="handleSearch"
               />
             </div>
@@ -31,18 +31,19 @@
 
           <!-- Right: Actions -->
           <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               @click="loadChannels"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh', 'Refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="openCreateDialog" class="btn btn-primary">
-              <Icon name="plus" size="md" class="mr-2" />
+            </Button>
+            <Button @click="openCreateDialog">
+              <Icon name="plus" size="md" />
               {{ t('admin.channels.createChannel', 'Create Channel') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -66,9 +67,9 @@
           </template>
 
           <template #cell-status="{ row }">
-            <Toggle
-              :modelValue="row.status === 'active'"
-              @update:modelValue="toggleChannelStatus(row)"
+            <Switch
+              :model-value="row.status === 'active'"
+              @update:model-value="toggleChannelStatus(row)"
             />
           </template>
 
@@ -98,20 +99,22 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
-              <button
+              <Button
+                variant="ghost"
                 @click="openEditDialog(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-primary-200"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:text-foreground"
               >
                 <Icon name="edit" size="sm" />
                 <span class="text-xs">{{ t('common.edit', 'Edit') }}</span>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 @click="handleDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
+                class="h-auto flex-col items-center gap-0.5 p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="trash" size="sm" />
                 <span class="text-xs">{{ t('common.delete', 'Delete') }}</span>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -149,26 +152,32 @@
         <!-- Tab Bar -->
         <div class="flex items-center border-b border-border flex-shrink-0 -mx-4 sm:-mx-6 px-4 sm:px-6 -mt-3 sm:-mt-4">
           <!-- Basic Settings Tab -->
-          <button
+          <Button
             type="button"
+            variant="ghost"
             @click="activeTab = 'basic'"
-            class="channel-tab"
-            :class="activeTab === 'basic' ? 'channel-tab-active' : 'channel-tab-inactive'"
+            class="h-auto rounded-none border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap"
+            :class="activeTab === 'basic'
+              ? 'border-foreground text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground/85 hover:border-border'"
           >
             {{ t('admin.channels.form.basicSettings', '基础设置') }}
-          </button>
+          </Button>
           <!-- Platform Tabs (only enabled) -->
-          <button
+          <Button
             v-for="section in form.platforms.filter(s => s.enabled)"
             :key="section.platform"
             type="button"
+            variant="ghost"
             @click="activeTab = section.platform"
-            class="channel-tab group"
-            :class="activeTab === section.platform ? 'channel-tab-active' : 'channel-tab-inactive'"
+            class="group h-auto gap-1.5 rounded-none border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap"
+            :class="activeTab === section.platform
+              ? 'border-foreground text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground/85 hover:border-border'"
           >
             <PlatformIcon :platform="section.platform" size="xs" :class="platformTextClass(section.platform)" />
             <span :class="platformTextClass(section.platform)">{{ t('admin.groups.platforms.' + section.platform, section.platform) }}</span>
-          </button>
+          </Button>
         </div>
 
         <!-- Tab Content -->
@@ -177,42 +186,36 @@
           <div v-show="activeTab === 'basic'" class="space-y-5">
             <!-- Name -->
             <div>
-              <label class="input-label">{{ t('admin.channels.form.name', 'Name') }} <span class="text-red-400">*</span></label>
-              <input
+              <Label class="mb-1.5 block">{{ t('admin.channels.form.name', 'Name') }} <span class="text-destructive">*</span></Label>
+              <Input
                 v-model="form.name"
                 type="text"
                 required
-                class="input"
                 :placeholder="t('admin.channels.form.namePlaceholder', 'Enter channel name')"
               />
             </div>
 
             <!-- Description -->
             <div>
-              <label class="input-label">{{ t('admin.channels.form.description', 'Description') }}</label>
-              <textarea
+              <Label class="mb-1.5 block">{{ t('admin.channels.form.description', 'Description') }}</Label>
+              <Textarea
                 v-model="form.description"
                 rows="2"
-                class="input"
                 :placeholder="t('admin.channels.form.descriptionPlaceholder', 'Optional description')"
-              ></textarea>
+              />
             </div>
 
             <!-- Status (edit only) -->
             <div v-if="editingChannel">
-              <label class="input-label">{{ t('admin.channels.form.status', 'Status') }}</label>
+              <Label class="mb-1.5 block">{{ t('admin.channels.form.status', 'Status') }}</Label>
               <Select v-model="form.status" :options="statusEditOptions" />
             </div>
 
             <!-- Model Restriction -->
             <div>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  v-model="form.restrict_models"
-                  class="h-4 w-4 rounded border-border text-primary-600 focus:ring-ring"
-                />
-                <span class="input-label mb-0">{{ t('admin.channels.form.restrictModels', 'Restrict Models') }}</span>
+                <Checkbox v-model="form.restrict_models" />
+                <span class="text-sm font-medium text-foreground">{{ t('admin.channels.form.restrictModels', 'Restrict Models') }}</span>
               </label>
               <p class="mt-1 ml-6 text-xs text-muted-foreground">
                 {{ t('admin.channels.form.restrictModelsHint', 'When enabled, only models in the pricing list are allowed. Others will be rejected.') }}
@@ -221,7 +224,7 @@
 
             <!-- Billing Basis -->
             <div>
-              <label class="input-label">{{ t('admin.channels.form.billingModelSource', 'Billing Basis') }}</label>
+              <Label class="mb-1.5 block">{{ t('admin.channels.form.billingModelSource', 'Billing Basis') }}</Label>
               <Select v-model="form.billing_model_source" :options="billingModelSourceOptions" />
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.channels.form.billingModelSourceHint', 'Controls which model name is used for pricing lookup') }}
@@ -230,21 +233,20 @@
 
             <!-- Platform Management -->
             <div class="space-y-3">
-              <label class="input-label mb-0">{{ t('admin.channels.form.platformConfig', '平台配置') }}</label>
+              <Label>{{ t('admin.channels.form.platformConfig', '平台配置') }}</Label>
               <div class="flex flex-wrap gap-2">
                 <label
                   v-for="p in platformOrder"
                   :key="p"
                   class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-colors"
                   :class="activePlatforms.includes(p)
-                    ? 'bg-accent border-primary-300'
+                    ? 'bg-accent border-ring'
                     : 'border-border hover:bg-accent'"
                 >
-                  <input
-                    type="checkbox"
-                    :checked="activePlatforms.includes(p)"
-                    class="h-3.5 w-3.5 rounded border-border text-primary-600 focus:ring-ring"
-                    @change="togglePlatform(p)"
+                  <Checkbox
+                    :model-value="activePlatforms.includes(p)"
+                    class="h-3.5 w-3.5"
+                    @update:model-value="togglePlatform(p)"
                   />
                   <PlatformIcon :platform="p" size="xs" :class="platformTextClass(p)" />
                   <span :class="platformTextClass(p)">{{ t('admin.groups.platforms.' + p, p) }}</span>
@@ -263,9 +265,9 @@
                     {{ t('admin.channels.form.applyPricingToAccountStatsDesc') }}
                   </p>
                 </div>
-                <Toggle
-                  :modelValue="form.apply_pricing_to_account_stats"
-                  @update:modelValue="form.apply_pricing_to_account_stats = $event"
+                <Switch
+                  :model-value="form.apply_pricing_to_account_stats"
+                  @update:model-value="form.apply_pricing_to_account_stats = $event"
                 />
               </div>
             </div>
@@ -280,12 +282,12 @@
           >
             <!-- Groups -->
             <div>
-              <label class="input-label text-xs">
-                {{ t('admin.channels.form.groups', 'Associated Groups') }} <span class="text-red-400">*</span>
+              <Label class="text-xs">
+                {{ t('admin.channels.form.groups', 'Associated Groups') }} <span class="text-destructive">*</span>
                 <span v-if="section.group_ids.length > 0" class="ml-1 font-normal text-muted-foreground">
                   ({{ t('admin.channels.form.selectedCount', { count: section.group_ids.length }, `已选 ${section.group_ids.length} 个`) }})
                 </span>
-              </label>
+              </Label>
               <div class="max-h-40 overflow-auto rounded-md border border-border bg-muted p-2">
                 <div v-if="groupsLoading" class="py-2 text-center text-xs text-muted-foreground">
                   {{ t('common.loading', 'Loading...') }}
@@ -299,16 +301,15 @@
                     :key="group.id"
                     class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
                     :class="[
-                      section.group_ids.includes(group.id) ? 'bg-accent border-primary-300' : '',
+                      section.group_ids.includes(group.id) ? 'bg-accent border-ring' : '',
                       isGroupInOtherChannel(group.id, section.platform) ? 'opacity-40' : ''
                     ]"
                   >
-                    <input
-                      type="checkbox"
-                      :checked="section.group_ids.includes(group.id)"
+                    <Checkbox
+                      :model-value="section.group_ids.includes(group.id)"
                       :disabled="isGroupInOtherChannel(group.id, section.platform)"
-                      class="h-3 w-3 rounded border-border text-primary-600 focus:ring-ring"
-                      @change="toggleGroupInSection(sIdx, group.id)"
+                      class="h-3 w-3"
+                      @update:model-value="toggleGroupInSection(sIdx, group.id)"
                     />
                     <span :class="['font-medium', platformTextClass(group.platform)]">{{ group.name }}</span>
                     <span
@@ -331,11 +332,11 @@
                   <label class="text-xs font-medium text-foreground/85">
                     {{ t('admin.channels.form.webSearchEmulation') }}
                   </label>
-                  <p class="mt-0.5 text-[11px] text-red-400">
+                  <p class="mt-0.5 text-[11px] text-destructive">
                     {{ t('admin.channels.form.webSearchEmulationHint') }}
                   </p>
                 </div>
-                <Toggle v-model="section.web_search_emulation" />
+                <Switch v-model="section.web_search_emulation" />
               </div>
             </div>
 
@@ -346,11 +347,11 @@
                   <label class="text-xs font-medium text-foreground/85">
                     {{ t('admin.channels.form.codexImageGenerationBridge') }}
                   </label>
-                  <p class="mt-0.5 text-[11px] text-amber-400">
+                  <p class="mt-0.5 text-[11px] text-amber-500">
                     {{ t('admin.channels.form.codexImageGenerationBridgeHint') }}
                   </p>
                 </div>
-                <Toggle v-model="section.codex_image_generation_bridge" />
+                <Switch v-model="section.codex_image_generation_bridge" />
               </div>
             </div>
 
@@ -361,21 +362,21 @@
                   <label class="text-xs font-medium text-foreground/85">
                     {{ t('admin.channels.form.bedrockCCCompat') }}
                   </label>
-                  <p class="mt-0.5 text-[11px] text-amber-400">
+                  <p class="mt-0.5 text-[11px] text-amber-500">
                     {{ t('admin.channels.form.bedrockCCCompatHint') }}
                   </p>
                 </div>
-                <Toggle v-model="section.bedrock_cc_compat" />
+                <Switch v-model="section.bedrock_cc_compat" />
               </div>
             </div>
 
             <!-- Model Mapping -->
             <div>
               <div class="mb-1 flex items-center justify-between">
-                <label class="input-label text-xs mb-0">{{ t('admin.channels.form.modelMapping', 'Model Mapping') }}</label>
-                <button type="button" @click="addMappingEntry(sIdx)" class="text-xs text-primary-600 hover:text-primary-700">
+                <Label class="text-xs">{{ t('admin.channels.form.modelMapping', 'Model Mapping') }}</Label>
+                <Button type="button" variant="ghost" @click="addMappingEntry(sIdx)" class="h-auto px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground">
                   + {{ t('common.add', 'Add') }}
-                </button>
+                </Button>
               </div>
               <div
                 v-if="Object.keys(section.model_mapping).length === 0"
@@ -389,30 +390,32 @@
                   :key="srcModel"
                   class="flex items-center gap-2"
                 >
-                  <input
+                  <Input
                     :value="srcModel"
                     type="text"
-                    class="input flex-1 text-xs"
+                    class="h-9 flex-1 text-xs"
                     :class="platformTextClass(section.platform)"
                     :placeholder="t('admin.channels.form.mappingSource', 'Source model')"
                     @change="renameMappingKey(sIdx, srcModel, ($event.target as HTMLInputElement).value)"
                   />
                   <span class="text-muted-foreground text-xs">→</span>
-                  <input
+                  <Input
                     :value="section.model_mapping[srcModel]"
                     type="text"
-                    class="input flex-1 text-xs"
+                    class="h-9 flex-1 text-xs"
                     :class="platformTextClass(section.platform)"
                     :placeholder="t('admin.channels.form.mappingTarget', 'Target model')"
                     @input="section.model_mapping[srcModel] = ($event.target as HTMLInputElement).value"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     @click="removeMappingEntry(sIdx, srcModel)"
-                    class="rounded p-0.5 text-muted-foreground hover:text-red-400"
+                    class="h-auto w-auto p-0.5 text-muted-foreground hover:text-destructive"
                   >
                     <Icon name="trash" size="sm" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -420,19 +423,20 @@
             <!-- Model Pricing -->
             <div>
               <div class="mb-1 flex items-center justify-between">
-                <label class="input-label text-xs mb-0">{{ t('admin.channels.form.modelPricing', 'Model Pricing') }}</label>
+                <Label class="text-xs">{{ t('admin.channels.form.modelPricing', 'Model Pricing') }}</Label>
                 <div class="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     @click="syncLatestModels(sIdx)"
                     :disabled="syncingPlatform === section.platform"
-                    class="text-xs text-muted-foreground hover:text-primary-200 disabled:opacity-50"
+                    class="h-auto px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground"
                   >
                     {{ syncingPlatform === section.platform ? t('admin.channels.form.syncingModels') : t('admin.channels.form.syncLatestModels') }}
-                  </button>
-                  <button type="button" @click="addPricingEntry(sIdx)" class="text-xs text-primary-600 hover:text-primary-700">
+                  </Button>
+                  <Button type="button" variant="ghost" @click="addPricingEntry(sIdx)" class="h-auto px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground">
                     + {{ t('common.add', 'Add') }}
-                  </button>
+                  </Button>
                 </div>
               </div>
               <div
@@ -459,13 +463,14 @@
                 <h4 class="text-sm font-medium text-foreground/85">
                   {{ t('admin.channels.form.accountStatsPricingRules') }}
                 </h4>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   @click="addAccountStatsRule(sIdx)"
-                  class="rounded-md border border-border px-3 py-1 text-xs font-medium text-primary-200 hover:bg-accent"
+                  class="h-auto px-3 py-1 text-xs font-medium"
                 >
                   + {{ t('admin.channels.form.addRule') }}
-                </button>
+                </Button>
               </div>
 
               <!-- Filter rules for this platform's groups -->
@@ -482,14 +487,14 @@
                 class="space-y-3 rounded-md border border-border p-4"
               >
                 <div class="flex items-center justify-between">
-                  <input
+                  <Input
                     v-model="rule.name"
                     :placeholder="t('admin.channels.form.ruleName')"
-                    class="bg-transparent text-sm font-medium text-foreground/85 placeholder-muted-foreground outline-none"
+                    class="h-auto border-0 bg-transparent p-0 text-sm font-medium text-foreground/85 shadow-none focus-visible:ring-0"
                   />
-                  <button type="button" @click="removeAccountStatsRule(sIdx, ruleIndex)" class="text-xs text-red-400 hover:text-red-300">
+                  <Button type="button" variant="link" @click="removeAccountStatsRule(sIdx, ruleIndex)" class="h-auto p-0 text-xs text-destructive hover:text-destructive/80">
                     {{ t('common.delete') }}
-                  </button>
+                  </Button>
                 </div>
 
                 <div>
@@ -500,10 +505,10 @@
                       :key="gid"
                       class="inline-flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors"
                       :class="rule.group_ids.includes(gid)
-                        ? 'border-primary-300 bg-accent'
+                        ? 'border-ring bg-accent'
                         : 'border-border hover:bg-accent'"
                     >
-                      <input type="checkbox" :checked="rule.group_ids.includes(gid)" class="h-3 w-3 rounded border-border text-primary-600 focus:ring-ring" @change="rule.group_ids.includes(gid) ? rule.group_ids.splice(rule.group_ids.indexOf(gid), 1) : rule.group_ids.push(gid)" />
+                      <Checkbox :model-value="rule.group_ids.includes(gid)" class="h-3 w-3" @update:model-value="rule.group_ids.includes(gid) ? rule.group_ids.splice(rule.group_ids.indexOf(gid), 1) : rule.group_ids.push(gid)" />
                       <span :class="['font-medium', platformTextClass(section.platform)]">{{ getGroupNameById(gid) }}</span>
                     </label>
                   </div>
@@ -519,20 +524,20 @@
                     <span
                       v-for="accountId in rule.account_ids"
                       :key="accountId"
-                      class="inline-flex items-center gap-1 rounded-md border border-primary-300 bg-accent px-2 py-0.5 text-xs"
+                      class="inline-flex items-center gap-1 rounded-md border border-ring bg-accent px-2 py-0.5 text-xs"
                     >
                       <span :class="['font-medium', platformTextClass(section.platform)]">{{ getRuleAccountLabel(accountId) }}</span>
-                      <button type="button" @click="removeRuleAccount(rule, accountId)" class="text-muted-foreground hover:text-red-400">
+                      <Button type="button" variant="ghost" size="icon" @click="removeRuleAccount(rule, accountId)" class="h-auto w-auto p-0 text-muted-foreground hover:text-destructive">
                         <Icon name="x" size="xs" />
-                      </button>
+                      </Button>
                     </span>
                   </div>
                   <!-- Account search input -->
                   <div class="relative mt-1 rule-account-search-container">
-                    <input
+                    <Input
                       v-model="ruleAccountSearchKeyword[`${section.platform}-${ruleIndex}`]"
                       type="text"
-                      class="input text-sm"
+                      class="h-9 text-sm"
                       :placeholder="t('admin.channels.form.searchAccountPlaceholder')"
                       @input="onRuleAccountSearchInput(section.platform, ruleIndex)"
                       @focus="onRuleAccountSearchFocus(section.platform, ruleIndex)"
@@ -540,20 +545,21 @@
                     <!-- Search results dropdown -->
                     <div
                       v-if="showRuleAccountDropdown[`${section.platform}-${ruleIndex}`] && (ruleAccountSearchResults[`${section.platform}-${ruleIndex}`]?.length ?? 0) > 0"
-                      class="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-card "
+                      class="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-border bg-popover"
                     >
-                      <button
+                      <Button
                         v-for="account in ruleAccountSearchResults[`${section.platform}-${ruleIndex}`]"
                         :key="account.id"
                         type="button"
+                        variant="ghost"
                         @click="selectRuleAccount(rule, account, section.platform, ruleIndex)"
-                        class="w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                        class="h-auto w-full justify-start rounded-none px-3 py-2 text-left text-sm font-normal"
                         :class="{ 'opacity-50': rule.account_ids.includes(account.id) }"
                         :disabled="rule.account_ids.includes(account.id)"
                       >
                         <span :class="platformTextClass(account.platform)">{{ account.name }}</span>
                         <span class="ml-2 text-xs text-muted-foreground">#{{ account.id }}</span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <p class="mt-1 text-xs text-muted-foreground">
@@ -564,9 +570,9 @@
                 <div>
                   <div class="mb-1 flex items-center justify-between">
                     <label class="text-xs text-muted-foreground">{{ t('admin.channels.form.ruleModelPricing') }}</label>
-                    <button type="button" @click="addRulePricingEntry(sIdx, ruleIndex)" class="text-xs text-primary-600 hover:text-primary-700">
+                    <Button type="button" variant="ghost" @click="addRulePricingEntry(sIdx, ruleIndex)" class="h-auto px-1 py-0.5 text-xs text-muted-foreground hover:text-foreground">
                       + {{ t('common.add') }}
-                    </button>
+                    </Button>
                   </div>
                   <div v-if="rule.pricing.length === 0" class="rounded border border-dashed border-border p-2 text-center text-xs text-muted-foreground">
                     {{ t('admin.channels.form.noPricingRules') }}
@@ -590,14 +596,13 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeDialog" type="button" class="btn btn-secondary">
+          <Button @click="closeDialog" type="button" variant="outline">
             {{ t('common.cancel', 'Cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="channel-form"
             :disabled="submitting"
-            class="btn btn-primary"
           >
             {{ submitting
               ? t('common.submitting', 'Submitting...')
@@ -605,7 +610,7 @@
                 ? t('common.update', 'Update')
                 : t('common.create', 'Create')
             }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -644,9 +649,14 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import Select from '@/components/common/Select.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
 import Icon from '@/components/icons/Icon.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
-import Toggle from '@/components/common/Toggle.vue'
 import PricingEntryCard from '@/components/admin/channel/PricingEntryCard.vue'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { useKeyedDebouncedSearch } from '@/composables/useKeyedDebouncedSearch'
@@ -1617,17 +1627,5 @@ onUnmounted(() => {
   flex-direction: column;
   height: 70vh;
   min-height: 400px;
-}
-
-.channel-tab {
-  @apply flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap;
-}
-
-.channel-tab-active {
-  @apply border-primary-200 text-primary-200;
-}
-
-.channel-tab-inactive {
-  @apply border-transparent text-muted-foreground hover:text-foreground/85 hover:border-border;
 }
 </style>

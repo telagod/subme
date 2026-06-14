@@ -12,7 +12,7 @@
           <div
             :class="[
               'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold',
-              step >= 1 ? 'bg-foreground text-foreground' : 'bg-secondary text-muted-foreground'
+              step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
             ]"
           >
             1
@@ -26,7 +26,7 @@
           <div
             :class="[
               'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold',
-              step >= 2 ? 'bg-foreground text-foreground' : 'bg-secondary text-muted-foreground'
+              step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
             ]"
           >
             2
@@ -46,51 +46,51 @@
       class="space-y-5"
     >
       <div>
-        <label class="input-label">{{ t('admin.accounts.accountName') }}</label>
-        <input
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountName') }}</label>
+        <Input
           v-model="form.name"
           type="text"
           required
-          class="input"
           :placeholder="t('admin.accounts.enterAccountName')"
           data-tour="account-form-name"
         />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.accounts.notes') }}</label>
-        <textarea
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.notes') }}</label>
+        <Textarea
           v-model="form.notes"
           rows="3"
-          class="input"
-          :placeholder="t('admin.accounts.notesPlaceholder')"
-        ></textarea>
-        <p class="input-hint">{{ t('admin.accounts.notesHint') }}</p>
+                    :placeholder="t('admin.accounts.notesPlaceholder')"
+        ></Textarea>
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.notesHint') }}</p>
       </div>
 
       <!-- Platform Selection - Segmented Control Style -->
       <div>
-        <label class="input-label">{{ t('admin.accounts.platform') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.platform') }}</label>
         <div class="mt-2 flex rounded-md bg-muted p-1" data-tour="account-form-platform">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             @click="form.platform = 'anthropic'"
             :class="[
-              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all h-auto',
               form.platform === 'anthropic'
-                ? 'bg-card text-foreground '
+                ? 'bg-card text-foreground hover:bg-card'
                 : 'text-muted-foreground hover:text-foreground'
             ]"
           >
             <Icon name="sparkles" size="sm" />
             Anthropic
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             @click="form.platform = 'openai'"
             :class="[
-              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all h-auto',
               form.platform === 'openai'
-                ? 'bg-card text-foreground '
+                ? 'bg-card text-foreground hover:bg-card'
                 : 'text-muted-foreground hover:text-foreground'
             ]"
           >
@@ -108,14 +108,15 @@
               />
             </svg>
             OpenAI
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             @click="form.platform = 'gemini'"
             :class="[
-              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all h-auto',
               form.platform === 'gemini'
-                ? 'bg-card text-foreground '
+                ? 'bg-card text-foreground hover:bg-card'
                 : 'text-muted-foreground hover:text-foreground'
             ]"
           >
@@ -133,43 +134,45 @@
               />
             </svg>
             Gemini
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             @click="form.platform = 'antigravity'"
             :class="[
-              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all',
+              'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all h-auto',
               form.platform === 'antigravity'
-                ? 'bg-card text-foreground '
+                ? 'bg-card text-foreground hover:bg-card'
                 : 'text-muted-foreground hover:text-foreground'
             ]"
           >
             <Icon name="cloud" size="sm" />
             Antigravity
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Account Type Selection (Anthropic) -->
       <div v-if="form.platform === 'anthropic'">
-        <label class="input-label">{{ t('admin.accounts.accountType') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountType') }}</label>
         <div class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4" data-tour="account-form-type">
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'oauth-based'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'oauth-based'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'oauth-based'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="sparkles" size="sm" />
@@ -182,24 +185,25 @@
                 t('admin.accounts.oauthSetupToken')
               }}</span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'apikey'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'apikey'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'apikey'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="key" size="sm" />
@@ -212,24 +216,25 @@
                 t('admin.accounts.apiKey')
               }}</span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'bedrock'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'bedrock'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'bedrock'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="cloud" size="sm" />
@@ -242,24 +247,25 @@
                 t('admin.accounts.bedrockDesc')
               }}</span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'service_account'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'service_account'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'service_account'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="cloud" size="sm" />
@@ -268,7 +274,7 @@
               <span class="block text-sm font-medium text-foreground">Vertex</span>
               <span class="text-xs text-muted-foreground">Service Account</span>
             </div>
-          </button>
+          </Button>
 
         </div>
 
@@ -282,24 +288,25 @@
 
       <!-- Account Type Selection (OpenAI) -->
       <div v-if="form.platform === 'openai'">
-        <label class="input-label">{{ t('admin.accounts.accountType') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountType') }}</label>
         <div class="mt-2 grid grid-cols-2 gap-3" data-tour="account-form-type">
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'oauth-based'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'oauth-based'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'oauth-based'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="key" size="sm" />
@@ -308,24 +315,25 @@
               <span class="block text-sm font-medium text-foreground">OAuth</span>
               <span class="text-xs text-muted-foreground">{{ t('admin.accounts.types.chatgptOauth') }}</span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'apikey'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'apikey'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'apikey'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="key" size="sm" />
@@ -334,7 +342,7 @@
               <span class="block text-sm font-medium text-foreground">API Key</span>
               <span class="text-xs text-muted-foreground">{{ t('admin.accounts.types.responsesApi') }}</span>
             </div>
-          </button>
+          </Button>
 
         </div>
       </div>
@@ -342,35 +350,37 @@
       <!-- Account Type Selection (Gemini) -->
       <div v-if="form.platform === 'gemini'">
         <div class="flex items-center justify-between">
-          <label class="input-label">{{ t('admin.accounts.accountType') }}</label>
-          <button
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountType') }}</label>
+          <Button
             type="button"
+            variant="ghost"
             @click="showGeminiHelpDialog = true"
-            class="flex items-center gap-1 rounded px-2 py-1 text-xs text-primary-200 hover:bg-accent"
+            class="flex items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent h-auto"
           >
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
             </svg>
             {{ t('admin.accounts.gemini.helpButton') }}
-          </button>
+          </Button>
         </div>
         <div class="mt-2 grid grid-cols-3 gap-3" data-tour="account-form-type">
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'oauth-based'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'oauth-based'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'oauth-based'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="key" size="sm" />
@@ -383,24 +393,25 @@
                 {{ t('admin.accounts.gemini.accountType.oauthDesc') }}
               </span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'apikey'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'apikey'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'apikey'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <svg
@@ -425,24 +436,25 @@
                 {{ t('admin.accounts.gemini.accountType.apiKeyDesc') }}
               </span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="accountCategory = 'service_account'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               accountCategory === 'service_account'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 accountCategory === 'service_account'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="cloud" size="sm" />
@@ -455,7 +467,7 @@
                 Service Account
               </span>
             </div>
-          </button>
+          </Button>
         </div>
 
         <div
@@ -466,7 +478,7 @@
           <div class="mt-2 flex flex-wrap gap-2">
             <a
               :href="geminiHelpLinks.apiKey"
-              class="font-medium text-primary-200 hover:underline"
+              class="font-medium text-muted-foreground hover:underline"
               target="_blank"
               rel="noreferrer"
             >
@@ -484,25 +496,26 @@
 
         <!-- OAuth Type Selection (only show when oauth-based is selected) -->
         <div v-if="accountCategory === 'oauth-based'" class="mt-4">
-          <label class="input-label">{{ t('admin.accounts.oauth.gemini.oauthTypeLabel') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.oauth.gemini.oauthTypeLabel') }}</label>
           <div class="mt-2 grid grid-cols-2 gap-3">
             <!-- Google One OAuth -->
-            <button
+            <Button
               type="button"
+              variant="outline"
               @click="handleSelectGeminiOAuthType('google_one')"
               :class="[
-                'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+                'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
                 geminiOAuthType === 'google_one'
-                  ? 'border-primary-300 bg-secondary'
-                  : 'border-border hover:border-primary-300/60'
+                  ? 'border-ring bg-secondary'
+                  : 'border-border hover:border-ring/60'
               ]"
             >
               <div
                 :class="[
                   'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                   geminiOAuthType === 'google_one'
-                    ? 'bg-foreground text-foreground '
-                    : 'bg-secondary text-primary-200 '
+                    ? 'bg-primary text-primary-foreground '
+                    : 'bg-secondary text-muted-foreground '
                 ]"
               >
                 <Icon name="user" size="sm" />
@@ -515,37 +528,40 @@
                   个人账号，享受 Google One 订阅配额
                 </span>
                 <div class="mt-2 flex flex-wrap gap-1">
-                  <span
-                    class="rounded bg-secondary border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground/85"
+                  <Badge
+                    variant="secondary"
+                    class="rounded border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground/85"
                   >
                     推荐个人用户
-                  </span>
-                  <span
-                    class="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400"
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    class="rounded border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500"
                   >
                     无需 GCP
-                  </span>
+                  </Badge>
                 </div>
               </div>
-            </button>
+            </Button>
 
             <!-- GCP Code Assist OAuth -->
-            <button
+            <Button
               type="button"
+              variant="outline"
               @click="handleSelectGeminiOAuthType('code_assist')"
               :class="[
-                'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+                'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
                 geminiOAuthType === 'code_assist'
-                  ? 'border-primary-300 bg-secondary'
-                  : 'border-border hover:border-primary-300/60'
+                  ? 'border-ring bg-secondary'
+                  : 'border-border hover:border-ring/60'
               ]"
             >
               <div
                 :class="[
                   'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                   geminiOAuthType === 'code_assist'
-                    ? 'bg-foreground text-foreground '
-                    : 'bg-secondary text-primary-200 '
+                    ? 'bg-primary text-primary-foreground '
+                    : 'bg-secondary text-muted-foreground '
                 ]"
               >
                 <Icon name="cloud" size="sm" />
@@ -561,7 +577,7 @@
                   需要激活 GCP 项目并绑定信用卡
                   <a
                     :href="geminiHelpLinks.gcpProject"
-                    class="ml-1 text-primary-200 hover:underline"
+                    class="ml-1 text-muted-foreground hover:underline"
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -569,27 +585,30 @@
                   </a>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-1">
-                  <span
-                    class="rounded bg-secondary border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground/85"
+                  <Badge
+                    variant="secondary"
+                    class="rounded border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground/85"
                   >
                     企业用户
-                  </span>
-                  <span
-                    class="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400"
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    class="rounded border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-500"
                   >
                     高并发
-                  </span>
+                  </Badge>
                 </div>
               </div>
-            </button>
+            </Button>
           </div>
 
           <!-- Advanced Options Toggle -->
           <div class="mt-3">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="showAdvancedOAuth = !showAdvancedOAuth"
-              class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+              class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground h-auto px-0 hover:bg-transparent"
             >
               <svg
                 :class="['h-4 w-4 transition-transform', showAdvancedOAuth ? 'rotate-90' : '']"
@@ -601,29 +620,30 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
               </svg>
               <span>{{ showAdvancedOAuth ? '隐藏' : '显示' }}高级选项（自建 OAuth Client）</span>
-            </button>
+            </Button>
           </div>
 
           <!-- Custom OAuth Client (Advanced) -->
           <div v-if="showAdvancedOAuth" class="mt-3 group relative">
-            <button
+            <Button
               type="button"
+              variant="outline"
               :disabled="!geminiAIStudioOAuthEnabled"
               @click="handleSelectGeminiOAuthType('ai_studio')"
               :class="[
-                'flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+                'flex w-full items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
                 !geminiAIStudioOAuthEnabled ? 'cursor-not-allowed opacity-60' : '',
                 geminiOAuthType === 'ai_studio'
-                  ? 'border-primary-300 bg-secondary'
-                  : 'border-border hover:border-primary-300/60'
+                  ? 'border-ring bg-secondary'
+                  : 'border-border hover:border-ring/60'
               ]"
             >
               <div
                 :class="[
                   'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                   geminiOAuthType === 'ai_studio'
-                    ? 'bg-foreground text-foreground '
-                    : 'bg-secondary text-primary-200 '
+                    ? 'bg-primary text-primary-foreground '
+                    : 'bg-secondary text-muted-foreground '
                 ]"
               >
                 <svg
@@ -651,29 +671,32 @@
                   {{ t('admin.accounts.gemini.oauthType.customRequirement') }}
                 </div>
                 <div class="mt-2 flex flex-wrap gap-1">
-                  <span
-                    class="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400"
+                  <Badge
+                    variant="outline"
+                    class="rounded border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-500"
                   >
                     {{ t('admin.accounts.gemini.oauthType.badges.orgManaged') }}
-                  </span>
-                  <span
-                    class="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400"
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    class="rounded border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-500"
                   >
                     {{ t('admin.accounts.gemini.oauthType.badges.adminRequired') }}
-                  </span>
+                  </Badge>
                 </div>
               </div>
-              <span
+              <Badge
                 v-if="!geminiAIStudioOAuthEnabled"
-                class="ml-auto shrink-0 rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400"
+                variant="outline"
+                class="ml-auto shrink-0 rounded border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-500"
               >
                 {{ t('admin.accounts.oauth.gemini.aiStudioNotConfiguredShort') }}
-              </span>
-            </button>
+              </Badge>
+            </Button>
 
             <div
               v-if="!geminiAIStudioOAuthEnabled"
-              class="pointer-events-none absolute right-0 top-full z-50 mt-2 w-80 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400 opacity-0  transition-opacity group-hover:opacity-100"
+              class="pointer-events-none absolute right-0 top-full z-50 mt-2 w-80 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-500 opacity-0  transition-opacity group-hover:opacity-100"
             >
               {{ t('admin.accounts.oauth.gemini.aiStudioNotConfiguredTip') }}
             </div>
@@ -682,60 +705,61 @@
 
         <!-- Tier selection (used as fallback when auto-detection is unavailable/fails) -->
         <div v-if="accountCategory !== 'service_account'" class="mt-4">
-          <label class="input-label">{{ t('admin.accounts.gemini.tier.label') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.gemini.tier.label') }}</label>
           <div class="mt-2">
-            <select
+            <Select
               v-if="geminiOAuthType === 'google_one'"
               v-model="geminiTierGoogleOne"
-              class="input"
-            >
-              <option value="google_one_free">{{ t('admin.accounts.gemini.tier.googleOne.free') }}</option>
-              <option value="google_ai_pro">{{ t('admin.accounts.gemini.tier.googleOne.pro') }}</option>
-              <option value="google_ai_ultra">{{ t('admin.accounts.gemini.tier.googleOne.ultra') }}</option>
-            </select>
+              :options="[
+                { value: 'google_one_free', label: t('admin.accounts.gemini.tier.googleOne.free') },
+                { value: 'google_ai_pro', label: t('admin.accounts.gemini.tier.googleOne.pro') },
+                { value: 'google_ai_ultra', label: t('admin.accounts.gemini.tier.googleOne.ultra') }
+              ]"
+            />
 
-            <select
+            <Select
               v-else-if="geminiOAuthType === 'code_assist'"
               v-model="geminiTierGcp"
-              class="input"
-            >
-              <option value="gcp_standard">{{ t('admin.accounts.gemini.tier.gcp.standard') }}</option>
-              <option value="gcp_enterprise">{{ t('admin.accounts.gemini.tier.gcp.enterprise') }}</option>
-            </select>
+              :options="[
+                { value: 'gcp_standard', label: t('admin.accounts.gemini.tier.gcp.standard') },
+                { value: 'gcp_enterprise', label: t('admin.accounts.gemini.tier.gcp.enterprise') }
+              ]"
+            />
 
-            <select
+            <Select
               v-else
               v-model="geminiTierAIStudio"
-              class="input"
-            >
-              <option value="aistudio_free">{{ t('admin.accounts.gemini.tier.aiStudio.free') }}</option>
-              <option value="aistudio_paid">{{ t('admin.accounts.gemini.tier.aiStudio.paid') }}</option>
-            </select>
+              :options="[
+                { value: 'aistudio_free', label: t('admin.accounts.gemini.tier.aiStudio.free') },
+                { value: 'aistudio_paid', label: t('admin.accounts.gemini.tier.aiStudio.paid') }
+              ]"
+            />
           </div>
-          <p class="input-hint">{{ t('admin.accounts.gemini.tier.hint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.gemini.tier.hint') }}</p>
         </div>
       </div>
 
       <!-- Account Type Selection (Antigravity - OAuth or Upstream) -->
       <div v-if="form.platform === 'antigravity'">
-        <label class="input-label">{{ t('admin.accounts.accountType') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountType') }}</label>
         <div class="mt-2 grid grid-cols-2 gap-3">
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="antigravityAccountType = 'oauth'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               antigravityAccountType === 'oauth'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 antigravityAccountType === 'oauth'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="key" size="sm" />
@@ -744,24 +768,25 @@
               <span class="block text-sm font-medium text-foreground">OAuth</span>
               <span class="text-xs text-muted-foreground">{{ t('admin.accounts.types.antigravityOauth') }}</span>
             </div>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="antigravityAccountType = 'upstream'"
             :class="[
-              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all h-auto justify-start',
               antigravityAccountType === 'upstream'
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border hover:border-ring/60'
             ]"
           >
             <div
               :class="[
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border',
                 antigravityAccountType === 'upstream'
-                  ? 'bg-foreground text-foreground '
-                  : 'bg-secondary text-primary-200 '
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-muted-foreground '
               ]"
             >
               <Icon name="cloud" size="sm" />
@@ -770,40 +795,39 @@
               <span class="block text-sm font-medium text-foreground">API Key</span>
               <span class="text-xs text-muted-foreground">{{ t('admin.accounts.types.antigravityApikey') }}</span>
             </div>
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Upstream config (only for Antigravity upstream type) -->
       <div v-if="form.platform === 'antigravity' && antigravityAccountType === 'upstream'" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.upstream.baseUrl') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.upstream.baseUrl') }}</label>
+          <Input
             v-model="upstreamBaseUrl"
             type="text"
             required
-            class="input"
             placeholder="https://cloudcode-pa.googleapis.com"
           />
-          <p class="input-hint">{{ t('admin.accounts.upstream.baseUrlHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.upstream.baseUrlHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.upstream.apiKey') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.upstream.apiKey') }}</label>
+          <Input
             v-model="upstreamApiKey"
             type="password"
             required
-            class="input font-mono"
+            class="font-mono"
             placeholder="sk-..."
           />
-          <p class="input-hint">{{ t('admin.accounts.upstream.apiKeyHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.upstream.apiKeyHint') }}</p>
         </div>
       </div>
 
       <!-- Vertex Service Account -->
       <div v-if="(form.platform === 'gemini' || form.platform === 'anthropic') && accountCategory === 'service_account'" class="space-y-4">
         <div>
-          <label class="input-label">Service Account JSON</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">Service Account JSON</label>
           <input
             ref="vertexServiceAccountFileInput"
             type="file"
@@ -815,8 +839,8 @@
             :class="[
               'rounded-lg border-2 border-dashed px-4 py-5 transition-colors',
               vertexServiceAccountDragActive
-                ? 'border-primary-300 bg-secondary'
-                : 'border-border bg-muted hover:border-primary-300/60'
+                ? 'border-ring bg-secondary'
+                : 'border-border bg-muted hover:border-ring/60'
             ]"
             @dragenter.prevent="vertexServiceAccountDragActive = true"
             @dragover.prevent="vertexServiceAccountDragActive = true"
@@ -833,14 +857,14 @@
                   {{ vertexClientEmail ? t('admin.accounts.vertexSaJsonKeyHidden') : t('admin.accounts.vertexSaJsonDropHint') }}
                 </p>
               </div>
-              <button
-                type="button"
-                class="btn btn-secondary shrink-0"
-                @click="vertexServiceAccountFileInput?.click()"
-              >
-                <Icon name="upload" size="sm" />
-                {{ t('admin.accounts.vertexSaJsonSelectBtn') }}
-              </button>
+              <Button
+ type="button"
+ variant="secondary" class="shrink-0"
+ @click="vertexServiceAccountFileInput?.click()"
+ >
+ <Icon name="upload" size="sm" />
+ {{ t('admin.accounts.vertexSaJsonSelectBtn') }}
+ </Button>
             </div>
             <div
               v-if="vertexClientEmail"
@@ -850,42 +874,44 @@
               <div class="truncate">Client Email: <span class="font-mono">{{ vertexClientEmail }}</span></div>
             </div>
           </div>
-          <p class="input-hint">{{ t('admin.accounts.vertexSaJsonUploadHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.vertexSaJsonUploadHint') }}</p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label class="input-label">Project ID</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">Project ID</label>
+            <Input
               v-model="vertexProjectId"
               type="text"
-              class="input font-mono"
+              class="font-mono"
               readonly
               :placeholder="t('admin.accounts.vertexProjectIdPlaceholder')"
             />
           </div>
           <div>
-            <label class="input-label">Location</label>
-            <select
-              v-model="vertexLocation"
-              required
-              class="input font-mono"
-            >
-              <optgroup
-                v-for="group in VERTEX_LOCATION_OPTIONS"
-                :key="group.label"
-                :label="group.label"
-              >
-                <option
-                  v-for="option in group.options"
-                  :key="option.value"
-                  :value="option.value"
+            <label class="mb-1.5 block text-sm font-medium text-foreground">Location</label>
+            <SelectRoot v-model="vertexLocation" required>
+              <SelectTrigger class="font-mono">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup
+                  v-for="group in VERTEX_LOCATION_OPTIONS"
+                  :key="group.label"
                 >
-                  {{ option.label }}
-                </option>
-              </optgroup>
-            </select>
-            <p class="input-hint">{{ t('admin.accounts.vertexLocationHint') }}</p>
+                  <SelectLabel>{{ group.label }}</SelectLabel>
+                  <SelectItem
+                    v-for="option in group.options"
+                    :key="option.value"
+                    :value="option.value"
+                    class="font-mono"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </SelectRoot>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.vertexLocationHint') }}</p>
           </div>
         </div>
       </div>
@@ -893,7 +919,7 @@
       <!-- Antigravity model restriction (applies to OAuth + Upstream) -->
       <!-- Antigravity 只支持模型映射模式，不支持白名单模式 -->
       <div v-if="form.platform === 'antigravity'" class="border-t border-border pt-4">
-        <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
         <!-- Mapping Mode Only (no toggle for Antigravity) -->
         <div>
@@ -910,31 +936,33 @@
               class="space-y-1"
             >
               <div class="flex items-center gap-2">
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
                   :class="[
-                    'input flex-1',
-                    !isValidWildcardPattern(mapping.from) ? 'border-red-500' : ''
+                    'flex-1',
+                    !isValidWildcardPattern(mapping.from) ? 'border-destructive' : ''
                   ]"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg class="h-4 w-4 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
                   :class="[
-                    'input flex-1',
-                    mapping.to.includes('*') ? 'border-red-500' : ''
+                    'flex-1',
+                    mapping.to.includes('*') ? 'border-destructive' : ''
                   ]"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeAntigravityModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -944,78 +972,69 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
               <!-- 校验错误提示 -->
-              <p v-if="!isValidWildcardPattern(mapping.from)" class="text-xs text-red-400">
+              <p v-if="!isValidWildcardPattern(mapping.from)" class="text-xs text-destructive">
                 {{ t('admin.accounts.wildcardOnlyAtEnd') }}
               </p>
-              <p v-if="mapping.to.includes('*')" class="text-xs text-red-400">
+              <p v-if="mapping.to.includes('*')" class="text-xs text-destructive">
                 {{ t('admin.accounts.targetNoWildcard') }}
               </p>
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="addAntigravityModelMapping"
-            class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300/60 hover:text-foreground"
+            class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground h-auto"
           >
             <svg class="mr-1 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             {{ t('admin.accounts.addMapping') }}
-          </button>
+          </Button>
 
           <div class="flex flex-wrap gap-2">
-            <button
+            <Button
               v-for="preset in antigravityPresetMappings"
               :key="preset.label"
               type="button"
+              variant="ghost"
               @click="addAntigravityPresetMapping(preset.from, preset.to)"
-              :class="['rounded-lg px-3 py-1 text-xs transition-colors', preset.color]"
+              :class="['rounded-lg px-3 py-1 text-xs transition-colors h-auto', preset.color]"
             >
               + {{ preset.label }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       <!-- Add Method (only for Anthropic OAuth-based type) -->
       <div v-if="form.platform === 'anthropic' && isOAuthFlow">
-        <label class="input-label">{{ t('admin.accounts.addMethod') }}</label>
-        <div class="mt-2 flex gap-4">
-          <label class="flex cursor-pointer items-center">
-            <input
-              v-model="addMethod"
-              type="radio"
-              value="oauth"
-              class="mr-2 text-primary-600 focus:ring-ring"
-            />
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.addMethod') }}</label>
+        <RadioGroup v-model="addMethod" class="mt-2 flex gap-4">
+          <Label class="flex cursor-pointer items-center gap-2 font-normal">
+            <RadioGroupItem value="oauth" />
             <span class="text-sm text-foreground/85">{{ t('admin.accounts.types.oauth') }}</span>
-          </label>
-          <label class="flex cursor-pointer items-center">
-            <input
-              v-model="addMethod"
-              type="radio"
-              value="setup-token"
-              class="mr-2 text-primary-600 focus:ring-ring"
-            />
+          </Label>
+          <Label class="flex cursor-pointer items-center gap-2 font-normal">
+            <RadioGroupItem value="setup-token" />
             <span class="text-sm text-foreground/85">{{
               t('admin.accounts.setupTokenLongLived')
             }}</span>
-          </label>
-        </div>
+          </Label>
+        </RadioGroup>
       </div>
 
       <!-- API Key input (only for apikey type, excluding Antigravity which has its own fields) -->
       <div v-if="form.type === 'apikey' && form.platform !== 'antigravity'" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.baseUrl') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.baseUrl') }}</label>
+          <Input
             v-model="apiKeyBaseUrl"
             type="text"
-            class="input"
             :placeholder="
               form.platform === 'openai'
                 ? 'https://api.openai.com'
@@ -1024,15 +1043,15 @@
                   : 'https://api.anthropic.com'
             "
           />
-          <p class="input-hint">{{ baseUrlHint }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ baseUrlHint }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.apiKeyRequired') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.apiKeyRequired') }}</label>
+          <Input
             v-model="apiKeyValue"
             type="password"
             required
-            class="input font-mono"
+            class="font-mono"
             :placeholder="
               form.platform === 'openai'
                 ? 'sk-proj-...'
@@ -1041,28 +1060,31 @@
                   : 'sk-ant-...'
             "
           />
-          <p class="input-hint">{{ apiKeyHint }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ apiKeyHint }}</p>
         </div>
 
         <!-- Gemini API Key tier selection -->
         <div v-if="form.platform === 'gemini'">
-          <label class="input-label">{{ t('admin.accounts.gemini.tier.label') }}</label>
-          <select v-model="geminiTierAIStudio" class="input">
-            <option value="aistudio_free">{{ t('admin.accounts.gemini.tier.aiStudio.free') }}</option>
-            <option value="aistudio_paid">{{ t('admin.accounts.gemini.tier.aiStudio.paid') }}</option>
-          </select>
-          <p class="input-hint">{{ t('admin.accounts.gemini.tier.aiStudioHint') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.gemini.tier.label') }}</label>
+          <Select
+            v-model="geminiTierAIStudio"
+            :options="[
+              { value: 'aistudio_free', label: t('admin.accounts.gemini.tier.aiStudio.free') },
+              { value: 'aistudio_paid', label: t('admin.accounts.gemini.tier.aiStudio.paid') }
+            ]"
+          />
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.gemini.tier.aiStudioHint') }}</p>
         </div>
 
         <!-- Model Restriction Section (Antigravity 已在上层条件排除) -->
         <div class="border-t border-border pt-4">
-          <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
           <div
             v-if="isOpenAIModelRestrictionDisabled"
             class="mb-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-3"
           >
-            <p class="text-xs text-amber-400">
+            <p class="text-xs text-amber-500">
               {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
             </p>
           </div>
@@ -1070,13 +1092,14 @@
           <template v-else>
             <!-- Mode Toggle -->
             <div class="mb-4 flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 @click="modelRestrictionMode = 'whitelist'"
                 :class="[
-                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                   modelRestrictionMode === 'whitelist'
-                    ? 'bg-foreground text-foreground '
+                    ? 'bg-primary text-primary-foreground hover:bg-primary'
                     : 'bg-muted text-muted-foreground hover:text-foreground'
                 ]"
               >
@@ -1094,14 +1117,15 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelWhitelist') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
                 @click="modelRestrictionMode = 'mapping'"
                 :class="[
-                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                  'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                   modelRestrictionMode === 'mapping'
-                    ? 'bg-foreground text-foreground '
+                    ? 'bg-primary text-primary-foreground hover:bg-primary'
                     : 'bg-muted text-muted-foreground hover:text-foreground'
                 ]"
               >
@@ -1119,7 +1143,7 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelMapping') }}
-              </button>
+              </Button>
             </div>
 
             <!-- Whitelist Mode -->
@@ -1161,10 +1185,10 @@
                 :key="getModelMappingKey(mapping)"
                 class="flex items-center gap-2"
               >
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg
@@ -1180,16 +1204,18 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -1199,14 +1225,15 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               @click="addModelMapping"
-              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300/60 hover:text-foreground"
+              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground h-auto"
             >
               <svg
                 class="mr-1 inline h-4 w-4"
@@ -1222,19 +1249,20 @@
                 />
               </svg>
               {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
 
               <!-- Quick Add Buttons -->
               <div class="flex flex-wrap gap-2">
-                <button
+                <Button
                   v-for="preset in presetMappings"
                   :key="preset.label"
                   type="button"
+                  variant="ghost"
                   @click="addPresetMapping(preset.from, preset.to)"
-                  :class="['rounded-lg px-3 py-1 text-xs transition-colors', preset.color]"
+                  :class="['rounded-lg px-3 py-1 text-xs transition-colors h-auto', preset.color]"
                 >
                   + {{ preset.label }}
-                </button>
+                </Button>
               </div>
             </div>
           </template>
@@ -1244,26 +1272,12 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.poolMode') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolMode') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.poolModeHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="poolModeEnabled = !poolModeEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                poolModeEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  poolModeEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="poolModeEnabled" />
           </div>
           <div v-if="poolModeEnabled" class="rounded-md bg-card p-3 border border-border">
             <p class="text-xs text-muted-foreground">
@@ -1272,14 +1286,13 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryCount') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryCount') }}</label>
+            <Input
               v-model.number="poolModeRetryCount"
               type="number"
               min="0"
               :max="MAX_POOL_MODE_RETRY_COUNT"
               step="1"
-              class="input"
             />
             <p class="mt-1 text-xs text-muted-foreground">
               {{
@@ -1291,11 +1304,10 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
+            <Input
               v-model="poolModeRetryStatusCodesInput"
               type="text"
-              class="input"
               :placeholder="DEFAULT_POOL_MODE_RETRY_STATUS_CODES.join(', ')"
             />
             <p class="mt-1 text-xs text-muted-foreground">
@@ -1308,31 +1320,17 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.customErrorCodes') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.customErrorCodes') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.customErrorCodesHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="customErrorCodesEnabled = !customErrorCodesEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                customErrorCodesEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  customErrorCodesEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="customErrorCodesEnabled" />
           </div>
 
           <div v-if="customErrorCodesEnabled" class="space-y-3">
             <div class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-              <p class="text-xs text-amber-400">
+              <p class="text-xs text-amber-500">
                 <Icon name="exclamationTriangle" size="sm" class="mr-1 inline" :stroke-width="2" />
                 {{ t('admin.accounts.customErrorCodesWarning') }}
               </p>
@@ -1340,61 +1338,65 @@
 
             <!-- Error Code Buttons -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="code in commonErrorCodes"
                 :key="code.value"
                 type="button"
+                variant="ghost"
                 @click="toggleErrorCode(code.value)"
                 :class="[
-                  'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                  'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors h-auto',
                   selectedErrorCodes.includes(code.value)
-                    ? 'border border-red-500/30 bg-red-500/10 text-red-400'
+                    ? 'border border-destructive/30 bg-destructive/10 text-destructive'
                     : 'bg-muted text-muted-foreground hover:text-foreground'
                 ]"
               >
                 {{ code.value }} {{ code.label }}
-              </button>
+              </Button>
             </div>
 
             <!-- Manual input -->
             <div class="flex items-center gap-2">
-              <input
+              <Input
                 v-model.number="customErrorCodeInput"
                 type="number"
                 min="100"
                 max="599"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.enterErrorCode')"
                 @keyup.enter="addCustomErrorCode"
               />
-              <button type="button" @click="addCustomErrorCode" class="btn btn-secondary px-3">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-              </button>
+              <Button type="button" @click="addCustomErrorCode" variant="secondary" class="px-3">
+ <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+ <path
+ stroke-linecap="round"
+ stroke-linejoin="round"
+ stroke-width="2"
+ d="M12 4v16m8-8H4"
+ />
+ </svg>
+ </Button>
             </div>
 
             <!-- Selected codes summary -->
             <div class="flex flex-wrap gap-1.5">
-              <span
+              <Badge
                 v-for="code in selectedErrorCodes.sort((a, b) => a - b)"
                 :key="code"
-                class="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-400"
+                variant="outline"
+                class="inline-flex items-center gap-1 border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-sm font-medium text-destructive"
               >
                 {{ code }}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeErrorCode(code)"
-                  class="hover:text-red-900"
+                  class="h-auto w-auto p-0 hover:bg-transparent hover:text-destructive"
                 >
                   <Icon name="x" size="sm" :stroke-width="2" />
-                </button>
-              </span>
+                </Button>
+              </Badge>
               <span v-if="selectedErrorCodes.length === 0" class="text-xs text-muted-foreground">
                 {{ t('admin.accounts.noneSelectedUsesDefault') }}
               </span>
@@ -1408,156 +1410,154 @@
       <div v-if="form.platform === 'anthropic' && accountCategory === 'bedrock'" class="space-y-4">
         <!-- Auth Mode Radio -->
         <div>
-          <label class="input-label">{{ t('admin.accounts.bedrockAuthMode') }}</label>
-          <div class="mt-2 flex gap-4">
-            <label class="flex cursor-pointer items-center">
-              <input
-                v-model="bedrockAuthMode"
-                type="radio"
-                value="sigv4"
-                class="mr-2 text-primary-600 focus:ring-ring"
-              />
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockAuthMode') }}</label>
+          <RadioGroup v-model="bedrockAuthMode" class="mt-2 flex gap-4">
+            <Label class="flex cursor-pointer items-center gap-2 font-normal">
+              <RadioGroupItem value="sigv4" />
               <span class="text-sm text-foreground/85">{{ t('admin.accounts.bedrockAuthModeSigv4') }}</span>
-            </label>
-            <label class="flex cursor-pointer items-center">
-              <input
-                v-model="bedrockAuthMode"
-                type="radio"
-                value="apikey"
-                class="mr-2 text-primary-600 focus:ring-ring"
-              />
+            </Label>
+            <Label class="flex cursor-pointer items-center gap-2 font-normal">
+              <RadioGroupItem value="apikey" />
               <span class="text-sm text-foreground/85">{{ t('admin.accounts.bedrockAuthModeApikey') }}</span>
-            </label>
-          </div>
+            </Label>
+          </RadioGroup>
         </div>
 
         <!-- SigV4 fields -->
         <template v-if="bedrockAuthMode === 'sigv4'">
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockAccessKeyId') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockAccessKeyId') }}</label>
+            <Input
               v-model="bedrockAccessKeyId"
               type="text"
               required
-              class="input font-mono"
+              class="font-mono"
               placeholder="AKIA..."
             />
           </div>
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockSecretAccessKey') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockSecretAccessKey') }}</label>
+            <Input
               v-model="bedrockSecretAccessKey"
               type="password"
               required
-              class="input font-mono"
+              class="font-mono"
             />
           </div>
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockSessionToken') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockSessionToken') }}</label>
+            <Input
               v-model="bedrockSessionToken"
               type="password"
-              class="input font-mono"
+              class="font-mono"
             />
-            <p class="input-hint">{{ t('admin.accounts.bedrockSessionTokenHint') }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockSessionTokenHint') }}</p>
           </div>
         </template>
 
         <!-- API Key field -->
         <div v-if="bedrockAuthMode === 'apikey'">
-          <label class="input-label">{{ t('admin.accounts.bedrockApiKeyInput') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockApiKeyInput') }}</label>
+          <Input
             v-model="bedrockApiKeyValue"
             type="password"
             required
-            class="input font-mono"
+            class="font-mono"
           />
         </div>
 
         <!-- Shared: Region -->
         <div>
-          <label class="input-label">{{ t('admin.accounts.bedrockRegion') }}</label>
-          <select v-model="bedrockRegion" class="input">
-            <optgroup label="US">
-              <option value="us-east-1">us-east-1 (N. Virginia)</option>
-              <option value="us-east-2">us-east-2 (Ohio)</option>
-              <option value="us-west-1">us-west-1 (N. California)</option>
-              <option value="us-west-2">us-west-2 (Oregon)</option>
-              <option value="us-gov-east-1">us-gov-east-1 (GovCloud US-East)</option>
-              <option value="us-gov-west-1">us-gov-west-1 (GovCloud US-West)</option>
-            </optgroup>
-            <optgroup label="Europe">
-              <option value="eu-west-1">eu-west-1 (Ireland)</option>
-              <option value="eu-west-2">eu-west-2 (London)</option>
-              <option value="eu-west-3">eu-west-3 (Paris)</option>
-              <option value="eu-central-1">eu-central-1 (Frankfurt)</option>
-              <option value="eu-central-2">eu-central-2 (Zurich)</option>
-              <option value="eu-south-1">eu-south-1 (Milan)</option>
-              <option value="eu-south-2">eu-south-2 (Spain)</option>
-              <option value="eu-north-1">eu-north-1 (Stockholm)</option>
-            </optgroup>
-            <optgroup label="Asia Pacific">
-              <option value="ap-northeast-1">ap-northeast-1 (Tokyo)</option>
-              <option value="ap-northeast-2">ap-northeast-2 (Seoul)</option>
-              <option value="ap-northeast-3">ap-northeast-3 (Osaka)</option>
-              <option value="ap-south-1">ap-south-1 (Mumbai)</option>
-              <option value="ap-south-2">ap-south-2 (Hyderabad)</option>
-              <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
-              <option value="ap-southeast-2">ap-southeast-2 (Sydney)</option>
-            </optgroup>
-            <optgroup label="Canada">
-              <option value="ca-central-1">ca-central-1 (Canada)</option>
-            </optgroup>
-            <optgroup label="South America">
-              <option value="sa-east-1">sa-east-1 (São Paulo)</option>
-            </optgroup>
-          </select>
-          <p class="input-hint">{{ t('admin.accounts.bedrockRegionHint') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockRegion') }}</label>
+          <SelectRoot v-model="bedrockRegion">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>US</SelectLabel>
+                <SelectItem value="us-east-1">us-east-1 (N. Virginia)</SelectItem>
+                <SelectItem value="us-east-2">us-east-2 (Ohio)</SelectItem>
+                <SelectItem value="us-west-1">us-west-1 (N. California)</SelectItem>
+                <SelectItem value="us-west-2">us-west-2 (Oregon)</SelectItem>
+                <SelectItem value="us-gov-east-1">us-gov-east-1 (GovCloud US-East)</SelectItem>
+                <SelectItem value="us-gov-west-1">us-gov-west-1 (GovCloud US-West)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Europe</SelectLabel>
+                <SelectItem value="eu-west-1">eu-west-1 (Ireland)</SelectItem>
+                <SelectItem value="eu-west-2">eu-west-2 (London)</SelectItem>
+                <SelectItem value="eu-west-3">eu-west-3 (Paris)</SelectItem>
+                <SelectItem value="eu-central-1">eu-central-1 (Frankfurt)</SelectItem>
+                <SelectItem value="eu-central-2">eu-central-2 (Zurich)</SelectItem>
+                <SelectItem value="eu-south-1">eu-south-1 (Milan)</SelectItem>
+                <SelectItem value="eu-south-2">eu-south-2 (Spain)</SelectItem>
+                <SelectItem value="eu-north-1">eu-north-1 (Stockholm)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Asia Pacific</SelectLabel>
+                <SelectItem value="ap-northeast-1">ap-northeast-1 (Tokyo)</SelectItem>
+                <SelectItem value="ap-northeast-2">ap-northeast-2 (Seoul)</SelectItem>
+                <SelectItem value="ap-northeast-3">ap-northeast-3 (Osaka)</SelectItem>
+                <SelectItem value="ap-south-1">ap-south-1 (Mumbai)</SelectItem>
+                <SelectItem value="ap-south-2">ap-south-2 (Hyderabad)</SelectItem>
+                <SelectItem value="ap-southeast-1">ap-southeast-1 (Singapore)</SelectItem>
+                <SelectItem value="ap-southeast-2">ap-southeast-2 (Sydney)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Canada</SelectLabel>
+                <SelectItem value="ca-central-1">ca-central-1 (Canada)</SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>South America</SelectLabel>
+                <SelectItem value="sa-east-1">sa-east-1 (São Paulo)</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </SelectRoot>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockRegionHint') }}</p>
         </div>
 
         <!-- Shared: Force Global -->
         <div>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              v-model="bedrockForceGlobal"
-              type="checkbox"
-              class="rounded border-border text-primary-600 focus:ring-ring"
-            />
+          <Label class="flex items-center gap-2 cursor-pointer font-normal">
+            <Checkbox v-model="bedrockForceGlobal" />
             <span class="text-sm text-foreground/85">{{ t('admin.accounts.bedrockForceGlobal') }}</span>
-          </label>
-          <p class="input-hint mt-1">{{ t('admin.accounts.bedrockForceGlobalHint') }}</p>
+          </Label>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockForceGlobalHint') }}</p>
         </div>
 
         <!-- Model Restriction Section for Bedrock -->
         <div class="border-t border-border pt-4">
-          <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
           <!-- Mode Toggle -->
           <div class="mb-4 flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'whitelist'"
               :class="[
-                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                 modelRestrictionMode === 'whitelist'
-                  ? 'bg-foreground text-foreground '
+                  ? 'bg-primary text-primary-foreground hover:bg-primary'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               ]"
             >
               {{ t('admin.accounts.modelWhitelist') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'mapping'"
               :class="[
-                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                 modelRestrictionMode === 'mapping'
-                  ? 'bg-foreground text-foreground '
+                  ? 'bg-primary text-primary-foreground hover:bg-primary'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               ]"
             >
               {{ t('admin.accounts.modelMapping') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Whitelist Mode -->
@@ -1572,27 +1572,28 @@
           <!-- Mapping Mode -->
           <div v-else class="space-y-3">
             <div v-for="(mapping, index) in modelMappings" :key="index" class="flex items-center gap-2">
-              <input v-model="mapping.from" type="text" class="input flex-1" :placeholder="t('admin.accounts.fromModel')" />
+              <Input v-model="mapping.from" type="text" class="flex-1" :placeholder="t('admin.accounts.fromModel')" />
               <span class="text-muted-foreground">→</span>
-              <input v-model="mapping.to" type="text" class="input flex-1" :placeholder="t('admin.accounts.toModel')" />
-              <button type="button" @click="modelMappings.splice(index, 1)" class="text-red-400 hover:text-red-300">
+              <Input v-model="mapping.to" type="text" class="flex-1" :placeholder="t('admin.accounts.toModel')" />
+              <Button type="button" variant="ghost" size="icon" @click="modelMappings.splice(index, 1)" class="text-destructive hover:text-destructive/80">
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
-            <button type="button" @click="modelMappings.push({ from: '', to: '' })" class="btn btn-secondary text-sm">
-              + {{ t('admin.accounts.addMapping') }}
-            </button>
+            <Button type="button" @click="modelMappings.push({ from: '', to: '' })" variant="secondary" class="text-sm">
+ + {{ t('admin.accounts.addMapping') }}
+ </Button>
             <!-- Bedrock Preset Mappings -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="preset in bedrockPresets"
                 :key="preset.from"
                 type="button"
+                variant="ghost"
                 @click="addPresetMapping(preset.from, preset.to)"
-                :class="['rounded-lg px-3 py-1 text-xs transition-colors', preset.color]"
+                :class="['rounded-lg px-3 py-1 text-xs transition-colors h-auto', preset.color]"
               >
                 + {{ preset.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1601,26 +1602,12 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.poolMode') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolMode') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.poolModeHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="poolModeEnabled = !poolModeEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                poolModeEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  poolModeEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="poolModeEnabled" />
           </div>
           <div v-if="poolModeEnabled" class="rounded-md bg-card p-3 border border-border">
             <p class="text-xs text-muted-foreground">
@@ -1629,14 +1616,13 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryCount') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryCount') }}</label>
+            <Input
               v-model.number="poolModeRetryCount"
               type="number"
               min="0"
               :max="MAX_POOL_MODE_RETRY_COUNT"
               step="1"
-              class="input"
             />
             <p class="mt-1 text-xs text-muted-foreground">
               {{
@@ -1648,11 +1634,10 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
+            <Input
               v-model="poolModeRetryStatusCodesInput"
               type="text"
-              class="input"
               :placeholder="DEFAULT_POOL_MODE_RETRY_STATUS_CODES.join(', ')"
             />
             <p class="mt-1 text-xs text-muted-foreground">
@@ -1668,7 +1653,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-0 block text-base font-semibold text-foreground">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaControl.hint') }}
           </p>
@@ -1720,7 +1705,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-0 block text-base font-semibold text-foreground">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaLimitHint') }}
           </p>
@@ -1771,13 +1756,13 @@
         v-if="form.platform === 'openai' && accountCategory === 'oauth-based'"
         class="border-t border-border pt-4"
       >
-        <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
         <div
           v-if="isOpenAIModelRestrictionDisabled"
           class="mb-3 rounded-md border border-amber-500/30 bg-amber-500/10 p-3"
         >
-          <p class="text-xs text-amber-400">
+          <p class="text-xs text-amber-500">
             {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
           </p>
         </div>
@@ -1785,30 +1770,32 @@
         <template v-else>
           <!-- Mode Toggle -->
           <div class="mb-4 flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'whitelist'"
               :class="[
-                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                 modelRestrictionMode === 'whitelist'
-                  ? 'bg-foreground text-foreground '
+                  ? 'bg-primary text-primary-foreground hover:bg-primary'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               ]"
             >
               {{ t('admin.accounts.modelWhitelist') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'mapping'"
               :class="[
-                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
+                'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all h-auto',
                 modelRestrictionMode === 'mapping'
-                  ? 'bg-foreground text-foreground '
+                  ? 'bg-primary text-primary-foreground hover:bg-primary'
                   : 'bg-muted text-muted-foreground hover:text-foreground'
               ]"
             >
               {{ t('admin.accounts.modelMapping') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Whitelist Mode -->
@@ -1836,10 +1823,10 @@
                 :key="'oauth-' + getModelMappingKey(mapping)"
                 class="flex items-center gap-2"
               >
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg
@@ -1855,16 +1842,18 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -1874,29 +1863,31 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
               @click="addModelMapping"
-              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300/60 hover:text-foreground"
+              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground h-auto"
             >
               + {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
 
             <!-- Quick Add Buttons -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="preset in presetMappings"
                 :key="'oauth-' + preset.label"
                 type="button"
+                variant="ghost"
                 @click="addPresetMapping(preset.from, preset.to)"
-                :class="['rounded-lg px-3 py-1 text-xs transition-colors', preset.color]"
+                :class="['rounded-lg px-3 py-1 text-xs transition-colors h-auto', preset.color]"
               >
                 + {{ preset.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </template>
@@ -1906,26 +1897,12 @@
       <div class="border-t border-border pt-4 space-y-4">
         <div class="mb-3 flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.tempUnschedulable.title') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.title') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.tempUnschedulable.hint') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="tempUnschedEnabled = !tempUnschedEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              tempUnschedEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                tempUnschedEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="tempUnschedEnabled" />
         </div>
 
         <div v-if="tempUnschedEnabled" class="space-y-3">
@@ -1937,15 +1914,16 @@
             </div>
 
           <div class="flex flex-wrap gap-2">
-            <button
+            <Button
               v-for="preset in tempUnschedPresets"
               :key="preset.label"
               type="button"
+              variant="ghost"
               @click="addTempUnschedRule(preset.rule)"
-              class="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              class="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground h-auto"
             >
               + {{ preset.label }}
-            </button>
+            </Button>
           </div>
 
           <div v-if="tempUnschedRules.length > 0" class="space-y-3">
@@ -1959,16 +1937,20 @@
                   {{ t('admin.accounts.tempUnschedulable.ruleIndex', { index: index + 1 }) }}
                 </span>
                 <div class="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     :disabled="index === 0"
                     @click="moveTempUnschedRule(index, -1)"
                     class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Icon name="chevronUp" size="sm" :stroke-width="2" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     :disabled="index === tempUnschedRules.length - 1"
                     @click="moveTempUnschedRule(index, 1)"
                     class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
@@ -1976,55 +1958,53 @@
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     @click="removeTempUnschedRule(index)"
-                    class="rounded p-1 text-red-400 transition-colors hover:text-red-300"
+                    class="rounded p-1 text-destructive transition-colors hover:text-destructive/80"
                   >
                     <Icon name="x" size="sm" :stroke-width="2" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.errorCode') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.errorCode') }}</label>
+                  <Input
                     v-model.number="rule.error_code"
                     type="number"
                     min="100"
                     max="599"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.errorCodePlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.durationMinutes') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.durationMinutes') }}</label>
+                  <Input
                     v-model.number="rule.duration_minutes"
                     type="number"
                     min="1"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.durationPlaceholder')"
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.keywords') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.keywords') }}</label>
+                  <Input
                     v-model="rule.keywords"
                     type="text"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.keywordsPlaceholder')"
                   />
-                  <p class="input-hint">{{ t('admin.accounts.tempUnschedulable.keywordsHint') }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.tempUnschedulable.keywordsHint') }}</p>
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.description') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.description') }}</label>
+                  <Input
                     v-model="rule.description"
                     type="text"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.descriptionPlaceholder')"
                   />
                 </div>
@@ -2032,10 +2012,11 @@
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             @click="addTempUnschedRule()"
-            class="w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary-300/60 hover:text-foreground"
+            class="w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-ring/60 hover:text-foreground h-auto"
           >
             <svg
               class="mr-1 inline h-4 w-4"
@@ -2046,7 +2027,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             {{ t('admin.accounts.tempUnschedulable.addRule') }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -2057,28 +2038,14 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{
+            <label class="mb-0 block text-sm font-medium text-foreground">{{
               t('admin.accounts.interceptWarmupRequests')
             }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.interceptWarmupRequestsDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="interceptWarmupRequests = !interceptWarmupRequests"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              interceptWarmupRequests ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                interceptWarmupRequests ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="interceptWarmupRequests" />
         </div>
       </div>
 
@@ -2088,7 +2055,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-0 block text-base font-semibold text-foreground">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaControl.hint') }}
           </p>
@@ -2098,58 +2065,44 @@
         <div class="rounded-md border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.windowCost.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.windowCost.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.windowCost.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="windowCostEnabled = !windowCostEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                windowCostEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  windowCostEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="windowCostEnabled" />
           </div>
 
           <div v-if="windowCostEnabled" class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.windowCost.limit') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.windowCost.limit') }}</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="windowCostLimit"
                   type="number"
                   min="0"
                   step="1"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="t('admin.accounts.quotaControl.windowCost.limitPlaceholder')"
                 />
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.windowCost.limitHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.windowCost.limitHint') }}</p>
             </div>
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.windowCost.stickyReserve') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.windowCost.stickyReserve') }}</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="windowCostStickyReserve"
                   type="number"
                   min="0"
                   step="1"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="t('admin.accounts.quotaControl.windowCost.stickyReservePlaceholder')"
                 />
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.windowCost.stickyReserveHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.windowCost.stickyReserveHint') }}</p>
             </div>
           </div>
         </div>
@@ -2158,55 +2111,40 @@
         <div class="rounded-md border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.sessionLimit.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.sessionLimit.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="sessionLimitEnabled = !sessionLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                sessionLimitEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  sessionLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="sessionLimitEnabled" />
           </div>
 
           <div v-if="sessionLimitEnabled" class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessions') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessions') }}</label>
+              <Input
                 v-model.number="maxSessions"
                 type="number"
                 min="1"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.sessionLimit.maxSessionsPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessionsHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessionsHint') }}</p>
             </div>
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeout') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeout') }}</label>
               <div class="relative">
-                <input
+                <Input
                   v-model.number="sessionIdleTimeout"
                   type="number"
                   min="1"
                   step="1"
-                  class="input pr-12"
+                  class="pr-12"
                   :placeholder="t('admin.accounts.quotaControl.sessionLimit.idleTimeoutPlaceholder')"
                 />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{{ t('common.minutes') }}</span>
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeoutHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeoutHint') }}</p>
             </div>
           </div>
         </div>
@@ -2215,53 +2153,39 @@
         <div class="rounded-md border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.rpmLimit.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.rpmLimit.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="rpmLimitEnabled = !rpmLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                rpmLimitEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  rpmLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="rpmLimitEnabled" />
           </div>
 
           <div v-if="rpmLimitEnabled" class="space-y-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</label>
+              <Input
                 v-model.number="baseRpm"
                 type="number"
                 min="1"
                 max="1000"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.baseRpmPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
             </div>
 
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</label>
               <div class="flex gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   @click="rpmStrategy = 'tiered'"
                   :class="[
-                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all h-auto',
                     rpmStrategy === 'tiered'
-                      ? 'bg-foreground text-foreground '
+                      ? 'bg-primary text-primary-foreground hover:bg-primary'
                       : 'bg-muted text-muted-foreground hover:text-foreground'
                   ]"
                 >
@@ -2269,14 +2193,15 @@
                     <div>{{ t('admin.accounts.quotaControl.rpmLimit.strategyTiered') }}</div>
                     <div class="mt-0.5 text-[10px] opacity-70">{{ t('admin.accounts.quotaControl.rpmLimit.strategyTieredHint') }}</div>
                   </div>
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   @click="rpmStrategy = 'sticky_exempt'"
                   :class="[
-                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                    'flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all h-auto',
                     rpmStrategy === 'sticky_exempt'
-                      ? 'bg-foreground text-foreground '
+                      ? 'bg-primary text-primary-foreground hover:bg-primary'
                       : 'bg-muted text-muted-foreground hover:text-foreground'
                   ]"
                 >
@@ -2284,42 +2209,41 @@
                     <div>{{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExempt') }}</div>
                     <div class="mt-0.5 text-[10px] opacity-70">{{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExemptHint') }}</div>
                   </div>
-                </button>
+                </Button>
               </div>
             </div>
 
             <div v-if="rpmStrategy === 'tiered'">
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</label>
+              <Input
                 v-model.number="rpmStickyBuffer"
                 type="number"
                 min="1"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.stickyBufferPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
             </div>
 
           </div>
 
           <!-- 用户消息限速模式（独立于 RPM 开关，始终可见） -->
           <div class="mt-4">
-            <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
             <p class="mt-1 text-xs text-muted-foreground mb-2">
               {{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueueHint') }}
             </p>
             <div class="flex space-x-2">
-              <button type="button" v-for="opt in umqModeOptions" :key="opt.value"
+              <Button type="button" variant="outline" v-for="opt in umqModeOptions" :key="opt.value"
                 @click="userMsgQueueMode = opt.value"
                 :class="[
-                  'px-3 py-1.5 text-sm rounded-md border transition-colors',
+                  'px-3 py-1.5 text-sm rounded-md border transition-colors h-auto',
                   userMsgQueueMode === opt.value
-                    ? 'bg-primary-600 text-white border-primary-600'
+                    ? 'bg-primary text-primary-foreground border-primary hover:bg-primary'
                     : 'bg-card text-foreground/85 border-border hover:bg-accent'
                 ]">
                 {{ opt.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -2328,34 +2252,23 @@
         <div class="rounded-md border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.tlsFingerprint.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.tlsFingerprint.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.tlsFingerprint.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="tlsFingerprintEnabled = !tlsFingerprintEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                tlsFingerprintEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  tlsFingerprintEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="tlsFingerprintEnabled" />
           </div>
           <!-- Profile selector -->
           <div v-if="tlsFingerprintEnabled" class="mt-3">
-            <select v-model="tlsFingerprintProfileId" class="input">
-              <option :value="null">{{ t('admin.accounts.quotaControl.tlsFingerprint.defaultProfile') }}</option>
-              <option v-if="tlsFingerprintProfiles.length > 0" :value="-1">{{ t('admin.accounts.quotaControl.tlsFingerprint.randomProfile') }}</option>
-              <option v-for="p in tlsFingerprintProfiles" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <Select
+              v-model="tlsFingerprintProfileId"
+              :options="[
+                { value: null, label: t('admin.accounts.quotaControl.tlsFingerprint.defaultProfile') },
+                ...(tlsFingerprintProfiles.length > 0 ? [{ value: -1, label: t('admin.accounts.quotaControl.tlsFingerprint.randomProfile') }] : []),
+                ...tlsFingerprintProfiles.map((p) => ({ value: p.id, label: p.name }))
+              ]"
+            />
           </div>
         </div>
 
@@ -2363,26 +2276,12 @@
         <div class="rounded-md border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.sessionIdMasking.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionIdMasking.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.sessionIdMasking.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="sessionIdMaskingEnabled = !sessionIdMaskingEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                sessionIdMaskingEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  sessionIdMaskingEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="sessionIdMaskingEnabled" />
           </div>
         </div>
 
@@ -2390,36 +2289,23 @@
         <div class="rounded-md border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.cacheTTLOverride.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.cacheTTLOverride.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.cacheTTLOverride.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="cacheTTLOverrideEnabled = !cacheTTLOverrideEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                cacheTTLOverrideEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  cacheTTLOverrideEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="cacheTTLOverrideEnabled" />
           </div>
           <div v-if="cacheTTLOverrideEnabled" class="mt-3">
-            <label class="input-label text-xs">{{ t('admin.accounts.quotaControl.cacheTTLOverride.target') }}</label>
-            <select
+            <label class="mb-1.5 block text-xs font-medium text-foreground">{{ t('admin.accounts.quotaControl.cacheTTLOverride.target') }}</label>
+            <Select
               v-model="cacheTTLOverrideTarget"
-              class="mt-1 block w-full rounded-md border border-border bg-card px-3 py-2 text-sm  focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring text-foreground"
-            >
-              <option value="5m">5m</option>
-              <option value="1h">1h</option>
-            </select>
+              class="mt-1"
+              :options="[
+                { value: '5m', label: '5m' },
+                { value: '1h', label: '1h' }
+              ]"
+            />
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.quotaControl.cacheTTLOverride.targetHint') }}
             </p>
@@ -2430,32 +2316,17 @@
         <div class="rounded-md border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.customBaseUrl.label') }}</label>
+              <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.customBaseUrl.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.customBaseUrl.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="customBaseUrlEnabled = !customBaseUrlEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                customBaseUrlEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  customBaseUrlEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="customBaseUrlEnabled" />
           </div>
           <div v-if="customBaseUrlEnabled" class="mt-3">
-            <input
+            <Input
               v-model="customBaseUrl"
               type="text"
-              class="input"
               :placeholder="t('admin.accounts.quotaControl.customBaseUrl.urlHint')"
             />
           </div>
@@ -2464,45 +2335,44 @@
 
       <div>
         <div class="mb-1 flex items-center gap-2">
-          <label class="input-label mb-0">{{ t('admin.accounts.proxy') }}</label>
+          <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.proxy') }}</label>
         </div>
         <ProxySelector v-model="form.proxy_id" :proxies="proxies" />
       </div>
 
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.concurrency') }}</label>
-          <input v-model.number="form.concurrency" type="number" min="1" class="input"
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.concurrency') }}</label>
+          <Input v-model.number="form.concurrency" type="number" min="1"
             @input="form.concurrency = Math.max(1, form.concurrency || 1)" />
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.loadFactor') }}</label>
-          <input v-model.number="form.load_factor" type="number" min="1"
-            class="input" :placeholder="String(form.concurrency || 1)"
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.loadFactor') }}</label>
+          <Input v-model.number="form.load_factor" type="number" min="1"
+            :placeholder="String(form.concurrency || 1)"
             @input="form.load_factor = (form.load_factor &amp;&amp; form.load_factor >= 1) ? form.load_factor : null" />
-          <p class="input-hint">{{ t('admin.accounts.loadFactorHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.loadFactorHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.priority') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.priority') }}</label>
+          <Input
             v-model.number="form.priority"
             type="number"
             min="1"
-            class="input"
             data-tour="account-form-priority"
           />
-          <p class="input-hint">{{ t('admin.accounts.priorityHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.priorityHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.billingRateMultiplier') }}</label>
-          <input v-model.number="form.rate_multiplier" type="number" min="0" step="0.001" class="input" />
-          <p class="input-hint">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.billingRateMultiplier') }}</label>
+          <Input v-model.number="form.rate_multiplier" type="number" min="0" step="0.001" />
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
         </div>
       </div>
       <div class="border-t border-border pt-4">
-        <label class="input-label">{{ t('admin.accounts.expiresAt') }}</label>
-        <input v-model="expiresAtInput" type="datetime-local" class="input" />
-        <p class="input-hint">{{ t('admin.accounts.expiresAtHint') }}</p>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.expiresAt') }}</label>
+        <Input v-model="expiresAtInput" type="datetime-local" />
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.expiresAtHint') }}</p>
       </div>
 
       <!-- OpenAI 自动透传开关（OAuth/API Key） -->
@@ -2512,26 +2382,12 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.oauthPassthrough') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.oauthPassthrough') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.oauthPassthroughDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="openaiPassthroughEnabled = !openaiPassthroughEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              openaiPassthroughEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                openaiPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="openaiPassthroughEnabled" />
         </div>
       </div>
 
@@ -2542,7 +2398,7 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.wsMode') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.wsMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.wsModeDesc') }}
             </p>
@@ -2563,26 +2419,12 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.anthropic.apiKeyPassthrough') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.anthropic.apiKeyPassthrough') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.anthropic.apiKeyPassthroughDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="anthropicPassthroughEnabled = !anthropicPassthroughEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              anthropicPassthroughEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                anthropicPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="anthropicPassthroughEnabled" />
         </div>
       </div>
 
@@ -2593,16 +2435,20 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.anthropic.webSearchEmulation') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.anthropic.webSearchEmulation') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.anthropic.webSearchEmulationDesc') }}
             </p>
           </div>
-          <select v-model="webSearchEmulationMode" class="input w-24 text-sm">
-            <option value="default">{{ t('admin.accounts.anthropic.webSearchDefault') }}</option>
-            <option value="enabled">{{ t('admin.accounts.anthropic.webSearchEnabled') }}</option>
-            <option value="disabled">{{ t('admin.accounts.anthropic.webSearchDisabled') }}</option>
-          </select>
+          <Select
+            v-model="webSearchEmulationMode"
+            class="w-24"
+            :options="[
+              { value: 'default', label: t('admin.accounts.anthropic.webSearchDefault') },
+              { value: 'enabled', label: t('admin.accounts.anthropic.webSearchEnabled') },
+              { value: 'disabled', label: t('admin.accounts.anthropic.webSearchDisabled') }
+            ]"
+          />
         </div>
       </div>
 
@@ -2613,52 +2459,24 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.codexCLIOnly') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.codexCLIOnly') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.codexCLIOnlyDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="codexCLIOnlyEnabled = !codexCLIOnlyEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              codexCLIOnlyEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="codexCLIOnlyEnabled" />
         </div>
         <div
           v-if="codexCLIOnlyEnabled"
           class="mt-4 flex items-center justify-between border-l-2 border-border pl-4"
         >
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCode') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCodeDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="codexCLIOnlyAllowClaudeCodeEnabled = !codexCLIOnlyAllowClaudeCodeEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              codexCLIOnlyAllowClaudeCodeEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyAllowClaudeCodeEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="codexCLIOnlyAllowClaudeCodeEnabled" />
         </div>
       </div>
 
@@ -2669,7 +2487,7 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.compactMode') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.compactMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.compactModeDesc') }}
             </p>
@@ -2679,25 +2497,25 @@
           </div>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.openai.compactModelMapping') }}</label>
-          <p class="input-hint">{{ t('admin.accounts.openai.compactModelMappingDesc') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.compactModelMapping') }}</label>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.openai.compactModelMappingDesc') }}</p>
           <div v-if="openAICompactModelMappings.length > 0" class="mb-3 space-y-2">
             <div
               v-for="(mapping, index) in openAICompactModelMappings"
               :key="getOpenAICompactModelMappingKey(mapping)"
               class="flex items-center gap-2"
             >
-              <input v-model="mapping.from" type="text" class="input flex-1" :placeholder="t('admin.accounts.fromModel')" />
+              <Input v-model="mapping.from" type="text" class="flex-1" :placeholder="t('admin.accounts.fromModel')" />
               <span class="text-muted-foreground">→</span>
-              <input v-model="mapping.to" type="text" class="input flex-1" :placeholder="t('admin.accounts.toModel')" />
-              <button type="button" @click="removeOpenAICompactModelMapping(index)" class="text-red-400 hover:text-red-300">
+              <Input v-model="mapping.to" type="text" class="flex-1" :placeholder="t('admin.accounts.toModel')" />
+              <Button type="button" variant="ghost" size="icon" @click="removeOpenAICompactModelMapping(index)" class="text-destructive hover:text-destructive/80">
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
           </div>
-          <button type="button" @click="addOpenAICompactModelMapping" class="btn btn-secondary text-sm">
-            + {{ t('admin.accounts.addMapping') }}
-          </button>
+          <Button type="button" @click="addOpenAICompactModelMapping" variant="secondary" class="text-sm">
+ + {{ t('admin.accounts.addMapping') }}
+ </Button>
         </div>
       </div>
 
@@ -2708,7 +2526,7 @@
       >
         <div class="flex items-center justify-between gap-4">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.responsesMode') }}</label>
+            <label class="mb-0 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.responsesMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.responsesModeDesc') }}
             </p>
@@ -2724,13 +2542,13 @@
         </div>
         <p
           v-if="!openAITextGenerationCapabilityEnabled"
-          class="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400"
+          class="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-500"
           data-testid="openai-responses-mode-not-applicable"
         >
           {{ t('admin.accounts.openai.responsesModeTextDisabledHint') }}
         </p>
         <div>
-          <label class="input-label mb-2 block">{{ t('admin.accounts.openai.endpointCapabilities') }}</label>
+          <label class="mb-2 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.endpointCapabilities') }}</label>
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label
               v-for="option in openAIEndpointCapabilityOptions"
@@ -2739,7 +2557,7 @@
             >
               <input
                 type="checkbox"
-                class="rounded border-border text-primary-600 focus:ring-ring"
+                class="rounded border-border text-primary focus:ring-ring"
                 :data-testid="`openai-endpoint-capability-${option.value}`"
                 :checked="openAIEndpointCapabilities.includes(option.value)"
                 @change="toggleOpenAIEndpointCapability(option.value, $event)"
@@ -2747,51 +2565,33 @@
               <span class="text-foreground/85">{{ option.label }}</span>
             </label>
           </div>
-          <p class="input-hint">{{ t('admin.accounts.openai.endpointCapabilitiesDesc') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.openai.endpointCapabilitiesDesc') }}</p>
         </div>
       </div>
 
       <div>
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{
+            <label class="mb-0 block text-sm font-medium text-foreground">{{
               t('admin.accounts.autoPauseOnExpired')
             }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.autoPauseOnExpiredDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="autoPauseOnExpired = !autoPauseOnExpired"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              autoPauseOnExpired ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                autoPauseOnExpired ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="autoPauseOnExpired" />
         </div>
       </div>
 
       <div class="border-t border-border pt-4">
         <!-- Mixed Scheduling (only for antigravity accounts) -->
         <div v-if="form.platform === 'antigravity'" class="flex items-center gap-2">
-          <label class="flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              v-model="mixedScheduling"
-              class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
-            />
+          <Label class="flex cursor-pointer items-center gap-2 font-normal">
+            <Checkbox v-model="mixedScheduling" />
             <span class="text-sm font-medium text-foreground/85">
               {{ t('admin.accounts.mixedScheduling') }}
             </span>
-          </label>
+          </Label>
           <div class="group relative">
             <span
               class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-secondary border border-border text-xs text-muted-foreground hover:text-foreground"
@@ -2810,16 +2610,12 @@
           </div>
         </div>
         <div v-if="form.platform === 'antigravity'" class="mt-3 flex items-center gap-2">
-          <label class="flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              v-model="allowOverages"
-              class="h-4 w-4 rounded border-border text-primary-500 focus:ring-ring"
-            />
+          <Label class="flex cursor-pointer items-center gap-2 font-normal">
+            <Checkbox v-model="allowOverages" />
             <span class="text-sm font-medium text-foreground/85">
               {{ t('admin.accounts.allowOverages') }}
             </span>
-          </label>
+          </Label>
           <div class="group relative">
             <span
               class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-secondary border border-border text-xs text-muted-foreground hover:text-foreground"
@@ -2882,82 +2678,82 @@
 
     <template #footer>
       <div v-if="step === 1" class="flex justify-end gap-3">
-        <button @click="handleClose" type="button" class="btn btn-secondary">
-          {{ t('common.cancel') }}
-        </button>
-        <button
-          type="submit"
-          form="create-account-form"
-          :disabled="submitting"
-          class="btn btn-primary"
-          data-tour="account-form-submit"
-        >
-          <svg
-            v-if="submitting"
-            class="-ml-1 mr-2 h-4 w-4 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          {{
-            isOAuthFlow
-              ? t('common.next')
-              : submitting
-                ? t('admin.accounts.creating')
-                : t('common.create')
-          }}
-        </button>
+        <Button @click="handleClose" type="button" variant="secondary">
+ {{ t('common.cancel') }}
+ </Button>
+        <Button
+ type="submit"
+ form="create-account-form"
+ :disabled="submitting"
+ 
+ data-tour="account-form-submit"
+ >
+ <svg
+ v-if="submitting"
+ class="-ml-1 mr-2 h-4 w-4 animate-spin"
+ fill="none"
+ viewBox="0 0 24 24"
+ >
+ <circle
+ class="opacity-25"
+ cx="12"
+ cy="12"
+ r="10"
+ stroke="currentColor"
+ stroke-width="4"
+ ></circle>
+ <path
+ class="opacity-75"
+ fill="currentColor"
+ d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+ ></path>
+ </svg>
+ {{
+ isOAuthFlow
+ ? t('common.next')
+ : submitting
+ ? t('admin.accounts.creating')
+ : t('common.create')
+ }}
+ </Button>
       </div>
       <div v-else class="flex justify-between gap-3">
-        <button type="button" class="btn btn-secondary" @click="goBackToBasicInfo">
-          {{ t('common.back') }}
-        </button>
-        <button
-          v-if="isManualInputMethod"
-          type="button"
-          :disabled="!canExchangeCode"
-          class="btn btn-primary"
-          @click="handleExchangeCode"
-        >
-          <svg
-            v-if="currentOAuthLoading"
-            class="-ml-1 mr-2 h-4 w-4 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          {{
-            currentOAuthLoading
-              ? t('admin.accounts.oauth.verifying')
-              : t('admin.accounts.oauth.completeAuth')
-          }}
-        </button>
+        <Button type="button" variant="secondary" @click="goBackToBasicInfo">
+ {{ t('common.back') }}
+ </Button>
+        <Button
+ v-if="isManualInputMethod"
+ type="button"
+ :disabled="!canExchangeCode"
+ 
+ @click="handleExchangeCode"
+ >
+ <svg
+ v-if="currentOAuthLoading"
+ class="-ml-1 mr-2 h-4 w-4 animate-spin"
+ fill="none"
+ viewBox="0 0 24 24"
+ >
+ <circle
+ class="opacity-25"
+ cx="12"
+ cy="12"
+ r="10"
+ stroke="currentColor"
+ stroke-width="4"
+ ></circle>
+ <path
+ class="opacity-75"
+ fill="currentColor"
+ d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+ ></path>
+ </svg>
+ {{
+ currentOAuthLoading
+ ? t('admin.accounts.oauth.verifying')
+ : t('admin.accounts.oauth.completeAuth')
+ }}
+ </Button>
       </div>
     </template>
   </BaseDialog>
@@ -2998,7 +2794,7 @@
                 href="https://policies.google.com/terms"
                 target="_blank"
                 rel="noreferrer"
-                class="text-sm text-primary-200 hover:underline"
+                class="text-sm text-muted-foreground hover:underline"
               >
                 {{ t('admin.accounts.gemini.setupGuide.links.countryCheck') }}
               </a>
@@ -3007,7 +2803,7 @@
                 href="https://policies.google.com/country-association-form"
                 target="_blank"
                 rel="noreferrer"
-                class="text-sm text-primary-200 hover:underline"
+                class="text-sm text-muted-foreground hover:underline"
               >
                 修改归属地
               </a>
@@ -3016,7 +2812,7 @@
                 href="https://gemini.google.com/gems/create?hl=en-US&pli=1"
                 target="_blank"
                 rel="noreferrer"
-                class="text-sm text-primary-200 hover:underline"
+                class="text-sm text-muted-foreground hover:underline"
               >
                 {{ t('admin.accounts.gemini.setupGuide.links.geminiWebActivation') }}
               </a>
@@ -3025,7 +2821,7 @@
                 href="https://console.cloud.google.com"
                 target="_blank"
                 rel="noreferrer"
-                class="text-sm text-primary-200 hover:underline"
+                class="text-sm text-muted-foreground hover:underline"
               >
                 {{ t('admin.accounts.gemini.setupGuide.links.gcpProject') }}
               </a>
@@ -3039,7 +2835,7 @@
         <h3 class="mb-3 text-sm font-semibold text-foreground">
           {{ t('admin.accounts.gemini.quotaPolicy.title') }}
         </h3>
-        <p class="mb-4 text-xs text-amber-400">
+        <p class="mb-4 text-xs text-amber-500">
           {{ t('admin.accounts.gemini.quotaPolicy.note') }}
         </p>
         <div class="overflow-x-auto">
@@ -3121,7 +2917,7 @@
             :href="geminiQuotaDocs.codeAssist"
             target="_blank"
             rel="noreferrer"
-            class="text-sm text-primary-200 hover:underline"
+            class="text-sm text-muted-foreground hover:underline"
           >
             {{ t('admin.accounts.gemini.quotaPolicy.docs.codeAssist') }}
           </a>
@@ -3129,7 +2925,7 @@
             :href="geminiQuotaDocs.aiStudio"
             target="_blank"
             rel="noreferrer"
-            class="text-sm text-primary-200 hover:underline"
+            class="text-sm text-muted-foreground hover:underline"
           >
             {{ t('admin.accounts.gemini.quotaPolicy.docs.aiStudio') }}
           </a>
@@ -3137,7 +2933,7 @@
             :href="geminiQuotaDocs.vertex"
             target="_blank"
             rel="noreferrer"
-            class="text-sm text-primary-200 hover:underline"
+            class="text-sm text-muted-foreground hover:underline"
           >
             {{ t('admin.accounts.gemini.quotaPolicy.docs.vertex') }}
           </a>
@@ -3154,7 +2950,7 @@
             :href="geminiHelpLinks.apiKey"
             target="_blank"
             rel="noreferrer"
-            class="text-sm text-primary-200 hover:underline"
+            class="text-sm text-muted-foreground hover:underline"
           >
             {{ t('admin.accounts.gemini.accountType.apiKeyLink') }}
           </a>
@@ -3162,7 +2958,7 @@
             :href="geminiHelpLinks.aiStudioPricing"
             target="_blank"
             rel="noreferrer"
-            class="text-sm text-primary-200 hover:underline"
+            class="text-sm text-muted-foreground hover:underline"
           >
             {{ t('admin.accounts.gemini.accountType.quotaLink') }}
           </a>
@@ -3172,9 +2968,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="showGeminiHelpDialog = false" type="button" class="btn btn-primary">
-          {{ t('common.close') }}
-        </button>
+        <Button @click="showGeminiHelpDialog = false" type="button" >
+ {{ t('common.close') }}
+ </Button>
       </div>
     </template>
   </BaseDialog>
@@ -3229,6 +3025,23 @@ import type {
   OpenAIEndpointCapability
 } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import {
+  Select as SelectRoot,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+  SelectLabel
+} from '@/components/ui/select'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Select from '@/components/common/Select.vue'
 import Icon from '@/components/icons/Icon.vue'

@@ -11,13 +11,13 @@
         <p class="text-sm text-muted-foreground">
           {{ t('admin.scheduledTests.title') }}
         </p>
-        <button
+        <Button
           @click="showAddForm = !showAddForm"
-          class="btn btn-primary flex items-center gap-1.5 text-sm"
+          class="flex items-center gap-1.5 text-sm"
         >
           <Icon name="plus" size="sm" :stroke-width="2" />
           {{ t('admin.scheduledTests.addPlan') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Add Plan Form -->
@@ -30,9 +30,9 @@
         </div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label class="mb-1 block text-xs font-medium text-muted-foreground">
+            <Label class="mb-1 block text-xs font-medium text-muted-foreground">
               {{ t('admin.scheduledTests.model') }}
-            </label>
+            </Label>
             <Select
               v-model="newPlan.model_id"
               :options="modelOptions"
@@ -41,11 +41,11 @@
             />
           </div>
           <div>
-            <label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <Label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
               {{ t('admin.scheduledTests.cronExpression') }}
               <HelpTooltip>
                 <template #trigger>
-                  <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-200">
+                  <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                     ?
                   </span>
                 </template>
@@ -59,7 +59,7 @@
                   <p>{{ t('admin.scheduledTests.cronTooltipRange') }}</p>
                 </div>
               </HelpTooltip>
-            </label>
+            </Label>
             <Input
               v-model="newPlan.cron_expression"
               :placeholder="'*/30 * * * *'"
@@ -67,11 +67,11 @@
             />
           </div>
           <div>
-            <label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <Label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
               {{ t('admin.scheduledTests.maxResults') }}
               <HelpTooltip>
                 <template #trigger>
-                  <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-200">
+                  <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                     ?
                   </span>
                 </template>
@@ -83,7 +83,7 @@
                   <p>{{ t('admin.scheduledTests.maxResultsTooltipRange') }}</p>
                 </div>
               </HelpTooltip>
-            </label>
+            </Label>
             <Input
               v-model="newPlan.max_results"
               type="number"
@@ -91,17 +91,17 @@
             />
           </div>
           <div class="flex items-end">
-            <label class="flex items-center gap-2 text-sm text-foreground/85">
-              <Toggle v-model="newPlan.enabled" />
+            <Label class="flex items-center gap-2 text-sm text-foreground/85">
+              <Switch v-model="newPlan.enabled" />
               {{ t('admin.scheduledTests.enabled') }}
-            </label>
+            </Label>
           </div>
           <div class="flex items-end">
             <div>
-              <label class="flex items-center gap-2 text-sm text-foreground/85">
-                <Toggle v-model="newPlan.auto_recover" />
+              <Label class="flex items-center gap-2 text-sm text-foreground/85">
+                <Switch v-model="newPlan.auto_recover" />
                 {{ t('admin.scheduledTests.autoRecover') }}
-              </label>
+              </Label>
               <p class="mt-0.5 text-xs text-muted-foreground">
                 {{ t('admin.scheduledTests.autoRecoverHelp') }}
               </p>
@@ -109,20 +109,20 @@
           </div>
         </div>
         <div class="mt-3 flex justify-end gap-2">
-          <button
+          <Button
+            variant="outline"
             @click="showAddForm = false; resetNewPlan()"
-            class="rounded-md border border-border bg-accent px-3 py-1.5 text-sm font-medium text-foreground/85 transition-colors hover:bg-muted"
           >
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             @click="handleCreate"
             :disabled="!newPlan.model_id || !newPlan.cron_expression || creating"
-            class="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex items-center gap-1.5"
           >
             <Icon v-if="creating" name="refresh" size="sm" class="animate-spin" :stroke-width="2" />
             {{ t('common.save') }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -168,7 +168,7 @@
 
               <!-- Enabled Toggle -->
               <div class="flex items-center gap-1.5" @click.stop>
-                <Toggle
+                <Switch
                   :model-value="plan.enabled"
                   @update:model-value="(val: boolean) => handleToggleEnabled(plan, val)"
                 />
@@ -178,12 +178,13 @@
               </div>
 
               <!-- Auto Recover Badge -->
-              <span
+              <Badge
                 v-if="plan.auto_recover"
-                class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400"
+                variant="outline"
+                class="bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
               >
                 {{ t('admin.scheduledTests.autoRecover') }}
-              </span>
+              </Badge>
             </div>
 
             <div class="flex items-center gap-3">
@@ -201,20 +202,23 @@
 
               <!-- Actions -->
               <div class="flex items-center gap-1" @click.stop>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   @click="startEdit(plan)"
-                  class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                   :title="t('admin.scheduledTests.editPlan')"
                 >
                   <Icon name="edit" size="sm" :stroke-width="2" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   @click="confirmDeletePlan(plan)"
-                  class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400"
+                  class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                   :title="t('admin.scheduledTests.deletePlan')"
                 >
                   <Icon name="trash" size="sm" :stroke-width="2" />
-                </button>
+                </Button>
               </div>
 
               <!-- Expand indicator -->
@@ -240,9 +244,9 @@
             </div>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label class="mb-1 block text-xs font-medium text-muted-foreground">
+                <Label class="mb-1 block text-xs font-medium text-muted-foreground">
                   {{ t('admin.scheduledTests.model') }}
-                </label>
+                </Label>
                 <Select
                   v-model="editForm.model_id"
                   :options="modelOptions"
@@ -251,11 +255,11 @@
                 />
               </div>
               <div>
-                <label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                <Label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
                   {{ t('admin.scheduledTests.cronExpression') }}
                   <HelpTooltip>
                     <template #trigger>
-                      <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-200">
+                      <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                         ?
                       </span>
                     </template>
@@ -269,7 +273,7 @@
                       <p>{{ t('admin.scheduledTests.cronTooltipRange') }}</p>
                     </div>
                   </HelpTooltip>
-                </label>
+                </Label>
                 <Input
                   v-model="editForm.cron_expression"
                   :placeholder="'*/30 * * * *'"
@@ -277,11 +281,11 @@
                 />
               </div>
               <div>
-                <label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                <Label class="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
                   {{ t('admin.scheduledTests.maxResults') }}
                   <HelpTooltip>
                     <template #trigger>
-                      <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary-300 hover:text-primary-200">
+                      <span class="inline-flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary">
                         ?
                       </span>
                     </template>
@@ -293,7 +297,7 @@
                       <p>{{ t('admin.scheduledTests.maxResultsTooltipRange') }}</p>
                     </div>
                   </HelpTooltip>
-                </label>
+                </Label>
                 <Input
                   v-model="editForm.max_results"
                   type="number"
@@ -301,17 +305,17 @@
                 />
               </div>
               <div class="flex items-end">
-                <label class="flex items-center gap-2 text-sm text-foreground/85">
-                  <Toggle v-model="editForm.enabled" />
+                <Label class="flex items-center gap-2 text-sm text-foreground/85">
+                  <Switch v-model="editForm.enabled" />
                   {{ t('admin.scheduledTests.enabled') }}
-                </label>
+                </Label>
               </div>
               <div class="flex items-end">
                 <div>
-                  <label class="flex items-center gap-2 text-sm text-foreground/85">
-                    <Toggle v-model="editForm.auto_recover" />
+                  <Label class="flex items-center gap-2 text-sm text-foreground/85">
+                    <Switch v-model="editForm.auto_recover" />
                     {{ t('admin.scheduledTests.autoRecover') }}
-                  </label>
+                  </Label>
                   <p class="mt-0.5 text-xs text-muted-foreground">
                     {{ t('admin.scheduledTests.autoRecoverHelp') }}
                   </p>
@@ -319,20 +323,20 @@
               </div>
             </div>
             <div class="mt-3 flex justify-end gap-2">
-              <button
+              <Button
+                variant="outline"
                 @click="cancelEdit"
-                class="rounded-md border border-border bg-accent px-3 py-1.5 text-sm font-medium text-foreground/85 transition-colors hover:bg-muted"
               >
                 {{ t('common.cancel') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 @click="handleEdit"
                 :disabled="!editForm.model_id || !editForm.cron_expression || updating"
-                class="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                class="flex items-center gap-1.5"
               >
                 <Icon v-if="updating" name="refresh" size="sm" class="animate-spin" :stroke-width="2" />
                 {{ t('common.save') }}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -369,14 +373,14 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <!-- Status Badge -->
-                    <span
+                    <Badge
+                      variant="outline"
                       :class="[
-                        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                         result.status === 'success'
-                          ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                           : result.status === 'running'
-                            ? 'border border-border bg-accent text-foreground/85'
-                            : 'border border-red-500/30 bg-red-500/10 text-red-400'
+                            ? 'bg-accent text-foreground/85 border-border'
+                            : 'bg-red-500/10 text-red-400 border-red-500/30'
                       ]"
                     >
                       {{
@@ -386,7 +390,7 @@
                             ? t('admin.scheduledTests.running')
                             : t('admin.scheduledTests.failed')
                       }}
-                    </span>
+                    </Badge>
 
                     <!-- Latency -->
                     <span v-if="result.latency_ms > 0" class="text-xs text-muted-foreground">
@@ -465,12 +469,15 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import Select, { type SelectOption } from '@/components/common/Select.vue'
 import Input from '@/components/common/Input.vue'
-import Toggle from '@/components/common/Toggle.vue'
 import { Icon } from '@/components/icons'
 import { adminAPI } from '@/api/admin'
 import { useAppStore } from '@/stores/app'

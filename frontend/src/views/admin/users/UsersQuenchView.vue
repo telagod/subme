@@ -1,33 +1,43 @@
 <template>
   <AppLayout>
-    <div class="uq-root">
+    <div class="px-7 pb-16 pt-6">
       <!-- 页头 -->
-      <div class="uq-head uq-rise" style="animation-delay:.02s">
+      <div class="mb-5 flex items-end justify-between" style="animation-delay:.02s">
         <div>
-          <h1 class="uq-title">{{ t('admin.usersQuench.title') }}</h1>
-          <p class="uq-desc">{{ t('admin.usersQuench.desc') }}</p>
+          <h1 class="mb-1 text-xl font-bold tracking-tight text-foreground">{{ t('admin.usersQuench.title') }}</h1>
+          <p class="text-xs text-muted-foreground">{{ t('admin.usersQuench.desc') }}</p>
         </div>
-        <div class="uq-head-acts">
-          <button class="uq-btn" :disabled="loading" @click="loadUsers">
+        <div class="flex items-center gap-2">
+          <Button variant="outline" size="sm" :disabled="loading" @click="loadUsers">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M10.5 6A4.5 4.5 0 1 1 6 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M8 1.5v2.5H5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
             {{ t('admin.usersQuench.refresh') }}
-          </button>
-          <button class="uq-btn uq-btn-metal" @click="openCreateDrawer">{{ t('admin.usersQuench.createBtn') }}</button>
+          </Button>
+          <Button size="sm" @click="openCreateDrawer">{{ t('admin.usersQuench.createBtn') }}</Button>
         </div>
       </div>
 
       <!-- 视图页签 -->
-      <div class="uq-rise" style="animation-delay:.06s">
+      <div class="mb-3" style="animation-delay:.06s">
         <SavedViewTabs storage-key="admin_users" :current-state="savedViewState" :total-count="pagination.total" @apply="onApplyView" />
       </div>
 
       <!-- 快速内置视图 -->
-      <div class="uq-qtabs uq-rise" style="animation-delay:.10s">
-        <button v-for="qv in QUICK_VIEWS" :key="qv.id" class="uq-qtab" :class="{ on: activeQuickView === qv.id }" @click="applyQuickView(qv as any)">{{ qv.label }}</button>
+      <div class="mb-3 flex gap-1.5" style="animation-delay:.10s">
+        <Button
+          v-for="qv in QUICK_VIEWS"
+          :key="qv.id"
+          variant="outline"
+          size="sm"
+          class="h-auto rounded-lg px-2.5 py-1 text-[11.5px] font-medium"
+          :class="activeQuickView === qv.id
+            ? 'border-primary/40 bg-primary/10 text-primary'
+            : 'border-border bg-transparent text-muted-foreground hover:border-input hover:text-foreground'"
+          @click="applyQuickView(qv as any)"
+        >{{ qv.label }}</Button>
       </div>
 
       <!-- 筛选栏 -->
-      <div class="uq-rise" style="animation-delay:.14s">
+      <div class="mb-3" style="animation-delay:.14s">
         <UsersFilterBar
           v-model:search="searchInput"
           v-model:density="density"
@@ -41,107 +51,137 @@
       </div>
 
       <!-- 表格卡片 -->
-      <div class="uq-card uq-rise" style="animation-delay:.18s">
-        <DataTableV2
-          :columns="(COLUMNS as any)"
-          :rows="(users as unknown as Record<string, unknown>[])"
-          :total="pagination.total"
-          :loading="loading"
-          :selectable="true"
-          row-key="id"
-          :density="density"
-          :page="state.page"
-          :page-size="state.pageSize"
-          :sort="state.sort"
-          :order="state.order"
-          @row-click="onRowClick"
-          @update:selected="onSelectionChange"
-          @update:page="p => { state.page = p }"
-          @update:sort="s => { state.sort = s; state.page = 1 }"
-          @update:order="o => { state.order = o; state.page = 1 }"
-        >
-          <template #cell-email="{ row }">
-            <div class="uq-cell-user">
-              <div class="uq-av" :style="{ background: avatarColor(String(row.email)) }">{{ String(row.email).charAt(0).toUpperCase() }}</div>
-              <div>
-                <div class="uq-email">{{ row.email }}</div>
-                <div class="uq-uname"><span v-if="row.username">@{{ row.username }}</span><span v-else class="uq-muted">—</span><span class="uq-uid"> · #{{ String(row.id).padStart(4, '0') }}</span></div>
+      <Card class="overflow-hidden" style="animation-delay:.18s">
+        <CardContent class="p-0">
+          <DataTableV2
+            :columns="(COLUMNS as any)"
+            :rows="(users as unknown as Record<string, unknown>[])"
+            :total="pagination.total"
+            :loading="loading"
+            :selectable="true"
+            row-key="id"
+            :density="density"
+            :page="state.page"
+            :page-size="state.pageSize"
+            :sort="state.sort"
+            :order="state.order"
+            @row-click="onRowClick"
+            @update:selected="onSelectionChange"
+            @update:page="p => { state.page = p }"
+            @update:sort="s => { state.sort = s; state.page = 1 }"
+            @update:order="o => { state.order = o; state.page = 1 }"
+          >
+            <template #cell-email="{ row }">
+              <div class="flex items-center gap-2.5">
+                <div class="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full text-[13px] font-bold text-background" :style="{ background: avatarColor(String(row.email)) }">{{ String(row.email).charAt(0).toUpperCase() }}</div>
+                <div>
+                  <div class="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-medium text-foreground">{{ row.email }}</div>
+                  <div class="mt-px text-[11px] text-muted-foreground"><span v-if="row.username">@{{ row.username }}</span><span v-else class="text-muted-foreground">—</span><span class="text-muted-foreground"> · #{{ String(row.id).padStart(4, '0') }}</span></div>
+                </div>
               </div>
-            </div>
-          </template>
+            </template>
 
-          <template #cell-role="{ value }">
-            <span :class="['uq-badge', value === 'admin' ? 'uq-badge-azure' : 'uq-badge-dim']">{{ value === 'admin' ? t('admin.usersQuench.roleAdmin') : t('admin.usersQuench.roleUser') }}</span>
-          </template>
+            <template #cell-role="{ value }">
+              <Badge :variant="value === 'admin' ? 'default' : 'secondary'">{{ value === 'admin' ? t('admin.usersQuench.roleAdmin') : t('admin.usersQuench.roleUser') }}</Badge>
+            </template>
 
-          <template #cell-balance="{ row }">
-            <div class="uq-bal">
-              <span class="uq-money" :class="{ 'c-bad': Number(row.balance) < 1, 'c-warn': Number(row.balance) >= 1 && Number(row.balance) < 5 }">${{ Number(row.balance).toFixed(2) }}</span>
-              <div class="uq-meter"><i :style="{ width: Math.min(100, Math.max(0, Number(row.balance))) + '%' }" :class="{ 'c-bad': Number(row.balance) < 1, 'c-warn': Number(row.balance) >= 1 && Number(row.balance) < 5 }"></i></div>
-            </div>
-          </template>
+            <template #cell-balance="{ row }">
+              <div class="flex flex-col items-end gap-1">
+                <span
+                  class="font-mono tabular-nums text-[12.5px]"
+                  :class="{
+                    'text-destructive': Number(row.balance) < 1,
+                    'text-amber-500': Number(row.balance) >= 1 && Number(row.balance) < 5,
+                    'text-foreground': Number(row.balance) >= 5
+                  }"
+                >${{ Number(row.balance).toFixed(2) }}</span>
+                <div class="h-[3px] w-[72px] overflow-hidden rounded-full bg-muted">
+                  <i
+                    class="block h-full rounded-full"
+                    :style="{ width: Math.min(100, Math.max(0, Number(row.balance))) + '%' }"
+                    :class="{
+                      'bg-destructive': Number(row.balance) < 1,
+                      'bg-amber-500': Number(row.balance) >= 1 && Number(row.balance) < 5,
+                      'bg-primary': Number(row.balance) >= 5
+                    }"
+                  ></i>
+                </div>
+              </div>
+            </template>
 
-          <template #cell-concurrency="{ row }">
-            <span class="uq-mono uq-muted">{{ row.current_concurrency ?? 0 }}/{{ row.concurrency }}</span>
-          </template>
+            <template #cell-concurrency="{ row }">
+              <span class="font-mono tabular-nums text-muted-foreground">{{ row.current_concurrency ?? 0 }}/{{ row.concurrency }}</span>
+            </template>
 
-          <template #cell-status="{ value }">
-            <span class="uq-status"><span class="uq-dot" :class="value === 'active' ? 'ok' : 'bad'"></span>{{ value === 'active' ? t('admin.usersQuench.statusActive') : t('admin.usersQuench.statusDisabled') }}</span>
-          </template>
+            <template #cell-status="{ value }">
+              <span class="inline-flex items-center gap-1.5 text-[12.5px]">
+                <span class="inline-block h-[7px] w-[7px] rounded-full" :class="value === 'active' ? 'bg-emerald-500' : 'bg-destructive'"></span>
+                {{ value === 'active' ? t('admin.usersQuench.statusActive') : t('admin.usersQuench.statusDisabled') }}
+              </span>
+            </template>
 
-          <template #cell-created_at="{ value }">
-            <span class="uq-mono uq-muted uq-xs">{{ fmtDate(String(value)) }}</span>
-          </template>
+            <template #cell-created_at="{ value }">
+              <span class="font-mono text-[11.5px] tabular-nums text-muted-foreground">{{ fmtDate(String(value)) }}</span>
+            </template>
 
-          <template #empty>
-            <div class="uq-empty">
-              <svg class="uq-empty-ico" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <rect x="5" y="10" width="30" height="22" rx="4" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M12 16h16M12 21h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                <circle cx="30" cy="30" r="8" fill="var(--bg-0,#0A0C10)" stroke="currentColor" stroke-width="1.5"/>
-                <path d="M27 30h6M30 27v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-              </svg>
-              <span class="uq-empty-text">{{ t('admin.usersQuench.emptyText') }}</span>
-            </div>
-          </template>
+            <template #empty>
+              <div class="flex flex-col items-center justify-center gap-2.5 px-6 py-[60px] text-[13px] text-muted-foreground">
+                <svg class="opacity-35" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+                  <rect x="5" y="10" width="30" height="22" rx="4" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M12 16h16M12 21h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                  <circle cx="30" cy="30" r="8" fill="transparent" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M27 30h6M30 27v6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>
+                <span>{{ t('admin.usersQuench.emptyText') }}</span>
+              </div>
+            </template>
 
-          <template #cell-_actions="{ row }">
-            <div class="uq-acts">
-              <button class="uq-ib" :title="t('admin.usersQuench.actionAdjustBalance')" @click.stop="openBalance(row as unknown as AdminUser, 'add')">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 4v5M4 6.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              </button>
-              <button class="uq-ib" :title="t('admin.usersQuench.actionEdit')" @click.stop="openEditDrawer(row as unknown as AdminUser)">
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9.5 2L11 3.5L5 9.5H3.5V8L9.5 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-              <button v-if="(row as unknown as AdminUser).role !== 'admin'" class="uq-ib" :class="(row as unknown as AdminUser).status === 'active' ? 'ib-warn' : 'ib-ok'" :title="(row as unknown as AdminUser).status === 'active' ? t('admin.usersQuench.actionDisable') : t('admin.usersQuench.actionEnable')" @click.stop="toggleStatus(row as unknown as AdminUser)">
-                <svg v-if="(row as unknown as AdminUser).status === 'active'" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 4.5L8.5 8.5M8.5 4.5L4.5 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                <svg v-else width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 6.5L5.8 7.8L8.5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </button>
-            </div>
-          </template>
-        </DataTableV2>
-      </div>
+            <template #cell-_actions="{ row }">
+              <div class="row-acts flex items-center gap-0.5">
+                <Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground" :title="t('admin.usersQuench.actionAdjustBalance')" @click.stop="openBalance(row as unknown as AdminUser, 'add')">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 4v5M4 6.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </Button>
+                <Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground" :title="t('admin.usersQuench.actionEdit')" @click.stop="openEditDrawer(row as unknown as AdminUser)">
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M9.5 2L11 3.5L5 9.5H3.5V8L9.5 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </Button>
+                <Button
+                  v-if="(row as unknown as AdminUser).role !== 'admin'"
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7"
+                  :class="(row as unknown as AdminUser).status === 'active' ? 'text-muted-foreground hover:text-amber-500' : 'text-muted-foreground hover:text-emerald-500'"
+                  :title="(row as unknown as AdminUser).status === 'active' ? t('admin.usersQuench.actionDisable') : t('admin.usersQuench.actionEnable')"
+                  @click.stop="toggleStatus(row as unknown as AdminUser)"
+                >
+                  <svg v-if="(row as unknown as AdminUser).status === 'active'" width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 4.5L8.5 8.5M8.5 4.5L4.5 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  <svg v-else width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 6.5L5.8 7.8L8.5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </Button>
+              </div>
+            </template>
+          </DataTableV2>
+        </CardContent>
+      </Card>
 
       <!-- 批量操作条 -->
       <BulkBar :count="selected.length" @clear="selected = []">
-        <button @click="bulkEnable">{{ t('admin.usersQuench.bulkEnable') }}</button>
-        <button @click="bulkDisable">{{ t('admin.usersQuench.bulkDisable') }}</button>
-        <button class="q-btn-danger" @click="showBulkDel = true">{{ t('admin.usersQuench.bulkDelete') }}</button>
+        <Button variant="outline" size="sm" @click="bulkEnable">{{ t('admin.usersQuench.bulkEnable') }}</Button>
+        <Button variant="outline" size="sm" @click="bulkDisable">{{ t('admin.usersQuench.bulkDisable') }}</Button>
+        <Button variant="destructive" size="sm" @click="showBulkDel = true">{{ t('admin.usersQuench.bulkDelete') }}</Button>
       </BulkBar>
 
       <!-- 批量删除确认 -->
-      <Teleport to="body">
-        <div v-if="showBulkDel" class="uq-overlay" @click.self="showBulkDel = false">
-          <div class="uq-dialog" role="dialog" aria-modal="true" aria-labelledby="uq-dlg-heading">
-            <div id="uq-dlg-heading" class="uq-dlg-title">{{ t('admin.usersQuench.bulkDeleteTitle') }}</div>
-            <p class="uq-dlg-body">{{ t('admin.usersQuench.bulkDeleteConfirm', { n: selected.length }) }}</p>
-            <div class="uq-dlg-foot">
-              <button class="uq-btn" @click="showBulkDel = false">{{ t('admin.usersQuench.bulkDeleteCancel') }}</button>
-              <button class="uq-btn uq-btn-danger" :disabled="bulkDeleting" @click="doBulkDelete">{{ bulkDeleting ? t('admin.usersQuench.bulkDeletingProgress', { current: bulkDelProg, total: selected.length }) : t('admin.usersQuench.bulkDeleteConfirmBtn') }}</button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
+      <Dialog :open="showBulkDel" @update:open="showBulkDel = $event">
+        <DialogContent class="max-w-[380px]">
+          <DialogHeader>
+            <DialogTitle>{{ t('admin.usersQuench.bulkDeleteTitle') }}</DialogTitle>
+            <DialogDescription>{{ t('admin.usersQuench.bulkDeleteConfirm', { n: selected.length }) }}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" @click="showBulkDel = false">{{ t('admin.usersQuench.bulkDeleteCancel') }}</Button>
+            <Button variant="destructive" :disabled="bulkDeleting" @click="doBulkDelete">{{ bulkDeleting ? t('admin.usersQuench.bulkDeletingProgress', { current: bulkDelProg, total: selected.length }) : t('admin.usersQuench.bulkDeleteConfirmBtn') }}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <!-- 用户 360 抽屉 (U2 契约) -->
       <UserDetailDrawer :userId="drawerUserId" :open="drawerOpen" @close="drawerOpen = false" @updated="loadUsers" />
@@ -167,6 +207,10 @@ import { useAppStore } from '@/stores/app'
 import { formatDateTime } from '@/utils/format'
 import UsersFilterBar from './UsersFilterBar.vue'
 import UserFormDrawer from './UserFormDrawer.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 const UserDetailDrawer = defineAsyncComponent(() => import('@/components/admin/users/UserDetailDrawer.vue'))
 const UserBalanceModal = defineAsyncComponent(() => import('@/components/admin/user/UserBalanceModal.vue'))
@@ -452,9 +496,8 @@ onMounted(loadUsers)
 onUnmounted(() => { abortCtrl?.abort(); if (searchTimer) clearTimeout(searchTimer) })
 </script>
 
-<style src="./users-quench.css"></style>
 <style scoped>
 /* :deep 规则必须在 scoped 块里才能穿透子组件 */
-:deep(.q-tr:hover) .uq-acts,
-:deep(.q-tr:focus-visible) .uq-acts { opacity: 1; }
+:deep(.q-tr:hover) .row-acts,
+:deep(.q-tr:focus-visible) .row-acts { opacity: 1; }
 </style>

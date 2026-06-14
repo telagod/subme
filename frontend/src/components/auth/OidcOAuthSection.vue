@@ -1,13 +1,13 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="disabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" variant="secondary" :disabled="disabled" class="w-full" @click="startLogin">
       <span
-        class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold text-primary-200 "
+        class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-border bg-secondary text-xs font-semibold text-secondary-foreground"
       >
         {{ providerInitial }}
       </span>
       {{ t('auth.oidc.signIn', { providerName: normalizedProviderName }) }}
-    </button>
+    </Button>
 
     <div v-if="showDivider" class="flex items-center gap-3">
       <div class="h-px flex-1 bg-border"></div>
@@ -23,6 +23,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import { resolveAffiliateReferralCode, storeOAuthAffiliateCode } from '@/utils/oauthAffiliate'
 
 const props = withDefaults(defineProps<{

@@ -7,7 +7,7 @@
         <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="5" y="7" width="30" height="26" rx="5" stroke="currentColor" stroke-width="1.5"/>
           <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M12 16h16M12 22h10"/>
-          <circle cx="30" cy="30" r="7" fill="var(--bg-1)" stroke="var(--line-1)" stroke-width="1.5"/>
+          <circle cx="30" cy="30" r="7" fill="transparent" stroke="currentColor" stroke-width="1.5"/>
           <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M30 27v3m0 0v3m0-3h-3m3 0h3"/>
         </svg>
       </div>
@@ -15,10 +15,10 @@
         <span class="acp-empty-title">{{ t('admin.accountCardWall.emptyTitle') }}</span>
         <span class="acp-empty-desc">{{ t('admin.accountCardWall.emptyDesc') }}</span>
       </div>
-      <button class="acp-empty-cta" @click="$emit('add-account')">
+      <Button variant="outline" size="sm" @click="$emit('add-account')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
         {{ t('admin.accountCardWall.addAccountCta') }}
-      </button>
+      </Button>
     </div>
 
     <!-- 骨架 -->
@@ -26,10 +26,10 @@
       <div class="acp-group">
         <div class="acp-group-label acp-skel-label"></div>
         <div class="acp-grid">
-          <div v-for="i in 6" :key="i" class="acp-card acp-card-skel">
+          <Card v-for="i in 6" :key="i" class="acp-card-skel p-3 flex flex-col gap-1.5 pointer-events-none">
             <div class="acp-skel acp-skel-w60"></div>
             <div class="acp-skel acp-skel-w40 acp-skel-mt"></div>
-          </div>
+          </Card>
         </div>
       </div>
     </template>
@@ -42,10 +42,10 @@
           <span class="acp-group-count">{{ group.accounts.length }}</span>
         </div>
         <div class="acp-grid">
-          <div
+          <Card
             v-for="account in group.accounts"
             :key="account.id"
-            class="acp-card"
+            class="p-3 flex flex-col gap-1.5 transition-[border-color,box-shadow] duration-150 hover:border-ring/50 hover:shadow-md"
             :class="statusCardClass(account)"
           >
             <!-- 顶部：渠道 chip + 状态呼吸点 -->
@@ -87,33 +87,39 @@
 
             <!-- 行内操作 -->
             <div class="acp-card-actions">
-              <button
-                class="acp-btn"
+              <Button
+                variant="ghost"
+                size="icon"
+                class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-ring/50 hover:bg-muted hover:text-foreground"
                 :title="account.status === 'active' ? t('admin.accountCardWall.toggleDisable') : t('admin.accountCardWall.toggleEnable')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('toggle-status', account)"
               >
                 <svg v-if="account.status === 'active'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
                 <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 12.728M12 3v4" /></svg>
-              </button>
-              <button
-                class="acp-btn"
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-ring/50 hover:bg-muted hover:text-foreground"
                 :title="t('admin.accountCardWall.refreshToken')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('refresh', account)"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-              </button>
-              <button
-                class="acp-btn acp-btn-danger"
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
                 :title="t('admin.accountCardWall.deleteBtn')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('delete', account)"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </template>
@@ -125,6 +131,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Account, AdminGroup } from '@/types'
 import PlatformTypeBadge from '@/components/common/PlatformTypeBadge.vue'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 const props = defineProps<{
   accounts: Account[]
@@ -230,7 +238,7 @@ function utilBarClass(account: Account): string {
   align-items: center;
   gap: 20px;
   padding: 64px 24px;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   font-size: 13px;
 }
 
@@ -241,10 +249,10 @@ function utilBarClass(account: Account): string {
   width: 72px;
   height: 72px;
   border-radius: 18px;
-  background: var(--metal);
-  border: 1px solid var(--line-1);
-  box-shadow: var(--edge-hi), 0 8px 24px rgba(0,0,0,.24);
-  color: var(--ink-1);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  color: hsl(var(--muted-foreground));
 }
 
 .acp-empty-text {
@@ -258,43 +266,15 @@ function utilBarClass(account: Account): string {
 .acp-empty-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--ink-0);
+  color: hsl(var(--foreground));
   letter-spacing: .01em;
 }
 
 .acp-empty-desc {
   font-size: 12px;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   max-width: 280px;
   line-height: 1.6;
-}
-
-/* 空态 CTA：金属主按钮（与工具栏 apv-btn-primary 同规格）*/
-.acp-empty-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 16px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid #3A4250;
-  background: var(--metal-raised);
-  color: var(--ink-0);
-  cursor: pointer;
-  box-shadow: var(--edge-hi), 0 2px 10px rgba(0,0,0,.4);
-  transition: border-color .18s, box-shadow .18s;
-}
-
-.acp-empty-cta:hover {
-  border-color: rgba(92,168,255,.55);
-  box-shadow: var(--edge-hi), 0 0 16px rgba(92,168,255,.22), 0 2px 10px rgba(0,0,0,.4);
-}
-
-.acp-empty-cta:focus-visible {
-  outline: none;
-  box-shadow: var(--glow-focus), 0 2px 10px rgba(0,0,0,.4);
 }
 
 /* 分组区块 */
@@ -310,14 +290,14 @@ function utilBarClass(account: Account): string {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-1);
+  color: hsl(var(--muted-foreground));
 }
 
 .acp-group-count {
   font-size: 11px;
   font-weight: 500;
-  color: var(--ink-2);
-  background: var(--bg-2);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
   border-radius: 99px;
   padding: 0 7px;
 }
@@ -329,26 +309,9 @@ function utilBarClass(account: Account): string {
   gap: 10px;
 }
 
-/* 卡片本体（锻面卡）*/
-.acp-card {
-  background: var(--metal);
-  border: 1px solid var(--line-0);
-  border-radius: var(--q-radius, 12px);
-  box-shadow: var(--edge-hi), 0 4px 14px rgba(0,0,0,.22);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  transition: border-color .15s, box-shadow .15s;
-}
-
-.acp-card:hover {
-  border-color: var(--line-1);
-  box-shadow: var(--edge-hi), 0 6px 20px rgba(0,0,0,.3);
-}
 
 .acp-card-error {
-  border-color: rgba(242, 92, 105, 0.35);
+  border-color: hsl(var(--destructive) / 0.35);
 }
 
 .acp-card-warn {
@@ -371,23 +334,23 @@ function utilBarClass(account: Account): string {
 }
 
 .acp-breath-ok {
-  background: var(--ok);
-  box-shadow: 0 0 0 2px var(--ok-dim);
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
   animation: breath 2.4s ease-in-out infinite;
 }
 
 .acp-breath-warn {
-  background: var(--warn);
-  box-shadow: 0 0 0 2px var(--warn-dim);
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
 }
 
 .acp-breath-bad {
-  background: var(--bad);
-  box-shadow: 0 0 0 2px var(--bad-dim);
+  background: hsl(var(--destructive));
+  box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
 }
 
 .acp-breath-off {
-  background: var(--ink-2);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
 @keyframes breath {
@@ -399,7 +362,7 @@ function utilBarClass(account: Account): string {
 .acp-card-name {
   font-size: 13px;
   font-weight: 500;
-  color: var(--ink-0);
+  color: hsl(var(--foreground));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -408,7 +371,7 @@ function utilBarClass(account: Account): string {
 /* email */
 .acp-card-email {
   font-size: 10px;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -417,7 +380,7 @@ function utilBarClass(account: Account): string {
 /* 错误消息 */
 .acp-card-err {
   font-size: 10px;
-  color: var(--bad);
+  color: hsl(var(--destructive));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -435,7 +398,7 @@ function utilBarClass(account: Account): string {
   flex: 1;
   height: 4px;
   border-radius: 2px;
-  background: var(--bg-2);
+  background: hsl(var(--muted));
   overflow: hidden;
 }
 
@@ -445,15 +408,15 @@ function utilBarClass(account: Account): string {
   transition: width 0.3s;
 }
 
-/* 利用率条：正常用 azure 冷蓝（活性），高/满用语义色 */
-.acp-util-bar-ok   { background: linear-gradient(90deg, var(--azure), rgba(92,168,255,.6)); }
-.acp-util-bar-high { background: var(--warn); }
-.acp-util-bar-full { background: var(--bad); }
+/* 利用率条：正常用 primary 色，高/满用语义状态色 */
+.acp-util-bar-ok   { background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.6)); }
+.acp-util-bar-high { background: #f59e0b; }
+.acp-util-bar-full { background: hsl(var(--destructive)); }
 
 .acp-util-label {
   font-size: 10px;
   font-family: monospace;
-  color: var(--ink-2);
+  color: hsl(var(--muted-foreground));
   white-space: nowrap;
 }
 
@@ -464,51 +427,11 @@ function utilBarClass(account: Account): string {
   margin-top: 4px;
 }
 
-.acp-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid var(--line-0);
-  background: transparent;
-  color: var(--ink-1);
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-
-.acp-btn:hover {
-  background: var(--bg-2);
-  border-color: var(--line-1);
-  color: var(--ink-0);
-}
-
-.acp-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--glow-focus);
-}
-
-.acp-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.acp-btn-danger:hover {
-  background: var(--bad-dim);
-  border-color: var(--bad);
-  color: var(--bad);
-}
-
-/* 骨架 */
-.acp-card-skel {
-  pointer-events: none;
-}
 
 .acp-skel {
   height: 12px;
   border-radius: 4px;
-  background: var(--bg-2);
+  background: hsl(var(--muted));
   animation: shimmer 1.4s ease-in-out infinite;
 }
 

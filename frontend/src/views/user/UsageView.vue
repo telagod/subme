@@ -4,10 +4,11 @@
       <template #actions>
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- Total Requests -->
-          <div class="card p-4">
+          <Card>
+          <CardContent class="p-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-md bg-[var(--bg-2)] border border-[var(--line-0)] p-2">
-              <Icon name="document" size="md" class="text-primary-200" />
+            <div class="rounded-md bg-muted border border-border p-2">
+              <Icon name="document" size="md" class="text-muted-foreground" />
             </div>
             <div>
               <p class="text-xs font-medium text-muted-foreground">
@@ -21,13 +22,15 @@
               </p>
             </div>
           </div>
-        </div>
+        </CardContent>
+        </Card>
 
         <!-- Total Tokens -->
-        <div class="card p-4">
+        <Card>
+          <CardContent class="p-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-md bg-[var(--bg-2)] border border-[var(--line-0)] p-2">
-              <Icon name="cube" size="md" class="text-primary-200" />
+            <div class="rounded-md bg-muted border border-border p-2">
+              <Icon name="cube" size="md" class="text-muted-foreground" />
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-medium text-muted-foreground">
@@ -57,19 +60,21 @@
               </p>
             </div>
           </div>
-        </div>
+        </CardContent>
+        </Card>
 
         <!-- Total Cost -->
-        <div class="card p-4">
+        <Card>
+          <CardContent class="p-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-md bg-[var(--bg-2)] border border-[var(--line-0)] p-2">
-              <Icon name="dollar" size="md" class="text-[var(--ok)]" />
+            <div class="rounded-md bg-muted border border-border p-2">
+              <Icon name="dollar" size="md" class="text-emerald-500" />
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-medium text-muted-foreground">
                 {{ t('usage.totalCost') }}
               </p>
-              <p class="q-money text-xl font-bold text-[var(--ok)]">
+              <p class="text-xl font-bold text-emerald-500">
                 ${{ (usageStats?.total_actual_cost || 0).toFixed(4) }}
               </p>
               <p class="text-xs text-muted-foreground">
@@ -79,13 +84,15 @@
               </p>
             </div>
           </div>
-        </div>
+        </CardContent>
+        </Card>
 
         <!-- Average Duration -->
-        <div class="card p-4">
+        <Card>
+          <CardContent class="p-4">
           <div class="flex items-center gap-3">
-            <div class="rounded-md bg-[var(--bg-2)] border border-[var(--line-0)] p-2">
-              <Icon name="clock" size="md" class="text-primary-200" />
+            <div class="rounded-md bg-muted border border-border p-2">
+              <Icon name="clock" size="md" class="text-muted-foreground" />
             </div>
             <div>
               <p class="text-xs font-medium text-muted-foreground">
@@ -97,17 +104,18 @@
               <p class="text-xs text-muted-foreground">{{ t('usage.perRequest') }}</p>
             </div>
           </div>
-        </div>
+        </CardContent>
+        </Card>
         </div>
       </template>
 
       <template #filters>
-        <div class="card">
-          <div class="px-6 py-4">
+        <Card>
+          <CardContent class="px-6 py-4">
           <div class="flex flex-wrap items-end gap-4">
             <!-- API Key Filter -->
             <div class="min-w-[180px]">
-              <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
+              <Label class="mb-1.5 block">{{ t('usage.apiKeyFilter') }}</Label>
               <Select
                 v-model="filters.api_key_id"
                 :options="apiKeyOptions"
@@ -118,7 +126,7 @@
 
             <!-- Date Range Filter -->
             <div>
-              <label class="input-label">{{ t('usage.timeRange') }}</label>
+              <Label class="mb-1.5 block">{{ t('usage.timeRange') }}</Label>
               <DateRangePicker
                 v-model:start-date="startDate"
                 v-model:end-date="endDate"
@@ -128,13 +136,13 @@
 
             <!-- Actions -->
             <div class="ml-auto flex items-center gap-3">
-              <button @click="applyFilters" :disabled="loading" class="btn btn-secondary">
+              <Button variant="secondary" @click="applyFilters" :disabled="loading">
                 {{ t('common.refresh') }}
-              </button>
-              <button @click="resetFilters" class="btn btn-secondary">
+              </Button>
+              <Button variant="secondary" @click="resetFilters">
                 {{ t('common.reset') }}
-              </button>
-              <button @click="exportToCSV" :disabled="exporting" class="btn btn-primary">
+              </Button>
+              <Button @click="exportToCSV" :disabled="exporting">
                 <svg
                   v-if="exporting"
                   class="-ml-1 mr-2 h-4 w-4 animate-spin"
@@ -156,22 +164,22 @@
                   ></path>
                 </svg>
                 {{ exporting ? t('usage.exporting') : t('usage.exportCsv') }}
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-        </div>
+        </CardContent>
+        </Card>
       </template>
 
       <template #table>
         <!-- Tab 切换栏 -->
         <div v-if="errorViewEnabled" class="mb-0 flex gap-2 border-b border-border px-4 pt-3">
-          <button class="tab" :class="{ 'tab-active': activeTab === 'usage' }" @click="activeTab = 'usage'">
+          <Button variant="ghost" class="rounded px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-150 hover:text-foreground" :class="{ 'bg-secondary text-foreground': activeTab === 'usage' }" @click="activeTab = 'usage'">
             {{ t('usage.tabs.usage') }}
-          </button>
-          <button class="tab" :class="{ 'tab-active': activeTab === 'errors' }" @click="switchToErrors">
+          </Button>
+          <Button variant="ghost" class="rounded px-4 py-2 text-sm font-medium text-muted-foreground transition-all duration-150 hover:text-foreground" :class="{ 'bg-secondary text-foreground': activeTab === 'errors' }" @click="switchToErrors">
             {{ t('usage.tabs.errors') }}
-          </button>
+          </Button>
         </div>
 
         <!-- 用量明细表 -->
@@ -212,19 +220,20 @@
           </template>
 
           <template #cell-stream="{ row }">
-            <span
-              class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium"
+            <Badge
+              variant="outline"
+              class="rounded border-transparent px-2 py-0.5 font-medium"
               :class="getRequestTypeBadgeClass(row)"
             >
               {{ getRequestTypeLabel(row) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-billing_mode="{ row }">
-            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium"
+            <Badge variant="outline" class="rounded border-transparent px-1.5 py-0.5 font-medium"
                   :class="getBillingModeBadgeClass(getDisplayBillingMode(row))">
               {{ getBillingModeLabel(getDisplayBillingMode(row), t) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-tokens="{ row }">
@@ -284,8 +293,8 @@
                     <span class="font-medium text-amber-400">{{
                       formatCacheTokens(row.cache_creation_tokens)
                     }}</span>
-                    <span v-if="row.cache_creation_1h_tokens > 0" class="inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-orange-500/20 text-orange-400 ring-1 ring-inset ring-orange-500/30">1h</span>
-                    <span v-if="row.cache_ttl_overridden" :title="t('usage.cacheTtlOverriddenHint')" class="inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-rose-500/20 text-rose-400 ring-1 ring-inset ring-rose-500/30 cursor-help">R</span>
+                    <Badge v-if="row.cache_creation_1h_tokens > 0" variant="outline" class="rounded border-0 px-1 py-px text-[10px] font-medium leading-tight bg-orange-500/20 text-orange-400 ring-1 ring-inset ring-orange-500/30">1h</Badge>
+                    <Badge v-if="row.cache_ttl_overridden" :title="t('usage.cacheTtlOverriddenHint')" variant="outline" class="rounded border-0 px-1 py-px text-[10px] font-medium leading-tight bg-rose-500/20 text-rose-400 ring-1 ring-inset ring-rose-500/30 cursor-help">R</Badge>
                   </div>
                 </div>
                 <div v-if="hasImageOutputTokens(row)" class="flex items-center gap-2">
@@ -302,12 +311,12 @@
                 @mouseleave="hideTokenTooltip"
               >
                 <div
-                  class="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-[var(--azure-dim)]"
+                  class="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-accent"
                 >
                   <Icon
                     name="infoCircle"
                     size="xs"
-                    class="text-muted-foreground group-hover:text-[var(--azure)]"
+                    class="text-muted-foreground group-hover:text-foreground"
                   />
                 </div>
               </div>
@@ -316,7 +325,7 @@
 
           <template #cell-cost="{ row }">
             <div class="flex items-center gap-1.5 text-sm">
-              <span class="q-money font-medium text-[var(--ok)]">
+              <span class="font-medium text-emerald-500">
                 ${{ (row.actual_cost ?? 0).toFixed(6) }}
               </span>
               <!-- Cost Detail Tooltip -->
@@ -326,12 +335,12 @@
                 @mouseleave="hideTooltip"
               >
                 <div
-                  class="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-[var(--azure-dim)]"
+                  class="flex h-4 w-4 cursor-help items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-accent"
                 >
                   <Icon
                     name="infoCircle"
                     size="xs"
-                    class="text-muted-foreground group-hover:text-[var(--azure)]"
+                    class="text-muted-foreground group-hover:text-foreground"
                   />
                 </div>
               </div>
@@ -411,7 +420,7 @@
       }"
     >
       <div
-        class="whitespace-nowrap rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-white shadow-lg"
+        class="whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2.5 text-xs text-popover-foreground shadow-lg"
       >
         <div class="space-y-1.5">
           <!-- Token Breakdown -->
@@ -419,15 +428,15 @@
             <div class="text-xs font-semibold text-foreground/75 mb-1">{{ t('usage.tokenDetails') }}</div>
             <div v-if="tokenTooltipData && tokenTooltipData.input_tokens > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.inputTokens') }}</span>
-              <span class="font-medium text-white">{{ tokenTooltipData.input_tokens.toLocaleString() }}</span>
+              <span class="font-medium text-foreground">{{ tokenTooltipData.input_tokens.toLocaleString() }}</span>
             </div>
             <div v-if="tokenTooltipData && tokenTooltipData.output_tokens > 0 && !hasImageOutputTokens(tokenTooltipData)" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.outputTokens') }}</span>
-              <span class="font-medium text-white">{{ tokenTooltipData.output_tokens.toLocaleString() }}</span>
+              <span class="font-medium text-foreground">{{ tokenTooltipData.output_tokens.toLocaleString() }}</span>
             </div>
             <div v-if="tokenTooltipData && hasImageOutputTokens(tokenTooltipData) && textOutputTokens(tokenTooltipData) > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.outputTokens') }}</span>
-              <span class="font-medium text-white">{{ textOutputTokens(tokenTooltipData).toLocaleString() }}</span>
+              <span class="font-medium text-foreground">{{ textOutputTokens(tokenTooltipData).toLocaleString() }}</span>
             </div>
             <div v-if="tokenTooltipData && hasImageOutputTokens(tokenTooltipData)" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('usage.imageOutputTokens') }}</span>
@@ -439,45 +448,45 @@
                 <div v-if="tokenTooltipData.cache_creation_5m_tokens > 0" class="flex items-center justify-between gap-4">
                   <span class="text-muted-foreground flex items-center gap-1.5">
                     {{ t('admin.usage.cacheCreation5mTokens') }}
-                    <span class="inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-amber-500/20 text-amber-400 ring-1 ring-inset ring-amber-500/30">5m</span>
+                    <Badge variant="outline" class="rounded border-0 px-1 py-px text-[10px] font-medium leading-tight bg-amber-500/20 text-amber-400 ring-1 ring-inset ring-amber-500/30">5m</Badge>
                   </span>
-                  <span class="font-medium text-white">{{ tokenTooltipData.cache_creation_5m_tokens.toLocaleString() }}</span>
+                  <span class="font-medium text-foreground">{{ tokenTooltipData.cache_creation_5m_tokens.toLocaleString() }}</span>
                 </div>
                 <div v-if="tokenTooltipData.cache_creation_1h_tokens > 0" class="flex items-center justify-between gap-4">
                   <span class="text-muted-foreground flex items-center gap-1.5">
                     {{ t('admin.usage.cacheCreation1hTokens') }}
-                    <span class="inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-orange-500/20 text-orange-400 ring-1 ring-inset ring-orange-500/30">1h</span>
+                    <Badge variant="outline" class="rounded border-0 px-1 py-px text-[10px] font-medium leading-tight bg-orange-500/20 text-orange-400 ring-1 ring-inset ring-orange-500/30">1h</Badge>
                   </span>
-                  <span class="font-medium text-white">{{ tokenTooltipData.cache_creation_1h_tokens.toLocaleString() }}</span>
+                  <span class="font-medium text-foreground">{{ tokenTooltipData.cache_creation_1h_tokens.toLocaleString() }}</span>
                 </div>
               </template>
               <!-- 无明细时，只显示聚合值 -->
               <div v-else class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('admin.usage.cacheCreationTokens') }}</span>
-                <span class="font-medium text-white">{{ tokenTooltipData.cache_creation_tokens.toLocaleString() }}</span>
+                <span class="font-medium text-foreground">{{ tokenTooltipData.cache_creation_tokens.toLocaleString() }}</span>
               </div>
             </div>
             <div v-if="tokenTooltipData && tokenTooltipData.cache_ttl_overridden" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground flex items-center gap-1.5">
                 {{ t('usage.cacheTtlOverriddenLabel') }}
-                <span class="inline-flex items-center rounded px-1 py-px text-[10px] font-medium leading-tight bg-rose-500/20 text-rose-400 ring-1 ring-inset ring-rose-500/30">R-{{ tokenTooltipData.cache_creation_1h_tokens > 0 ? '5m' : '1H' }}</span>
+                <Badge variant="outline" class="rounded border-0 px-1 py-px text-[10px] font-medium leading-tight bg-rose-500/20 text-rose-400 ring-1 ring-inset ring-rose-500/30">R-{{ tokenTooltipData.cache_creation_1h_tokens > 0 ? '5m' : '1H' }}</Badge>
               </span>
               <span class="font-medium text-rose-400">{{ tokenTooltipData.cache_creation_1h_tokens > 0 ? t('usage.cacheTtlOverridden1h') : t('usage.cacheTtlOverridden5m') }}</span>
             </div>
             <div v-if="tokenTooltipData && tokenTooltipData.cache_read_tokens > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.cacheReadTokens') }}</span>
-              <span class="font-medium text-white">{{ tokenTooltipData.cache_read_tokens.toLocaleString() }}</span>
+              <span class="font-medium text-foreground">{{ tokenTooltipData.cache_read_tokens.toLocaleString() }}</span>
             </div>
           </div>
           <!-- Total -->
           <div class="flex items-center justify-between gap-6 border-t border-border pt-1.5">
             <span class="text-muted-foreground">{{ t('usage.totalTokens') }}</span>
-            <span class="q-money font-semibold text-[var(--azure)]">{{ ((tokenTooltipData?.input_tokens || 0) + (tokenTooltipData?.output_tokens || 0) + (tokenTooltipData?.cache_creation_tokens || 0) + (tokenTooltipData?.cache_read_tokens || 0)).toLocaleString() }}</span>
+            <span class="font-semibold text-sky-400">{{ ((tokenTooltipData?.input_tokens || 0) + (tokenTooltipData?.output_tokens || 0) + (tokenTooltipData?.cache_creation_tokens || 0) + (tokenTooltipData?.cache_read_tokens || 0)).toLocaleString() }}</span>
           </div>
         </div>
         <!-- Tooltip Arrow (left side) -->
         <div
-          class="absolute right-full top-1/2 h-0 w-0 -translate-y-1/2 border-b-[6px] border-r-[6px] border-t-[6px] border-b-transparent border-r-card border-t-transparent"
+          class="absolute right-full top-1/2 h-0 w-0 -translate-y-1/2 border-b-[6px] border-r-[6px] border-t-[6px] border-b-transparent border-r-popover border-t-transparent"
         ></div>
       </div>
     </div>
@@ -494,7 +503,7 @@
       }"
     >
       <div
-        class="whitespace-nowrap rounded-lg border border-border bg-background px-3 py-2.5 text-xs text-white shadow-lg"
+        class="whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2.5 text-xs text-popover-foreground shadow-lg"
       >
         <div class="space-y-1.5">
           <!-- Cost Breakdown -->
@@ -502,11 +511,11 @@
             <div class="text-xs font-semibold text-foreground/75 mb-1">{{ t('usage.costDetails') }}</div>
             <div v-if="tooltipData && tooltipData.input_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.inputCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.input_cost.toFixed(6) }}</span>
+              <span class="font-medium text-foreground">${{ tooltipData.input_cost.toFixed(6) }}</span>
             </div>
             <div v-if="tooltipData && tooltipData.output_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.outputCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.output_cost.toFixed(6) }}</span>
+              <span class="font-medium text-foreground">${{ tooltipData.output_cost.toFixed(6) }}</span>
             </div>
             <div v-if="tooltipData && hasImageOutputCost(tooltipData)" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('usage.imageOutputCost') }}</span>
@@ -531,27 +540,27 @@
             <template v-else-if="tooltipData && isImageUsage(tooltipData)">
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageCount') }}</span>
-                <span class="font-medium text-white">{{ tooltipData.image_count }}{{ t('usage.imageUnit') }}</span>
+                <span class="font-medium text-foreground">{{ tooltipData.image_count }}{{ t('usage.imageUnit') }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageBillingSize') }}</span>
-                <span class="font-medium text-white">{{ formatImageBillingSize(tooltipData, t) }}</span>
+                <span class="font-medium text-foreground">{{ formatImageBillingSize(tooltipData, t) }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageSizeSource') }}</span>
-                <span class="font-medium text-white">{{ formatImageSizeSource(tooltipData, t) }}</span>
+                <span class="font-medium text-foreground">{{ formatImageSizeSource(tooltipData, t) }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageInputSize') }}</span>
-                <span class="font-medium text-white">{{ formatImageInputSize(tooltipData, t) }}</span>
+                <span class="font-medium text-foreground">{{ formatImageInputSize(tooltipData, t) }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageOutputSize') }}</span>
-                <span class="font-medium text-white">{{ formatImageOutputSize(tooltipData, t) }}</span>
+                <span class="font-medium text-foreground">{{ formatImageOutputSize(tooltipData, t) }}</span>
               </div>
               <div v-if="formatImageSizeBreakdown(tooltipData)" class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageSizeBreakdown') }}</span>
-                <span class="font-medium text-white">{{ formatImageSizeBreakdown(tooltipData) }}</span>
+                <span class="font-medium text-foreground">{{ formatImageSizeBreakdown(tooltipData) }}</span>
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageUnitPrice') }}</span>
@@ -559,7 +568,7 @@
               </div>
               <div class="flex items-center justify-between gap-4">
                 <span class="text-muted-foreground">{{ t('usage.imageTotalPrice') }}</span>
-                <span class="font-medium text-white">${{ tooltipData.total_cost?.toFixed(6) || '0.000000' }}</span>
+                <span class="font-medium text-foreground">${{ tooltipData.total_cost?.toFixed(6) || '0.000000' }}</span>
               </div>
             </template>
             <div v-else class="flex items-center justify-between gap-4">
@@ -568,38 +577,38 @@
             </div>
             <div v-if="tooltipData && tooltipData.cache_creation_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.cacheCreationCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.cache_creation_cost.toFixed(6) }}</span>
+              <span class="font-medium text-foreground">${{ tooltipData.cache_creation_cost.toFixed(6) }}</span>
             </div>
             <div v-if="tooltipData && tooltipData.cache_read_cost > 0" class="flex items-center justify-between gap-4">
               <span class="text-muted-foreground">{{ t('admin.usage.cacheReadCost') }}</span>
-              <span class="font-medium text-white">${{ tooltipData.cache_read_cost.toFixed(6) }}</span>
+              <span class="font-medium text-foreground">${{ tooltipData.cache_read_cost.toFixed(6) }}</span>
             </div>
           </div>
           <!-- Rate and Summary -->
           <div class="flex items-center justify-between gap-6">
             <span class="text-muted-foreground">{{ t('usage.serviceTier') }}</span>
-            <span class="font-semibold text-[var(--info)]">{{ getUsageServiceTierLabel(tooltipData?.service_tier, t) }}</span>
+            <span class="font-semibold text-sky-400">{{ getUsageServiceTierLabel(tooltipData?.service_tier, t) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-muted-foreground">{{ t('usage.rate') }}</span>
-            <span class="font-semibold text-[var(--azure)]"
+            <span class="font-semibold text-sky-400"
               >{{ formatMultiplier(tooltipData?.rate_multiplier || 1) }}x</span
             >
           </div>
           <div class="flex items-center justify-between gap-6">
             <span class="text-muted-foreground">{{ t('usage.original') }}</span>
-            <span class="font-medium text-white">${{ tooltipData?.total_cost.toFixed(6) }}</span>
+            <span class="font-medium text-foreground">${{ tooltipData?.total_cost.toFixed(6) }}</span>
           </div>
           <div class="flex items-center justify-between gap-6 border-t border-border pt-1.5">
             <span class="text-muted-foreground">{{ t('usage.billed') }}</span>
-            <span class="q-money font-semibold text-[var(--ok)]"
+            <span class="font-semibold text-emerald-500"
               >${{ tooltipData?.actual_cost.toFixed(6) }}</span
             >
           </div>
         </div>
         <!-- Tooltip Arrow (left side) -->
         <div
-          class="absolute right-full top-1/2 h-0 w-0 -translate-y-1/2 border-b-[6px] border-r-[6px] border-t-[6px] border-b-transparent border-r-card border-t-transparent"
+          class="absolute right-full top-1/2 h-0 w-0 -translate-y-1/2 border-b-[6px] border-r-[6px] border-t-[6px] border-b-transparent border-r-popover border-t-transparent"
         ></div>
       </div>
     </div>
@@ -619,6 +628,10 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import Select from '@/components/common/Select.vue'
 import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import UserErrorRequestsTable from '@/components/user/UserErrorRequestsTable.vue'
 import type { UsageLog, ApiKey, UsageQueryParams, UsageStatsResponse, UserErrorRequest } from '@/types'
 import type { Column } from '@/components/common/types'

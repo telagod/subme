@@ -4,7 +4,7 @@
       <!-- 用户信息头部 -->
       <div class="flex items-center gap-4 rounded-lg bg-secondary p-5 border border-border ">
         <div class="flex h-14 w-14 items-center justify-center rounded-full bg-secondary border border-border ">
-          <span class="text-2xl font-semibold text-primary-200">{{ user.email.charAt(0).toUpperCase() }}</span>
+          <span class="text-2xl font-semibold text-primary">{{ user.email.charAt(0).toUpperCase() }}</span>
         </div>
         <div class="flex-1">
           <p class="text-lg font-semibold text-foreground">{{ user.email }}</p>
@@ -14,7 +14,7 @@
 
       <!-- 加载状态 -->
       <div v-if="loading" class="flex justify-center py-12">
-        <svg class="h-10 w-10 animate-spin text-primary-200" fill="none" viewBox="0 0 24 24">
+        <svg class="h-10 w-10 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -24,7 +24,7 @@
         <!-- 专属分组区域 -->
         <div v-if="exclusiveGroups.length > 0">
           <div class="mb-3 flex items-center gap-2">
-            <div class="h-1.5 w-1.5 rounded-full bg-primary-200"></div>
+            <div class="h-1.5 w-1.5 rounded-full bg-primary"></div>
             <h4 class="text-sm font-semibold text-foreground/85">{{ t('admin.users.exclusiveGroups') }}</h4>
             <span class="text-xs text-muted-foreground">({{ exclusiveGroupConfigs.filter(c => c.isSelected).length }}/{{ exclusiveGroupConfigs.length }})</span>
           </div>
@@ -34,32 +34,24 @@
               :key="config.groupId"
               class="group relative overflow-hidden rounded-md border-2 p-4 transition-all duration-200"
               :class="config.isSelected
-                ? 'border-primary-300/40 bg-primary-300/10 '
+                ? 'border-primary/40 bg-primary/10 '
                 : 'border-border bg-card hover:border-border'"
             >
               <div class="flex items-center gap-4">
                 <!-- 复选框 -->
                 <div class="flex-shrink-0">
-                  <label class="relative flex h-6 w-6 cursor-pointer items-center justify-center">
-                    <input
-                      type="checkbox"
-                      :checked="config.isSelected"
-                      @change="toggleExclusiveGroup(config.groupId)"
-                      class="peer sr-only"
-                    />
-                    <div class="h-5 w-5 rounded-md border-2 border-border transition-all peer-checked:border-primary-300 peer-checked:bg-primary-300">
-                      <svg v-if="config.isSelected" class="h-full w-full text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  </label>
+                  <Checkbox
+                    :checked="config.isSelected"
+                    @update:checked="toggleExclusiveGroup(config.groupId)"
+                    class="h-5 w-5 rounded-md"
+                  />
                 </div>
 
                 <!-- 分组信息 -->
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <span class="text-base font-semibold text-foreground">{{ config.groupName }}</span>
-                    <span class="inline-flex items-center rounded-full bg-secondary border border-border px-2 py-0.5 text-xs font-medium text-primary-200">
+                    <span class="inline-flex items-center rounded-full bg-secondary border border-border px-2 py-0.5 text-xs font-medium text-primary">
                       {{ t('admin.groups.exclusive') }}
                     </span>
                   </div>
@@ -77,15 +69,15 @@
 
                 <!-- 专属倍率输入 -->
                 <div class="flex flex-shrink-0 items-center gap-3">
-                  <label class="text-sm font-medium text-muted-foreground">{{ t('admin.users.customRate') }}</label>
-                  <input
+                  <Label class="text-sm font-medium text-muted-foreground">{{ t('admin.users.customRate') }}</Label>
+                  <Input
                     type="number"
                     step="0.001"
                     min="0.001"
                     :value="config.customRate ?? ''"
                     @input="updateCustomRate(config.groupId, ($event.target as HTMLInputElement).value)"
                     :placeholder="String(config.defaultRate)"
-                    class="hide-spinner w-24 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    class="hide-spinner w-24"
                   />
                 </div>
               </div>
@@ -96,7 +88,7 @@
         <!-- 公开分组区域 -->
         <div v-if="publicGroups.length > 0">
           <div class="mb-3 flex items-center gap-2">
-            <div class="h-1.5 w-1.5 rounded-full bg-emerald-400"></div>
+            <div class="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
             <h4 class="text-sm font-semibold text-foreground/85">{{ t('admin.users.publicGroups') }}</h4>
             <span class="text-xs text-muted-foreground">({{ publicGroupConfigs.length }})</span>
           </div>
@@ -135,15 +127,15 @@
 
                 <!-- 专属倍率输入 -->
                 <div class="flex flex-shrink-0 items-center gap-3">
-                  <label class="text-sm font-medium text-muted-foreground">{{ t('admin.users.customRate') }}</label>
-                  <input
+                  <Label class="text-sm font-medium text-muted-foreground">{{ t('admin.users.customRate') }}</Label>
+                  <Input
                     type="number"
                     step="0.001"
                     min="0.001"
                     :value="config.customRate ?? ''"
                     @input="updateCustomRate(config.groupId, ($event.target as HTMLInputElement).value)"
                     :placeholder="String(config.defaultRate)"
-                    class="hide-spinner w-24 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+                    class="hide-spinner w-24"
                   />
                 </div>
               </div>
@@ -154,7 +146,7 @@
         <!-- 无分组提示 -->
         <div v-if="groups.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
           <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary border border-border ">
-            <svg class="h-8 w-8 text-primary-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
@@ -165,14 +157,14 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" class="btn btn-secondary px-5">{{ t('common.cancel') }}</button>
-        <button @click="handleSave" :disabled="submitting" class="btn btn-primary px-6">
+        <Button variant="secondary" @click="$emit('close')" class="px-5">{{ t('common.cancel') }}</Button>
+        <Button @click="handleSave" :disabled="submitting" class="px-6">
           <svg v-if="submitting" class="-ml-1 mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           {{ submitting ? t('common.saving') : t('common.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -186,6 +178,10 @@ import { adminAPI } from '@/api/admin'
 import type { AdminUser, Group, GroupPlatform } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import PlatformIcon from '@/components/common/PlatformIcon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface GroupRateConfig {
   groupId: number

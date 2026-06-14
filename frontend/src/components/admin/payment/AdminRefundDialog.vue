@@ -5,131 +5,129 @@
     width="normal"
     @close="emit('cancel')"
   >
-    <form id="refund-form" class="oq-refund-form" @submit.prevent="handleSubmit">
+    <form id="refund-form" class="flex flex-col gap-3.5" @submit.prevent="handleSubmit">
       <!-- 退款申请信息 -->
       <div
         v-if="order?.refund_requested_at || order?.refund_request_reason"
-        class="oq-info-block"
-        style="border-color:rgba(92,168,255,.2);background:var(--azure-dim,rgba(92,168,255,.08))"
+        class="rounded-md border border-blue-500/20 bg-blue-500/[0.08] p-3"
       >
-        <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--azure,#5CA8FF);margin-bottom:6px">
+        <div class="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-blue-400">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M7 6.5v3M7 4.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
           {{ t('payment.admin.refundRequestInfo') }}
         </div>
-        <div v-if="order?.refund_requested_at" class="oq-info-row">
-          <span>{{ t('payment.admin.refundRequestedAt') }}</span>
-          <span>{{ formatDateTime(order.refund_requested_at) }}</span>
+        <div v-if="order?.refund_requested_at" class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">{{ t('payment.admin.refundRequestedAt') }}</span>
+          <span class="text-foreground">{{ formatDateTime(order.refund_requested_at) }}</span>
         </div>
-        <div v-if="order?.refund_request_reason" class="oq-info-row" style="flex-direction:column;align-items:flex-start;gap:3px">
-          <span>{{ t('payment.admin.refundRequestReason') }}:</span>
-          <span style="color:var(--ink-0)">{{ order.refund_request_reason }}</span>
+        <div v-if="order?.refund_request_reason" class="flex flex-col gap-0.5 text-sm">
+          <span class="text-muted-foreground">{{ t('payment.admin.refundRequestReason') }}:</span>
+          <span class="text-foreground">{{ order.refund_request_reason }}</span>
         </div>
       </div>
 
       <!-- 订单信息 -->
-      <div class="oq-info-block">
-        <div class="oq-info-row">
-          <span>{{ t('payment.orders.orderId') }}</span>
-          <span class="oq-mono">#{{ order?.id }}</span>
+      <div class="rounded-md border border-border bg-muted/40 p-3 flex flex-col gap-1.5">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">{{ t('payment.orders.orderId') }}</span>
+          <span class="font-mono text-foreground">#{{ order?.id }}</span>
         </div>
-        <div class="oq-info-row">
-          <span>{{ t('payment.orders.creditedAmount') }}</span>
-          <span>{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ order?.amount?.toFixed(2) }}</span>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">{{ t('payment.orders.creditedAmount') }}</span>
+          <span class="text-foreground">{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ order?.amount?.toFixed(2) }}</span>
         </div>
-        <div class="oq-info-row">
-          <span>{{ t('payment.orders.payAmount') }}</span>
-          <span>¥{{ order?.pay_amount?.toFixed(2) }}</span>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">{{ t('payment.orders.payAmount') }}</span>
+          <span class="text-foreground">¥{{ order?.pay_amount?.toFixed(2) }}</span>
         </div>
-        <div v-if="actuallyRefunded > 0" class="oq-info-row">
-          <span>{{ t('payment.admin.alreadyRefunded') }}</span>
-          <span class="c-bad">{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ actuallyRefunded.toFixed(2) }}</span>
+        <div v-if="actuallyRefunded > 0" class="flex items-center justify-between text-sm">
+          <span class="text-muted-foreground">{{ t('payment.admin.alreadyRefunded') }}</span>
+          <span class="text-destructive font-medium">{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ actuallyRefunded.toFixed(2) }}</span>
         </div>
       </div>
 
       <!-- 扣减余额 -->
-      <div class="oq-form-group">
-        <div class="oq-checkbox-row">
-          <input id="deduct-balance" v-model="form.deduct_balance" type="checkbox" />
-          <label for="deduct-balance">{{ t('payment.admin.deductBalance') }}</label>
-          <span class="oq-checkbox-hint">{{ t('payment.admin.deductBalanceHint') }}</span>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <Checkbox id="deduct-balance" v-model="form.deduct_balance" />
+          <Label for="deduct-balance">{{ t('payment.admin.deductBalance') }}</Label>
+          <span class="text-xs text-muted-foreground">{{ t('payment.admin.deductBalanceHint') }}</span>
         </div>
 
         <!-- 用户余额信息 -->
-        <div v-if="form.deduct_balance && userBalance != null" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-          <div class="oq-info-block" style="padding:10px 12px">
-            <div class="oq-hint" style="margin-bottom:4px">{{ t('payment.admin.userBalance') }}</div>
-            <div class="oq-mono" style="color:var(--money);font-size:14px;font-weight:700">${{ userBalance.toFixed(2) }}</div>
+        <div v-if="form.deduct_balance && userBalance != null" class="grid grid-cols-2 gap-2.5 mt-1">
+          <div class="rounded-md border border-border bg-muted/40 px-3 py-2.5">
+            <div class="mb-1 text-xs text-muted-foreground">{{ t('payment.admin.userBalance') }}</div>
+            <div class="font-mono text-sm font-bold text-emerald-500">${{ userBalance.toFixed(2) }}</div>
           </div>
-          <div class="oq-info-block" style="padding:10px 12px">
-            <div class="oq-hint" style="margin-bottom:4px">{{ t('payment.admin.orderAmount') }}</div>
-            <div class="oq-mono" style="color:var(--money);font-size:14px;font-weight:700">{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ order?.amount?.toFixed(2) }}</div>
+          <div class="rounded-md border border-border bg-muted/40 px-3 py-2.5">
+            <div class="mb-1 text-xs text-muted-foreground">{{ t('payment.admin.orderAmount') }}</div>
+            <div class="font-mono text-sm font-bold text-emerald-500">{{ order?.order_type === 'balance' ? '$' : '¥' }}{{ order?.amount?.toFixed(2) }}</div>
           </div>
         </div>
 
         <!-- 余额不足警告 -->
-        <div v-if="form.deduct_balance && balanceInsufficient" class="oq-warn-block" style="margin-top:8px">
+        <div v-if="form.deduct_balance && balanceInsufficient" class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive mt-1">
           {{ t('payment.admin.insufficientBalance') }}
         </div>
 
         <!-- 不扣减说明 -->
-        <div v-if="!form.deduct_balance" class="oq-info-block" style="margin-top:8px;font-size:12.5px">
+        <div v-if="!form.deduct_balance" class="rounded-md border border-border bg-muted/40 p-3 text-[12.5px] text-muted-foreground mt-1">
           {{ t('payment.admin.noDeduction') }}
         </div>
       </div>
 
       <!-- 退款金额 -->
-      <div class="oq-form-group">
-        <label class="oq-label">{{ t('payment.admin.refundAmount') }}</label>
-        <div class="oq-input-prefix">
-          <span class="oq-pfx">{{ order?.order_type === 'balance' ? '$' : '¥' }}</span>
-          <input
+      <div class="flex flex-col gap-1.5">
+        <Label>{{ t('payment.admin.refundAmount') }}</Label>
+        <div class="relative">
+          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{{ order?.order_type === 'balance' ? '$' : '¥' }}</span>
+          <Input
             v-model.number="form.amount"
-            class="oq-input"
             type="number"
             step="0.01"
             min="0.01"
             :max="maxRefundable"
             required
+            class="pl-7"
           />
         </div>
-        <p class="oq-hint">{{ t('payment.admin.maxRefundable') }}: {{ order?.order_type === 'balance' ? '$' : '¥' }}{{ maxRefundable.toFixed(2) }}</p>
+        <p class="text-xs text-muted-foreground">{{ t('payment.admin.maxRefundable') }}: {{ order?.order_type === 'balance' ? '$' : '¥' }}{{ maxRefundable.toFixed(2) }}</p>
       </div>
 
       <!-- 退款原因 -->
-      <div class="oq-form-group">
-        <label class="oq-label">{{ t('payment.admin.refundReason') }}</label>
-        <textarea
+      <div class="flex flex-col gap-1.5">
+        <Label>{{ t('payment.admin.refundReason') }}</Label>
+        <Textarea
           v-model="form.reason"
-          class="oq-input"
           rows="3"
           :placeholder="t('payment.admin.refundReasonPlaceholder')"
           required
-        ></textarea>
+        />
       </div>
 
       <!-- 警告信息 -->
-      <div v-if="warning" class="oq-warn-block">{{ warning }}</div>
+      <div v-if="warning" class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ warning }}</div>
 
       <!-- 强制退款 -->
-      <div v-if="requireForce" class="oq-checkbox-row">
-        <input id="force-refund" v-model="form.force" type="checkbox" style="accent-color:var(--bad,#F25C69)" />
-        <label for="force-refund" style="color:var(--bad,#F25C69);font-weight:600">{{ t('payment.admin.forceRefund') }}</label>
+      <div v-if="requireForce" class="flex items-center gap-2">
+        <Checkbox id="force-refund" v-model="form.force" class="border-destructive data-[state=checked]:bg-destructive data-[state=checked]:text-destructive-foreground" />
+        <Label for="force-refund" class="font-semibold text-destructive">{{ t('payment.admin.forceRefund') }}</Label>
       </div>
     </form>
 
     <template #footer>
-      <div style="display:flex;justify-content:flex-end;gap:10px">
-        <button type="button" class="oq-btn" @click="emit('cancel')">
+      <div class="flex justify-end gap-2.5">
+        <Button type="button" variant="outline" @click="emit('cancel')">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="refund-form"
-          class="oq-btn oq-btn-danger"
+          variant="destructive"
           :disabled="submitting || form.amount <= 0 || (requireForce && !form.force)"
         >
           {{ submitting ? t('common.processing') : t('payment.admin.confirmRefund') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -139,6 +137,11 @@
 import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { PaymentOrder } from '@/types/payment'
 import { formatOrderDateTime } from '@/components/payment/orderUtils'
 
@@ -208,7 +211,3 @@ function handleSubmit() {
   emit('confirm', { ...form })
 }
 </script>
-
-<style scoped>
-.oq-refund-form { display: flex; flex-direction: column; gap: 14px; }
-</style>

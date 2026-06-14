@@ -1,33 +1,33 @@
 <template>
-  <div class="ud-tab-content">
-    <div v-if="loading" class="ud-loading">{{ t('admin.userTabs.loading') }}</div>
-    <div v-else-if="error" class="ud-error">{{ error }}</div>
-    <div v-else-if="!items.length" class="ud-empty">{{ t('admin.userTabs.noKeys') }}</div>
-    <div v-else class="ud-list">
-      <div v-for="key in items" :key="key.id" class="ud-key-card">
-        <div class="ud-key-header">
-          <div class="ud-key-name">{{ key.name }}</div>
-          <span
-            class="ud-badge"
+  <div class="flex flex-col gap-2.5">
+    <div v-if="loading" class="py-5 text-center text-xs text-muted-foreground">{{ t('admin.userTabs.loading') }}</div>
+    <div v-else-if="error" class="text-xs text-destructive">{{ error }}</div>
+    <div v-else-if="!items.length" class="py-5 text-center text-xs text-muted-foreground">{{ t('admin.userTabs.noKeys') }}</div>
+    <div v-else class="flex flex-col gap-2">
+      <div v-for="key in items" :key="key.id" class="flex flex-col gap-1.5 rounded-xl border border-border bg-card px-3.5 py-3">
+        <div class="flex items-center justify-between">
+          <div class="text-[13px] font-semibold text-foreground">{{ key.name }}</div>
+          <Badge
+            variant="outline"
             :class="{
-              'ud-badge-ok': key.status === 'active',
-              'ud-badge-bad': key.status !== 'active'
+              'border-emerald-500/30 bg-emerald-500/10 text-emerald-600': key.status === 'active',
+              'border-destructive/30 bg-destructive/10 text-destructive': key.status !== 'active'
             }"
-          >{{ key.status === 'active' ? t('admin.userTabs.keyActive') : key.status }}</span>
+          >{{ key.status === 'active' ? t('admin.userTabs.keyActive') : key.status }}</Badge>
         </div>
-        <div class="ud-key-value ud-mono">
+        <div class="break-all font-mono text-[11px] text-muted-foreground">
           {{ key.key.substring(0, 20) }}…{{ key.key.substring(key.key.length - 6) }}
         </div>
-        <div class="ud-key-meta">
-          <span class="ud-meta-item" v-if="key.group?.name">{{ t('admin.userTabs.keyGroup', { name: key.group.name }) }}</span>
-          <span class="ud-meta-item">{{ t('admin.userTabs.keyQuota') }}{{ key.quota === 0 ? t('admin.userTabs.keyQuotaUnlimited') : ('$' + key.quota.toFixed(2)) }}</span>
-          <span class="ud-meta-item">{{ t('admin.userTabs.keyUsed') }}${{ key.quota_used.toFixed(4) }}</span>
-          <span class="ud-meta-item">{{ t('admin.userTabs.keyCreated') }}{{ fmt(key.created_at) }}</span>
-          <span class="ud-meta-item" v-if="key.last_used_at">{{ t('admin.userTabs.keyLastUsed') }}{{ fmt(key.last_used_at) }}</span>
+        <div class="flex flex-wrap gap-3">
+          <span class="text-[11.5px] text-muted-foreground" v-if="key.group?.name">{{ t('admin.userTabs.keyGroup', { name: key.group.name }) }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.keyQuota') }}{{ key.quota === 0 ? t('admin.userTabs.keyQuotaUnlimited') : ('$' + key.quota.toFixed(2)) }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.keyUsed') }}${{ key.quota_used.toFixed(4) }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.keyCreated') }}{{ fmt(key.created_at) }}</span>
+          <span class="text-[11.5px] text-muted-foreground" v-if="key.last_used_at">{{ t('admin.userTabs.keyLastUsed') }}{{ fmt(key.last_used_at) }}</span>
         </div>
       </div>
     </div>
-    <div v-if="total > items.length" class="ud-more">{{ t('admin.userTabs.totalCount', { total }) }}</div>
+    <div v-if="total > items.length" class="text-center text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.totalCount', { total }) }}</div>
   </div>
 </template>
 
@@ -37,6 +37,7 @@ import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser, ApiKey } from '@/types'
 import { formatDateTime } from '@/utils/format'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const props = defineProps<{ user: AdminUser; active: boolean }>()
@@ -61,30 +62,3 @@ async function load() {
 watch(() => props.active, (v) => { if (v) load() })
 onMounted(() => { if (props.active) load() })
 </script>
-
-<style scoped>
-.ud-tab-content { display: flex; flex-direction: column; gap: 10px; }
-.ud-loading, .ud-empty { color: var(--ink-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
-.ud-error { color: var(--bad); font-size: 12.5px; }
-.ud-list { display: flex; flex-direction: column; gap: 8px; }
-.ud-key-card {
-  padding: 12px 14px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-0);
-  border-radius: 10px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.ud-key-header { display: flex; align-items: center; justify-content: space-between; }
-.ud-key-name { font-size: 13px; font-weight: 600; color: var(--ink-0); }
-.ud-key-value { font-size: 11px; color: var(--ink-2); word-break: break-all; }
-.ud-key-meta { display: flex; gap: 12px; flex-wrap: wrap; }
-.ud-meta-item { font-size: 11.5px; color: var(--ink-2); }
-.ud-badge {
-  font-size: 10.5px; font-weight: 600; padding: 2px 7px;
-  border-radius: 5px; letter-spacing: 0.04em;
-}
-.ud-badge-ok { background: var(--ok-dim); color: var(--ok); border: 1px solid rgba(70,201,140,.3); }
-.ud-badge-bad { background: var(--bad-dim); color: var(--bad); border: 1px solid rgba(242,92,105,.3); }
-.ud-mono { font-family: 'IBM Plex Mono', monospace; }
-.ud-more { font-size: 11.5px; color: var(--ink-2); text-align: center; }
-</style>

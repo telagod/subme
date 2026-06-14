@@ -42,28 +42,32 @@
     <!-- Controls -->
     <div class="flex-1 space-y-2">
       <div class="flex items-center gap-2">
-        <label class="btn btn-secondary btn-sm cursor-pointer">
-          <input
-            type="file"
-            :accept="acceptTypes"
-            class="hidden"
-            @change="handleUpload"
-          />
-          <Icon name="upload" size="sm" class="mr-1.5" :stroke-width="2" />
-          {{ uploadLabel }}
-        </label>
-        <button
+        <Button variant="secondary" size="sm" as-child class="cursor-pointer">
+          <label>
+            <input
+              type="file"
+              :accept="acceptTypes"
+              class="hidden"
+              @change="handleUpload"
+            />
+            <Icon name="upload" size="sm" class="mr-1.5" :stroke-width="2" />
+            {{ uploadLabel }}
+          </label>
+        </Button>
+        <Button
           v-if="modelValue"
           type="button"
-          class="btn btn-secondary btn-sm text-red-400 hover:text-red-300"
+          variant="secondary"
+          size="sm"
+          class="text-destructive hover:text-destructive/80"
           @click="$emit('update:modelValue', '')"
         >
           <Icon name="trash" size="sm" class="mr-1.5" :stroke-width="2" />
           {{ removeLabel }}
-        </button>
+        </Button>
       </div>
       <p v-if="hint" class="text-xs text-muted-foreground">{{ hint }}</p>
-      <p v-if="error" class="text-xs text-red-400">{{ error }}</p>
+      <p v-if="error" class="text-xs text-destructive">{{ error }}</p>
     </div>
   </div>
 </template>
@@ -71,6 +75,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import { sanitizeSvg } from '@/utils/sanitize'
 
 const props = withDefaults(defineProps<{

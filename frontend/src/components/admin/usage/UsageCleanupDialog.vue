@@ -19,9 +19,9 @@
           <h4 class="text-sm font-semibold text-foreground/85">
             {{ t('admin.usage.cleanup.recentTasks') }}
           </h4>
-          <button type="button" class="btn btn-ghost btn-sm" @click="loadTasks">
+          <Button type="button" variant="ghost" size="sm" @click="loadTasks">
             {{ t('common.refresh') }}
-          </button>
+          </Button>
         </div>
 
         <div class="mt-3 space-y-2">
@@ -43,14 +43,16 @@
                     {{ statusLabel(task.status) }}
                   </span>
                   <span class="text-xs text-muted-foreground">#{{ task.id }}</span>
-                  <button
+                  <Button
                     v-if="canCancel(task)"
                     type="button"
-                    class="btn btn-ghost btn-xs text-rose-400 hover:text-rose-300"
+                    variant="ghost"
+                    size="sm"
+                    class="text-destructive hover:text-destructive/80"
                     @click="openCancelConfirm(task)"
                   >
                     {{ t('admin.usage.cleanup.cancel') }}
-                  </button>
+                  </Button>
                 </div>
                 <div class="text-xs text-muted-foreground">
                   {{ formatDateTime(task.created_at) }}
@@ -60,7 +62,7 @@
                 <span>{{ t('admin.usage.cleanup.range') }}: {{ formatRange(task) }}</span>
                 <span>{{ t('admin.usage.cleanup.deletedRows') }}: {{ task.deleted_rows.toLocaleString() }}</span>
               </div>
-              <div v-if="task.error_message" class="text-xs text-rose-400">
+              <div v-if="task.error_message" class="text-xs text-destructive">
                 {{ task.error_message }}
               </div>
             </div>
@@ -84,12 +86,12 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button" variant="outline" @click="handleClose">
           {{ t('common.cancel') }}
-        </button>
-        <button type="button" class="btn btn-danger" :disabled="submitting" @click="openConfirm">
+        </Button>
+        <Button type="button" variant="destructive" :disabled="submitting" @click="openConfirm">
           {{ submitting ? t('admin.usage.cleanup.submitting') : t('admin.usage.cleanup.submit') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -119,6 +121,7 @@
 import { ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
+import { Button } from '@/components/ui/button'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Pagination from '@/components/common/Pagination.vue'

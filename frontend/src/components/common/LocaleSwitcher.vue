@@ -1,10 +1,12 @@
 <template>
   <div class="relative" ref="dropdownRef">
-    <button
+    <Button
+      variant="ghost"
+      size="sm"
       @click="toggleDropdown"
       :disabled="switching"
-      class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-foreground/85 transition-colors hover:bg-accent"
       :title="currentLocale?.name"
+      class="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium text-foreground/85"
     >
       <span class="text-base">{{ currentLocale?.flag }}</span>
       <span class="hidden sm:inline">{{ currentLocale?.code.toUpperCase() }}</span>
@@ -14,19 +16,20 @@
         class="text-muted-foreground transition-transform duration-200"
         :class="{ 'rotate-180': isOpen }"
       />
-    </button>
+    </Button>
 
     <transition name="dropdown">
       <div
         v-if="isOpen"
-        class="absolute right-0 z-50 mt-1 w-32 overflow-hidden rounded-md border border-border bg-card "
+        class="absolute right-0 z-50 mt-1 w-32 overflow-hidden rounded-md border border-border bg-card"
       >
-        <button
+        <Button
           v-for="locale in availableLocales"
           :key="locale.code"
+          variant="ghost"
           :disabled="switching"
           @click="selectLocale(locale.code)"
-          class="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-accent"
+          class="flex w-full items-center justify-start gap-2 px-3 py-2 text-sm text-foreground/85 h-auto rounded-none"
           :class="{
             'bg-accent text-foreground':
               locale.code === currentLocaleCode
@@ -34,8 +37,8 @@
         >
           <span class="text-base">{{ locale.flag }}</span>
           <span>{{ locale.name }}</span>
-          <Icon v-if="locale.code === currentLocaleCode" name="check" size="sm" class="ml-auto text-primary-200" />
-        </button>
+          <Icon v-if="locale.code === currentLocaleCode" name="check" size="sm" class="ml-auto text-primary" />
+        </Button>
       </div>
     </transition>
   </div>
@@ -45,6 +48,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import { setLocale, availableLocales } from '@/i18n'
 
 const { locale } = useI18n()

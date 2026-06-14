@@ -2,24 +2,28 @@
   <AppLayout>
     <div class="mx-auto max-w-lg space-y-6 py-8">
       <div v-if="loading" class="flex items-center justify-center py-20">
-        <div class="h-8 w-8 animate-spin rounded-full border-4 border-[var(--azure)] border-t-transparent"></div>
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
 
-      <div v-else-if="errorMessage" class="card p-8 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--bad)]/30 bg-[var(--bad-dim)]">
-          <Icon name="exclamationCircle" size="xl" class="text-[var(--bad)]" />
-        </div>
-        <h3 class="text-lg font-semibold text-foreground">{{ t('payment.airwallexLoadFailed') }}</h3>
-        <p class="mt-2 text-sm text-muted-foreground">{{ errorMessage }}</p>
-        <button class="btn btn-primary mt-6" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</button>
-      </div>
+      <Card v-else-if="errorMessage">
+        <CardContent class="p-8 text-center">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10">
+            <Icon name="exclamationCircle" size="xl" class="text-destructive" />
+          </div>
+          <h3 class="text-lg font-semibold text-foreground">{{ t('payment.airwallexLoadFailed') }}</h3>
+          <p class="mt-2 text-sm text-muted-foreground">{{ errorMessage }}</p>
+          <Button class="mt-6" @click="router.push('/purchase')">{{ t('payment.result.backToRecharge') }}</Button>
+        </CardContent>
+      </Card>
 
-      <div v-else class="card p-6">
-        <div class="flex flex-col items-center space-y-4 py-4">
-          <div class="h-10 w-10 animate-spin rounded-full border-4 border-[var(--azure)] border-t-transparent"></div>
-          <p class="text-sm text-muted-foreground">{{ t('payment.qr.payInNewWindowHint') }}</p>
-        </div>
-      </div>
+      <Card v-else>
+        <CardContent class="p-6">
+          <div class="flex flex-col items-center space-y-4 py-4">
+            <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p class="text-sm text-muted-foreground">{{ t('payment.qr.payInNewWindowHint') }}</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   </AppLayout>
 </template>
@@ -30,6 +34,8 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import {
   PAYMENT_RECOVERY_STORAGE_KEY,
   readPaymentRecoverySnapshot,

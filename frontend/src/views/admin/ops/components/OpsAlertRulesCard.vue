@@ -4,12 +4,33 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-import Select, { type SelectOption } from '@/components/common/Select.vue'
 import { adminAPI } from '@/api'
 import { opsAPI } from '@/api/admin/ops'
 import type { AlertRule, MetricType, Operator } from '../types'
+import type { SelectOption } from '@/types'
 import type { OpsSeverity } from '@/api/admin/ops'
 import { formatDateTime } from '../utils/opsFormatters'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -387,143 +408,187 @@ function cancelDelete() {
 </script>
 
 <template>
-  <div class="od-card od-card-pad">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
-      <div>
-        <h3 class="od-chart-title">{{ t('admin.ops.alertRules.title') }}</h3>
-        <p style="margin-top:3px;font-size:11.5px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertRules.description') }}</p>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button class="od-btn od-btn-azure" style="padding:4px 10px;font-size:11px;" :disabled="loading" @click="openCreate">{{ t('admin.ops.alertRules.create') }}</button>
-        <button class="od-btn od-btn-icon" :disabled="loading" :aria-label="t('common.refresh')" @click="load">
-          <svg width="13" height="13" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          {{ t('common.refresh') }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="loading" style="padding:28px;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertRules.loading') }}</div>
-
-    <div v-else-if="sortedRules.length === 0" style="border-radius:8px;border:1px dashed var(--line-0,#20242C);padding:28px;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.alertRules.empty') }}</div>
-
-    <div v-else class="od-table-card" style="max-height:520px;overflow:hidden;">
-      <div style="max-height:520px;overflow-y:auto;">
-        <table style="min-width:100%;border-collapse:collapse;font-size:12px;">
-          <thead class="od-table-head-row" style="position:sticky;top:0;z-index:10;">
-            <tr>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertRules.table.name') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertRules.table.metric') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertRules.table.severity') }}</th>
-              <th style="padding:9px 14px;text-align:left;" class="od-sys-label">{{ t('admin.ops.alertRules.table.enabled') }}</th>
-              <th style="padding:9px 14px;text-align:right;" class="od-sys-label">{{ t('admin.ops.alertRules.table.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in sortedRules" :key="row.id" class="od-tr-border">
-              <td style="padding:9px 14px;">
-                <div style="font-size:12px;font-weight:700;color:var(--ink-0,#E8EBF0);">{{ row.name }}</div>
-                <div v-if="row.description" style="margin-top:2px;font-size:10.5px;color:var(--ink-2,#5C6470);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ row.description }}</div>
-                <div v-if="row.updated_at" style="margin-top:2px;font-size:10px;color:var(--ink-2,#5C6470);">{{ formatDateTime(row.updated_at) }}</div>
-              </td>
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);">
-                <span class="od-mono">{{ row.metric_type }}</span>
-                <span style="margin:0 4px;color:var(--ink-2,#5C6470);">{{ row.operator }}</span>
-                <span class="od-mono">{{ row.threshold }}</span>
-              </td>
-              <td style="padding:9px 14px;white-space:nowrap;font-weight:700;color:var(--ink-1,#97A0AF);">{{ row.severity }}</td>
-              <td style="padding:9px 14px;white-space:nowrap;color:var(--ink-1,#97A0AF);">{{ row.enabled ? t('common.enabled') : t('common.disabled') }}</td>
-              <td style="padding:9px 14px;white-space:nowrap;text-align:right;">
-                <button class="od-btn" style="padding:3px 9px;font-size:11px;" @click="openEdit(row)">{{ t('common.edit') }}</button>
-                <button class="od-btn" style="padding:3px 9px;font-size:11px;margin-left:6px;color:var(--ops-bad,#F25C69);border-color:var(--ops-bad-border,rgba(242,92,105,.25));" @click="requestDelete(row)">{{ t('common.delete') }}</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <BaseDialog :show="showEditor" :title="editingId ? t('admin.ops.alertRules.editTitle') : t('admin.ops.alertRules.createTitle')" width="wide" @close="showEditor = false">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div v-if="!editorValidation.valid" style="border-radius:8px;border:1px solid var(--ops-bad-border);background:var(--ops-bad-dim);padding:10px 14px;font-size:11.5px;color:var(--ops-bad,#F25C69);">
-          <div style="font-weight:700;">{{ t('admin.ops.alertRules.validation.title') }}</div>
-          <ul style="margin-top:4px;padding-left:16px;">
-            <li v-for="e in editorValidation.errors" :key="e">{{ e }}</li>
-          </ul>
+  <Card>
+    <CardContent class="p-6">
+      <div class="mb-3.5 flex items-start justify-between gap-3">
+        <div>
+          <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">{{ t('admin.ops.alertRules.title') }}</h3>
+          <p class="mt-0.5 text-[11.5px] text-muted-foreground">{{ t('admin.ops.alertRules.description') }}</p>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div style="grid-column:span 2;">
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.name') }}</label>
-            <input v-model="draft!.name" class="input" type="text" />
+        <div class="flex items-center gap-1.5">
+          <Button variant="outline" size="sm" class="h-7 px-2.5 text-[11px]" :disabled="loading" @click="openCreate">{{ t('admin.ops.alertRules.create') }}</Button>
+          <Button variant="outline" size="icon" class="h-7 w-7" :disabled="loading" :aria-label="t('common.refresh')" @click="load">
+            <svg width="13" height="13" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span class="sr-only">{{ t('common.refresh') }}</span>
+          </Button>
+        </div>
+      </div>
+
+      <div v-if="loading" class="py-7 text-center text-[13px] text-muted-foreground">{{ t('admin.ops.alertRules.loading') }}</div>
+
+      <div v-else-if="sortedRules.length === 0" class="rounded-lg border border-dashed border-border px-7 py-7 text-center text-[13px] text-muted-foreground">{{ t('admin.ops.alertRules.empty') }}</div>
+
+      <div v-else class="overflow-hidden rounded-xl border border-border" style="max-height:520px;">
+        <div style="max-height:520px;overflow-y:auto;">
+          <Table>
+            <TableHeader class="sticky top-0 z-10 bg-muted">
+              <TableRow>
+                <TableHead class="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.alertRules.table.name') }}</TableHead>
+                <TableHead class="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.alertRules.table.metric') }}</TableHead>
+                <TableHead class="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.alertRules.table.severity') }}</TableHead>
+                <TableHead class="px-3.5 py-2.5 text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.alertRules.table.enabled') }}</TableHead>
+                <TableHead class="px-3.5 py-2.5 text-right text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.alertRules.table.actions') }}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow v-for="row in sortedRules" :key="row.id">
+                <TableCell class="px-3.5 py-2.5">
+                  <div class="text-[12px] font-bold text-foreground">{{ row.name }}</div>
+                  <div v-if="row.description" class="mt-0.5 line-clamp-2 text-[10.5px] text-muted-foreground">{{ row.description }}</div>
+                  <div v-if="row.updated_at" class="mt-0.5 text-[10px] text-muted-foreground">{{ formatDateTime(row.updated_at) }}</div>
+                </TableCell>
+                <TableCell class="whitespace-nowrap px-3.5 py-2.5 text-muted-foreground">
+                  <span class="font-mono tabular-nums">{{ row.metric_type }}</span>
+                  <span class="mx-1 text-muted-foreground/60">{{ row.operator }}</span>
+                  <span class="font-mono tabular-nums">{{ row.threshold }}</span>
+                </TableCell>
+                <TableCell class="whitespace-nowrap px-3.5 py-2.5 font-bold text-muted-foreground">{{ row.severity }}</TableCell>
+                <TableCell class="whitespace-nowrap px-3.5 py-2.5 text-muted-foreground">{{ row.enabled ? t('common.enabled') : t('common.disabled') }}</TableCell>
+                <TableCell class="whitespace-nowrap px-3.5 py-2.5 text-right">
+                  <Button variant="outline" size="sm" class="h-6 px-2.5 text-[11px]" @click="openEdit(row)">{{ t('common.edit') }}</Button>
+                  <Button variant="outline" size="sm" class="ml-1.5 h-6 px-2.5 text-[11px] text-destructive hover:border-destructive/40 hover:text-destructive" @click="requestDelete(row)">{{ t('common.delete') }}</Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <BaseDialog :show="showEditor" :title="editingId ? t('admin.ops.alertRules.editTitle') : t('admin.ops.alertRules.createTitle')" width="wide" @close="showEditor = false">
+        <div class="flex flex-col gap-3.5">
+          <div v-if="!editorValidation.valid" class="rounded-lg border border-destructive/35 bg-destructive/10 px-3.5 py-2.5 text-[11.5px] text-destructive">
+            <div class="font-bold">{{ t('admin.ops.alertRules.validation.title') }}</div>
+            <ul class="mt-1 pl-4">
+              <li v-for="e in editorValidation.errors" :key="e">{{ e }}</li>
+            </ul>
           </div>
-          <div style="grid-column:span 2;">
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.description') }}</label>
-            <input v-model="draft!.description" class="input" type="text" />
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.metric') }}</label>
-            <Select v-model="draft!.metric_type" :options="metricOptions" />
-            <div v-if="selectedMetricDefinition" style="margin-top:4px;font-size:11px;color:var(--ink-2,#5C6470);">
-              <p>{{ selectedMetricDefinition.description }}</p>
-              <p>{{ t('admin.ops.alertRules.hints.recommended', { operator: selectedMetricDefinition.recommendedOperator, threshold: selectedMetricDefinition.recommendedThreshold, unit: selectedMetricDefinition.unit || '' }) }}</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.name') }}</Label>
+              <Input v-model="draft!.name" type="text" />
+            </div>
+            <div class="col-span-2">
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.description') }}</Label>
+              <Input v-model="draft!.description" type="text" />
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.metric') }}</Label>
+              <Select v-model="draft!.metric_type">
+                <SelectTrigger class="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <template v-for="opt in metricOptions" :key="opt.value">
+                    <SelectLabel v-if="(opt as any).kind === 'group'" class="text-[10px] font-bold uppercase tracking-wider">{{ opt.label }}</SelectLabel>
+                    <SelectItem v-else :value="String(opt.value)">{{ opt.label }}</SelectItem>
+                  </template>
+                </SelectContent>
+              </Select>
+              <div v-if="selectedMetricDefinition" class="mt-1 text-[11px] text-muted-foreground">
+                <p>{{ selectedMetricDefinition.description }}</p>
+                <p>{{ t('admin.ops.alertRules.hints.recommended', { operator: selectedMetricDefinition.recommendedOperator, threshold: selectedMetricDefinition.recommendedThreshold, unit: selectedMetricDefinition.unit || '' }) }}</p>
+              </div>
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.operator') }}</Label>
+              <Select v-model="draft!.operator">
+                <SelectTrigger class="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in operatorOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="col-span-2">
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.groupId') }}<span v-if="isGroupMetricSelected" class="ml-1 text-destructive">*</span></Label>
+              <Select
+                :model-value="draftGroupId == null ? '__null__' : String(draftGroupId)"
+                @update:model-value="draftGroupId = $event === '__null__' ? null : Number($event)"
+              >
+                <SelectTrigger class="h-8 text-xs" :class="{ 'border-destructive': isGroupMetricSelected && !draftGroupId }">
+                  <SelectValue :placeholder="t('admin.ops.alertRules.form.groupPlaceholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in groupOptions" :key="String(opt.value)" :value="opt.value == null ? '__null__' : String(opt.value)">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
+              <p class="mt-0.5 text-[11px] text-muted-foreground">{{ isGroupMetricSelected ? t('admin.ops.alertRules.hints.groupRequired') : t('admin.ops.alertRules.hints.groupOptional') }}</p>
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.threshold') }}</Label>
+              <Input v-model.number="draft!.threshold" type="number" />
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.severity') }}</Label>
+              <Select v-model="draft!.severity">
+                <SelectTrigger class="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in severityOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.window') }}</Label>
+              <Select
+                :model-value="draft!.window_minutes != null ? String(draft!.window_minutes) : undefined"
+                @update:model-value="draft!.window_minutes = Number($event)"
+              >
+                <SelectTrigger class="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in windowOptions" :key="opt.value" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.sustained') }}</Label>
+              <Input v-model.number="draft!.sustained_minutes" type="number" min="1" max="1440" />
+            </div>
+            <div>
+              <Label class="mb-1 block text-[12.5px] font-medium text-muted-foreground">{{ t('admin.ops.alertRules.form.cooldown') }}</Label>
+              <Input v-model.number="draft!.cooldown_minutes" type="number" min="0" max="1440" />
+            </div>
+            <div class="col-span-2 flex items-center justify-between rounded-[10px] border border-border bg-card p-3">
+              <span class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.ops.alertRules.form.enabled') }}</span>
+              <Checkbox v-model="draft!.enabled" />
+            </div>
+            <div class="col-span-2 flex items-center justify-between rounded-[10px] border border-border bg-card p-3">
+              <span class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.ops.alertRules.form.notifyEmail') }}</span>
+              <Checkbox v-model="draft!.notify_email" />
             </div>
           </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.operator') }}</label>
-            <Select v-model="draft!.operator" :options="operatorOptions" />
-          </div>
-          <div style="grid-column:span 2;">
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.groupId') }}<span v-if="isGroupMetricSelected" style="margin-left:4px;color:var(--ops-bad,#F25C69);">*</span></label>
-            <Select v-model="draftGroupId" :options="groupOptions" searchable :placeholder="t('admin.ops.alertRules.form.groupPlaceholder')" :error="isGroupMetricSelected && !draftGroupId" />
-            <p style="margin-top:3px;font-size:11px;color:var(--ink-2,#5C6470);">{{ isGroupMetricSelected ? t('admin.ops.alertRules.hints.groupRequired') : t('admin.ops.alertRules.hints.groupOptional') }}</p>
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.threshold') }}</label>
-            <input v-model.number="draft!.threshold" class="input" type="number" />
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.severity') }}</label>
-            <Select v-model="draft!.severity" :options="severityOptions" />
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.window') }}</label>
-            <Select v-model="draft!.window_minutes" :options="windowOptions" />
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.sustained') }}</label>
-            <input v-model.number="draft!.sustained_minutes" class="input" type="number" min="1" max="1440" />
-          </div>
-          <div>
-            <label class="od-form-label">{{ t('admin.ops.alertRules.form.cooldown') }}</label>
-            <input v-model.number="draft!.cooldown_minutes" class="input" type="number" min="0" max="1440" />
-          </div>
-          <div class="od-sys-card" style="grid-column:span 2;display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:11.5px;font-weight:600;color:var(--ink-1,#97A0AF);">{{ t('admin.ops.alertRules.form.enabled') }}</span>
-            <input v-model="draft!.enabled" type="checkbox" />
-          </div>
-          <div class="od-sys-card" style="grid-column:span 2;display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:11.5px;font-weight:600;color:var(--ink-1,#97A0AF);">{{ t('admin.ops.alertRules.form.notifyEmail') }}</span>
-            <input v-model="draft!.notify_email" type="checkbox" />
-          </div>
         </div>
-      </div>
-      <template #footer>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-          <button class="od-btn" :disabled="saving" @click="showEditor = false">{{ t('common.cancel') }}</button>
-          <button class="od-btn od-btn-azure" :disabled="saving" @click="save">{{ saving ? t('common.saving') : t('common.save') }}</button>
-        </div>
-      </template>
-    </BaseDialog>
+        <template #footer>
+          <div class="flex items-center justify-end gap-2">
+            <Button variant="outline" :disabled="saving" @click="showEditor = false">{{ t('common.cancel') }}</Button>
+            <Button :disabled="saving" @click="save">{{ saving ? t('common.saving') : t('common.save') }}</Button>
+          </div>
+        </template>
+      </BaseDialog>
 
-    <ConfirmDialog
-      :show="showDeleteConfirm"
-      :title="t('admin.ops.alertRules.deleteConfirmTitle')"
-      :message="t('admin.ops.alertRules.deleteConfirmMessage')"
-      :confirmText="t('common.delete')"
-      :cancelText="t('common.cancel')"
-      @confirm="confirmDelete"
-      @cancel="cancelDelete"
-    />
-  </div>
+      <ConfirmDialog
+        :show="showDeleteConfirm"
+        :title="t('admin.ops.alertRules.deleteConfirmTitle')"
+        :message="t('admin.ops.alertRules.deleteConfirmMessage')"
+        :confirmText="t('common.delete')"
+        :cancelText="t('common.cancel')"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
+      />
+    </CardContent>
+  </Card>
 </template>
-
-<style src="../ops-quench.css"></style>

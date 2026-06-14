@@ -27,35 +27,41 @@
         <span v-if="provider.payment_mode" class="text-xs text-muted-foreground">· {{ modeLabel }}</span>
         <span v-if="enabled && availableTypes.length" class="text-xs text-muted-foreground/60">|</span>
         <div v-if="enabled" class="flex items-center gap-1">
-          <button
+          <Button
             v-for="pt in availableTypes"
             :key="pt.value"
             type="button"
+            size="sm"
+            :variant="isSelected(pt.value) ? 'default' : 'ghost'"
+            class="h-auto rounded px-2 py-0.5 text-xs font-medium"
             @click="emit('toggleType', pt.value)"
-            :class="[
-              'rounded px-2 py-0.5 text-xs font-medium transition-all',
-              isSelected(pt.value)
-                ? 'bg-primary-500 text-white'
-                : 'bg-muted text-muted-foreground',
-            ]"
-          >{{ pt.label }}</button>
+          >{{ pt.label }}</Button>
         </div>
       </div>
 
       <!-- Right: toggles + actions -->
       <div class="flex items-center gap-4">
-        <ToggleSwitch :label="t('common.enabled')" :checked="provider.enabled" @toggle="emit('toggleField', 'enabled')" />
-        <ToggleSwitch :label="t('admin.settings.payment.refundEnabled')" :checked="provider.refund_enabled" @toggle="emit('toggleField', 'refund_enabled')" />
-        <ToggleSwitch v-if="provider.refund_enabled" :label="t('admin.settings.payment.allowUserRefund')" :checked="provider.allow_user_refund" @toggle="emit('toggleField', 'allow_user_refund')" />
+        <label class="flex flex-col items-center gap-0.5 cursor-pointer">
+          <span class="text-xs text-muted-foreground whitespace-nowrap">{{ t('common.enabled') }}</span>
+          <Switch :checked="provider.enabled" @update:checked="emit('toggleField', 'enabled')" />
+        </label>
+        <label class="flex flex-col items-center gap-0.5 cursor-pointer">
+          <span class="text-xs text-muted-foreground whitespace-nowrap">{{ t('admin.settings.payment.refundEnabled') }}</span>
+          <Switch :checked="provider.refund_enabled" @update:checked="emit('toggleField', 'refund_enabled')" />
+        </label>
+        <label v-if="provider.refund_enabled" class="flex flex-col items-center gap-0.5 cursor-pointer">
+          <span class="text-xs text-muted-foreground whitespace-nowrap">{{ t('admin.settings.payment.allowUserRefund') }}</span>
+          <Switch :checked="provider.allow_user_refund" @update:checked="emit('toggleField', 'allow_user_refund')" />
+        </label>
         <div class="flex items-center gap-2 border-l border-border pl-3">
-          <button type="button" @click="emit('edit')" class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+          <Button type="button" variant="ghost" size="sm" class="flex flex-col items-center gap-0.5 h-auto p-1.5 text-muted-foreground" @click="emit('edit')">
             <Icon name="edit" size="sm" />
             <span class="text-xs">{{ t('common.edit') }}</span>
-          </button>
-          <button type="button" @click="emit('delete')" class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400">
+          </Button>
+          <Button type="button" variant="ghost" size="sm" class="flex flex-col items-center gap-0.5 h-auto p-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400" @click="emit('delete')">
             <Icon name="trash" size="sm" />
             <span class="text-xs">{{ t('common.delete') }}</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -66,7 +72,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
-import ToggleSwitch from './ToggleSwitch.vue'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import type { ProviderInstance } from '@/types/payment'
 import type { TypeOption } from './providerConfig'
 import { PAYMENT_MODE_QRCODE, PAYMENT_MODE_POPUP, PAYMENT_MODE_REDIRECT } from './providerConfig'
