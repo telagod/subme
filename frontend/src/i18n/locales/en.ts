@@ -339,6 +339,8 @@ export default {
     inactive: 'Inactive',
     more: 'More',
     close: 'Close',
+    lightMode: 'Switch to light',
+    darkMode: 'Switch to dark',
     enabled: 'Enabled',
     disabled: 'Disabled',
     total: 'Total',

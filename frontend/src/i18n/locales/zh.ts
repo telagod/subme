@@ -339,6 +339,8 @@ export default {
     inactive: '禁用',
     more: '更多',
     close: '关闭',
+    lightMode: '切换亮色',
+    darkMode: '切换暗色',
     enabled: '已启用',
     disabled: '已禁用',
     total: '总计',

@@ -25,6 +25,18 @@
 
       <!-- Right: Announcements + Docs + Language + Subscriptions + Balance + User Dropdown -->
       <div class="flex items-center gap-3">
+        <!-- Theme Toggle -->
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="toggle"
+          class="text-muted-foreground hover:text-foreground"
+          :title="isDark ? t('common.lightMode') : t('common.darkMode')"
+        >
+          <Icon v-if="isDark" name="sun" size="md" />
+          <Icon v-else name="moon" size="md" />
+        </Button>
+
         <!-- Announcement Bell -->
         <AnnouncementBell v-if="user" />
 
@@ -221,6 +233,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAppStore, useAuthStore, useOnboardingStore } from '@/stores'
+import { useTheme } from '@/composables/useTheme'
 import { useAdminSettingsStore } from '@/stores/adminSettings'
 import { Button } from '@/components/ui/button'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
@@ -236,6 +249,7 @@ const authStore = useAuthStore()
 const adminSettingsStore = useAdminSettingsStore()
 const onboardingStore = useOnboardingStore()
 
+const { isDark, toggle } = useTheme()
 const user = computed(() => authStore.user)
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)

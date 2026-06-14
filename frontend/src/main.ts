@@ -4,16 +4,11 @@ import App from './App.vue'
 import router from './router'
 import i18n, { initI18n } from './i18n'
 import { useAppStore } from '@/stores/app'
+import { initTheme } from '@/composables/useTheme'
 import './style.css'
 
-function initThemeClass() {
-  // 冷钢设计系统: dark-only。强制 dark class,忽略 localStorage/system preference。
-  document.documentElement.classList.add('dark')
-}
-
 async function bootstrap() {
-  // Apply theme class globally before app mount to keep all routes consistent.
-  initThemeClass()
+  initTheme()
 
   const app = createApp(App)
   const pinia = createPinia()
