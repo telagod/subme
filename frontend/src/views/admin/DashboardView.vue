@@ -441,6 +441,9 @@ const formatNumber = (value: number): string => {
 }
 
 const formatCost = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return '0.00'
+  }
   if (value >= 1000) {
     return (value / 1000).toFixed(2) + 'K'
   } else if (value >= 1) {

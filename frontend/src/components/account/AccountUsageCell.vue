@@ -1192,6 +1192,8 @@ watch(openAIUsageRefreshKey, (nextKey, prevKey) => {
   if (!prevKey || nextKey === prevKey) return
   if (props.account.platform !== 'openai' || props.account.type !== 'oauth') return
 
+  // refresh-key 变化意味着底层用量数据已更新，作废缓存后再自动拉取（否则命中 5min 缓存不会重拉）
+  _usageCache.delete(props.account.id)
   requestAutoLoad()
 })
 
