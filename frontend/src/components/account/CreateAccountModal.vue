@@ -3068,6 +3068,7 @@ import {
   MAX_POOL_MODE_RETRY_COUNT,
   DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
 } from '@/composables/usePoolModeConfig'
+import { useCustomErrorCodes } from '@/composables/useCustomErrorCodes'
 
 // Type for exposed OAuthAuthorizationFlow component
 // Note: defineExpose automatically unwraps refs, so we use the unwrapped types
@@ -3210,9 +3211,17 @@ const {
   reset: resetPoolMode,
   applyToCredentials: applyPoolMode,
 } = usePoolModeConfig()
-const customErrorCodesEnabled = ref(false)
-const selectedErrorCodes = ref<number[]>([])
-const customErrorCodeInput = ref<number | null>(null)
+// 自定义错误码配置（共享 composable，见 useCustomErrorCodes.ts）
+const {
+  customErrorCodesEnabled,
+  selectedErrorCodes,
+  customErrorCodeInput,
+  toggleErrorCode,
+  addCustomErrorCode,
+  removeErrorCode,
+  reset: resetCustomErrorCodes,
+  applyToCredentials: applyCustomErrorCodes,
+} = useCustomErrorCodes()
 const interceptWarmupRequests = ref(false)
 const autoPauseOnExpired = ref(true)
 const openaiPassthroughEnabled = ref(false)
@@ -3761,58 +3770,6 @@ const addAntigravityPresetMapping = (from: string, to: string) => {
   antigravityModelMappings.value.push({ from, to })
 }
 
-// Error code toggle helper
-const toggleErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index === -1) {
-    // Adding code - check for 429/529 warning
-    if (code === 429) {
-      if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-        return
-      }
-    } else if (code === 529) {
-      if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-        return
-      }
-    }
-    selectedErrorCodes.value.push(code)
-  } else {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
-
-// Add custom error code from input
-const addCustomErrorCode = () => {
-  const code = customErrorCodeInput.value
-  if (code === null || code < 100 || code > 599) {
-    appStore.showError(t('admin.accounts.invalidErrorCode'))
-    return
-  }
-  if (selectedErrorCodes.value.includes(code)) {
-    appStore.showInfo(t('admin.accounts.errorCodeExists'))
-    return
-  }
-  // Check for 429/529 warning
-  if (code === 429) {
-    if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-      return
-    }
-  } else if (code === 529) {
-    if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-      return
-    }
-  }
-  selectedErrorCodes.value.push(code)
-  customErrorCodeInput.value = null
-}
-
-// Remove error code
-const removeErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index !== -1) {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
 
 const addTempUnschedRule = (preset?: TempUnschedRuleForm) => {
   if (preset) {
@@ -4035,9 +3992,7 @@ const resetForm = () => {
     antigravityModelMappings.value = [...mappings]
   })
   resetPoolMode()
-  customErrorCodesEnabled.value = false
-  selectedErrorCodes.value = []
-  customErrorCodeInput.value = null
+  resetCustomErrorCodes()
   interceptWarmupRequests.value = false
   autoPauseOnExpired.value = true
   openaiPassthroughEnabled.value = false
@@ -4426,10 +4381,7 @@ const handleSubmit = async () => {
   applyPoolMode(credentials, 'create')
 
   // Add custom error codes if enabled
-  if (customErrorCodesEnabled.value) {
-    credentials.custom_error_codes_enabled = true
-    credentials.custom_error_codes = [...selectedErrorCodes.value]
-  }
+  applyCustomErrorCodes(credentials, 'create')
 
   applyInterceptWarmup(credentials, interceptWarmupRequests.value, 'create')
   if (!applyTempUnschedConfig(credentials)) {

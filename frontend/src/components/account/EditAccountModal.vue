@@ -2195,6 +2195,7 @@ import {
   MAX_POOL_MODE_RETRY_COUNT,
   DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
 } from '@/composables/usePoolModeConfig'
+import { useCustomErrorCodes } from '@/composables/useCustomErrorCodes'
 
 interface Props {
   show: boolean
@@ -2268,9 +2269,18 @@ const {
   loadFromCredentials: loadPoolMode,
   applyToCredentials: applyPoolMode,
 } = usePoolModeConfig()
-const customErrorCodesEnabled = ref(false)
-const selectedErrorCodes = ref<number[]>([])
-const customErrorCodeInput = ref<number | null>(null)
+// 自定义错误码配置（共享 composable，见 useCustomErrorCodes.ts）
+const {
+  customErrorCodesEnabled,
+  selectedErrorCodes,
+  customErrorCodeInput,
+  toggleErrorCode,
+  addCustomErrorCode,
+  removeErrorCode,
+  reset: resetCustomErrorCodes,
+  loadFromCredentials: loadCustomErrorCodes,
+  applyToCredentials: applyCustomErrorCodes,
+} = useCustomErrorCodes()
 const interceptWarmupRequests = ref(false)
 const autoPauseOnExpired = ref(false)
 const autoPause5hThreshold = ref<number | null>(null)
@@ -2842,13 +2852,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     loadPoolMode(credentials)
 
     // Load custom error codes
-    customErrorCodesEnabled.value = credentials.custom_error_codes_enabled === true
-    const existingErrorCodes = credentials.custom_error_codes as number[] | undefined
-    if (existingErrorCodes && Array.isArray(existingErrorCodes)) {
-      selectedErrorCodes.value = [...existingErrorCodes]
-    } else {
-      selectedErrorCodes.value = []
-    }
+    loadCustomErrorCodes(credentials)
   } else if (newAccount.type === 'bedrock' && newAccount.credentials) {
     const bedrockCreds = newAccount.credentials as Record<string, unknown>
     const authMode = (bedrockCreds.auth_mode as string) || 'sigv4'
@@ -2906,8 +2910,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
       allowedModels.value = []
     }
     resetPoolMode()
-    customErrorCodesEnabled.value = false
-    selectedErrorCodes.value = []
+    resetCustomErrorCodes()
   }
   editApiKey.value = ''
 }
@@ -3012,58 +3015,6 @@ const syncAntigravityUpstreamModels = async () => {
   }
 }
 
-// Error code toggle helper
-const toggleErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index === -1) {
-    // Adding code - check for 429/529 warning
-    if (code === 429) {
-      if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-        return
-      }
-    } else if (code === 529) {
-      if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-        return
-      }
-    }
-    selectedErrorCodes.value.push(code)
-  } else {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
-
-// Add custom error code from input
-const addCustomErrorCode = () => {
-  const code = customErrorCodeInput.value
-  if (code === null || code < 100 || code > 599) {
-    appStore.showError(t('admin.accounts.invalidErrorCode'))
-    return
-  }
-  if (selectedErrorCodes.value.includes(code)) {
-    appStore.showInfo(t('admin.accounts.errorCodeExists'))
-    return
-  }
-  // Check for 429/529 warning
-  if (code === 429) {
-    if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-      return
-    }
-  } else if (code === 529) {
-    if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-      return
-    }
-  }
-  selectedErrorCodes.value.push(code)
-  customErrorCodeInput.value = null
-}
-
-// Remove error code
-const removeErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index !== -1) {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
 
 const addTempUnschedRule = (preset?: TempUnschedRuleForm) => {
   if (preset) {
@@ -3458,13 +3409,7 @@ const handleSubmit = async () => {
       applyPoolMode(newCredentials, 'edit')
 
       // Add custom error codes if enabled
-      if (customErrorCodesEnabled.value) {
-        newCredentials.custom_error_codes_enabled = true
-        newCredentials.custom_error_codes = [...selectedErrorCodes.value]
-      } else {
-        delete newCredentials.custom_error_codes_enabled
-        delete newCredentials.custom_error_codes
-      }
+      applyCustomErrorCodes(newCredentials, 'edit')
 
       // Add intercept warmup requests setting
       applyInterceptWarmup(newCredentials, interceptWarmupRequests.value, 'edit')
