@@ -3069,6 +3069,7 @@ import {
   DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
 } from '@/composables/usePoolModeConfig'
 import { useCustomErrorCodes } from '@/composables/useCustomErrorCodes'
+import { useTempUnschedRules } from '@/composables/useTempUnschedRules'
 
 // Type for exposed OAuthAuthorizationFlow component
 // Note: defineExpose automatically unwraps refs, so we use the unwrapped types
@@ -3163,13 +3164,6 @@ const oauthFlowRef = ref<OAuthFlowExposed | null>(null)
 interface ModelMapping {
   from: string
   to: string
-}
-
-interface TempUnschedRuleForm {
-  error_code: number | null
-  keywords: string
-  duration_minutes: number | null
-  description: string
 }
 
 // State
@@ -3273,12 +3267,22 @@ const vertexProjectId = ref('')
 const vertexClientEmail = ref('')
 const vertexLocation = ref('global')
 const vertexServiceAccountDragActive = ref(false)
-const tempUnschedEnabled = ref(false)
-const tempUnschedRules = ref<TempUnschedRuleForm[]>([])
+// 临时不可调度规则配置（共享 composable，见 useTempUnschedRules.ts）
+const {
+  tempUnschedEnabled,
+  tempUnschedRules,
+  getTempUnschedRuleKey,
+  tempUnschedPresets,
+  addTempUnschedRule,
+  removeTempUnschedRule,
+  moveTempUnschedRule,
+  buildTempUnschedRules,
+  applyToCredentials: applyTempUnschedConfig,
+  reset: resetTempUnsched,
+} = useTempUnschedRules('create-temp-unsched-rule')
 const getModelMappingKey = createStableObjectKeyResolver<ModelMapping>('create-model-mapping')
 const getOpenAICompactModelMappingKey = createStableObjectKeyResolver<ModelMapping>('create-openai-compact-model-mapping')
 const getAntigravityModelMappingKey = createStableObjectKeyResolver<ModelMapping>('create-antigravity-model-mapping')
-const getTempUnschedRuleKey = createStableObjectKeyResolver<TempUnschedRuleForm>('create-temp-unsched-rule')
 const geminiOAuthType = ref<'code_assist' | 'google_one' | 'ai_studio'>('google_one')
 const geminiAIStudioOAuthEnabled = ref(false)
 const openAICompactModeOptions = computed(() => [
@@ -3462,35 +3466,6 @@ const geminiHelpLinks = {
 
 // Computed: current preset mappings based on platform
 const presetMappings = computed(() => getPresetMappingsByPlatform(form.platform))
-const tempUnschedPresets = computed(() => [
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.overloadLabel'),
-    rule: {
-      error_code: 529,
-      keywords: 'overloaded, too many',
-      duration_minutes: 60,
-      description: t('admin.accounts.tempUnschedulable.presets.overloadDesc')
-    }
-  },
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.rateLimitLabel'),
-    rule: {
-      error_code: 429,
-      keywords: 'rate limit, too many requests',
-      duration_minutes: 10,
-      description: t('admin.accounts.tempUnschedulable.presets.rateLimitDesc')
-    }
-  },
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.unavailableLabel'),
-    rule: {
-      error_code: 503,
-      keywords: 'unavailable, maintenance',
-      duration_minutes: 30,
-      description: t('admin.accounts.tempUnschedulable.presets.unavailableDesc')
-    }
-  }
-])
 
 const form = reactive({
   name: '',
@@ -3771,88 +3746,6 @@ const addAntigravityPresetMapping = (from: string, to: string) => {
 }
 
 
-const addTempUnschedRule = (preset?: TempUnschedRuleForm) => {
-  if (preset) {
-    tempUnschedRules.value.push({ ...preset })
-    return
-  }
-  tempUnschedRules.value.push({
-    error_code: null,
-    keywords: '',
-    duration_minutes: 30,
-    description: ''
-  })
-}
-
-const removeTempUnschedRule = (index: number) => {
-  tempUnschedRules.value.splice(index, 1)
-}
-
-const moveTempUnschedRule = (index: number, direction: number) => {
-  const target = index + direction
-  if (target < 0 || target >= tempUnschedRules.value.length) return
-  const rules = tempUnschedRules.value
-  const current = rules[index]
-  rules[index] = rules[target]
-  rules[target] = current
-}
-
-const buildTempUnschedRules = (rules: TempUnschedRuleForm[]) => {
-  const out: Array<{
-    error_code: number
-    keywords: string[]
-    duration_minutes: number
-    description: string
-  }> = []
-
-  for (const rule of rules) {
-    const errorCode = Number(rule.error_code)
-    const duration = Number(rule.duration_minutes)
-    const keywords = splitTempUnschedKeywords(rule.keywords)
-    if (!Number.isFinite(errorCode) || errorCode < 100 || errorCode > 599) {
-      continue
-    }
-    if (!Number.isFinite(duration) || duration <= 0) {
-      continue
-    }
-    if (keywords.length === 0) {
-      continue
-    }
-    out.push({
-      error_code: Math.trunc(errorCode),
-      keywords,
-      duration_minutes: Math.trunc(duration),
-      description: rule.description.trim()
-    })
-  }
-
-  return out
-}
-
-const applyTempUnschedConfig = (credentials: Record<string, unknown>) => {
-  if (!tempUnschedEnabled.value) {
-    delete credentials.temp_unschedulable_enabled
-    delete credentials.temp_unschedulable_rules
-    return true
-  }
-
-  const rules = buildTempUnschedRules(tempUnschedRules.value)
-  if (rules.length === 0) {
-    appStore.showError(t('admin.accounts.tempUnschedulable.rulesInvalid'))
-    return false
-  }
-
-  credentials.temp_unschedulable_enabled = true
-  credentials.temp_unschedulable_rules = rules
-  return true
-}
-
-const splitTempUnschedKeywords = (value: string) => {
-  return value
-    .split(/[,;]/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-}
 
 const needsMixedChannelCheck = (platform: AccountPlatform) => platform === 'antigravity' || platform === 'anthropic'
 
@@ -4032,8 +3925,7 @@ const resetForm = () => {
   vertexProjectId.value = ''
   vertexClientEmail.value = ''
   vertexLocation.value = 'global'
-  tempUnschedEnabled.value = false
-  tempUnschedRules.value = []
+  resetTempUnsched()
   geminiOAuthType.value = 'code_assist'
   geminiTierGoogleOne.value = 'google_one_free'
   geminiTierGcp.value = 'gcp_standard'
