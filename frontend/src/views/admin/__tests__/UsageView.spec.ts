@@ -339,9 +339,14 @@ describe('admin UsageView errors tab filter forwarding', () => {
     vm.filters.group_id = 3
     await flushPromises()
 
-    // 切换到「错误请求」标签（第二个 .tab 按钮）触发 loadAdminErrors
-    const tabs = wrapper.findAll('button.tab')
-    await tabs[1].trigger('click')
+    // 切换到「错误请求」标签触发 loadAdminErrors
+    // shadcn 迁移后 tab 已从 <button class="tab"> 变为 <Button variant="ghost">，
+    // 按 i18n key 文案（test env 无翻译，渲染 key 原文）定位更稳。
+    const errorsTab = wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'usage.tabs.errors')
+    expect(errorsTab).toBeTruthy()
+    await errorsTab!.trigger('click')
     await flushPromises()
 
     expect(listErrorLogs).toHaveBeenCalledWith(expect.objectContaining({

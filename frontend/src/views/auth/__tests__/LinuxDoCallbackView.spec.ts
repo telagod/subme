@@ -222,12 +222,14 @@ describe('LinuxDoCallbackView', () => {
     expect(setToken).not.toHaveBeenCalled()
     expect(replace).not.toHaveBeenCalled()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
-    await checkboxes[1].setValue(false)
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
+    expect(checkboxes).toHaveLength(2)
+    // shadcn Checkbox is a button[role=checkbox]; both default to checked. Click to uncheck the avatar one.
+    await checkboxes[1].trigger('click')
 
-    const buttons = wrapper.findAll('button')
-    expect(buttons).toHaveLength(1)
-    await buttons[0].trigger('click')
+    const actionButtons = wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')
+    expect(actionButtons).toHaveLength(1)
+    await actionButtons[0].trigger('click')
     await flushPromises()
 
     expect(exchangePendingOAuthCompletion).toHaveBeenCalledTimes(2)
@@ -286,7 +288,9 @@ describe('LinuxDoCallbackView', () => {
 
     await flushPromises()
 
-    await wrapper.findAll('button')[0].trigger('click')
+    // adoption Card renders two button[role=checkbox]; the continue action is the only real button
+    const continueButton = wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')[0]
+    await continueButton.trigger('click')
     await flushPromises()
 
     expect(exchangePendingOAuthCompletion).toHaveBeenNthCalledWith(2, {
@@ -327,7 +331,9 @@ describe('LinuxDoCallbackView', () => {
     })
 
     await flushPromises()
-    await wrapper.findAll('button')[0].trigger('click')
+    // adoption Card renders two button[role=checkbox]; click the real continue button
+    const continueButton = wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')[0]
+    await continueButton.trigger('click')
     await flushPromises()
 
     expect(showSuccess).not.toHaveBeenCalled()
@@ -424,12 +430,13 @@ describe('LinuxDoCallbackView', () => {
     expect(exchangePendingOAuthCompletion).toHaveBeenCalledTimes(1)
     expect(exchangePendingOAuthCompletion).toHaveBeenCalledWith()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
 
-    await checkboxes[0].setValue(false)
+    // shadcn Checkbox is button[role=checkbox], default checked; click to uncheck display-name adoption
+    await checkboxes[0].trigger('click')
     await wrapper.find('input[type="text"]').setValue('invite-code')
-    await wrapper.find('button').trigger('click')
+    await wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')[0].trigger('click')
 
     expect(completeLinuxDoOAuthRegistration).toHaveBeenCalledWith('invite-code', {
       adoptDisplayName: false,
@@ -468,7 +475,8 @@ describe('LinuxDoCallbackView', () => {
 
     await flushPromises()
     await wrapper.find('input[type="text"]').setValue('invite-code')
-    await wrapper.find('button').trigger('click')
+    // adoption Card renders two button[role=checkbox]; submit via the real (non-checkbox) button, keeping defaults
+    await wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')[0].trigger('click')
     await flushPromises()
 
     expect(completeLinuxDoOAuthRegistration).toHaveBeenCalledWith('invite-code', {
@@ -517,9 +525,10 @@ describe('LinuxDoCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[1].setValue(false)
+    // shadcn Checkbox is button[role=checkbox], default checked; click to uncheck avatar adoption
+    await checkboxes[1].trigger('click')
     await wrapper.get('[data-testid="linuxdo-create-account-email"]').setValue('  new@example.com  ')
     await wrapper.get('[data-testid="linuxdo-create-account-password"]').setValue('secret-123')
     await wrapper.get('[data-testid="linuxdo-create-account-verify-code"]').setValue('246810')
@@ -667,9 +676,10 @@ describe('LinuxDoCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[0].setValue(false)
+    // shadcn Checkbox is button[role=checkbox], default checked; click to uncheck display-name adoption
+    await checkboxes[0].trigger('click')
     await wrapper.get('[data-testid="linuxdo-bind-login-email"]').setValue('existing@example.com')
     await wrapper.get('[data-testid="linuxdo-bind-login-password"]').setValue('secret-password')
     await wrapper.get('[data-testid="linuxdo-bind-login-submit"]').trigger('click')

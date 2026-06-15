@@ -29,12 +29,13 @@ describe('tablePreferences', () => {
   })
 
   it('allows default page size outside selectable options', () => {
+    // 注：default 可不在 options 列表内，但仍受 MAX_TABLE_PAGE_SIZE=200 约束（perf 0c85cd07 cap 200）
     window.__APP_CONFIG__ = {
-      table_default_page_size: 1000,
+      table_default_page_size: 150,
       table_page_size_options: [20, 50, 100]
     } as any
 
-    expect(getConfiguredTableDefaultPageSize()).toBe(1000)
+    expect(getConfiguredTableDefaultPageSize()).toBe(150)
     expect(getConfiguredTablePageSizeOptions()).toEqual([20, 50, 100])
     expect(normalizeTablePageSize(1000)).toBe(100)
     expect(normalizeTablePageSize(35)).toBe(50)
@@ -54,21 +55,21 @@ describe('tablePreferences', () => {
   it('normalizes page size against configured options by rounding up', () => {
     window.__APP_CONFIG__ = {
       table_default_page_size: 20,
-      table_page_size_options: [20, 50, 1000]
+      table_page_size_options: [20, 50, 200]
     } as any
 
     expect(normalizeTablePageSize(20)).toBe(20)
     expect(normalizeTablePageSize(30)).toBe(50)
-    expect(normalizeTablePageSize(100)).toBe(1000)
-    expect(normalizeTablePageSize(1500)).toBe(1000)
+    expect(normalizeTablePageSize(100)).toBe(200)
+    expect(normalizeTablePageSize(1500)).toBe(200)
     expect(normalizeTablePageSize(undefined)).toBe(20)
   })
 
-  it('keeps built-in selectable defaults at 10, 20, 50, 100', () => {
+  it('keeps built-in selectable defaults at 20, 50, 100, 200', () => {
     window.__APP_CONFIG__ = {
-      table_default_page_size: 1000
+      table_default_page_size: 150
     } as any
 
-    expect(getConfiguredTablePageSizeOptions()).toEqual([10, 20, 50, 100])
+    expect(getConfiguredTablePageSizeOptions()).toEqual([20, 50, 100, 200])
   })
 })

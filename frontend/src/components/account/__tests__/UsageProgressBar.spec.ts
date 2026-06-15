@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { ref } from 'vue'
 import UsageProgressBar from '../UsageProgressBar.vue'
 
 vi.mock('vue-i18n', async () => {
@@ -12,10 +13,20 @@ vi.mock('vue-i18n', async () => {
   }
 })
 
+// 组件通过 useSharedClock() 取「当前时间」，而非直接 new Date()。
+// useSharedClock 的 now 是模块级单例 ref(new Date())，在 import 时即用真实时间固化，
+// vi.setSystemTime 无法回拨它。这里 mock 该 composable，让 now 跟随 fake 系统时钟，
+// 使倒计时计算基于确定的测试时间。
+const mockedNow = ref(new Date())
+vi.mock('@/composables/useSharedClock', () => ({
+  useSharedClock: () => ({ now: mockedNow })
+}))
+
 describe('UsageProgressBar', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-17T00:00:00Z'))
+    mockedNow.value = new Date('2026-03-17T00:00:00Z')
   })
 
   afterEach(() => {
@@ -48,7 +59,7 @@ describe('UsageProgressBar', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('2h 30m')
+    expect(wrapper.text()).toContain('2h30m')
     expect(wrapper.text()).not.toContain('usage.resetNow')
     expect(wrapper.text()).not.toContain('usage.resetPending')
   })
@@ -64,7 +75,7 @@ describe('UsageProgressBar', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('2h 30m')
+    expect(wrapper.text()).toContain('2h30m')
     expect(wrapper.text()).not.toContain('usage.resetNow')
   })
 

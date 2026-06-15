@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { defineComponent } from 'vue'
 import { flushPromises, mount } from '@vue/test-utils'
+import { SelectRoot } from 'reka-ui'
 import OpsOpenAITokenStatsCard from '../OpsOpenAITokenStatsCard.vue'
 
 const mockGetOpenAITokenStats = vi.fn()
@@ -26,18 +27,10 @@ vi.mock('vue-i18n', async (importOriginal) => {
   }
 })
 
-const SelectStub = defineComponent({
-  name: 'SelectControlStub',
-  props: {
-    modelValue: {
-      type: [String, Number],
-      default: '',
-    },
-  },
-  emits: ['update:modelValue'],
-  template: '<div class="select-stub" />',
-})
-
+// NOTE: 组件里的 <Select> 来自 @/components/ui/select，本质是 reka-ui 的
+// SelectRoot（无自定义 name），无法通过 stubs:{ Select } 替换。因此这里不再 stub，
+// 直接 findAllComponents(SelectRoot) 拿到真实的三个 Select（时间窗/模式/TopN|页大小），
+// 对其 emit('update:modelValue') 来模拟用户在下拉里选值，这才是迁移后真实的数据流。
 const EmptyStateStub = defineComponent({
   name: 'EmptyState',
   props: {
@@ -86,7 +79,6 @@ describe('OpsOpenAITokenStatsCard', () => {
       },
       global: {
         stubs: {
-          Select: SelectStub,
           EmptyState: EmptyStateStub,
         },
       },
@@ -102,7 +94,7 @@ describe('OpsOpenAITokenStatsCard', () => {
       })
     )
 
-    const selects = wrapper.findAllComponents(SelectStub)
+    const selects = wrapper.findAllComponents(SelectRoot)
     await selects[0].vm.$emit('update:modelValue', '1h')
     await flushPromises()
 
@@ -131,14 +123,14 @@ describe('OpsOpenAITokenStatsCard', () => {
       },
       global: {
         stubs: {
-          Select: SelectStub,
           EmptyState: EmptyStateStub,
         },
       },
     })
     await flushPromises()
 
-    let selects = wrapper.findAllComponents(SelectStub)
+    let selects = wrapper.findAllComponents(SelectRoot)
+    // selects[1] = 视图模式选择器（topn / pagination）
     await selects[1].vm.$emit('update:modelValue', 'pagination')
     await flushPromises()
 
@@ -149,9 +141,13 @@ describe('OpsOpenAITokenStatsCard', () => {
       })
     )
 
-    const buttons = wrapper.findAll('button')
-    expect(buttons.length).toBeGreaterThanOrEqual(2)
-    await buttons[1].trigger('click')
+    // 迁移后 Select 触发器本身也是 <button role="combobox">，裸索引已失效，
+    // 改用文本定位"下一页"按钮。
+    const nextPageBtn = wrapper.findAll('button').find(
+      (b) => b.text() === 'admin.ops.openaiTokenStats.nextPage'
+    )
+    expect(nextPageBtn).toBeTruthy()
+    await nextPageBtn!.trigger('click')
     await flushPromises()
 
     expect(mockGetOpenAITokenStats).toHaveBeenCalledWith(
@@ -161,11 +157,13 @@ describe('OpsOpenAITokenStatsCard', () => {
       })
     )
 
-    selects = wrapper.findAllComponents(SelectStub)
+    selects = wrapper.findAllComponents(SelectRoot)
     await selects[1].vm.$emit('update:modelValue', 'topn')
     await flushPromises()
-    selects = wrapper.findAllComponents(SelectStub)
-    await selects[2].vm.$emit('update:modelValue', 50)
+    selects = wrapper.findAllComponents(SelectRoot)
+    // selects[2] = TopN 选择器；SelectItem 的 value 为 String(opt.value)，
+    // 故真实 v-model 收到字符串 '50'，组件内再 Number() 还原。
+    await selects[2].vm.$emit('update:modelValue', '50')
     await flushPromises()
 
     expect(mockGetOpenAITokenStats).toHaveBeenCalledWith(
@@ -186,7 +184,6 @@ describe('OpsOpenAITokenStatsCard', () => {
       props: { refreshToken: 0 },
       global: {
         stubs: {
-          Select: SelectStub,
           EmptyState: EmptyStateStub,
         },
       },
@@ -203,14 +200,19 @@ describe('OpsOpenAITokenStatsCard', () => {
       props: { refreshToken: 0 },
       global: {
         stubs: {
-          Select: SelectStub,
           EmptyState: EmptyStateStub,
         },
       },
     })
     await flushPromises()
 
-    expect(wrapper.find('.max-h-\\[420px\\]').exists()).toBe(true)
+    // 迁移后滚动容器用内联 style 固定高度（max-height:420px;overflow:auto），
+    // 而非 Tailwind 的 .max-h-[420px] 工具类，因此断言渲染出的 inline style。
+    const scrollBox = wrapper
+      .findAll('div')
+      .find((d) => /max-height:\s*420px/.test(d.attributes('style') ?? ''))
+    expect(scrollBox).toBeTruthy()
+    expect(scrollBox!.attributes('style')).toMatch(/overflow:\s*auto/)
   })
 
   it('接口异常时显示错误提示', async () => {
@@ -220,7 +222,6 @@ describe('OpsOpenAITokenStatsCard', () => {
       props: { refreshToken: 0 },
       global: {
         stubs: {
-          Select: SelectStub,
           EmptyState: EmptyStateStub,
         },
       },

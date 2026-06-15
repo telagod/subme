@@ -67,7 +67,9 @@ describe('AccountStatusIndicator', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('⚡')
+    // overages 启用 + 无 AICredits → kind=credits_active → 琥珀色圆点 (bg-amber-400)
+    expect(wrapper.find('.bg-amber-400').exists()).toBe(true)
+    // tooltip 显示模型别名 CSon45（formatScopeName('claude-sonnet-4-5')）
     expect(wrapper.text()).toContain('CSon45')
   })
 
@@ -94,7 +96,10 @@ describe('AccountStatusIndicator', () => {
       }
     })
 
+    // overages 未启用 → kind=rate_limit → 普通圆点 (bg-primary-300)，非琥珀
     expect(wrapper.text()).toContain('CSon45')
+    expect(wrapper.find('.bg-primary-300').exists()).toBe(true)
+    expect(wrapper.find('.bg-amber-400').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('⚡')
   })
 
@@ -122,7 +127,12 @@ describe('AccountStatusIndicator', () => {
       }
     })
 
-    expect(wrapper.text()).toContain('admin.accounts.status.creditsExhausted')
+    // AICredits 命中 → kind=credits_exhausted → 红色圆点 (bg-red-400)
+    expect(wrapper.find('.bg-red-400').exists()).toBe(true)
+    // tooltip 显示 AICredits scope（formatScopeName 无别名 → 原样）
+    expect(wrapper.text()).toContain('AICredits')
+    // 积分耗尽不是 overages，不显示琥珀 credits_active 圆点
+    expect(wrapper.find('.bg-amber-400').exists()).toBe(false)
   })
 
   it('模型限流 + overages 启用 + AICredits key 生效 → 普通限流样式（积分耗尽，无 ⚡）', () => {
@@ -153,10 +163,14 @@ describe('AccountStatusIndicator', () => {
       }
     })
 
-    // 模型限流 + 积分耗尽 → 不应显示 ⚡
+    // 模型限流 + 积分耗尽 → hasActiveAICredits=true → 普通模型走 rate_limit（无 credits_active 琥珀点/⚡）
     expect(wrapper.text()).toContain('CSon45')
     expect(wrapper.text()).not.toContain('⚡')
-    // AICredits 积分耗尽状态应显示
-    expect(wrapper.text()).toContain('admin.accounts.status.creditsExhausted')
+    expect(wrapper.find('.bg-amber-400').exists()).toBe(false)
+    // AICredits 积分耗尽 → 红色圆点 (bg-red-400) + tooltip 显示 AICredits
+    expect(wrapper.find('.bg-red-400').exists()).toBe(true)
+    expect(wrapper.text()).toContain('AICredits')
+    // 普通模型限流圆点 (bg-primary-300)
+    expect(wrapper.find('.bg-primary-300').exists()).toBe(true)
   })
 })

@@ -65,6 +65,12 @@ function mountView() {
     global: {
       stubs: {
         AppLayout: { template: '<div><slot /></div>' },
+        // Card/CardContent are shadcn presentational wrappers (post-QUENCH
+        // migration). shallowMount stubs children and drops their slots, which
+        // hides the rendered errorMessage. Pass the slot through so text-based
+        // assertions see the component's real output.
+        Card: { template: '<div><slot /></div>' },
+        CardContent: { template: '<div><slot /></div>' },
         Icon: true,
       },
     },

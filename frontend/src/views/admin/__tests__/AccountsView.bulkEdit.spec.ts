@@ -157,7 +157,16 @@ describe('admin AccountsView bulk edit scope', () => {
     expect(wrapper.get('[data-test="bulk-edit-modal"]').attributes('data-target-mode')).toBe('filtered')
   })
 
-  it('renders the created_at column by default', async () => {
+  it('hides created_at by default but renders it once unhidden', async () => {
+    // created_at is part of DEFAULT_HIDDEN_COLUMNS in AccountsView; with an empty
+    // localStorage the component applies those defaults, so created_at must NOT render.
+    // Seeding the persisted hidden-columns list (without created_at) makes it visible,
+    // which is the path users take after toggling it on via the column picker.
+    localStorage.setItem(
+      'account-hidden-columns',
+      JSON.stringify(['platform_type', 'today_stats', 'groups', 'proxy', 'notes', 'priority', 'rate_multiplier', 'last_used_at', 'expires_at'])
+    )
+
     listAccounts.mockResolvedValue({
       items: [
         {
@@ -223,5 +232,72 @@ describe('admin AccountsView bulk edit scope', () => {
       label: 'admin.accounts.columns.createdAt',
       sortable: true
     })
+  })
+
+  it('keeps created_at hidden when no saved column preference exists', async () => {
+    // Empty localStorage => DEFAULT_HIDDEN_COLUMNS applies, so created_at is hidden by default.
+    listAccounts.mockResolvedValue({
+      items: [
+        {
+          id: 1,
+          name: 'test-account',
+          platform: 'anthropic',
+          type: 'oauth',
+          status: 'active',
+          schedulable: true,
+          created_at: '2026-03-07T10:00:00Z',
+          updated_at: '2026-03-07T10:00:00Z'
+        }
+      ],
+      total: 1,
+      page: 1,
+      page_size: 20,
+      pages: 1
+    })
+
+    const wrapper = mount(AccountsView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          TablePageLayout: {
+            template: '<div><slot name="filters" /><slot name="table" /><slot name="pagination" /></div>'
+          },
+          DataTable: DataTableStub,
+          Pagination: true,
+          ConfirmDialog: true,
+          AccountTableActions: { template: '<div><slot name="beforeCreate" /><slot name="after" /></div>' },
+          AccountTableFilters: { template: '<div></div>' },
+          AccountBulkActionsBar: AccountBulkActionsBarStub,
+          AccountActionMenu: true,
+          ImportDataModal: true,
+          ReAuthAccountModal: true,
+          AccountTestModal: true,
+          AccountStatsModal: true,
+          ScheduledTestsPanel: true,
+          SyncFromCrsModal: true,
+          TempUnschedStatusModal: true,
+          ErrorPassthroughRulesModal: true,
+          TLSFingerprintProfilesModal: true,
+          CreateAccountModal: true,
+          EditAccountModal: true,
+          BulkEditAccountModal: BulkEditAccountModalStub,
+          PlatformTypeBadge: true,
+          AccountCapacityCell: true,
+          AccountStatusIndicator: true,
+          AccountTodayStatsCell: true,
+          AccountGroupsCell: true,
+          AccountUsageCell: true,
+          Icon: true
+        }
+      }
+    })
+
+    await flushPromises()
+
+    const columnKeys = wrapper.findAll('[data-test="column-key"]').map(node => node.text())
+    expect(columnKeys).not.toContain('created_at')
+    // The column definition still exists and stays sortable; it is just hidden by default.
+    const columns = wrapper.getComponent(DataTableStub).props('columns') as Array<{ key: string; label: string; sortable: boolean }>
+    expect(columns.find(column => column.key === 'created_at')).toBeUndefined()
   })
 })

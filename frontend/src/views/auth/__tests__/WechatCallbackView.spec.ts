@@ -150,6 +150,19 @@ vi.mock('@/api/auth', async () => {
   }
 })
 
+// shadcn migration: the former native <input type="checkbox"> adoption toggles
+// are now reka-ui <button role="checkbox" data-state="checked|unchecked">.
+// These helpers reflect that current DOM contract.
+function findAdoptionCheckboxes(wrapper: ReturnType<typeof mount>) {
+  return wrapper.findAll('button[role="checkbox"]')
+}
+
+// The primary action button is the only non-checkbox <button> in the active
+// pending-step panel; locate it by excluding the checkbox-role buttons.
+function findActionButtons(wrapper: ReturnType<typeof mount>) {
+  return wrapper.findAll('button').filter(b => b.attributes('role') !== 'checkbox')
+}
+
 describe('WechatCallbackView', () => {
   beforeEach(() => {
     exchangePendingOAuthCompletionMock.mockReset()
@@ -417,11 +430,12 @@ describe('WechatCallbackView', () => {
     expect(setTokenMock).not.toHaveBeenCalled()
     expect(replaceMock).not.toHaveBeenCalled()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = findAdoptionCheckboxes(wrapper)
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[1].setValue(false)
+    expect(checkboxes[1].attributes('data-state')).toBe('checked')
+    await checkboxes[1].trigger('click')
 
-    const buttons = wrapper.findAll('button')
+    const buttons = findActionButtons(wrapper)
     expect(buttons).toHaveLength(1)
     await buttons[0].trigger('click')
     await flushPromises()
@@ -461,7 +475,7 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
 
-    await wrapper.findAll('button')[0].trigger('click')
+    await findActionButtons(wrapper)[0].trigger('click')
     await flushPromises()
 
     expect(exchangePendingOAuthCompletionMock).toHaveBeenNthCalledWith(2, {
@@ -503,11 +517,12 @@ describe('WechatCallbackView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('WeChat Nick')
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = findAdoptionCheckboxes(wrapper)
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[0].setValue(false)
+    expect(checkboxes[0].attributes('data-state')).toBe('checked')
+    await checkboxes[0].trigger('click')
     await wrapper.get('input[type="text"]').setValue(' INVITE-CODE ')
-    await wrapper.get('button').trigger('click')
+    await findActionButtons(wrapper)[0].trigger('click')
     await flushPromises()
 
     expect(completeWeChatOAuthRegistrationMock).toHaveBeenCalledWith('INVITE-CODE', {
@@ -549,7 +564,7 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
     await wrapper.find('input[type="text"]').setValue('invite-code')
-    await wrapper.find('button').trigger('click')
+    await findActionButtons(wrapper)[0].trigger('click')
     await flushPromises()
 
     expect(completeWeChatOAuthRegistrationMock).toHaveBeenCalledWith('invite-code', {
@@ -686,9 +701,10 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = findAdoptionCheckboxes(wrapper)
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[1].setValue(false)
+    expect(checkboxes[1].attributes('data-state')).toBe('checked')
+    await checkboxes[1].trigger('click')
     await wrapper.get('[data-testid="wechat-create-account-email"]').setValue('  new@example.com  ')
     await wrapper.get('[data-testid="wechat-create-account-password"]').setValue('secret-123')
     await wrapper.get('[data-testid="wechat-create-account-verify-code"]').setValue('246810')
@@ -863,9 +879,10 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = findAdoptionCheckboxes(wrapper)
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[0].setValue(false)
+    expect(checkboxes[0].attributes('data-state')).toBe('checked')
+    await checkboxes[0].trigger('click')
     await wrapper.get('[data-testid="wechat-bind-login-email"]').setValue('existing@example.com')
     await wrapper.get('[data-testid="wechat-bind-login-password"]').setValue('secret-password')
     await wrapper.get('[data-testid="wechat-bind-login-submit"]').trigger('click')
@@ -901,7 +918,13 @@ describe('WechatCallbackView', () => {
 
     await flushPromises()
 
-    await wrapper.get('button.btn-secondary').trigger('click')
+    // shadcn migration: the "switch to create account" affordance is now a
+    // <Button variant="secondary"> (bg-secondary), not the legacy .btn-secondary.
+    const switchButton = wrapper
+      .findAll('button')
+      .find(b => b.text() === 'auth.oauthFlow.createNewAccount')
+    expect(switchButton).toBeTruthy()
+    await switchButton!.trigger('click')
     await flushPromises()
 
     const createAccountEmail = wrapper.get('[data-testid="wechat-create-account-email"]')
@@ -963,7 +986,7 @@ describe('WechatCallbackView', () => {
     })
 
     await flushPromises()
-    await wrapper.findAll('button')[0].trigger('click')
+    await findActionButtons(wrapper)[0].trigger('click')
     await flushPromises()
 
     expect(showSuccessMock).not.toHaveBeenCalled()

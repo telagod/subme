@@ -77,6 +77,27 @@ const DataTableStub = {
   `
 }
 
+const CheckboxStub = {
+  props: ['modelValue', 'checked'],
+  emits: ['update:modelValue', 'update:checked'],
+  setup(props: { modelValue?: boolean; checked?: boolean }, { emit }: { emit: (event: string, ...args: unknown[]) => void }) {
+    const onChange = (event: Event) => {
+      const value = (event.target as HTMLInputElement).checked
+      emit('update:modelValue', value)
+      emit('update:checked', value)
+    }
+    return { onChange }
+  },
+  template: `
+    <input
+      type="checkbox"
+      v-bind="$attrs"
+      :checked="modelValue ?? checked ?? false"
+      @change="onChange"
+    />
+  `
+}
+
 const SelectStub = {
   props: ['modelValue', 'options'],
   emits: ['update:modelValue', 'change'],
@@ -157,6 +178,7 @@ describe('admin RedeemView batch update', () => {
           DataTable: DataTableStub,
           Pagination: true,
           ConfirmDialog: true,
+          Checkbox: CheckboxStub,
           Select: SelectStub,
           GroupBadge: true,
           GroupOptionItem: true,

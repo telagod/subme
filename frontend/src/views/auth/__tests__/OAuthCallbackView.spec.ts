@@ -208,7 +208,10 @@ describe('OAuthCallbackView', () => {
 
     const emailInput = wrapper.find('input[type="email"]')
     expect(emailInput.exists()).toBe(true)
-    expect((emailInput.element as HTMLInputElement).value).toBe('verified@example.com')
+    // shadcn Input forwards :value as an HTML attribute (the inner <input> drives its
+    // DOM .value via its own v-model), so assert the rendered attribute — same approach
+    // the passing code/state cases use (input[value="oauth-code"]).
+    expect(emailInput.attributes('value')).toBe('verified@example.com')
     expect(emailInput.attributes('readonly')).toBeDefined()
     expect(emailInput.attributes('disabled')).toBeDefined()
 

@@ -20,20 +20,26 @@ describe('daysUntil', () => {
   })
 })
 
+// QUENCH→shadcn 迁移后徽章改用原生 Tailwind:公共前缀 + 紧迫度配色。
+const BADGE_BASE = 'inline-flex w-fit items-center rounded px-1.5 py-0.5 text-[10px] font-medium'
+const DANGER = `${BADGE_BASE} bg-red-500/15 text-red-400`
+const WARNING = `${BADGE_BASE} bg-amber-500/15 text-amber-400`
+const NEUTRAL = 'text-muted-foreground'
+
 describe('proxyExpiryBadgeClass', () => {
   it('status=expired → danger', () => {
-    expect(proxyExpiryBadgeClass(isoInDays(30), 'expired')).toBe('badge badge-danger')
+    expect(proxyExpiryBadgeClass(isoInDays(30), 'expired')).toBe(DANGER)
   })
   it('≤3 天 → danger（含边界 3）', () => {
-    expect(proxyExpiryBadgeClass(isoInDays(2), 'active')).toBe('badge badge-danger')
-    expect(proxyExpiryBadgeClass(isoInDays(3), 'active')).toBe('badge badge-danger')
+    expect(proxyExpiryBadgeClass(isoInDays(2), 'active')).toBe(DANGER)
+    expect(proxyExpiryBadgeClass(isoInDays(3), 'active')).toBe(DANGER)
   })
   it('4–7 天 → warning（含边界 7）', () => {
-    expect(proxyExpiryBadgeClass(isoInDays(5), 'active')).toBe('badge badge-warning')
-    expect(proxyExpiryBadgeClass(isoInDays(7), 'active')).toBe('badge badge-warning')
+    expect(proxyExpiryBadgeClass(isoInDays(5), 'active')).toBe(WARNING)
+    expect(proxyExpiryBadgeClass(isoInDays(7), 'active')).toBe(WARNING)
   })
   it('>7 天 → gray', () => {
-    expect(proxyExpiryBadgeClass(isoInDays(30), 'active')).toBe('text-gray-500')
+    expect(proxyExpiryBadgeClass(isoInDays(30), 'active')).toBe(NEUTRAL)
   })
 })
 

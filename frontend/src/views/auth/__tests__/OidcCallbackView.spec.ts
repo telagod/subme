@@ -226,10 +226,10 @@ describe('OidcCallbackView', () => {
     expect(setToken).not.toHaveBeenCalled()
     expect(replace).not.toHaveBeenCalled()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
-    await checkboxes[0].setValue(false)
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
+    await checkboxes[0].trigger('click')
 
-    await wrapper.findAll('button')[0].trigger('click')
+    await wrapper.find('button:not([role="checkbox"])').trigger('click')
     await flushPromises()
 
     expect(exchangePendingOAuthCompletion).toHaveBeenCalledTimes(2)
@@ -267,7 +267,7 @@ describe('OidcCallbackView', () => {
 
     await flushPromises()
 
-    await wrapper.findAll('button')[0].trigger('click')
+    await wrapper.find('button:not([role="checkbox"])').trigger('click')
     await flushPromises()
 
     expect(exchangePendingOAuthCompletion).toHaveBeenNthCalledWith(2, {
@@ -308,7 +308,7 @@ describe('OidcCallbackView', () => {
     })
 
     await flushPromises()
-    await wrapper.findAll('button')[0].trigger('click')
+    await wrapper.find('button:not([role="checkbox"])').trigger('click')
     await flushPromises()
 
     expect(showSuccess).not.toHaveBeenCalled()
@@ -374,11 +374,11 @@ describe('OidcCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[1].setValue(false)
+    await checkboxes[1].trigger('click')
     await wrapper.find('input[type="text"]').setValue('invite-code')
-    await wrapper.find('button').trigger('click')
+    await wrapper.find('button:not([role="checkbox"])').trigger('click')
 
     expect(completeOIDCOAuthRegistration).toHaveBeenCalledWith('invite-code', {
       adoptDisplayName: true,
@@ -417,7 +417,7 @@ describe('OidcCallbackView', () => {
 
     await flushPromises()
     await wrapper.find('input[type="text"]').setValue('invite-code')
-    await wrapper.find('button').trigger('click')
+    await wrapper.find('button:not([role="checkbox"])').trigger('click')
     await flushPromises()
 
     expect(completeOIDCOAuthRegistration).toHaveBeenCalledWith('invite-code', {
@@ -467,9 +467,9 @@ describe('OidcCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[1].setValue(false)
+    await checkboxes[1].trigger('click')
     await wrapper.get('[data-testid="oidc-create-account-email"]').setValue('  new@example.com  ')
     await wrapper.get('[data-testid="oidc-create-account-password"]').setValue('secret-123')
     await wrapper.get('[data-testid="oidc-create-account-verify-code"]').setValue('246810')
@@ -617,9 +617,9 @@ describe('OidcCallbackView', () => {
 
     await flushPromises()
 
-    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    const checkboxes = wrapper.findAll('[role="checkbox"]')
     expect(checkboxes).toHaveLength(2)
-    await checkboxes[0].setValue(false)
+    await checkboxes[0].trigger('click')
     await wrapper.get('[data-testid="oidc-bind-login-email"]').setValue('existing@example.com')
     await wrapper.get('[data-testid="oidc-bind-login-password"]').setValue('secret-password')
     await wrapper.get('[data-testid="oidc-bind-login-submit"]').trigger('click')
