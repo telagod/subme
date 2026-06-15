@@ -2189,6 +2189,12 @@ import {
   splitModelMappingObject,
   isValidWildcardPattern
 } from '@/composables/useModelWhitelist'
+import {
+  usePoolModeConfig,
+  DEFAULT_POOL_MODE_RETRY_COUNT,
+  MAX_POOL_MODE_RETRY_COUNT,
+  DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
+} from '@/composables/usePoolModeConfig'
 
 interface Props {
   show: boolean
@@ -2253,44 +2259,15 @@ const modelMappings = ref<ModelMapping[]>([])
 const openAICompactModelMappings = ref<ModelMapping[]>([])
 const modelRestrictionMode = ref<'whitelist' | 'mapping'>('whitelist')
 const allowedModels = ref<string[]>([])
-const DEFAULT_POOL_MODE_RETRY_COUNT = 3
-const MAX_POOL_MODE_RETRY_COUNT = 10
-const DEFAULT_POOL_MODE_RETRY_STATUS_CODES = [401, 403, 429]
-const poolModeEnabled = ref(false)
-const poolModeRetryCount = ref(DEFAULT_POOL_MODE_RETRY_COUNT)
-const poolModeRetryStatusCodesInput = ref('')
-
-function parsePoolModeRetryStatusCodes(input: string): number[] {
-  if (!input || !input.trim()) return []
-  const seen = new Set<number>()
-  const out: number[] = []
-  for (const token of input.split(/[,\s]+/)) {
-    const trimmed = token.trim()
-    if (!trimmed) continue
-    const n = Number(trimmed)
-    if (!Number.isFinite(n) || !Number.isInteger(n)) continue
-    if (n < 100 || n > 599) continue
-    if (seen.has(n)) continue
-    seen.add(n)
-    out.push(n)
-  }
-  return out.sort((a, b) => a - b)
-}
-
-function formatPoolModeRetryStatusCodes(value: unknown): string {
-  if (!Array.isArray(value)) return ''
-  const out: number[] = []
-  const seen = new Set<number>()
-  for (const v of value) {
-    const n = typeof v === 'string' ? Number(v.trim()) : Number(v)
-    if (!Number.isFinite(n) || !Number.isInteger(n)) continue
-    if (n < 100 || n > 599) continue
-    if (seen.has(n)) continue
-    seen.add(n)
-    out.push(n)
-  }
-  return out.sort((a, b) => a - b).join(', ')
-}
+// Pool Mode 配置（共享 composable，见 usePoolModeConfig.ts）
+const {
+  poolModeEnabled,
+  poolModeRetryCount,
+  poolModeRetryStatusCodesInput,
+  reset: resetPoolMode,
+  loadFromCredentials: loadPoolMode,
+  applyToCredentials: applyPoolMode,
+} = usePoolModeConfig()
 const customErrorCodesEnabled = ref(false)
 const selectedErrorCodes = ref<number[]>([])
 const customErrorCodeInput = ref<number | null>(null)
@@ -2655,19 +2632,6 @@ const expiresAtInput = computed({
 })
 
 // Watchers
-const normalizePoolModeRetryCount = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return DEFAULT_POOL_MODE_RETRY_COUNT
-  }
-  const normalized = Math.trunc(value)
-  if (normalized < 0) {
-    return 0
-  }
-  if (normalized > MAX_POOL_MODE_RETRY_COUNT) {
-    return MAX_POOL_MODE_RETRY_COUNT
-  }
-  return normalized
-}
 
 const loadModelRestrictionFromMapping = (rawMapping?: Record<string, unknown>) => {
   const parsed = splitModelMappingObject(rawMapping)
@@ -2875,11 +2839,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     loadModelRestrictionFromMapping(credentials.model_mapping as Record<string, unknown> | undefined)
 
     // Load pool mode
-    poolModeEnabled.value = credentials.pool_mode === true
-    poolModeRetryCount.value = normalizePoolModeRetryCount(
-      Number(credentials.pool_mode_retry_count ?? DEFAULT_POOL_MODE_RETRY_COUNT)
-    )
-    poolModeRetryStatusCodesInput.value = formatPoolModeRetryStatusCodes(credentials.pool_mode_retry_status_codes)
+    loadPoolMode(credentials)
 
     // Load custom error codes
     customErrorCodesEnabled.value = credentials.custom_error_codes_enabled === true
@@ -2904,10 +2864,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     }
 
     // Load pool mode for bedrock
-    poolModeEnabled.value = bedrockCreds.pool_mode === true
-    const retryCount = bedrockCreds.pool_mode_retry_count
-    poolModeRetryCount.value = (typeof retryCount === 'number' && retryCount >= 0) ? retryCount : DEFAULT_POOL_MODE_RETRY_COUNT
-    poolModeRetryStatusCodesInput.value = formatPoolModeRetryStatusCodes(bedrockCreds.pool_mode_retry_status_codes)
+    loadPoolMode(bedrockCreds)
 
     // Load quota limits for bedrock
     const bedrockExtra = (newAccount.extra as Record<string, unknown>) || {}
@@ -2948,9 +2905,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
       modelMappings.value = []
       allowedModels.value = []
     }
-    poolModeEnabled.value = false
-    poolModeRetryCount.value = DEFAULT_POOL_MODE_RETRY_COUNT
-    poolModeRetryStatusCodesInput.value = ''
+    resetPoolMode()
     customErrorCodesEnabled.value = false
     selectedErrorCodes.value = []
   }
@@ -3499,21 +3454,8 @@ const handleSubmit = async () => {
         }
       }
 
-      // Add pool mode if enabled
-      if (poolModeEnabled.value) {
-        newCredentials.pool_mode = true
-        newCredentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-        const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-        if (parsedRetryStatusCodes.length > 0) {
-          newCredentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-        } else {
-          delete newCredentials.pool_mode_retry_status_codes
-        }
-      } else {
-        delete newCredentials.pool_mode
-        delete newCredentials.pool_mode_retry_count
-        delete newCredentials.pool_mode_retry_status_codes
-      }
+      // Pool mode
+      applyPoolMode(newCredentials, 'edit')
 
       // Add custom error codes if enabled
       if (customErrorCodesEnabled.value) {
@@ -3625,20 +3567,7 @@ const handleSubmit = async () => {
       }
 
       // Pool mode
-      if (poolModeEnabled.value) {
-        newCredentials.pool_mode = true
-        newCredentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-        const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-        if (parsedRetryStatusCodes.length > 0) {
-          newCredentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-        } else {
-          delete newCredentials.pool_mode_retry_status_codes
-        }
-      } else {
-        delete newCredentials.pool_mode
-        delete newCredentials.pool_mode_retry_count
-        delete newCredentials.pool_mode_retry_status_codes
-      }
+      applyPoolMode(newCredentials, 'edit')
 
       // Model mapping
       const modelMapping = buildModelRestrictionMapping()

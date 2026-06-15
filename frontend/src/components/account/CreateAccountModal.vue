@@ -3062,6 +3062,12 @@ import {
   type OpenAIWSMode
 } from '@/utils/openaiWsMode'
 import OAuthAuthorizationFlow from './OAuthAuthorizationFlow.vue'
+import {
+  usePoolModeConfig,
+  DEFAULT_POOL_MODE_RETRY_COUNT,
+  MAX_POOL_MODE_RETRY_COUNT,
+  DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
+} from '@/composables/usePoolModeConfig'
 
 // Type for exposed OAuthAuthorizationFlow component
 // Note: defineExpose automatically unwraps refs, so we use the unwrapped types
@@ -3196,29 +3202,14 @@ const modelMappings = ref<ModelMapping[]>([])
 const openAICompactModelMappings = ref<ModelMapping[]>([])
 const modelRestrictionMode = ref<'whitelist' | 'mapping'>('whitelist')
 const allowedModels = ref<string[]>([])
-const DEFAULT_POOL_MODE_RETRY_COUNT = 3
-const MAX_POOL_MODE_RETRY_COUNT = 10
-const DEFAULT_POOL_MODE_RETRY_STATUS_CODES = [401, 403, 429]
-const poolModeEnabled = ref(false)
-const poolModeRetryCount = ref(DEFAULT_POOL_MODE_RETRY_COUNT)
-const poolModeRetryStatusCodesInput = ref('')
-
-function parsePoolModeRetryStatusCodes(input: string): number[] {
-  if (!input || !input.trim()) return []
-  const seen = new Set<number>()
-  const out: number[] = []
-  for (const token of input.split(/[,\s]+/)) {
-    const trimmed = token.trim()
-    if (!trimmed) continue
-    const n = Number(trimmed)
-    if (!Number.isFinite(n) || !Number.isInteger(n)) continue
-    if (n < 100 || n > 599) continue
-    if (seen.has(n)) continue
-    seen.add(n)
-    out.push(n)
-  }
-  return out.sort((a, b) => a - b)
-}
+// Pool Mode 配置（共享 composable，见 usePoolModeConfig.ts）
+const {
+  poolModeEnabled,
+  poolModeRetryCount,
+  poolModeRetryStatusCodesInput,
+  reset: resetPoolMode,
+  applyToCredentials: applyPoolMode,
+} = usePoolModeConfig()
 const customErrorCodesEnabled = ref(false)
 const selectedErrorCodes = ref<number[]>([])
 const customErrorCodeInput = ref<number | null>(null)
@@ -4043,9 +4034,7 @@ const resetForm = () => {
   fetchAntigravityDefaultMappings().then(mappings => {
     antigravityModelMappings.value = [...mappings]
   })
-  poolModeEnabled.value = false
-  poolModeRetryCount.value = DEFAULT_POOL_MODE_RETRY_COUNT
-  poolModeRetryStatusCodesInput.value = ''
+  resetPoolMode()
   customErrorCodesEnabled.value = false
   selectedErrorCodes.value = []
   customErrorCodeInput.value = null
@@ -4216,20 +4205,6 @@ const handleMixedChannelCancel = () => {
   clearMixedChannelDialog()
 }
 
-const normalizePoolModeRetryCount = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return DEFAULT_POOL_MODE_RETRY_COUNT
-  }
-  const normalized = Math.trunc(value)
-  if (normalized < 0) {
-    return 0
-  }
-  if (normalized > MAX_POOL_MODE_RETRY_COUNT) {
-    return MAX_POOL_MODE_RETRY_COUNT
-  }
-  return normalized
-}
-
 const applyVertexServiceAccountJson = (value: string) => {
   const raw = value.trim()
   if (!raw) {
@@ -4340,14 +4315,7 @@ const handleSubmit = async () => {
     }
 
     // Pool mode
-    if (poolModeEnabled.value) {
-      credentials.pool_mode = true
-      credentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-      const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-      if (parsedRetryStatusCodes.length > 0) {
-        credentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-      }
-    }
+    applyPoolMode(credentials, 'create')
 
     applyInterceptWarmup(credentials, interceptWarmupRequests.value, 'create')
 
@@ -4455,14 +4423,7 @@ const handleSubmit = async () => {
   }
 
   // Add pool mode if enabled
-  if (poolModeEnabled.value) {
-    credentials.pool_mode = true
-    credentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-    const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-    if (parsedRetryStatusCodes.length > 0) {
-      credentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-    }
-  }
+  applyPoolMode(credentials, 'create')
 
   // Add custom error codes if enabled
   if (customErrorCodesEnabled.value) {
