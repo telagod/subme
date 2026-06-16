@@ -89,14 +89,14 @@
           <div class="w-full sm:w-auto sm:min-w-[220px]">
             <Label class="mb-1 block">{{ t('usage.model') }}</Label>
             <Select
-              :model-value="filters.model ?? ''"
-              @update:model-value="v => { filters.model = v === '' ? null : v; emitChange() }"
+              :model-value="filters.model ?? '__all__'"
+              @update:model-value="v => { filters.model = v === '__all__' ? null : v; emitChange() }"
             >
               <SelectTrigger class="w-full">
                 <SelectValue :placeholder="t('admin.usage.allModels')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="opt in modelOptions" :key="String(opt.value ?? '')" :value="String(opt.value ?? '')">
+                <SelectItem v-for="opt in modelOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
                   {{ opt.label }}
                 </SelectItem>
               </SelectContent>
@@ -147,14 +147,14 @@
           <div class="w-full sm:w-auto sm:min-w-[180px]">
             <Label class="mb-1 block">{{ t('usage.type') }}</Label>
             <Select
-              :model-value="filters.request_type ?? ''"
-              @update:model-value="v => { filters.request_type = v === '' ? null : v; emitChange() }"
+              :model-value="filters.request_type ?? '__all__'"
+              @update:model-value="v => { filters.request_type = v === '__all__' ? null : v; emitChange() }"
             >
               <SelectTrigger class="w-full">
                 <SelectValue :placeholder="t('admin.usage.allTypes')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="opt in requestTypeOptions" :key="String(opt.value ?? '')" :value="String(opt.value ?? '')">
+                <SelectItem v-for="opt in requestTypeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
                   {{ opt.label }}
                 </SelectItem>
               </SelectContent>
@@ -165,14 +165,14 @@
           <div class="w-full sm:w-auto sm:min-w-[200px]">
             <Label class="mb-1 block">{{ t('admin.usage.billingType') }}</Label>
             <Select
-              :model-value="filters.billing_type != null ? String(filters.billing_type) : ''"
-              @update:model-value="v => { filters.billing_type = v === '' ? null : Number(v); emitChange() }"
+              :model-value="filters.billing_type != null ? String(filters.billing_type) : '__all__'"
+              @update:model-value="v => { filters.billing_type = v === '__all__' ? null : Number(v); emitChange() }"
             >
               <SelectTrigger class="w-full">
                 <SelectValue :placeholder="t('admin.usage.allBillingTypes')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="opt in billingTypeOptions" :key="String(opt.value ?? '')" :value="String(opt.value ?? '')">
+                <SelectItem v-for="opt in billingTypeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
                   {{ opt.label }}
                 </SelectItem>
               </SelectContent>
@@ -183,14 +183,14 @@
           <div class="w-full sm:w-auto sm:min-w-[200px]">
             <Label class="mb-1 block">{{ t('admin.usage.billingMode') }}</Label>
             <Select
-              :model-value="filters.billing_mode ?? ''"
-              @update:model-value="v => { filters.billing_mode = v === '' ? null : v; emitChange() }"
+              :model-value="filters.billing_mode ?? '__all__'"
+              @update:model-value="v => { filters.billing_mode = v === '__all__' ? null : v; emitChange() }"
             >
               <SelectTrigger class="w-full">
                 <SelectValue :placeholder="t('admin.usage.allBillingModes')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="opt in billingModeOptions" :key="String(opt.value ?? '')" :value="String(opt.value ?? '')">
+                <SelectItem v-for="opt in billingModeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
                   {{ opt.label }}
                 </SelectItem>
               </SelectContent>
@@ -201,14 +201,14 @@
           <div class="w-full sm:w-auto sm:min-w-[200px]">
             <Label class="mb-1 block">{{ t('admin.usage.group') }}</Label>
             <Select
-              :model-value="filters.group_id != null ? String(filters.group_id) : ''"
-              @update:model-value="v => { filters.group_id = v === '' ? null : Number(v); emitChange() }"
+              :model-value="filters.group_id != null ? String(filters.group_id) : '__all__'"
+              @update:model-value="v => { filters.group_id = v === '__all__' ? null : Number(v); emitChange() }"
             >
               <SelectTrigger class="w-full">
                 <SelectValue :placeholder="t('admin.usage.allGroups')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="opt in groupOptions" :key="String(opt.value ?? '')" :value="String(opt.value ?? '')">
+                <SelectItem v-for="opt in groupOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
                   {{ opt.label }}
                 </SelectItem>
               </SelectContent>
