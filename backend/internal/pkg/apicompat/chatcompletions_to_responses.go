@@ -420,7 +420,7 @@ func convertChatToolsToResponses(tools []ChatTool, functions []ChatFunction) []R
 			Name:        t.Function.Name,
 			Description: t.Function.Description,
 			Parameters:  t.Function.Parameters,
-			Strict:      t.Function.Strict,
+			Strict:      defaultStrictFalse(t.Function.Strict),
 		}
 		out = append(out, rt)
 	}
@@ -432,12 +432,25 @@ func convertChatToolsToResponses(tools []ChatTool, functions []ChatFunction) []R
 			Name:        f.Name,
 			Description: f.Description,
 			Parameters:  f.Parameters,
-			Strict:      f.Strict,
+			Strict:      defaultStrictFalse(f.Strict),
 		}
 		out = append(out, rt)
 	}
 
 	return out
+}
+
+// defaultStrictFalse mirrors the Responses API behaviour: when the client omits
+// `tool.strict`, the field would otherwise be dropped by `omitempty` and fall
+// back to whatever the upstream defaults — which historically diverges from
+// Responses' documented `false` default and surfaces as tool-call schema
+// failures. Normalise nil → &false so the wire payload is explicit.
+func defaultStrictFalse(src *bool) *bool {
+	if src == nil {
+		value := false
+		return &value
+	}
+	return src
 }
 
 // convertChatFunctionCallToToolChoice maps the legacy function_call field to a

@@ -1470,3 +1470,85 @@ func TestBufferedResponseAccumulator_IgnoresNonFunctionCallItems(t *testing.T) {
 
 	assert.False(t, acc.HasContent())
 }
+
+// TestChatCompletionsToResponses_ToolStrictDefaultsToFalse pins the contract
+// that nil `tool.strict` on the wire becomes an explicit `false` on the
+// Responses side — matching the upstream Responses API default and avoiding
+// tool-call schema regressions when clients omit the field.
+func TestChatCompletionsToResponses_ToolStrictDefaultsToFalse(t *testing.T) {
+	t.Run("tools[] entry with nil strict", func(t *testing.T) {
+		req := &ChatCompletionsRequest{
+			Model: "gpt-4o",
+			Messages: []ChatMessage{
+				{Role: "user", Content: json.RawMessage(`"Hi"`)},
+			},
+			Tools: []ChatTool{
+				{
+					Type: "function",
+					Function: &ChatFunction{
+						Name:        "ping",
+						Description: "Ping a host",
+						Parameters:  json.RawMessage(`{"type":"object"}`),
+						// Strict intentionally nil.
+					},
+				},
+			},
+		}
+
+		resp, err := ChatCompletionsToResponses(req)
+		require.NoError(t, err)
+		require.Len(t, resp.Tools, 1)
+		require.NotNil(t, resp.Tools[0].Strict, "nil strict should be normalised to explicit false")
+		assert.False(t, *resp.Tools[0].Strict)
+	})
+
+	t.Run("legacy functions[] entry with nil strict", func(t *testing.T) {
+		req := &ChatCompletionsRequest{
+			Model: "gpt-4o",
+			Messages: []ChatMessage{
+				{Role: "user", Content: json.RawMessage(`"Hi"`)},
+			},
+			Functions: []ChatFunction{
+				{
+					Name:        "get_weather",
+					Description: "Get weather",
+					Parameters:  json.RawMessage(`{"type":"object"}`),
+					// Strict intentionally nil.
+				},
+			},
+		}
+
+		resp, err := ChatCompletionsToResponses(req)
+		require.NoError(t, err)
+		require.Len(t, resp.Tools, 1)
+		require.NotNil(t, resp.Tools[0].Strict)
+		assert.False(t, *resp.Tools[0].Strict)
+	})
+
+	t.Run("explicit strict=true is preserved", func(t *testing.T) {
+		strictTrue := true
+		req := &ChatCompletionsRequest{
+			Model: "gpt-4o",
+			Messages: []ChatMessage{
+				{Role: "user", Content: json.RawMessage(`"Hi"`)},
+			},
+			Tools: []ChatTool{
+				{
+					Type: "function",
+					Function: &ChatFunction{
+						Name:        "ping",
+						Description: "Ping a host",
+						Parameters:  json.RawMessage(`{"type":"object"}`),
+						Strict:      &strictTrue,
+					},
+				},
+			},
+		}
+
+		resp, err := ChatCompletionsToResponses(req)
+		require.NoError(t, err)
+		require.Len(t, resp.Tools, 1)
+		require.NotNil(t, resp.Tools[0].Strict)
+		assert.True(t, *resp.Tools[0].Strict)
+	})
+}
