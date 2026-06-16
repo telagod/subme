@@ -7410,6 +7410,7 @@ export default {
       tabPayment: '支付',
       tabEmail: '邮件',
       tabBackup: '备份',
+      noSearchResults: '没有匹配的设置项',
     },
   },
 

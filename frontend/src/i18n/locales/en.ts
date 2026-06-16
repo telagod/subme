@@ -7227,6 +7227,7 @@ export default {
       tabPayment: 'Payment',
       tabEmail: 'Email',
       tabBackup: 'Backup',
+      noSearchResults: 'No matching settings found',
     },
   },
 
