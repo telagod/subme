@@ -125,6 +125,7 @@ func (h *AuthHandler) WeChatOAuthStart(c *gin.Context) {
 	persistWeChatCookie(c, wechatOAuthRedirectCookieName, encodeCookieValue(destination), wechatOAuthCookieMaxAgeSec, useSecure)
 	persistWeChatCookie(c, wechatOAuthIntentCookieName, encodeCookieValue(loginIntent), wechatOAuthCookieMaxAgeSec, useSecure)
 	persistWeChatCookie(c, wechatOAuthModeCookieName, encodeCookieValue(oauthCfg.mode), wechatOAuthCookieMaxAgeSec, useSecure)
+	captureOAuthPromoCode(c, useSecure)
 	setOAuthPendingBrowserCookie(c, browserKey, useSecure)
 	clearOAuthPendingSessionCookie(c, useSecure)
 	if loginIntent == oauthIntentBindCurrentUser {
@@ -171,6 +172,7 @@ func (h *AuthHandler) WeChatOAuthCallback(c *gin.Context) {
 		removeWeChatCookie(c, wechatOAuthIntentCookieName, useSecure)
 		removeWeChatCookie(c, wechatOAuthModeCookieName, useSecure)
 		removeWeChatCookie(c, wechatOAuthBindUserCookieName, useSecure)
+		clearOAuthPromoCodeCookie(c, useSecure)
 	}()
 
 	savedCSRF, readErr := readCookieDecoded(c, wechatOAuthStateCookieName)
@@ -548,7 +550,15 @@ func (h *AuthHandler) CompleteWeChatOAuthRegistration(c *gin.Context) {
 		return
 	}
 
-	tokens, registeredUser, regErr := h.authService.LoginOrRegisterOAuthWithTokenPair(c.Request.Context(), resolvedEmail, resolvedUsername, payload.InvitationCode, payload.AffCode, "wechat")
+	tokens, registeredUser, regErr := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
+		c.Request.Context(),
+		resolvedEmail,
+		resolvedUsername,
+		payload.InvitationCode,
+		payload.AffCode,
+		pendingOAuthPromoCode(pendingSession),
+		"wechat",
+	)
 	if regErr != nil {
 		response.ErrorFrom(c, regErr)
 		return

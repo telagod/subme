@@ -187,6 +187,7 @@ func (h *AuthHandler) DingTalkOAuthStart(c *gin.Context) {
 	setDTCookie(c, dtRedirectCookie, encodeCookieValue(redirectTo), dtCookieMaxAge, secure)
 	intent := sanitizeOAuthIntent(c.Query("intent"))
 	setDTCookie(c, dtIntentCookie, encodeCookieValue(intent), dtCookieMaxAge, secure)
+	captureOAuthPromoCode(c, secure)
 	setOAuthPendingBrowserCookie(c, browserKey, secure)
 	clearOAuthPendingSessionCookie(c, secure)
 	if intent == oauthIntentBindCurrentUser {
@@ -232,6 +233,7 @@ func (h *AuthHandler) DingTalkOAuthCallback(c *gin.Context) {
 		clearDTCookie(c, dtStateCookie, secure)
 		clearDTCookie(c, dtRedirectCookie, secure)
 		clearDTCookie(c, dtIntentCookie, secure)
+		clearOAuthPromoCodeCookie(c, secure)
 	}()
 	expected, err := readCookieDecoded(c, dtStateCookie)
 	if err != nil || state != expected {
@@ -585,7 +587,15 @@ func (h *AuthHandler) CompleteDingTalkOAuthRegistration(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPair(c.Request.Context(), email, username, req.InvitationCode, req.AffCode, "dingtalk")
+	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
+		c.Request.Context(),
+		email,
+		username,
+		req.InvitationCode,
+		req.AffCode,
+		pendingOAuthPromoCode(session),
+		"dingtalk",
+	)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return

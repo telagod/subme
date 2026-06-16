@@ -26,7 +26,7 @@ type EmailOAuthIdentityInput struct {
 }
 
 func (s *AuthService) LoginOrRegisterVerifiedEmailOAuth(ctx context.Context, input EmailOAuthIdentityInput) (*TokenPair, *User, error) {
-	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, "", "")
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, "", "", "")
 }
 
 func (s *AuthService) LoginOrRegisterVerifiedEmailOAuthWithInvitation(
@@ -35,7 +35,19 @@ func (s *AuthService) LoginOrRegisterVerifiedEmailOAuthWithInvitation(
 	invitationCode string,
 	affiliateCode string,
 ) (*TokenPair, *User, error) {
-	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode, affiliateCode)
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode, affiliateCode, "")
+}
+
+// LoginOrRegisterVerifiedEmailOAuthWithSignupCodes 与 invitation 版本一致，
+// 但额外接受 promoCode。仅在新用户注册时消费 promo（既有用户登录不消费）。
+func (s *AuthService) LoginOrRegisterVerifiedEmailOAuthWithSignupCodes(
+	ctx context.Context,
+	input EmailOAuthIdentityInput,
+	invitationCode string,
+	affiliateCode string,
+	promoCode string,
+) (*TokenPair, *User, error) {
+	return s.loginOrRegisterVerifiedEmailOAuth(ctx, input, invitationCode, affiliateCode, promoCode)
 }
 
 func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
@@ -43,6 +55,7 @@ func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 	input EmailOAuthIdentityInput,
 	invitationCode string,
 	affiliateCode string,
+	promoCode string,
 ) (*TokenPair, *User, error) {
 	if s == nil || s.userRepo == nil || s.entClient == nil {
 		return nil, nil, ErrServiceUnavailable
@@ -133,6 +146,8 @@ func (s *AuthService) loginOrRegisterVerifiedEmailOAuth(
 		if bindErr := s.ApplyProviderDefaultSettingsOnFirstBind(ctx, resolvedUser.ID, provider); bindErr != nil {
 			logger.LegacyPrintf("service.auth", "[Auth] Failed to apply %s first bind defaults: %v", provider, bindErr)
 		}
+	} else {
+		resolvedUser = s.applyOAuthSignupPromoCode(ctx, resolvedUser, promoCode)
 	}
 	s.RecordSuccessfulLogin(ctx, resolvedUser.ID)
 
