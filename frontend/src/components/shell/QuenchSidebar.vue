@@ -1,18 +1,18 @@
 <template>
-  <aside class="hidden w-[228px] shrink-0 flex-col border-r border-border bg-[#0f1115] lg:flex" style="height:100vh;position:sticky;top:0;overflow:hidden;">
+  <aside class="hidden w-[228px] shrink-0 flex-col border-r border-border bg-card lg:flex" style="height:100vh;position:sticky;top:0;overflow:hidden;">
     <!-- Brand -->
     <div class="flex shrink-0 items-center gap-2.5 border-b border-border px-[18px] pb-4 pt-[18px]">
-      <div class="grid h-[30px] w-[30px] shrink-0 place-items-center overflow-hidden rounded-[8px] bg-gradient-to-br from-[#e4e9f0] via-[#8b95a5] to-[#5c6573] shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_2px_10px_rgba(140,196,255,0.18)]">
+      <div class="grid h-[30px] w-[30px] shrink-0 place-items-center overflow-hidden rounded-[8px] border border-border bg-secondary">
         <img
           v-if="siteLogo"
           :src="siteLogo"
           alt="logo"
           class="h-full w-full object-contain"
         />
-        <span v-else class="text-sm font-extrabold text-[#14171d]">S</span>
+        <span v-else class="text-sm font-extrabold text-foreground">S</span>
       </div>
       <div class="flex min-w-0 flex-col">
-        <span class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold tracking-[0.04em] text-[#e8ebf0]">{{ siteName }}</span>
+        <span class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold tracking-[0.04em] text-foreground">{{ siteName }}</span>
         <span class="font-mono text-[9.5px] tracking-[0.22em] text-muted-foreground">ADMIN</span>
       </div>
     </div>
