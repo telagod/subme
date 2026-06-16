@@ -111,6 +111,7 @@ import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { resolveNavItem } from './nav'
+import { useTheme } from '@/composables/useTheme'
 
 const emit = defineEmits<{
   openCommandPalette: []
@@ -141,19 +142,7 @@ const displayName = computed(() => {
   return user.value.username || user.value.email?.split('@')[0] || ''
 })
 
-// Theme
-const isDark = computed(() => {
-  return document.documentElement.getAttribute('data-theme') !== 'light'
-})
-
-function toggleTheme() {
-  const html = document.documentElement
-  const current = html.getAttribute('data-theme')
-  html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light')
-  try {
-    localStorage.setItem('theme', current === 'light' ? 'dark' : 'light')
-  } catch {}
-}
+const { isDark, toggle: toggleTheme } = useTheme()
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value
