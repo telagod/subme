@@ -1009,3 +1009,95 @@ func TestComputeTokenBreakdown_NonExplicitZeroImagePrice_FallsBackToOutput(t *te
 	// textOutputTokens = 200 - 50 = 150
 	require.InDelta(t, 150*15e-6, bd.OutputCost, 1e-12)
 }
+
+// doubao-embedding-vision 是首个图文不同价的 embedding：文本 ¥0.7/MTok、图片 ¥1.8/MTok。
+// 验证回退表同时携带文本与图片两档单价，且能被带版本后缀 / 大小写别名命中。
+func TestGetModelPricing_DoubaoEmbeddingVisionImageInputRate(t *testing.T) {
+	svc := newTestBillingService()
+
+	for _, model := range []string{
+		"doubao-embedding-vision",
+		"doubao-embedding-vision-251215",
+		"Doubao-Embedding-Vision",
+	} {
+		pricing, err := svc.GetModelPricing(model)
+		require.NoError(t, err, "model %s should resolve fallback pricing", model)
+		require.NotNil(t, pricing)
+		require.InDelta(t, 0.098e-6, pricing.InputPricePerToken, 1e-12, "text input rate for %s", model)
+		require.InDelta(t, 0.252e-6, pricing.ImageInputPricePerToken, 1e-12, "image input rate for %s", model)
+		require.Zero(t, pricing.OutputPricePerToken, "embedding has no output cost for %s", model)
+	}
+}
+
+// 验证 doubao-embedding-vision 不在白名单时的负向回退：纯文本 embedding / 非 vision 别名应不命中。
+func TestGetFallbackPricing_DoubaoEmbeddingNegative(t *testing.T) {
+	svc := newTestBillingService()
+
+	// 纯文本 embedding 不在白名单，仅 doubao-embedding-vision 显式命中。
+	require.Nil(t, svc.getFallbackPricing("doubao-pro"))
+	require.Nil(t, svc.getFallbackPricing("doubao-embedding-text-240515"))
+}
+
+// 验证双档计费：InputCost = 文本token×文本价 + 图片token×图片价；
+// 且 ImageInputTokens=0 时走原单价路径，ImageInputTokens>InputTokens 时不负计文本。
+func TestCalculateCost_DoubaoEmbeddingVisionDifferentialInput(t *testing.T) {
+	svc := newTestBillingService()
+
+	// 图文混合：prompt_tokens=1340，其中 image_tokens=28、text_tokens=1312。
+	mixed := UsageTokens{InputTokens: 1340, ImageInputTokens: 28}
+	cost, err := svc.CalculateCost("doubao-embedding-vision", mixed, 1.0)
+	require.NoError(t, err)
+	wantMixed := float64(1312)*0.098e-6 + float64(28)*0.252e-6
+	require.InDelta(t, wantMixed, cost.InputCost, 1e-15)
+	require.InDelta(t, wantMixed, cost.TotalCost, 1e-15)
+	require.Zero(t, cost.OutputCost)
+
+	// 纯文本：全部按文本档计费，与原单价路径一致。
+	textOnly := UsageTokens{InputTokens: 1340}
+	costText, err := svc.CalculateCost("doubao-embedding-vision", textOnly, 1.0)
+	require.NoError(t, err)
+	require.InDelta(t, float64(1340)*0.098e-6, costText.InputCost, 1e-15)
+
+	// 健壮性：ImageInputTokens 超过 InputTokens 时，文本置 0、计费 token 不超过 InputTokens。
+	weird := UsageTokens{InputTokens: 10, ImageInputTokens: 50}
+	costWeird, err := svc.CalculateCost("doubao-embedding-vision", weird, 1.0)
+	require.NoError(t, err)
+	require.InDelta(t, float64(10)*0.252e-6, costWeird.InputCost, 1e-15)
+}
+
+// 验证 ImageInputTokens 在非多模态价格（ImageInputPricePerToken=0）时回退到 InputPricePerToken，
+// 避免上游字段意外置位导致 chat/vision 流量计费突变。
+func TestComputeTokenBreakdown_ImageInputFallbackToTextRate(t *testing.T) {
+	svc := newTestBillingService()
+
+	// claude-sonnet-4 没有图片输入档（ImageInputPricePerToken=0），应整体走 input 单价。
+	pricing, err := svc.GetModelPricing("claude-sonnet-4")
+	require.NoError(t, err)
+
+	tokens := UsageTokens{InputTokens: 1000, ImageInputTokens: 300}
+	bd := svc.computeTokenBreakdown(pricing, tokens, 1.0, "", false)
+	// 700 文本 + 300 图片，均按 inputPrice 计 = 1000 * 3e-6
+	require.InDelta(t, 1000*3e-6, bd.InputCost, 1e-12)
+}
+
+// 验证 extractOpenAIEmbeddingsUsage 能解析 prompt_tokens_details.image_tokens 与
+// input_tokens_details.image_tokens 两种别名。
+func TestExtractOpenAIEmbeddingsUsage_ImageInputTokens(t *testing.T) {
+	// prompt_tokens_details.image_tokens（doubao 风格）
+	body1 := []byte(`{"usage":{"prompt_tokens":1340,"prompt_tokens_details":{"image_tokens":28}}}`)
+	u1 := extractOpenAIEmbeddingsUsage(body1)
+	require.Equal(t, 1340, u1.InputTokens)
+	require.Equal(t, 28, u1.ImageInputTokens)
+
+	// input_tokens_details.image_tokens（OpenAI Responses 风格别名）
+	body2 := []byte(`{"usage":{"input_tokens":2000,"input_tokens_details":{"image_tokens":150}}}`)
+	u2 := extractOpenAIEmbeddingsUsage(body2)
+	require.Equal(t, 2000, u2.InputTokens)
+	require.Equal(t, 150, u2.ImageInputTokens)
+
+	// 纯文本 embedding：未带 image_tokens，ImageInputTokens 应为 0。
+	body3 := []byte(`{"usage":{"prompt_tokens":500}}`)
+	u3 := extractOpenAIEmbeddingsUsage(body3)
+	require.Equal(t, 500, u3.InputTokens)
+	require.Zero(t, u3.ImageInputTokens)
+}
