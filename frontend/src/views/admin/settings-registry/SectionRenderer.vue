@@ -1,7 +1,7 @@
 <template>
-  <div :id="`sr-section-${section.id}`" class="overflow-hidden rounded-xl border border-border bg-card shadow-[inset_0_1px_0_rgba(255,255,255,.04),0_4px_16px_rgba(0,0,0,.25)] scroll-mt-24">
+  <div :id="`sr-section-${section.id}`" class="overflow-hidden rounded-xl border border-border bg-card shadow-sm scroll-mt-24">
     <!-- card header -->
-    <div class="border-b border-border bg-gradient-to-b from-white/[.025] to-transparent px-5 py-3.5">
+    <div class="border-b border-border bg-muted/30 px-5 py-3.5">
       <h2 class="mb-0.5 text-[13.5px] font-semibold tracking-tight text-foreground">{{ resolveLabel(section.title) }}</h2>
       <p v-if="section.description" class="text-[11.5px] leading-[1.55] text-muted-foreground">{{ resolveLabel(section.description) }}</p>
     </div>
