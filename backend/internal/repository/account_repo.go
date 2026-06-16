@@ -779,6 +779,68 @@ func (r *accountRepository) ListActive(ctx context.Context) ([]service.Account, 
 	return r.accountsToService(ctx, accounts)
 }
 
+// ListOAuthRefreshCandidates 仅返回后台 OAuth token 刷新工作器需要处理的账号：
+//   - 软删除排除、status=active、type=oauth
+//   - 平台支持 OAuth 刷新（anthropic/openai/gemini/antigravity）
+//   - credentials 含非空 refresh_token
+//   - 不在 token-refresh-retry-exhausted 冷却窗口内
+//
+// 注意 PG 三值逻辑：写成 NOT (a AND b) 在 a/b 为 NULL（健康账号常态）时
+// 结果为 NULL → WHERE 视为不成立，会把所有健康账号默默排除掉，
+// 导致 access_token 到期后大面积 401。必须用 (a AND b) IS NOT TRUE，
+// 把 FALSE/NULL 都视作"可被刷新"。
+func (r *accountRepository) ListOAuthRefreshCandidates(ctx context.Context) ([]service.Account, error) {
+	if r.sql == nil {
+		return nil, errors.New("account repository SQL executor not configured")
+	}
+	rows, err := r.sql.QueryContext(ctx, `
+		SELECT id
+		FROM accounts
+		WHERE deleted_at IS NULL
+			AND status = 'active'
+			AND type = 'oauth'
+			AND platform IN ('anthropic', 'openai', 'gemini', 'antigravity')
+			AND credentials ? 'refresh_token'
+			AND btrim(credentials->>'refresh_token') <> ''
+			AND (
+				temp_unschedulable_until > NOW()
+				AND temp_unschedulable_reason LIKE 'token refresh retry exhausted:%'
+			) IS NOT TRUE
+		ORDER BY priority ASC, id ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(ids) == 0 {
+		return []service.Account{}, nil
+	}
+
+	accounts, err := r.GetByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]service.Account, 0, len(accounts))
+	for _, account := range accounts {
+		if account != nil {
+			out = append(out, *account)
+		}
+	}
+	return out, nil
+}
+
 func (r *accountRepository) ListByPlatform(ctx context.Context, platform string) ([]service.Account, error) {
 	accounts, err := r.client.Account.Query().
 		Where(
@@ -1276,7 +1338,7 @@ func (r *accountRepository) SetOverloaded(ctx context.Context, id int64, until t
 }
 
 func (r *accountRepository) SetTempUnschedulable(ctx context.Context, id int64, until time.Time, reason string) error {
-	_, err := r.sql.ExecContext(ctx, `
+	result, err := r.sql.ExecContext(ctx, `
 		UPDATE accounts
 		SET temp_unschedulable_until = $1,
 			temp_unschedulable_reason = $2,
@@ -1287,6 +1349,16 @@ func (r *accountRepository) SetTempUnschedulable(ctx context.Context, id int64, 
 	`, until, reason, id)
 	if err != nil {
 		return err
+	}
+	// 条件 UPDATE 命中 0 行：账号已被更晚的 until 标记或已被软删，
+	// 此时不应再 enqueue scheduler_outbox / 重写 snapshot，避免每周期
+	// 因死账号反复刷新失败导致 outbox churn。
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected <= 0 {
+		return nil
 	}
 	if err := enqueueSchedulerOutbox(ctx, r.sql, service.SchedulerOutboxEventAccountChanged, &id, nil, nil); err != nil {
 		logger.LegacyPrintf("repository.account", "[SchedulerOutbox] enqueue temp unschedulable failed: account=%d err=%v", id, err)

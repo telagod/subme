@@ -255,10 +255,15 @@ func (s *TokenRefreshService) processRefresh() {
 	}
 }
 
-// listActiveAccounts 获取所有active状态的账号
-// 使用ListActive确保刷新所有活跃账号的token（包括临时禁用的）
+// listActiveAccounts 返回后台 OAuth token 刷新工作器的候选账号。
+//
+// 历史上这里用 ListActive 扫所有 active 账号——但这放大了重试代价：
+// 每周期都会把已经标记 token-refresh-retry-exhausted 的死账号再拉一遍，
+// 失败后又走 SetTempUnschedulable / scheduler_outbox 一遍，形成 outbox 风暴。
+// 改为 ListOAuthRefreshCandidates 在 SQL 层先排除冷却窗口内的账号 +
+// 只筛 oauth 类型 + refresh_token 非空，从源头收口。
 func (s *TokenRefreshService) listActiveAccounts(ctx context.Context) ([]Account, error) {
-	return s.accountRepo.ListActive(ctx)
+	return s.accountRepo.ListOAuthRefreshCandidates(ctx)
 }
 
 // refreshWithRetry 带重试的刷新

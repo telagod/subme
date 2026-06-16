@@ -42,6 +42,10 @@ type AccountRepository interface {
 	ListWithFilters(ctx context.Context, params pagination.PaginationParams, platform, accountType, status, search string, groupID int64, privacyMode string, extraFilters ...map[string]string) ([]Account, *pagination.PaginationResult, error)
 	ListByGroup(ctx context.Context, groupID int64) ([]Account, error)
 	ListActive(ctx context.Context) ([]Account, error)
+	// ListOAuthRefreshCandidates 返回后台 OAuth token 刷新工作器需要处理的账号。
+	// 比 ListActive 更窄：仅 oauth 类型、支持刷新的平台、refresh_token 非空、
+	// 且不在 token-refresh-retry-exhausted 冷却窗口内。避免死账号反复刷新放大。
+	ListOAuthRefreshCandidates(ctx context.Context) ([]Account, error)
 	ListByPlatform(ctx context.Context, platform string) ([]Account, error)
 
 	UpdateLastUsed(ctx context.Context, id int64) error
