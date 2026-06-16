@@ -215,7 +215,16 @@ func PrepareBedrockRequestBodyWithTokens(body []byte, modelID string, betaTokens
 			return nil, fmt.Errorf("inject anthropic_beta: %w", err)
 		}
 		logger.LegacyPrintf("service.gateway", "[Bedrock] Injected beta tokens: %v (model=%s ccCompat=%v)", betaTokens, modelID, ccCompat)
+	} else {
+		// resolver 返空时，必须清除客户端 body 内残留的 anthropic_beta，
+		// 否则未经白名单过滤的 token 会直达 Bedrock 触发 ValidationException
+		body, _ = sjson.DeleteBytes(body, "anthropic_beta")
 	}
+
+	// 移除 Bedrock 不支持的 Anthropic 直连 API 专有顶层字段
+	// （Bedrock 对未知顶层字段返回 400 ValidationException）
+	body, _ = sjson.DeleteBytes(body, "provider")
+	body, _ = sjson.DeleteBytes(body, "metadata")
 
 	// 移除 model 字段（Bedrock 通过 URL 指定模型）
 	body, err = sjson.DeleteBytes(body, "model")
