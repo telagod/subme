@@ -1142,15 +1142,18 @@ function formToAPI(): { group_ids: number[], model_pricing: ChannelModelPricing[
     delete featuresConfig.codex_image_generation_bridge
   }
 
-  const bedrockCCCompat: Record<string, boolean> = {}
+  // bedrock_cc_compat is persisted as plain bool to match backend's .(bool) cast
+  // (see backend/internal/service/channel.go IsBedrockCCCompatEnabled).
+  let bedrockCCCompatEnabled = false
   for (const section of form.platforms) {
     if (!section.enabled) continue
-    if (section.platform === 'anthropic') {
-      bedrockCCCompat[section.platform] = !!section.bedrock_cc_compat
+    if (section.platform === 'anthropic' && section.bedrock_cc_compat) {
+      bedrockCCCompatEnabled = true
+      break
     }
   }
-  if (Object.keys(bedrockCCCompat).length > 0) {
-    featuresConfig.bedrock_cc_compat = bedrockCCCompat
+  if (bedrockCCCompatEnabled) {
+    featuresConfig.bedrock_cc_compat = true
   } else {
     delete featuresConfig.bedrock_cc_compat
   }
@@ -1205,8 +1208,7 @@ function apiToForm(channel: Channel): PlatformSection[] {
     const webSearchEnabled = wsEmulation?.[platform] === true
     const codexImageGenerationBridge = fc?.codex_image_generation_bridge as Record<string, boolean> | undefined
     const codexImageGenerationBridgeEnabled = codexImageGenerationBridge?.[platform] === true
-    const bedrockCCCompat = fc?.bedrock_cc_compat as Record<string, boolean> | undefined
-    const bedrockCCCompatEnabled = bedrockCCCompat?.[platform] === true
+    const bedrockCCCompatEnabled = fc?.bedrock_cc_compat === true
 
     sections.push({
       platform,
