@@ -106,6 +106,7 @@ type BindUserAuthIdentityChannelRequest struct {
 //   - search: search in email, username
 //   - attr[{id}]: filter by custom attribute value, e.g. attr[1]=company
 //   - group_name: fuzzy filter by allowed group name
+//   - api_key_group_id: filter by the exact group bound to the user's API keys
 //   - balance_min: minimum balance (float, inclusive)
 //   - balance_max: maximum balance (float, inclusive)
 //   - created_after: earliest created_at (RFC3339 or YYYY-MM-DD, inclusive)
@@ -130,6 +131,11 @@ func (h *UserHandler) List(c *gin.Context) {
 		GroupName:          strings.TrimSpace(c.Query("group_name")),
 		Attributes:         parseAttributeFilters(c),
 		SubscriptionStatus: strings.TrimSpace(c.Query("subscription_status")),
+	}
+	if raw := strings.TrimSpace(c.Query("api_key_group_id")); raw != "" {
+		if id, parseErr := strconv.ParseInt(raw, 10, 64); parseErr == nil && id > 0 {
+			filters.APIKeyGroupID = id
+		}
 	}
 
 	// 余额区间
