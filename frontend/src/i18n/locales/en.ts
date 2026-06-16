@@ -2885,6 +2885,8 @@ export default {
         groupNamePlaceholder: 'Optional, used to group rows in user view',
         intervalSeconds: 'Interval (seconds)',
         intervalSecondsHint: 'Range: 15 - 3600 seconds',
+        jitterSeconds: 'Random Jitter (± seconds)',
+        jitterSecondsHint: 'Each check fires at interval plus a random offset within ± this value; 0 keeps the cadence fixed. Interval minus jitter must stay >= 15 seconds.',
         enabled: 'Enable monitor',
         kindRequired: 'Please select a provider'
       },

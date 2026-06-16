@@ -46,6 +46,7 @@ type channelMonitorCreateRequest struct {
 	GroupName        string            `json:"group_name" binding:"max=100"`
 	Enabled          *bool             `json:"enabled"`
 	IntervalSeconds  int               `json:"interval_seconds" binding:"required,min=15,max=3600"`
+	JitterSeconds    int               `json:"jitter_seconds" binding:"omitempty,min=0,max=3585"`
 	TemplateID       *int64            `json:"template_id"`
 	ExtraHeaders     map[string]string `json:"extra_headers"`
 	BodyOverrideMode string            `json:"body_override_mode" binding:"omitempty,oneof=off merge replace"`
@@ -63,6 +64,7 @@ type channelMonitorUpdateRequest struct {
 	GroupName        *string            `json:"group_name" binding:"omitempty,max=100"`
 	Enabled          *bool              `json:"enabled"`
 	IntervalSeconds  *int               `json:"interval_seconds" binding:"omitempty,min=15,max=3600"`
+	JitterSeconds    *int               `json:"jitter_seconds" binding:"omitempty,min=0,max=3585"`
 	TemplateID       *int64             `json:"template_id"`
 	ClearTemplate    bool               `json:"clear_template"` // when true, nullifies template_id and ignores TemplateID
 	ExtraHeaders     *map[string]string `json:"extra_headers"`
@@ -83,6 +85,7 @@ type channelMonitorResponse struct {
 	GroupName           string                               `json:"group_name"`
 	Enabled             bool                                 `json:"enabled"`
 	IntervalSeconds     int                                  `json:"interval_seconds"`
+	JitterSeconds       int                                  `json:"jitter_seconds"`
 	LastCheckedAt       *string                              `json:"last_checked_at"`
 	CreatedBy           int64                                `json:"created_by"`
 	CreatedAt           string                               `json:"created_at"`
@@ -151,6 +154,7 @@ func channelMonitorToResponse(src *service.ChannelMonitor) *channelMonitorRespon
 		GroupName:           src.GroupName,
 		Enabled:             src.Enabled,
 		IntervalSeconds:     src.IntervalSeconds,
+		JitterSeconds:       src.JitterSeconds,
 		CreatedBy:           src.CreatedBy,
 		CreatedAt:           src.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:           src.UpdatedAt.UTC().Format(time.RFC3339),
@@ -320,6 +324,7 @@ func (h *ChannelMonitorHandler) Create(c *gin.Context) {
 		GroupName:        payload.GroupName,
 		Enabled:          isEnabled,
 		IntervalSeconds:  payload.IntervalSeconds,
+		JitterSeconds:    payload.JitterSeconds,
 		CreatedBy:        authSubject.UserID,
 		TemplateID:       payload.TemplateID,
 		ExtraHeaders:     payload.ExtraHeaders,
@@ -356,6 +361,7 @@ func (h *ChannelMonitorHandler) Update(c *gin.Context) {
 		GroupName:        payload.GroupName,
 		Enabled:          payload.Enabled,
 		IntervalSeconds:  payload.IntervalSeconds,
+		JitterSeconds:    payload.JitterSeconds,
 		TemplateID:       payload.TemplateID,
 		ClearTemplate:    payload.ClearTemplate,
 		ExtraHeaders:     payload.ExtraHeaders,

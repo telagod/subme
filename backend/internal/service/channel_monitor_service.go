@@ -127,6 +127,7 @@ func (s *ChannelMonitorService) Create(reqCtx context.Context, params ChannelMon
 		GroupName:        strings.TrimSpace(params.GroupName),
 		Enabled:          params.Enabled,
 		IntervalSeconds:  params.IntervalSeconds,
+		JitterSeconds:    params.JitterSeconds,
 		CreatedBy:        params.CreatedBy,
 		TemplateID:       params.TemplateID,
 		ExtraHeaders:     emptyHeadersIfNil(params.ExtraHeaders),
@@ -155,6 +156,9 @@ func validateCreateParams(params ChannelMonitorCreateParams) error {
 	}
 	if intervalErr := validateInterval(params.IntervalSeconds); intervalErr != nil {
 		return intervalErr
+	}
+	if jitterErr := validateJitter(params.JitterSeconds, params.IntervalSeconds); jitterErr != nil {
+		return jitterErr
 	}
 	if epErr := validateEndpoint(params.Endpoint); epErr != nil {
 		return epErr
@@ -513,6 +517,15 @@ func applyMonitorUpdate(current *ChannelMonitor, params ChannelMonitorUpdatePara
 			return intervalErr
 		}
 		current.IntervalSeconds = *params.IntervalSeconds
+	}
+	if params.JitterSeconds != nil {
+		current.JitterSeconds = *params.JitterSeconds
+	}
+	if params.IntervalSeconds != nil || params.JitterSeconds != nil {
+		// interval 与 jitter 任一变化都要重算组合约束（interval - jitter >= 下限）。
+		if jitterErr := validateJitter(current.JitterSeconds, current.IntervalSeconds); jitterErr != nil {
+			return jitterErr
+		}
 	}
 	return applyMonitorAdvancedUpdate(current, params, provChanged)
 }
