@@ -73,7 +73,7 @@
           </Button>
         </div>
 
-        <Button variant="outline" size="sm" class="ml-auto gap-1.5 font-semibold" @click="router.push('/admin/accounts/legacy')">
+        <Button variant="outline" size="sm" class="ml-auto gap-1.5 font-semibold" @click="showCreate = true">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           {{ t('admin.accountsQuench.addAccountBtn') }}
         </Button>
@@ -146,7 +146,7 @@
           @toggle-status="handleToggleStatus"
           @refresh="handleRefreshOne"
           @delete="openDeleteDialog"
-          @add-account="router.push('/admin/accounts/legacy')"
+          @add-account="showCreate = true"
         />
         <AccountPoolTablePanel
           v-else
@@ -204,6 +204,7 @@
     </div>
 
     <!-- ── 模态框 ── -->
+    <CreateAccountModal  v-if="showCreate"   :show="showCreate"   :proxies="proxies" :groups="groups" @close="showCreate=false" @created="onAccountCreated" />
     <EditAccountModal    v-if="showEdit"     :show="showEdit"     :account="editingAcc"    :proxies="proxies" :groups="groups" @close="showEdit=false"     @updated="handleAccountUpdated" />
     <ReAuthAccountModal  v-if="showReAuth"   :show="showReAuth"   :account="reAuthAcc"     @close="showReAuth=false; reAuthAcc=null" @reauthorized="handleAccountUpdated" />
     <AccountTestModal    v-if="showTest"     :show="showTest"     :account="testingAcc"    @close="showTest=false; testingAcc=null" />
@@ -238,6 +239,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
+const CreateAccountModal          = defineAsyncComponent(() => import('@/components/account/CreateAccountModal.vue'))
 const EditAccountModal            = defineAsyncComponent(() => import('@/components/account/EditAccountModal.vue'))
 const ReAuthAccountModal          = defineAsyncComponent(() => import('@/components/admin/account/ReAuthAccountModal.vue'))
 const AccountTestModal            = defineAsyncComponent(() => import('@/components/admin/account/AccountTestModal.vue'))
@@ -255,6 +257,7 @@ const proxies = ref<AccountProxy[]>([]), groups = ref<AdminGroup[]>([])
 const selectedIds = ref<number[]>([]), sortBy = ref('name'), sortOrder = ref<'asc' | 'desc'>('asc')
 
 // 模态框开关
+const showCreate = ref(false)
 const showEdit = ref(false), showReAuth = ref(false), showTest = ref(false)
 const showStats = ref(false), showTempUnsched = ref(false), showDeleteDialog = ref(false)
 const showExportDialog = ref(false), showSync = ref(false), showImportData = ref(false)
@@ -377,6 +380,7 @@ const summary = computed(() => {
   return { total: accounts.value.length, active, inactive, error, rate_limited }
 })
 
+const onAccountCreated = () => { showCreate.value = false; reload() }
 const openEdit = (a: Account) => { editingAcc.value = a; showEdit.value = true }
 const handleAccountUpdated = (updated?: Account) => {
   showEdit.value = false; showReAuth.value = false; reAuthAcc.value = null
