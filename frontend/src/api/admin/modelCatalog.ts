@@ -80,12 +80,38 @@ export interface SyncModelCatalogResult {
   synced: number
 }
 
+/**
+ * Baseline pricing (per-token USD) attached to each catalog list item.
+ * Source tag indicates origin: "openrouter" / "litellm" / "override" / "fallback" / empty.
+ */
+export interface CatalogListItemBaseline {
+  input: number
+  output: number
+  cache_read: number
+  cache_write: number
+  /** Provider tag of the price source (e.g. "openrouter", "litellm", "override") */
+  source: string
+}
+
 export interface CatalogModelListItem {
   id: string
   name: string
   description?: string
   context_len?: number
   capabilities?: string[]
+  /** Baseline pricing (per-token USD), present on the new backend payload */
+  baseline?: CatalogListItemBaseline
+  /** Number of providers available for this model */
+  provider_count?: number
+  /** Whether a manual price override exists for this model */
+  has_override?: boolean
+}
+
+/** Envelope returned by GET /admin/model-catalog */
+export interface CatalogListResponse {
+  models: CatalogModelListItem[]
+  /** RFC3339 timestamp of the last successful catalog sync (may be empty) */
+  last_updated: string
 }
 
 // ==================== API Functions ====================
@@ -122,9 +148,11 @@ export async function syncCatalog(): Promise<SyncModelCatalogResult> {
 
 /**
  * List all models in the catalog (summary view).
+ * Returns the full envelope including `last_updated` timestamp.
+ * Backend response shape: { models: [...], last_updated: "RFC3339 | ''" }
  */
-export async function listModelCatalog(): Promise<CatalogModelListItem[]> {
-  const { data } = await apiClient.get<CatalogModelListItem[]>('/admin/model-catalog')
+export async function listModelCatalog(): Promise<CatalogListResponse> {
+  const { data } = await apiClient.get<CatalogListResponse>('/admin/model-catalog')
   return data
 }
 

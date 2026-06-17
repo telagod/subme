@@ -695,7 +695,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/admin/pricing',
     name: 'AdminPricingDesk',
-    component: () => import('@/views/admin/monetization/pricing/PricingDeskView.vue'),
+    component: () => import('@/views/admin/monetization/pricing/PricingModelListView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
