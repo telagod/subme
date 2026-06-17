@@ -6,8 +6,18 @@ on:
   schedule:
     - cron: '0 3 * * 1'
 
+# Cancel stale in-flight scans on the same ref (push/PR/schedule re-fires)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Top-level read-all baseline
 permissions:
   contents: read
+
+env:
+  PNPM_VERSION: 9
+  NODE_VERSION: '20'
 
 jobs:
   backend-security:
@@ -32,16 +42,17 @@ jobs:
 
   frontend-security:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install dependencies

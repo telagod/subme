@@ -16,10 +16,17 @@ on:
         type: boolean
         default: false
 
+# NOTE: No top-level concurrency block here on purpose.
+# Releases must NEVER be cancelled mid-flight — partial releases corrupt
+# GHCR/DockerHub state, GitHub Release artifacts, and tag↔artifact contracts.
+
 # 环境变量：合并 workflow_dispatch 输入和 repository variable
 # tag push 触发时读取 vars.SIMPLE_RELEASE，workflow_dispatch 时使用输入参数
 env:
   SIMPLE_RELEASE: ${{ github.event.inputs.simple_release == 'true' || vars.SIMPLE_RELEASE == 'true' }}
+  # NOTE: PNPM_VERSION must stay at 9 — local must match CI (see memory: pnpm-version-must-match-ci)
+  PNPM_VERSION: 9
+  NODE_VERSION: '20'
 
 permissions:
   contents: write
@@ -29,9 +36,16 @@ jobs:
   # Update VERSION file with tag version
   update-version:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Guard workflow_dispatch to main branch
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "Manual release only allowed from main branch (got ${{ github.ref }})"
+          exit 1
 
       - name: Update VERSION file
         run: |
@@ -49,10 +63,11 @@ jobs:
         with:
           name: version-file
           path: backend/cmd/server/VERSION
-          retention-days: 1
+          retention-days: 7
 
   build-frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -60,12 +75,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
 
@@ -82,11 +97,12 @@ jobs:
         with:
           name: frontend-dist
           path: backend/internal/web/dist/
-          retention-days: 1
+          retention-days: 7
 
   release:
     needs: [update-version, build-frontend]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -175,6 +191,8 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
         with:
+          # NOTE: '~> v2' tracks v2.x patches; bump to a pinned tag (e.g. v2.6.1)
+          # once tested if a stricter supply-chain stance is required.
           version: '~> v2'
           args: release --clean --skip=validate ${{ env.SIMPLE_RELEASE == 'true' && '--config=.goreleaser.simple.yaml' || '' }}
         env:
@@ -184,6 +202,35 @@ jobs:
           GITHUB_REPO_OWNER_LOWER: ${{ steps.lowercase.outputs.owner }}
           GITHUB_REPO_NAME: ${{ github.event.repository.name }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || 'skip' }}
+
+      # Supply-chain transparency: generate SPDX SBOM of the source tree and
+      # attach it to the GitHub Release. Non-blocking — must not fail the release.
+      - name: Generate SBOM (SPDX)
+        if: ${{ env.SIMPLE_RELEASE != 'true' }}
+        uses: anchore/sbom-action@v0
+        continue-on-error: true
+        with:
+          path: ./
+          format: spdx-json
+          artifact-name: sbom.spdx.json
+          output-file: sbom.spdx.json
+
+      - name: Attach SBOM to GitHub Release
+        if: ${{ env.SIMPLE_RELEASE != 'true' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME=${{ github.event.inputs.tag }}
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
+          if [ -f sbom.spdx.json ]; then
+            gh release upload "$TAG_NAME" sbom.spdx.json --clobber || true
+          else
+            echo "SBOM not generated, skipping upload"
+          fi
 
       # Update DockerHub description
       - name: Update DockerHub description
@@ -276,6 +323,7 @@ jobs:
     needs: [release]
     if: ${{ needs.release.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout default branch
         uses: actions/checkout@v6

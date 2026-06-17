@@ -4,12 +4,23 @@ on:
   push:
   pull_request:
 
+# Cancel stale in-flight runs on the same ref (push/PR only — release.yml has its own policy)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Top-level read-all baseline; per-job upgrade if needed
 permissions:
   contents: read
+
+env:
+  PNPM_VERSION: 9
+  NODE_VERSION: '20'
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
@@ -30,16 +41,17 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install frontend dependencies
@@ -50,6 +62,7 @@ jobs:
 
   golangci-lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
