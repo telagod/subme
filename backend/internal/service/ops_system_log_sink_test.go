@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/telagod/subme/internal/pkg/logger"
 )
 
@@ -184,18 +185,11 @@ func TestOpsSystemLogSink_StartStopAndFlushSuccess(t *testing.T) {
 		t.Fatalf("message should not be empty")
 	}
 	// writtenCount is incremented after BatchInsertSystemLogsFn returns,
-	// so poll briefly to avoid a race between the done signal and the atomic add.
-	deadline := time.Now().Add(time.Second)
-	for time.Now().Before(deadline) {
-		if sink.Health().WrittenCount > 0 {
-			break
-		}
-		time.Sleep(time.Millisecond)
-	}
-	health := sink.Health()
-	if health.WrittenCount == 0 {
-		t.Fatalf("written_count should be >0")
-	}
+	// so use require.Eventually 而非手写 deadline + sleep——同样基于真实时间，
+	// 但条件满足即返回，无固定下限耗时。
+	require.Eventually(t, func() bool {
+		return sink.Health().WrittenCount > 0
+	}, time.Second, time.Millisecond, "written_count should be >0")
 }
 
 func TestOpsSystemLogSink_FlushFailureUpdatesHealth(t *testing.T) {
@@ -218,18 +212,15 @@ func TestOpsSystemLogSink_FlushFailureUpdatesHealth(t *testing.T) {
 		Fields:    map[string]any{},
 	})
 
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		health := sink.Health()
-		if health.WriteFailed > 0 {
-			if !strings.Contains(health.LastError, "db unavailable") {
-				t.Fatalf("unexpected last error: %s", health.LastError)
-			}
-			return
-		}
-		time.Sleep(20 * time.Millisecond)
+	// require.Eventually 替代手写 polling loop：条件满足立即返回。
+	var lastHealth OpsSystemLogSinkHealth
+	require.Eventually(t, func() bool {
+		lastHealth = sink.Health()
+		return lastHealth.WriteFailed > 0
+	}, 2*time.Second, 5*time.Millisecond, "write_failed_count not updated")
+	if !strings.Contains(lastHealth.LastError, "db unavailable") {
+		t.Fatalf("unexpected last error: %s", lastHealth.LastError)
 	}
-	t.Fatalf("write_failed_count not updated")
 }
 
 func TestOpsSystemLogSink_StopFlushUsesActiveContextAndDrainsQueue(t *testing.T) {

@@ -651,8 +651,9 @@ func TestUpdateBalance_RepoError_ReturnsError(t *testing.T) {
 	require.Error(t, err, "repo 失败时应返回错误")
 	require.Contains(t, err.Error(), "update balance")
 
-	// repo 失败时不应触发缓存失效
-	time.Sleep(100 * time.Millisecond)
+	// repo 失败时立即返回，根本不会进入 goroutine 启动路径，
+	// 因此不需要等待任何时间——直接断言 invalidate 从未被调用。
+	// （等价于 require.Never，但因为没有任何后台路径，断言即时成立。）
 	require.Equal(t, int64(0), cache.invalidateCallCount.Load(),
 		"repo 失败时不应调用 InvalidateUserBalance")
 }

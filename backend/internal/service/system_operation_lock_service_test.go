@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benbjohnson/clock"
 	"github.com/stretchr/testify/require"
 	infraerrors "github.com/telagod/subme/internal/pkg/errors"
 )
@@ -39,10 +40,12 @@ func TestSystemOperationLockService_AcquireBusyAndRelease(t *testing.T) {
 
 func TestSystemOperationLockService_RenewLease(t *testing.T) {
 	repo := newInMemoryIdempotencyRepo()
+	mockClk := clock.NewMock()
+	mockClk.Set(time.Now())
 	svc := NewSystemOperationLockService(repo, IdempotencyConfig{
 		SystemOperationTTL: 5 * time.Second,
 		ProcessingTimeout:  1200 * time.Millisecond,
-	})
+	}).withClock(mockClk)
 
 	lock, err := svc.Acquire(context.Background(), "op-renew")
 	require.NoError(t, err)
@@ -57,12 +60,15 @@ func TestSystemOperationLockService_RenewLease(t *testing.T) {
 	require.NotNil(t, initial.LockedUntil)
 	initialLockedUntil := *initial.LockedUntil
 
-	time.Sleep(1500 * time.Millisecond)
-
-	updated, _ := repo.GetByScopeAndKeyHash(context.Background(), systemOperationLockScope, keyHash)
-	require.NotNil(t, updated)
-	require.NotNil(t, updated.LockedUntil)
-	require.True(t, updated.LockedUntil.After(initialLockedUntil), "locked_until should be renewed while lock is held")
+	// 用 mock clock 推进时间触发续租 ticker，避免 1500ms 真实壁钟等待。
+	// renewInterval 被下限钳到 1s，所以推进 1500ms 至少触发一次续租。
+	// 重复 Add(0) + Eventually 模式：循环直到 renewLoop goroutine 注册了 ticker
+	// 并消费到 tick，避免 Add 早于 ticker 创建的竞态。
+	require.Eventually(t, func() bool {
+		mockClk.Add(1500 * time.Millisecond)
+		updated, _ := repo.GetByScopeAndKeyHash(context.Background(), systemOperationLockScope, keyHash)
+		return updated != nil && updated.LockedUntil != nil && updated.LockedUntil.After(initialLockedUntil)
+	}, 2*time.Second, 10*time.Millisecond, "locked_until should be renewed while lock is held")
 }
 
 type flakySystemLockRenewRepo struct {
@@ -135,10 +141,12 @@ func TestSystemOperationLockService_SameOperationIDRetryWhileRunning(t *testing.
 
 func TestSystemOperationLockService_RecoverAfterLeaseExpired(t *testing.T) {
 	repo := newInMemoryIdempotencyRepo()
+	mockClk := clock.NewMock()
+	mockClk.Set(time.Now())
 	svc := NewSystemOperationLockService(repo, IdempotencyConfig{
 		SystemOperationTTL: 5 * time.Second,
 		ProcessingTimeout:  300 * time.Millisecond,
-	})
+	}).withClock(mockClk)
 
 	lock1, err := svc.Acquire(context.Background(), "op-crashed")
 	require.NoError(t, err)
@@ -149,7 +157,9 @@ func TestSystemOperationLockService_RecoverAfterLeaseExpired(t *testing.T) {
 		close(lock1.stopCh)
 	})
 
-	time.Sleep(450 * time.Millisecond)
+	// 用 mock clock 推进时间越过 ProcessingTimeout (300ms)，
+	// 使得旧 LockedUntil < now()，新 Acquire 可以重新认领锁。
+	mockClk.Add(450 * time.Millisecond)
 
 	lock2, err := svc.Acquire(context.Background(), "op-recovered")
 	require.NoError(t, err, "expired lease should allow a new operation to reclaim lock")

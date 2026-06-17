@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/collection"
 )
 
@@ -171,11 +172,9 @@ func TestTimingWheelService_ScheduleRecurring_ExecutesMultipleTimes(t *testing.T
 	var count int32
 	svc.ScheduleRecurring("rec", 30*time.Millisecond, func() { atomic.AddInt32(&count, 1) })
 
-	deadline := time.Now().Add(500 * time.Millisecond)
-	for atomic.LoadInt32(&count) < 2 && time.Now().Before(deadline) {
-		time.Sleep(10 * time.Millisecond)
-	}
-	if atomic.LoadInt32(&count) < 2 {
-		t.Fatalf("期望周期任务至少执行 2 次，但只执行了 %d 次", atomic.LoadInt32(&count))
-	}
+	// go-zero TimingWheel 内部使用 ticker，无法注入 clock。
+	// 改用 require.Eventually：依然走真实时间，但收敛即返回，无需 500ms 上限固定耗时。
+	require.Eventually(t, func() bool {
+		return atomic.LoadInt32(&count) >= 2
+	}, 2*time.Second, 5*time.Millisecond, "期望周期任务至少执行 2 次")
 }

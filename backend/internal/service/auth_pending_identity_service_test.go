@@ -335,7 +335,20 @@ func TestAuthPendingIdentityService_UpsertAdoptionDecision_IsIdempotentUnderConc
 		results <- adoptionResult{decision: decision, err: err}
 	}()
 
-	time.Sleep(100 * time.Millisecond)
+	// 用 lock store 的 refCount 探测 goroutine 2 是否已抵达 acquire 阶段，
+	// 替代 time.Sleep(100ms)：避免实时等待，且不依赖 sleep 时长的运气。
+	pendingKeys := buildAdoptionLockKeys(input.PendingAuthSessionID, input.IdentityID)
+	require.Eventually(t, func() bool {
+		pendingIdentityScopedLockStore.guard.Lock()
+		defer pendingIdentityScopedLockStore.guard.Unlock()
+		for _, k := range pendingKeys {
+			slot, ok := pendingIdentityScopedLockStore.entries[k]
+			if !ok || slot.refCount < 2 {
+				return false
+			}
+		}
+		return true
+	}, 2*time.Second, time.Millisecond, "goroutine 2 应进入锁竞争")
 	close(releaseFirstCreate)
 
 	first := <-results

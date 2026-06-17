@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 // stubMonitorSvc 实现 monitorRunnerSvc，用于隔离 runner 与真实 service/repo。
@@ -48,19 +50,12 @@ func newRunnerForTest(svc monitorRunnerSvc) *ChannelMonitorRunner {
 	return newChannelMonitorRunner(svc, nil)
 }
 
-// 等待 condition 在 timeout 内变 true，否则 t.Fatalf。轮询 5ms 一次。
+// 等待 condition 在 timeout 内变 true，否则 t.Fatalf。
+// 委托给 testify require.Eventually：goroutine 异步驱动场景下，
+// poll 间隔 1ms 已足够低，且条件满足即返回（不留 5ms 尾巴）。
 func waitFor(t *testing.T, timeout time.Duration, msg string, cond func() bool) {
 	t.Helper()
-	deadline := time.Now().Add(timeout)
-	for time.Now().Before(deadline) {
-		if cond() {
-			return
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-	if !cond() {
-		t.Fatalf("waitFor timed out: %s", msg)
-	}
+	require.Eventually(t, cond, timeout, time.Millisecond, "waitFor timed out: %s", msg)
 }
 
 func runnerTaskCount(r *ChannelMonitorRunner) int {

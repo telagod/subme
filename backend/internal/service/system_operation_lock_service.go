@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/benbjohnson/clock"
 	infraerrors "github.com/telagod/subme/internal/pkg/errors"
 	"github.com/telagod/subme/internal/pkg/logger"
 )
@@ -41,6 +42,8 @@ type SystemOperationLockService struct {
 	lease         time.Duration
 	renewInterval time.Duration
 	ttl           time.Duration
+
+	clk clock.Clock
 }
 
 func NewSystemOperationLockService(repo IdempotencyRepository, cfg IdempotencyConfig) *SystemOperationLockService {
@@ -62,7 +65,17 @@ func NewSystemOperationLockService(repo IdempotencyRepository, cfg IdempotencyCo
 		lease:         lease,
 		renewInterval: renewInterval,
 		ttl:           ttl,
+		clk:           clock.New(),
 	}
+}
+
+// withClock 仅供单测注入 clock.Mock 使用，禁止在生产路径调用。
+func (s *SystemOperationLockService) withClock(c clock.Clock) *SystemOperationLockService {
+	if s == nil || c == nil {
+		return s
+	}
+	s.clk = c
+	return s
 }
 
 func (s *SystemOperationLockService) Acquire(ctx context.Context, operationID string) (*SystemOperationLock, error) {
@@ -73,7 +86,7 @@ func (s *SystemOperationLockService) Acquire(ctx context.Context, operationID st
 		return nil, infraerrors.BadRequest("SYSTEM_OPERATION_ID_REQUIRED", "operation id is required")
 	}
 
-	now := time.Now()
+	now := s.now()
 	expiresAt := now.Add(s.ttl)
 	lockedUntil := now.Add(s.lease)
 	keyHash := HashIdempotencyKey(systemOperationLockKey)
@@ -150,7 +163,7 @@ func (s *SystemOperationLockService) Release(ctx context.Context, lock *SystemOp
 		ctx = context.Background()
 	}
 
-	expiresAt := time.Now().Add(s.ttl)
+	expiresAt := s.now().Add(s.ttl)
 	if succeeded {
 		responseBody := fmt.Sprintf(`{"operation_id":"%s","released":true}`, lock.operationID)
 		return s.repo.MarkSucceeded(ctx, lock.recordID, 200, responseBody, expiresAt)
@@ -160,17 +173,25 @@ func (s *SystemOperationLockService) Release(ctx context.Context, lock *SystemOp
 	if reason == "" {
 		reason = "SYSTEM_OPERATION_FAILED"
 	}
-	return s.repo.MarkFailedRetryable(ctx, lock.recordID, reason, time.Now(), expiresAt)
+	return s.repo.MarkFailedRetryable(ctx, lock.recordID, reason, s.now(), expiresAt)
+}
+
+// now 返回当前时间，优先走注入的 clock（测试可控）；clk 为空时回落到 time.Now()。
+func (s *SystemOperationLockService) now() time.Time {
+	if s == nil || s.clk == nil {
+		return time.Now()
+	}
+	return s.clk.Now()
 }
 
 func (s *SystemOperationLockService) renewLoop(lock *SystemOperationLock) {
-	ticker := time.NewTicker(s.renewInterval)
+	ticker := s.clk.Ticker(s.renewInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			now := time.Now()
+			now := s.now()
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			ok, err := s.repo.ExtendProcessingLock(
 				ctx,
