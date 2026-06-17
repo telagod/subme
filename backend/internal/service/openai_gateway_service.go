@@ -2450,6 +2450,9 @@ func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, acco
 	passthroughEnabled := account.IsOpenAIPassthroughEnabled()
 	if passthroughEnabled {
 		// 透传分支只需要轻量提取字段，避免热路径全量 Unmarshal。
+		// 国产模型默认 effort 补充：mapping 在透传链上对外不重写 body，但 usage 计算
+		// 需要按 mappedModel 判定是否为 passback-required 国产上游。
+		body = ApplyThinkingEnabledFallback(body, account.GetMappedModel(reqModel))
 		reasoningEffort := extractOpenAIReasoningEffortFromBody(body, reqModel)
 		return s.forwardOpenAIPassthrough(ctx, c, account, originalBody, reqModel, reasoningEffort, reqStream, startTime)
 	}
@@ -3063,6 +3066,9 @@ func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, acco
 		}
 		defer func() { _ = resp.Body.Close() }()
 
+		// 国产模型默认 effort 补充：此处 reqModel 已被 mapping 重写为 billingModel
+		// (参见上方 GetMappedModel + reqModel = billingModel 赋值)，可直接作为 mappedModel。
+		body = ApplyThinkingEnabledFallback(body, reqModel)
 		reasoningEffort := extractOpenAIReasoningEffortFromBody(body, originalModel)
 		serviceTier := extractOpenAIServiceTierFromBody(body)
 		// 上游接受后只保留计费需要的标量，避免响应处理期间继续保活完整 input/tools map。
@@ -3550,6 +3556,20 @@ func (s *OpenAIGatewayService) handleFailoverErrorResponsePassthrough(
 	logOpenAIInstructionsRequiredDebug(ctx, c, account, resp.StatusCode, upstreamMsg, requestBody, body)
 	reqModel, _, _ := extractOpenAIRequestMetaFromBody(requestBody)
 	_ = s.handleOpenAIAccountUpstreamError(ctx, account, resp.StatusCode, resp.Header, body, reqModel)
+	// cyber_policy phase-1：detect + ops 日志记录（不改变响应/failover 行为；phase-2 再决定阻断/计费）。
+	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+			Platform:           account.Platform,
+			AccountID:          account.ID,
+			AccountName:        account.Name,
+			UpstreamStatusCode: resp.StatusCode,
+			UpstreamRequestID:  resp.Header.Get("x-request-id"),
+			Passthrough:        true,
+			Kind:               "cyber_policy_blocked",
+			Message:            cyberDet.Summary,
+			Detail:             cyberDet.Message,
+		})
+	}
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 		Platform:             account.Platform,
 		AccountID:            account.ID,
@@ -3594,6 +3614,21 @@ func (s *OpenAIGatewayService) handleErrorResponsePassthrough(
 	// 避免粘性路由继续复用刚被限流的账号。
 	reqModel, _, _ := extractOpenAIRequestMetaFromBody(requestBody)
 	_ = s.handleOpenAIAccountUpstreamError(ctx, account, resp.StatusCode, resp.Header, body, reqModel)
+	// cyber_policy phase-1：仅 detect + ops 日志记录。透传路径会原样把 body 回给客户端，
+	// 此处不改变响应行为；handler 可在后续 phase-2 基于 mark 触发账号 / session 行为。
+	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+			Platform:           account.Platform,
+			AccountID:          account.ID,
+			AccountName:        account.Name,
+			UpstreamStatusCode: resp.StatusCode,
+			UpstreamRequestID:  resp.Header.Get("x-request-id"),
+			Passthrough:        true,
+			Kind:               "cyber_policy_blocked",
+			Message:            cyberDet.Summary,
+			Detail:             cyberDet.Message,
+		})
+	}
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 		Platform:             account.Platform,
 		AccountID:            account.ID,
@@ -3881,6 +3916,21 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 				}
 				forceFlushFailedEvent = true
 				sawFailedEvent = true
+				// cyber_policy phase-1：流式上游 response.failed 事件中 detect + ops 日志记录。
+				// 流式 status=200（已发 header），SSE 终止事件携带 error.code=cyber_policy。
+				if cyberDet := DetectAndMarkOpsCyberPolicy(c, dataBytes, resp.StatusCode); cyberDet.Hit() {
+					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+						Platform:           account.Platform,
+						AccountID:          account.ID,
+						AccountName:        account.Name,
+						UpstreamStatusCode: resp.StatusCode,
+						UpstreamRequestID:  upstreamRequestID,
+						Passthrough:        true,
+						Kind:               "cyber_policy_blocked",
+						Message:            cyberDet.Summary,
+						Detail:             cyberDet.Message,
+					})
+				}
 			}
 			if trimmedData == "[DONE]" {
 				sawDone = true
@@ -4309,6 +4359,21 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 		)
 	}
 
+	// cyber_policy phase-1：detect + ops 日志记录。
+	// 命中后仅做标记，不改变响应映射、不冷却账号；phase-2 再决定是否阻断 session / 排除 ban。
+	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+			Platform:           account.Platform,
+			AccountID:          account.ID,
+			AccountName:        account.Name,
+			UpstreamStatusCode: resp.StatusCode,
+			UpstreamRequestID:  resp.Header.Get("x-request-id"),
+			Kind:               "cyber_policy_blocked",
+			Message:            cyberDet.Summary,
+			Detail:             cyberDet.Message,
+		})
+	}
+
 	if status, errType, errMsg, matched := applyErrorPassthroughRule(
 		c,
 		PlatformOpenAI,
@@ -4463,6 +4528,22 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 		upstreamDetail = truncateString(string(body), maxBytes)
 	}
 	setOpsUpstreamError(c, resp.StatusCode, upstreamMsg, upstreamDetail)
+
+	// cyber_policy phase-1：compat 路径同样做 detect + ops 日志。
+	// compat 路径以各自格式重写错误体（Chat Completions / Anthropic），不原样透传 responses 格式，
+	// phase-1 不改变响应映射；phase-2 再决定 client 端 cyber 错误格式。
+	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+			Platform:           account.Platform,
+			AccountID:          account.ID,
+			AccountName:        account.Name,
+			UpstreamStatusCode: resp.StatusCode,
+			UpstreamRequestID:  resp.Header.Get("x-request-id"),
+			Kind:               "cyber_policy_blocked",
+			Message:            cyberDet.Summary,
+			Detail:             cyberDet.Message,
+		})
+	}
 
 	// Apply error passthrough rules
 	if status, errType, errMsg, matched := applyErrorPassthroughRule(
@@ -4775,6 +4856,19 @@ func (s *OpenAIGatewayService) handleStreamingResponse(ctx context.Context, resp
 				}
 				forceFlushFailedEvent = true
 				sawFailedEvent = true
+				// cyber_policy phase-1：非透传流也 detect + ops 日志记录（不改变响应）。
+				if cyberDet := DetectAndMarkOpsCyberPolicy(c, dataBytes, resp.StatusCode); cyberDet.Hit() {
+					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
+						Platform:           account.Platform,
+						AccountID:          account.ID,
+						AccountName:        account.Name,
+						UpstreamStatusCode: resp.StatusCode,
+						UpstreamRequestID:  upstreamRequestID,
+						Kind:               "cyber_policy_blocked",
+						Message:            cyberDet.Summary,
+						Detail:             cyberDet.Message,
+					})
+				}
 			}
 			imageCounter.AddSSEData(dataBytes)
 
