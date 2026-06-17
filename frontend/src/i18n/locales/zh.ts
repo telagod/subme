@@ -7227,6 +7227,7 @@ export default {
       exportTitle: '导出数据',
       exportMsg: '将导出当前筛选账号数据。',
       exportConfirmBtn: '确认导出',
+      exportIncludeProxies: '包含代理信息（导出文件将含 proxy 完整 URL 与凭据）',
       cancelBtn: '取消',
       ungroupedLabel: '未分组',
       autoRefreshLabel: '自动刷新',

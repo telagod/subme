@@ -338,7 +338,12 @@
       @confirm="confirmBulkDeleteFiltered"
       @cancel="showBulkDeleteFilteredDialog=false"
     />
-    <ConfirmDialog :show="showExportDialog" :title="t('admin.accountsQuench.exportTitle')" :message="t('admin.accountsQuench.exportMsg')" :confirm-text="t('admin.accountsQuench.exportConfirmBtn')" :cancel-text="t('admin.accountsQuench.cancelBtn')" @confirm="doExport" @cancel="showExportDialog=false" />
+    <ConfirmDialog :show="showExportDialog" :title="t('admin.accountsQuench.exportTitle')" :message="t('admin.accountsQuench.exportMsg')" :confirm-text="t('admin.accountsQuench.exportConfirmBtn')" :cancel-text="t('admin.accountsQuench.cancelBtn')" @confirm="doExport" @cancel="showExportDialog=false">
+      <label class="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+        <Checkbox v-model:checked="includeProxyOnExport" />
+        <span>{{ t('admin.accountsQuench.exportIncludeProxies') }}</span>
+      </label>
+    </ConfirmDialog>
     <ErrorPassthroughRulesModal v-if="showErrorPassthrough" :show="showErrorPassthrough" @close="showErrorPassthrough=false" />
     <TLSFingerprintProfilesModal v-if="showTLSProfiles" :show="showTLSProfiles" @close="showTLSProfiles=false" />
   </AppLayout>
@@ -365,6 +370,7 @@ import type { SelectOption } from '@/components/common/Select.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -400,6 +406,9 @@ const showStats = ref(false), showTempUnsched = ref(false), showDeleteDialog = r
 const showExportDialog = ref(false), showSync = ref(false), showImportData = ref(false)
 const showErrorPassthrough = ref(false), showTLSProfiles = ref(false), showToolsMenu = ref(false)
 const toolsMenuRef = ref<HTMLElement | null>(null)
+
+// 导出对话框: 是否包含 proxy 完整 URL+credentials (默认勾选,与 legacy 一致)
+const includeProxyOnExport = ref(true)
 
 // 当前操作指针
 const editingAcc = ref<Account | null>(null), reAuthAcc = ref<Account | null>(null)
@@ -573,10 +582,27 @@ const {
   resetToDefault: resetColumns,
 } = useColumnVisibility('account-pool-hidden-columns', DEFAULT_HIDDEN_COLUMNS)
 
-const load = async () => { await baseLoad(); await refreshTodayStats() }
-const reload = async () => { await baseReload(); await refreshTodayStats() }
+// 首次列表请求带 lite=1（后端跳过非关键字段,加速首屏）；后续 reload / autoRefresh 不带
+const isFirstLoad = ref(true)
+const withLiteFirstLoad = async <T,>(fn: () => Promise<T>): Promise<T> => {
+  const p = params as any
+  if (isFirstLoad.value) {
+    p.lite = '1'
+    try {
+      return await fn()
+    } finally {
+      // 无论成败,首次后清掉 lite 哨兵,避免污染后续请求
+      isFirstLoad.value = false
+      p.lite = ''
+    }
+  }
+  return fn()
+}
+const load = async () => { await withLiteFirstLoad(baseLoad); await refreshTodayStats() }
+const reload = async () => { await withLiteFirstLoad(baseReload); await refreshTodayStats() }
 const handleManualRefresh = async () => {
   await reload()
+  // 节流: AccountUsageCell watch 这个 token 才会重拉 /usage,避免每次 patchAccountInList 触发
   manualRefreshToken.value++
   autoRefresh?.clearPendingListSync()
 }
@@ -779,7 +805,8 @@ const doExport = () => {
       has_proxy: p.has_proxy || undefined,
       search: p.search || undefined,
     },
-    sortBy.value, sortOrder.value
+    sortBy.value, sortOrder.value,
+    includeProxyOnExport.value,
   )
   showExportDialog.value = false
 }

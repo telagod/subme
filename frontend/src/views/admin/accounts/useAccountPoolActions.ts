@@ -620,12 +620,13 @@ export function useAccountPoolActions(
   const handleExportData = async (
     filters: Record<string, string | undefined>,
     sortBy: string,
-    sortOrder: 'asc' | 'desc'
+    sortOrder: 'asc' | 'desc',
+    includeProxies: boolean = true,
   ) => {
     try {
       const data = await adminAPI.accounts.exportData({
         filters: { ...filters, sort_by: sortBy, sort_order: sortOrder },
-        includeProxies: true,
+        includeProxies,
       })
       const ts = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })

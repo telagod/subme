@@ -501,18 +501,6 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/admin/accounts/legacy',
-    name: 'AdminAccountsLegacy',
-    component: () => import('@/views/admin/AccountsView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: true,
-      title: 'Account Management (Legacy)',
-      titleKey: 'admin.accounts.title',
-      descriptionKey: 'admin.accounts.description'
-    }
-  },
-  {
     path: '/admin/announcements',
     name: 'AdminAnnouncements',
     component: () => import('@/views/admin/AnnouncementsView.vue'),

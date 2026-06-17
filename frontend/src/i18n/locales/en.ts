@@ -7046,6 +7046,7 @@ export default {
       exportTitle: 'Export Data',
       exportMsg: 'Export accounts matching current filters.',
       exportConfirmBtn: 'Confirm Export',
+      exportIncludeProxies: 'Include proxy info (export will contain full proxy URL & credentials)',
       cancelBtn: 'Cancel',
       ungroupedLabel: 'Ungrouped',
       autoRefreshLabel: 'Auto Refresh',
