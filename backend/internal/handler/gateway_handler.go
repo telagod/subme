@@ -496,6 +496,19 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 			if result.ReasoningEffort == nil {
 				result.ReasoningEffort = service.NormalizeClaudeOutputEffort(parsedReq.OutputEffort)
 			}
+			// 国产模型 thinking-enabled 默认 effort 填充：Kimi/GLM/MiniMax 这些不支持
+			// effort 档位的 passback-required 上游，仅在 thinking 启用且 OutputEffort 未
+			// 明确传递时，向 usage_log 写 "high"，避免该字段长期 NULL 致 analytics 无法
+			// 区分 thinking 开/关。详见 DefaultEffortForThinkingEnabled 文档。
+			if result.ReasoningEffort == nil && parsedReq.ThinkingEnabled {
+				protocolModel := result.UpstreamModel
+				if protocolModel == "" {
+					protocolModel = result.Model
+				}
+				if defaultEffort := service.DefaultEffortForThinkingEnabled(protocolModel); defaultEffort != "" {
+					result.ReasoningEffort = &defaultEffort
+				}
+			}
 
 			// 使用量记录通过有界 worker 池提交，避免请求热路径创建无界 goroutine。
 			// ForceCacheBilling 提前拍成标量，避免 worker 闭包保活 failover 状态里的响应体。
@@ -909,6 +922,16 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 
 			if result.ReasoningEffort == nil {
 				result.ReasoningEffort = service.NormalizeClaudeOutputEffort(attemptParsedReq.OutputEffort)
+			}
+			// 同上（重试路径中的对称填充）。详见非重试路径同名注释。
+			if result.ReasoningEffort == nil && attemptParsedReq.ThinkingEnabled {
+				protocolModel := result.UpstreamModel
+				if protocolModel == "" {
+					protocolModel = result.Model
+				}
+				if defaultEffort := service.DefaultEffortForThinkingEnabled(protocolModel); defaultEffort != "" {
+					result.ReasoningEffort = &defaultEffort
+				}
 			}
 
 			// 使用量记录通过有界 worker 池提交，避免请求热路径创建无界 goroutine。

@@ -1191,6 +1191,80 @@ func NormalizeClaudeOutputEffort(raw string) *string {
 	}
 }
 
+// DefaultEffortForThinkingEnabled 给「开启了 thinking 但协议层没有 effort 档位概念」的
+// 国产 passback-required 上游返回默认 effort 字符串 "high"，否则返回空串。
+//
+// 适用范围（按 ResolveThinkingProtocol 的 PassbackRequired 集合做白名单过滤）：
+//   - Kimi (kimi-* / moonshot-*)
+//   - GLM (glm-*)
+//   - MiniMax (minimax-m*)
+//   - Qwen thinking 变体 (qwen[1-4]?-*-thinking)
+//
+// **排除 DeepSeek**：DeepSeek 原生支持 reasoning_effort: high/max，客户端可显式指定，
+// 网关不应注入默认值覆盖客户端意图。
+//
+// 返回值固定 "high"：Kimi/GLM/MiniMax 启用 thinking 等同 "深度推理模式"，与
+// DeepSeek thinking-enabled 的默认 effort 一致。
+//
+// 未来兼容性：如果厂商后续加入真实 effort 档位，客户端开始显式发 effort 值时，
+// ApplyThinkingEnabledFallback 中的 "body 已有 effort" 守卫会让出，本函数变 no-op。
+func DefaultEffortForThinkingEnabled(mappedModel string) string {
+	if ResolveThinkingProtocol(mappedModel) != ThinkingProtocolPassbackRequired {
+		return ""
+	}
+	// DeepSeek 在 PassbackRequired 集合里但有原生 effort 支持，排除。
+	if strings.HasPrefix(strings.ToLower(mappedModel), "deepseek-") {
+		return ""
+	}
+	return "high"
+}
+
+// OpenAIBodyHasThinkingEnabled 检测 OpenAI 协议的请求体里是否启用了 thinking。
+//
+// 国产 OpenAI-兼容上游（GLM via thinkingFormat=zai / Kimi 等）在请求体里用
+// `thinking: {type: "enabled"}` 或 `thinking: {type: "adaptive"}` 表达启用。
+// 仅 "enabled" / "adaptive" 视为开启；"disabled" 或缺省 → 视为关闭。
+//
+// 对无效 JSON 安全：gjson 解析失败返回空字符串，本函数返回 false。
+func OpenAIBodyHasThinkingEnabled(body []byte) bool {
+	thinkingType := strings.ToLower(strings.TrimSpace(gjson.GetBytes(body, "thinking.type").String()))
+	return thinkingType == "enabled" || thinkingType == "adaptive"
+}
+
+// ApplyThinkingEnabledFallback 在合适条件下把默认 effort "high" 用 sjson 写入 OpenAI
+// 协议请求体的 reasoning_effort 字段，方便下游 extractor 自然提取到 usage_log。
+//
+// 触发条件（全部满足）：
+//  1. body 中 thinking.type ∈ {enabled, adaptive}（OpenAIBodyHasThinkingEnabled）
+//  2. mappedModel 是 passback-required 且非 DeepSeek
+//     （DefaultEffortForThinkingEnabled 返回非空）
+//  3. body 当前 reasoning_effort 与 reasoning.effort 字段都不存在
+//     （绝不覆盖客户端意图）
+//
+// 走 sjson 增量写入，不做完整 unmarshal/marshal，避免丢失未识别字段。
+// sjson 失败或任一守卫不满足时原样返回 body。
+func ApplyThinkingEnabledFallback(body []byte, mappedModel string) []byte {
+	if !OpenAIBodyHasThinkingEnabled(body) {
+		return body
+	}
+	effortDefault := DefaultEffortForThinkingEnabled(mappedModel)
+	if effortDefault == "" {
+		return body
+	}
+	// 客户端已显式传 effort（任一字段命中）→ 不覆盖。
+	if gjson.GetBytes(body, "reasoning_effort").Exists() {
+		return body
+	}
+	if gjson.GetBytes(body, "reasoning.effort").Exists() {
+		return body
+	}
+	patched, err := sjson.SetBytes(body, "reasoning_effort", effortDefault)
+	if err != nil {
+		return body
+	}
+	return patched
+}
+
 // =========================
 // Thinking Budget Rectifier
 // =========================

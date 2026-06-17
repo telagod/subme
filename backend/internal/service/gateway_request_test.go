@@ -1335,3 +1335,151 @@ func TestNormalizeChineseLLMThinking(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultEffortForThinkingEnabled(t *testing.T) {
+	tests := []struct {
+		name  string
+		model string
+		want  string
+	}{
+		// passback-required 国产模型：返回 "high"
+		{name: "kimi-k2.6", model: "kimi-k2.6", want: "high"},
+		{name: "kimi-k2-thinking", model: "kimi-k2-thinking", want: "high"},
+		{name: "moonshot-v1-8k", model: "moonshot-v1-8k", want: "high"},
+		{name: "glm-4 adaptive variant", model: "glm-4", want: "high"},
+		{name: "glm-5.1", model: "glm-5.1", want: "high"},
+		{name: "minimax-m3 lowercase", model: "minimax-m3", want: "high"},
+		{name: "MiniMax-M3 mixed case", model: "MiniMax-M3", want: "high"},
+		{name: "qwen3-thinking variant", model: "qwen3-235b-a22b-thinking-2507", want: "high"},
+
+		// DeepSeek 有原生 effort 支持，排除
+		{name: "deepseek-v4-pro excluded", model: "deepseek-v4-pro", want: ""},
+		{name: "deepseek-chat excluded", model: "deepseek-chat", want: ""},
+
+		// 非 passback-required 一律 ""
+		{name: "claude-sonnet strict not passback", model: "claude-sonnet-4-6", want: ""},
+		{name: "gpt-5 unknown", model: "gpt-5", want: ""},
+		{name: "gemini-3 unknown", model: "gemini-3-pro", want: ""},
+		{name: "empty model", model: "", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, DefaultEffortForThinkingEnabled(tt.model))
+		})
+	}
+}
+
+func TestOpenAIBodyHasThinkingEnabled(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want bool
+	}{
+		{name: "enabled", body: `{"thinking":{"type":"enabled"}}`, want: true},
+		{name: "adaptive", body: `{"thinking":{"type":"adaptive"}}`, want: true},
+		{name: "ENABLED uppercase", body: `{"thinking":{"type":"ENABLED"}}`, want: true},
+		{name: "disabled", body: `{"thinking":{"type":"disabled"}}`, want: false},
+		{name: "empty body", body: ``, want: false},
+		{name: "no thinking field", body: `{"model":"gpt-5"}`, want: false},
+		{name: "thinking object but no type", body: `{"thinking":{"budget_tokens":1024}}`, want: false},
+		{name: "invalid json safe", body: `{not json`, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, OpenAIBodyHasThinkingEnabled([]byte(tt.body)))
+		})
+	}
+}
+
+func TestApplyThinkingEnabledFallback(t *testing.T) {
+	tests := []struct {
+		name        string
+		body        string
+		model       string
+		wantEffort  string // ""=expect no reasoning_effort key
+		wantUnchanged bool
+	}{
+		// thinking enabled + passback-required, no effort → 写 high
+		{
+			name:       "kimi-k2 enabled -> high",
+			body:       `{"thinking":{"type":"enabled"}}`,
+			model:      "kimi-k2",
+			wantEffort: "high",
+		},
+		{
+			name:       "glm-4 adaptive -> high",
+			body:       `{"thinking":{"type":"adaptive"}}`,
+			model:      "glm-4",
+			wantEffort: "high",
+		},
+		{
+			name:       "minimax-m enabled -> high",
+			body:       `{"thinking":{"type":"enabled"},"model":"MiniMax-M3"}`,
+			model:      "MiniMax-M3",
+			wantEffort: "high",
+		},
+
+		// thinking enabled + 排除模型 → 不动
+		{
+			name:          "deepseek-v4 enabled -> unchanged (excluded)",
+			body:          `{"thinking":{"type":"enabled"}}`,
+			model:         "deepseek-v4-pro",
+			wantUnchanged: true,
+		},
+		{
+			name:          "claude-sonnet enabled -> unchanged (strict not passback)",
+			body:          `{"thinking":{"type":"enabled"}}`,
+			model:         "claude-sonnet-4-6",
+			wantUnchanged: true,
+		},
+
+		// 客户端已传 effort → 不覆盖
+		{
+			name:          "existing reasoning_effort never overridden",
+			body:          `{"thinking":{"type":"enabled"},"reasoning_effort":"medium"}`,
+			model:         "kimi-k2",
+			wantUnchanged: true,
+		},
+		{
+			name:          "existing reasoning.effort never overridden",
+			body:          `{"thinking":{"type":"enabled"},"reasoning":{"effort":"low"}}`,
+			model:         "kimi-k2",
+			wantUnchanged: true,
+		},
+
+		// thinking 不启用 → 不动
+		{
+			name:          "thinking disabled -> unchanged",
+			body:          `{"thinking":{"type":"disabled"}}`,
+			model:         "kimi-k2",
+			wantUnchanged: true,
+		},
+		{
+			name:          "no thinking field -> unchanged",
+			body:          `{"model":"kimi-k2"}`,
+			model:         "kimi-k2",
+			wantUnchanged: true,
+		},
+
+		// 无效 JSON 安全 → 不动
+		{
+			name:          "invalid json safe",
+			body:          `{not json`,
+			model:         "kimi-k2",
+			wantUnchanged: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			in := []byte(tt.body)
+			got := ApplyThinkingEnabledFallback(in, tt.model)
+			if tt.wantUnchanged {
+				require.Equal(t, tt.body, string(got), "body must be returned unchanged")
+				return
+			}
+			require.Equal(t, tt.wantEffort, gjson.GetBytes(got, "reasoning_effort").String())
+		})
+	}
+}
