@@ -31,12 +31,17 @@ func CORS(cfg config.CORSConfig) gin.HandlerFunc {
 	corsWarningOnce.Do(func() {
 		if len(allowedOrigins) == 0 {
 			log.Println("Warning: CORS allowed_origins not configured; cross-origin requests will be rejected.")
+			if cfg.AllowCredentials {
+				log.Println("Warning: CORS allow_credentials=true with empty origins; enable hardening.cors_strict_validation to fail-fast on this config.")
+			}
 		}
 		if wildcardWithSpecific {
 			log.Println("Warning: CORS allowed_origins includes '*'; wildcard will take precedence over explicit origins.")
 		}
 		if allowAll && allowCredentials {
-			log.Println("Warning: CORS allowed_origins set to '*', disabling allow_credentials.")
+			// 与 HTTP CORS 规范一致：通配符 + credentials 浏览器会拒绝。
+			// 启用 hardening.cors_strict_validation 可在启动时直接拒绝该配置。
+			log.Println("Warning: CORS allowed_origins set to '*', disabling allow_credentials. Enable hardening.cors_strict_validation to fail-fast on this config.")
 		}
 	})
 	if allowAll && allowCredentials {

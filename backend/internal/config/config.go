@@ -93,6 +93,9 @@ type Config struct {
 	Gemini                  GeminiConfig                  `mapstructure:"gemini"`
 	Update                  UpdateConfig                  `mapstructure:"update"`
 	Idempotency             IdempotencyConfig             `mapstructure:"idempotency"`
+	// Hardening 收纳所有"严格模式"开关；默认关闭，开启后才改变行为。
+	// 详见 hardening.go。
+	Hardening HardeningConfig `mapstructure:"hardening"`
 }
 
 type LogConfig struct {
@@ -1221,8 +1224,13 @@ type OpsMetricsCollectorCacheConfig struct {
 }
 
 type JWTConfig struct {
-	Secret     string `mapstructure:"secret"`
-	ExpireHour int    `mapstructure:"expire_hour"`
+	Secret string `mapstructure:"secret"`
+	// PreviousSecret 用于平滑轮换 JWT 密钥；
+	// 设置后，校验链路可同时接受 Secret 与 PreviousSecret 签发的 token，
+	// 直至运维确认旧 token 全部过期后，将本字段清空完成轮换。
+	// 默认空字符串 = 关闭轮换，仅 Secret 生效（保持既有行为）。
+	PreviousSecret string `mapstructure:"previous_secret"`
+	ExpireHour     int    `mapstructure:"expire_hour"`
 	// AccessTokenExpireMinutes: Access Token有效期（分钟）
 	// - >0: 使用分钟配置（优先级高于 ExpireHour）
 	// - =0: 回退使用 ExpireHour（向后兼容旧配置）
@@ -1408,8 +1416,19 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 	}
 
 	cfg.RunMode = NormalizeRunMode(cfg.RunMode)
-	cfg.Server.Mode = strings.ToLower(strings.TrimSpace(cfg.Server.Mode))
+	rawServerMode := strings.ToLower(strings.TrimSpace(cfg.Server.Mode))
+	if err := cfg.hardeningServerModeValidate(rawServerMode); err != nil {
+		// G3: 严格模式下要求显式 server.mode。
+		return nil, fmt.Errorf("validate config error: %w", err)
+	}
+	cfg.Server.Mode = rawServerMode
 	if cfg.Server.Mode == "" {
+		// 既有行为：未配置时回落到 debug，但发出 warning 提醒。
+		// 生产部署建议显式设置 server.mode=release，或开启
+		// hardening.server_require_explicit_mode 强制要求配置。
+		slog.Warn("server.mode not configured; falling back to 'debug'. " +
+			"Set server.mode explicitly in production or enable " +
+			"hardening.server_require_explicit_mode.")
 		cfg.Server.Mode = "debug"
 	}
 	cfg.Server.FrontendURL = strings.TrimSpace(cfg.Server.FrontendURL)
@@ -1483,7 +1502,12 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 	}
 
 	// Auto-generate TOTP encryption key if not set (32 bytes = 64 hex chars for AES-256)
-	cfg.Totp.EncryptionKey = strings.TrimSpace(cfg.Totp.EncryptionKey)
+	rawTotpKey := strings.TrimSpace(cfg.Totp.EncryptionKey)
+	if err := cfg.hardeningTOTPValidate(rawTotpKey); err != nil {
+		// G5: 严格模式下禁止自动生成，强制要求显式配置。
+		return nil, fmt.Errorf("validate config error: %w", err)
+	}
+	cfg.Totp.EncryptionKey = rawTotpKey
 	if cfg.Totp.EncryptionKey == "" {
 		key, err := generateJWTSecret(32) // Reuse the same random generation function
 		if err != nil {
@@ -1491,15 +1515,28 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 		}
 		cfg.Totp.EncryptionKey = key
 		cfg.Totp.EncryptionKeyConfigured = false
-		slog.Warn("TOTP encryption key auto-generated. Consider setting a fixed key for production.")
+		slog.Warn("TOTP encryption key auto-generated; existing TOTP secrets will become unreadable on restart. " +
+			"Set totp.encryption_key explicitly for production, or enable " +
+			"hardening.totp_require_configured_key to fail-fast when missing.")
 	} else {
 		cfg.Totp.EncryptionKeyConfigured = true
+	}
+
+	// G4: 如开启 OAuth 自动降级，预先把"启用但残缺"的 provider 关闭，
+	// 让后续 Validate 仅对完整 provider 严格校验，服务不致因单一 provider 配置缺失启动失败。
+	if disabled := cfg.hardeningOAuthMaybeDisable(); len(disabled) > 0 {
+		slog.Warn("OAuth providers auto-disabled due to incomplete configuration",
+			"providers", disabled,
+			"reason", "hardening.oauth_auto_disable_incomplete enabled")
 	}
 
 	originalJWTSecret := cfg.JWT.Secret
 	if allowMissingJWTSecret && originalJWTSecret == "" {
 		// 启动阶段允许先无 JWT 密钥，后续在数据库初始化后补齐。
 		cfg.JWT.Secret = strings.Repeat("0", 32)
+		// G9: 显式告警，标明此次加载使用了 bootstrap 占位密钥。
+		slog.Warn("bootstrap mode: jwt.secret empty, using placeholder for initial DB setup. " +
+			"Production deployments must configure jwt.secret before serving traffic.")
 	}
 
 	if err := cfg.Validate(); err != nil {
@@ -1520,10 +1557,12 @@ func load(allowMissingJWTSecret bool) (*Config, error) {
 	if cfg.JWT.Secret != "" && isWeakJWTSecret(cfg.JWT.Secret) {
 		slog.Warn("JWT secret appears weak; use a 32+ character random secret in production.")
 	}
+	// G8: 通过 sanitizeHeaderNamesForLog 拒绝把疑似敏感头部值写进日志。
+	// 头部名本身不是 secret，但用户可能误将 Authorization/Cookie 等鉴权头放进白名单。
 	if len(cfg.Security.ResponseHeaders.AdditionalAllowed) > 0 || len(cfg.Security.ResponseHeaders.ForceRemove) > 0 {
 		slog.Info("response header policy configured",
-			"additional_allowed", cfg.Security.ResponseHeaders.AdditionalAllowed,
-			"force_remove", cfg.Security.ResponseHeaders.ForceRemove,
+			"additional_allowed", sanitizeHeaderNamesForLog(cfg.Security.ResponseHeaders.AdditionalAllowed),
+			"force_remove", sanitizeHeaderNamesForLog(cfg.Security.ResponseHeaders.ForceRemove),
 		)
 	}
 
@@ -1967,6 +2006,14 @@ func setDefaults() {
 	viper.SetDefault("subscription_maintenance.worker_count", 2)
 	viper.SetDefault("subscription_maintenance.queue_size", 1024)
 
+	// Hardening 开关 — 全部默认 false，保持向后兼容；详见 hardening.go。
+	viper.SetDefault("hardening.cors_strict_validation", false)
+	viper.SetDefault("hardening.server_require_explicit_mode", false)
+	viper.SetDefault("hardening.oauth_auto_disable_incomplete", false)
+	viper.SetDefault("hardening.totp_require_configured_key", false)
+
+	// JWT rotation — 默认空字符串等价于"未轮换"。
+	viper.SetDefault("jwt.previous_secret", "")
 }
 
 func (c *Config) Validate() error {
@@ -1978,6 +2025,14 @@ func (c *Config) Validate() error {
 	// 选择 bytes 而不是 rune 计数，确保二进制/随机串的长度语义更接近“熵”而非“字符数”。
 	if len([]byte(jwtSecret)) < 32 {
 		return fmt.Errorf("jwt.secret must be at least 32 bytes")
+	}
+	// G6: 校验 previous_secret 形态；为空时无副作用。
+	if err := c.validatePreviousJWTSecret(); err != nil {
+		return err
+	}
+	// G2/G10: 严格 CORS 凭据校验（默认关闭）。
+	if err := c.hardeningCORSValidate(); err != nil {
+		return err
 	}
 	switch c.Log.Level {
 	case "debug", "info", "warn", "error":

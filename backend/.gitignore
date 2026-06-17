@@ -1,1 +1,11 @@
 .ace-tool/
+
+# Sensitive / local-only config — never commit production credentials.
+# The repo-tracked config.yaml is the development scaffold; rename to
+# config.local.yaml or use environment variables for any non-dev deployment.
+config.local.yaml
+config.production.yaml
+config.*.local.yaml
+*.env
+.env
+.env.local
