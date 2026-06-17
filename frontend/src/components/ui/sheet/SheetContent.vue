@@ -37,6 +37,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <SheetOverlay />
     <DialogContent
       v-bind="forwarded"
+      :trap-focus="forwarded.trapFocus ?? true"
       :class="cn(sheetVariants({ side }), props.class)"
     >
       <slot />

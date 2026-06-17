@@ -112,8 +112,15 @@
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.channelMonitor.form.jitterSeconds') }}</label>
-        <input v-model.number="form.jitter_seconds" type="number" min="0" :max="maxJitterSeconds" class="input" />
+        <label class="input-label" for="monitor-jitter-seconds">{{ t('admin.channelMonitor.form.jitterSeconds') }}</label>
+        <input
+          id="monitor-jitter-seconds"
+          v-model.number="form.jitter_seconds"
+          type="number"
+          min="0"
+          :max="maxJitterSeconds"
+          class="input"
+        />
         <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.channelMonitor.form.jitterSecondsHint') }}</p>
       </div>
 

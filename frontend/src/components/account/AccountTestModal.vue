@@ -150,6 +150,7 @@
           @click="copyOutput"
           class="absolute right-2 top-2 h-7 w-7 border border-border bg-secondary text-muted-foreground opacity-0 transition-all hover:bg-accent hover:text-foreground group-hover:opacity-100"
           :title="t('admin.accounts.copyOutput')"
+          :aria-label="t('admin.accounts.copyOutput')"
         >
           <Icon name="link" size="sm" :stroke-width="2" />
         </Button>

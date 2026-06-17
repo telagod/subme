@@ -17,7 +17,7 @@
         <img
           v-else-if="mode === 'image' && modelValue"
           :src="modelValue"
-          alt=""
+          :alt="props.altText || 'Uploaded image preview'"
           class="h-full w-full object-contain"
         />
         <!-- Empty placeholder -->
@@ -86,6 +86,7 @@ const props = withDefaults(defineProps<{
   removeLabel?: string
   hint?: string
   maxSize?: number // bytes
+  altText?: string
 }>(), {
   mode: 'image',
   size: 'md',
@@ -93,6 +94,7 @@ const props = withDefaults(defineProps<{
   removeLabel: 'Remove',
   hint: '',
   maxSize: 300 * 1024,
+  altText: '',
 })
 
 const emit = defineEmits<{

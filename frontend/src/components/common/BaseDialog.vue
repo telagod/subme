@@ -33,7 +33,8 @@
               variant="ghost"
               size="icon"
               @click="emit('close')"
-              class="-mr-2 dialog-close-btn"
+              class="-mr-2"
+              data-dialog-close
               :aria-label="t('common.closeModal')"
             >
               <Icon name="x" size="md" />
@@ -155,7 +156,7 @@ watch(
             dialogRef.value.querySelectorAll<HTMLElement>(focusableSelector)
           )
           const firstNonClose = allFocusable.find(
-            (el) => !el.classList.contains('dialog-close-btn')
+            (el) => el.dataset.dialogClose === undefined
           )
           ;(firstNonClose ?? allFocusable[0])?.focus()
         }

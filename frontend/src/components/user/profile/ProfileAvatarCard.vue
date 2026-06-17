@@ -16,7 +16,7 @@
           v-if="avatarPreviewUrl"
           data-testid="profile-avatar-preview"
           :src="avatarPreviewUrl"
-          :alt="displayName"
+          :alt="displayName ? `${displayName} avatar` : 'User avatar'"
           class="h-full w-full object-cover"
         >
         <span v-else>{{ avatarInitial }}</span>
@@ -78,7 +78,7 @@
           v-if="avatarPreviewUrl"
           data-testid="profile-avatar-preview"
           :src="avatarPreviewUrl"
-          :alt="displayName"
+          :alt="displayName ? `${displayName} avatar` : 'User avatar'"
           class="h-full w-full object-cover"
         >
         <span v-else>{{ avatarInitial }}</span>

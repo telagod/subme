@@ -107,6 +107,7 @@
             <!-- Refresh Token Input -->
             <div class="mb-4">
               <Label
+                for="oauth-refresh-token-input"
                 class="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground/85"
               >
                 <Icon name="key" size="sm" class="text-primary" />
@@ -120,6 +121,7 @@
                 </Badge>
               </Label>
               <Textarea
+                id="oauth-refresh-token-input"
                 v-model="refreshTokenInput"
                 rows="3"
                 class="resize-y font-mono text-sm"
@@ -272,6 +274,7 @@
             <!-- sessionKey Input -->
             <div class="mb-4">
               <Label
+                for="oauth-session-key-input"
                 class="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground/85"
               >
                 <Icon name="key" size="sm" class="text-primary" />
@@ -289,6 +292,7 @@
                   variant="ghost"
                   size="icon"
                   class="h-6 w-6 text-primary hover:text-primary/80"
+                  aria-label="Show help"
                   @click="showHelpDialog = !showHelpDialog"
                 >
                   <svg
@@ -297,6 +301,7 @@
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     stroke-width="1.5"
+                    aria-hidden="true"
                   >
                     <path
                       stroke-linecap="round"
@@ -307,6 +312,7 @@
                 </Button>
               </Label>
               <Textarea
+                id="oauth-session-key-input"
                 v-model="sessionKeyInput"
                 rows="3"
                 class="resize-y font-mono text-sm"
@@ -483,6 +489,7 @@
                       variant="secondary"
                       size="icon"
                       title="Copy URL"
+                      aria-label="Copy URL to clipboard"
                       @click="handleCopyUrl"
                     >
                       <svg
@@ -492,6 +499,7 @@
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         stroke-width="1.5"
+                        aria-hidden="true"
                       >
                         <path
                           stroke-linecap="round"
@@ -582,11 +590,12 @@
                   v-text="oauthAuthCodeDesc"
                 ></p>
                 <div>
-                  <Label class="mb-2 block">
+                  <Label for="oauth-auth-code-input" class="mb-2 block">
                     <Icon name="key" size="sm" class="mr-1 inline text-primary" />
                     {{ oauthAuthCode }}
                   </Label>
                   <Textarea
+                    id="oauth-auth-code-input"
                     v-model="authCodeInput"
                     rows="3"
                     class="resize-none font-mono text-sm"

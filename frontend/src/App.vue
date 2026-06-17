@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import { RouterView, useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onBeforeUnmount, onErrorCaptured, watch } from 'vue'
+import { ref, onMounted, onErrorCaptured, watch } from 'vue'
 import Toast from '@/components/common/Toast.vue'
 import NavigationProgress from '@/components/common/NavigationProgress.vue'
 import { resolveDocumentTitle } from '@/router/title'
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
 import { Button } from '@/components/ui/button'
-import { useAppStore, useAuthStore, useSubscriptionStore, useAnnouncementStore } from '@/stores'
-import { useAdminSettingsStore } from '@/stores/adminSettings'
+import { useAppStore } from '@/stores'
+import { useAppLifecycle } from '@/composables/useAppLifecycle'
 import { getSetupStatus } from '@/api/setup'
 
 const router = useRouter()
 const route = useRoute()
 const appStore = useAppStore()
-const authStore = useAuthStore()
-const subscriptionStore = useSubscriptionStore()
-const announcementStore = useAnnouncementStore()
-const adminSettingsStore = useAdminSettingsStore()
+// useAppLifecycle 拥有：visibilitychange / 订阅轮询 / 公告 reset / admin-settings
+// 监听器的整套生命周期。App.vue 只负责调用一次。
+const { refreshAnnouncementsIfAuthed } = useAppLifecycle()
 
 /**
  * Update favicon dynamically
@@ -45,55 +44,10 @@ watch(
   { immediate: true }
 )
 
-// Watch for authentication state and manage subscription data + announcements
-function onVisibilityChange() {
-  if (document.visibilityState === 'visible' && authStore.isAuthenticated) {
-    announcementStore.fetchAnnouncements()
-  }
-}
-
-watch(
-  () => authStore.isAuthenticated,
-  (isAuthenticated, oldValue) => {
-    if (isAuthenticated) {
-      // User logged in: preload subscriptions and start polling
-      subscriptionStore.fetchActiveSubscriptions().catch((error) => {
-        console.error('Failed to preload subscriptions:', error)
-      })
-      subscriptionStore.startPolling()
-
-      // Announcements: new login vs page refresh restore
-      if (oldValue === false) {
-        // New login: delay 3s then force fetch
-        setTimeout(() => announcementStore.fetchAnnouncements(true), 3000)
-      } else {
-        // Page refresh restore (oldValue was undefined)
-        announcementStore.fetchAnnouncements()
-      }
-
-      // Register visibility change listener
-      document.addEventListener('visibilitychange', onVisibilityChange)
-    } else {
-      // User logged out: clear data and stop polling
-      subscriptionStore.clear()
-      announcementStore.reset()
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
-  },
-  { immediate: true }
-)
-
-// Route change trigger (throttled by store)
+// Route change trigger (throttled by store); useAppLifecycle 已掌管认证态切换的
+// visibility/订阅/公告 reset/admin-settings 监听器的整套生命周期。
 router.afterEach(() => {
-  if (authStore.isAuthenticated) {
-    announcementStore.fetchAnnouncements()
-  }
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-  // Tear down admin-settings window listener (registered in onMounted)
-  adminSettingsStore.uninstallEventListeners()
+  refreshAnnouncementsIfAuthed()
 })
 
 const routeError = ref(false)
@@ -109,10 +63,7 @@ watch(() => route.path, () => {
 })
 
 onMounted(async () => {
-  // Own the admin-settings window listener lifecycle here so it cleans up properly
-  // on app teardown / HMR (previously leaked at module load).
-  adminSettingsStore.installEventListeners()
-
+  // admin-settings window listener lifecycle 已由 useAppLifecycle 接管。
   // Check if setup is needed
   try {
     const status = await getSetupStatus()
@@ -133,6 +84,9 @@ onMounted(async () => {
 </script>
 
 <template>
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[100] focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:text-foreground focus:shadow-md focus:ring-2 focus:ring-ring">
+    Skip to main content
+  </a>
   <NavigationProgress />
   <div v-if="routeError" class="flex items-center justify-center min-h-screen">
     <div class="text-center space-y-4">
@@ -142,11 +96,13 @@ onMounted(async () => {
       </Button>
     </div>
   </div>
-  <RouterView v-else v-slot="{ Component, route: viewRoute }">
-    <transition name="page">
-      <component v-if="Component" :is="Component" :key="viewRoute.path" />
-    </transition>
-  </RouterView>
+  <main id="main-content" tabindex="-1">
+    <RouterView v-if="!routeError" v-slot="{ Component, route: viewRoute }">
+      <transition name="page">
+        <component v-if="Component" :is="Component" :key="viewRoute.path" />
+      </transition>
+    </RouterView>
+  </main>
   <Toast />
   <AnnouncementPopup />
 </template>

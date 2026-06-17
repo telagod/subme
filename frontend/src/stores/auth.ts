@@ -7,6 +7,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import { authAPI, isTotp2FARequired, type LoginResponse } from '@/api'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types'
+import { performRefresh } from '@/lib/tokenRefresher'
 
 const AUTH_TOKEN_KEY = 'auth_token'
 const AUTH_USER_KEY = 'auth_user'
@@ -79,8 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
   const pendingAuthSession = ref<PendingAuthSessionSummary | null>(null)
   let refreshIntervalId: ReturnType<typeof setInterval> | null = null
   let tokenRefreshTimeoutId: ReturnType<typeof setTimeout> | null = null
-  // In-flight token-refresh promise — single-flight dedup (see performTokenRefresh)
-  let refreshInFlight: Promise<void> | null = null
+  // Single-flight 由 @/lib/tokenRefresher 模块统一掌控；本 store 仅订阅其 Promise。
 
   // ==================== Computed ====================
 
@@ -201,45 +201,26 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Perform the actual token refresh
+   * Perform the actual token refresh.
    *
-   * In-flight dedup: while a refresh is pending, concurrent callers (proactive timer
-   * fire + an extra re-schedule racing against it) reuse the same promise instead of
-   * issuing duplicate /auth/refresh calls and stomping on each other's response.
-   *
-   * NOTE: the axios 401 interceptor (api/client.ts) uses its own subscriber-based
-   * `isRefreshing` flag and cannot import this store (circular dep). The two paths
-   * deliberately remain independent — each is single-flight within its own scope.
+   * 走 @/lib/tokenRefresher 单飞协调器：401 拦截器与本 store 共享同一 in-flight
+   * Promise，避免双路径同时调用 /auth/refresh 互踩对方的 response。
    */
   async function performTokenRefresh(): Promise<void> {
     if (!refreshTokenValue.value) {
       return
     }
 
-    // Dedup: reuse in-flight promise
-    if (refreshInFlight) {
-      return refreshInFlight
+    try {
+      const result = await performRefresh(refreshTokenValue.value)
+      // tokenRefresher 已写入 localStorage；这里同步 reactive 状态。
+      token.value = result.accessToken
+      refreshTokenValue.value = result.refreshToken
+      scheduleTokenRefresh(result.expiresIn)
+    } catch (error) {
+      console.error('Token refresh failed:', error)
+      // Don't clear auth here - the interceptor will handle 401 errors
     }
-
-    refreshInFlight = (async () => {
-      try {
-        const response = await authAPI.refreshToken()
-
-        // Update state
-        token.value = response.access_token
-        refreshTokenValue.value = response.refresh_token
-
-        // Schedule next refresh (this also updates tokenExpiresAt and localStorage)
-        scheduleTokenRefresh(response.expires_in)
-      } catch (error) {
-        console.error('Token refresh failed:', error)
-        // Don't clear auth here - the interceptor will handle 401 errors
-      } finally {
-        refreshInFlight = null
-      }
-    })()
-
-    return refreshInFlight
   }
 
   /**

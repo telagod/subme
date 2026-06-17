@@ -197,7 +197,7 @@
               <img
                 v-if="row.country_code"
                 :src="flagUrl(row.country_code)"
-                :alt="row.country || row.country_code"
+                :alt="`${row.country || row.country_code} flag`"
                 class="h-4 w-6 rounded-sm"
               />
               <span v-if="formatLocation(row)" class="text-sm text-foreground/85">

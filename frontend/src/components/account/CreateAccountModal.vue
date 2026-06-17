@@ -46,8 +46,9 @@
       class="space-y-5"
     >
       <div>
-        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountName') }}</label>
+        <label for="create-account-name" class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.accountName') }}</label>
         <Input
+          id="create-account-name"
           v-model="form.name"
           type="text"
           required
@@ -56,8 +57,9 @@
         />
       </div>
       <div>
-        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.notes') }}</label>
+        <label for="create-account-notes" class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.notes') }}</label>
         <Textarea
+          id="create-account-notes"
           v-model="form.notes"
           rows="3"
                     :placeholder="t('admin.accounts.notesPlaceholder')"
@@ -67,8 +69,8 @@
 
       <!-- Platform Selection - Segmented Control Style -->
       <div>
-        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.platform') }}</label>
-        <div class="mt-2 flex rounded-md bg-muted p-1" data-tour="account-form-platform">
+        <label class="mb-1.5 block text-sm font-medium text-foreground" id="create-account-platform-label">{{ t('admin.accounts.platform') }}</label>
+        <div class="mt-2 flex rounded-md bg-muted p-1" data-tour="account-form-platform" role="radiogroup" aria-labelledby="create-account-platform-label">
           <Button
             type="button"
             variant="ghost"
