@@ -1,7 +1,6 @@
 export default {
   // Home Page
   home: {
-    viewOnGithub: '在 GitHub 上查看',
     viewDocs: '查看文档',
     docs: '文档',
     switchToLight: '切换到浅色模式',
@@ -34,38 +33,8 @@ export default {
     // 新增：面向用户的价值主张
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
     heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
-    tags: {
-      subscriptionToApi: '订阅转 API',
-      stickySession: '会话保持',
-      realtimeBilling: '按量计费'
-    },
     // 用户痛点区块
-    painPoints: {
-      title: '你是否也遇到这些问题？',
-      items: {
-        expensive: {
-          title: '订阅费用高',
-          desc: '每个 AI 服务都要单独订阅，每月支出越来越多'
-        },
-        complex: {
-          title: '多账号难管理',
-          desc: '不同平台的账号、密钥分散各处，管理起来很麻烦'
-        },
-        unstable: {
-          title: '服务不稳定',
-          desc: '单一账号容易触发限制，影响正常使用'
-        },
-        noControl: {
-          title: '用量无法控制',
-          desc: '不知道钱花在哪了，也无法限制团队成员的使用'
-        }
-      }
-    },
     // 解决方案区块
-    solutions: {
-      title: '我们帮你解决',
-      subtitle: '简单三步，开始省心使用 AI'
-    },
     features: {
       unifiedGateway: '一键接入',
       unifiedGatewayDesc: '获取一个 API 密钥，即可调用所有已接入的 AI 模型，无需分别申请。',
@@ -75,41 +44,6 @@ export default {
       balanceQuotaDesc: '按实际使用量计费，支持设置配额上限，团队用量一目了然。'
     },
     // 优势对比
-    comparison: {
-      title: '为什么选择我们？',
-      headers: {
-        feature: '对比项',
-        official: '官方订阅',
-        us: '本平台'
-      },
-      items: {
-        pricing: {
-          feature: '付费方式',
-          official: '固定月费，用不完也付',
-          us: '按量付费，用多少付多少'
-        },
-        models: {
-          feature: '模型选择',
-          official: '单一服务商',
-          us: '多模型随意切换'
-        },
-        management: {
-          feature: '账号管理',
-          official: '每个服务单独管理',
-          us: '统一密钥，一站管理'
-        },
-        stability: {
-          feature: '服务稳定性',
-          official: '单账号易触发限制',
-          us: '多账号池，自动切换'
-        },
-        control: {
-          feature: '用量控制',
-          official: '无法限制',
-          us: '可设配额、查明细'
-        }
-      }
-    },
     providers: {
       title: '已支持的 AI 模型',
       description: '一个 API，多种选择',
@@ -121,11 +55,6 @@ export default {
       more: '更多'
     },
     // CTA 区块
-    cta: {
-      title: '准备好开始了吗？',
-      description: '注册即可获得免费试用额度，体验一站式 AI 服务',
-      button: '免费注册'
-    },
     footer: {
       allRightsReserved: '保留所有权利。'
     }
@@ -297,7 +226,6 @@ export default {
   common: {
     loading: '加载中...',
     submitting: '提交中...',
-    justNow: '刚刚',
     save: '保存',
     saved: '保存成功',
     deleted: '删除成功',
@@ -309,27 +237,19 @@ export default {
     confirm: '确认',
     reset: '重置',
     search: '搜索',
-    filter: '筛选',
     filters: '筛选',
     clearFilters: '清除筛选',
-    export: '导出',
-    import: '导入',
     actions: '操作',
     status: '状态',
     name: '名称',
     email: '邮箱',
-    password: '密码',
-    submit: '提交',
     back: '返回',
     next: '下一步',
     yes: '是',
     no: '否',
     all: '全部',
-    none: '无',
     selectAll: '全选',
     noData: '暂无数据',
-    expand: '展开',
-    collapse: '收起',
     success: '成功',
     error: '错误',
     critical: '严重',
@@ -383,8 +303,6 @@ export default {
     settings: '设置',
     chooseFile: '选择文件',
     copy: '复制',
-    notAvailable: '不可用',
-    now: '现在',
     today: '今天',
     tomorrow: '明天',
     unknown: '未知',
@@ -419,7 +337,6 @@ export default {
     profile: '个人资料',
     users: '用户管理',
     groups: '分组管理',
-    channels: '渠道管理',
     availableChannels: '可用渠道',
     subscriptions: '订阅管理',
     accounts: '账号管理',
@@ -441,7 +358,6 @@ export default {
     myOrders: '我的订单',
     orderManagement: '订单管理',
     paymentDashboard: '支付概览',
-    paymentConfig: '支付配置',
     paymentPlans: '订阅套餐',
     channelManagement: '渠道管理',
     channelPricing: '渠道定价',
@@ -852,8 +768,6 @@ export default {
       },
       antigravity: {
         description: '为 Antigravity 分组配置 API 访问。请根据您使用的客户端选择对应的配置方式。',
-        claudeCode: 'Claude Code',
-        geminiCli: 'Gemini CLI',
         claudeNote:
           '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。',
         geminiNote:
@@ -866,8 +780,6 @@ export default {
         note: '这些环境变量将在当前终端会话中生效。如需永久配置，请将其添加到 ~/.bashrc、~/.zshrc 或相应的配置文件中。'
       },
       opencode: {
-        title: 'OpenCode 配置示例',
-        subtitle: 'opencode.json',
         hint: '配置文件路径：~/.config/opencode/opencode.json（或 opencode.jsonc），不存在需手动创建。可使用默认 provider（openai/anthropic/google）或自定义 provider_id。API Key 支持直接配置或通过客户端 /connect 命令配置。示例仅供参考，模型与选项可按需调整。'
       }
     },
@@ -897,7 +809,6 @@ export default {
     },
     // 配额和有效期
     quotaLimit: '额度限制',
-    quotaAmount: '额度金额 (USD)',
     quotaAmountPlaceholder: '输入 USD 额度限制',
     quotaAmountHint: '设置此密钥可消费的最大金额。0 = 无限制。',
     quotaUsed: '已用额度',
@@ -914,7 +825,6 @@ export default {
     rateLimit1d: '日限额 (USD)',
     rateLimit7d: '7天限额 (USD)',
     rateLimitHint: '设置此密钥在指定时间窗口内的最大消费额。0 = 无限制。',
-    rateLimitUsage: '速率限制用量',
     resetRateLimitUsage: '重置速率限制用量',
     resetRateLimitTitle: '确认重置速率限制',
     resetRateLimitConfirmMessage: '确定要重置密钥 "{name}" 的速率限制用量吗？所有时间窗口的已用额度将归零。此操作不可撤销。',
@@ -1193,7 +1103,6 @@ export default {
       invitedUsers: '邀请人数',
       availableQuota: '可转返利额度',
       frozenQuota: '冻结中',
-      frozenQuotaHint: '新产生的返利正在冻结期中',
       totalQuota: '历史返利额度'
     },
     transfer: {
@@ -1257,7 +1166,6 @@ export default {
     concurrencyReducedAdmin: '并发减少（管理员）',
     adminAdjustment: '管理员调整',
     subscriptionAssigned: '订阅已分配',
-    subscriptionAssignedDesc: '您已获得 {groupName} 的访问权限',
     subscriptionDays: '{days} 天',
     days: '天',
     codeRedeemSuccess: '兑换成功！',
@@ -1272,23 +1180,14 @@ export default {
     description: '管理您的账户信息和设置',
     accountBalance: '账户余额',
     concurrencyLimit: '并发限制',
-    rpmLimit: 'RPM 限制',
-    rpmUnlimited: '不限制',
     memberSince: '注册时间',
-    overviewTitle: '账户总览',
-    overviewDescription: '快速查看账号状态、资料来源与常用设置。',
     basicsTitle: '资料与头像',
     basicsDescription: '维护公开展示信息，并保持头像与昵称风格一致。',
     linkedProfileSources: '资料来源',
     linkedProfileSourcesDescription: '部分头像和昵称可能同步自第三方登录方式。',
-    securityTitle: '安全设置',
-    securityDescription: '密码、双因素认证和通知提醒集中放在右侧。',
     administrator: '管理员',
     user: '用户',
     username: '用户名',
-    email: '邮箱',
-    status: '状态',
-    role: '角色',
     enterUsername: '输入用户名',
     editProfile: '编辑个人资料',
     updateProfile: '更新资料',
@@ -1356,20 +1255,12 @@ export default {
       systemDefault: '系统默认值',
       extraEmails: '通知邮箱',
       extraEmailsHint: '必须添加并验证邮箱后，余额不足时才能收到提醒邮件',
-      primaryEmail: '主邮箱',
-      noExtraEmails: '暂无额外通知邮箱',
-      enterEmail: '输入邮箱地址',
-      addEmail: '添加邮箱',
       emailPlaceholder: '输入邮箱地址',
       sendCode: '发送验证码',
       resend: '重发',
       codeSent: '验证码已发送',
-      codeSentTo: '验证码已发送到 {email}',
-      enterCode: '输入验证码',
       codePlaceholder: '6位验证码',
       verify: '验证',
-      emailAdded: '邮箱已添加',
-      emailRemoved: '邮箱已移除',
       verifySuccess: '邮箱添加成功',
       removeEmail: '移除',
       removeSuccess: '邮箱已移除',
@@ -1441,10 +1332,6 @@ export default {
   },
 
   // Table
-  table: {
-    expandActions: '展开更多操作',
-    collapseActions: '收起操作'
-  },
 
   // Pagination
   pagination: {
@@ -1465,29 +1352,20 @@ export default {
 
   // Errors
   errors: {
-    somethingWentWrong: '出错了',
     pageNotFound: '页面未找到',
-    unauthorized: '未授权',
-    forbidden: '禁止访问',
-    serverError: '服务器错误',
     networkError: '网络错误',
-    timeout: '请求超时',
-    tryAgain: '请重试'
   },
 
   // Dates
   dates: {
     today: '今天',
     yesterday: '昨天',
-    thisWeek: '本周',
-    lastWeek: '上周',
     thisMonth: '本月',
     lastMonth: '上月',
     last24Hours: '近24小时',
     last7Days: '近 7 天',
     last14Days: '近 14 天',
     last30Days: '近 30 天',
-    custom: '自定义',
     startDate: '开始日期',
     endDate: '结束日期',
     apply: '应用',
@@ -1501,29 +1379,18 @@ export default {
       title: '管理控制台',
       description: '系统概览与统计数据',
       apiKeys: 'API 密钥',
-      totalApiKeys: 'API 密钥总数',
-      activeApiKeys: '活跃密钥',
       users: '用户',
-      totalUsers: '用户总数',
       activeUsers: '活跃用户',
       accounts: '账号',
-      totalAccounts: '账号总数',
-      activeAccounts: '活跃账号',
       todayRequests: '今日请求',
-      totalRequests: '总请求数',
-      todayCost: '今日消费',
-      totalCost: '总消费',
       actual: '实际',
       standard: '标准',
       accountCost: '成本',
       todayTokens: '今日 Token',
       totalTokens: '总 Token',
-      input: '输入',
-      output: '输出',
       cacheToday: '今日缓存',
       performance: '性能指标',
       avgResponse: '平均响应',
-      averageTime: '平均时间',
       timeRange: '时间范围',
       granularity: '粒度',
       day: '按天',
@@ -1545,7 +1412,6 @@ export default {
       noGroup: '无分组',
       requests: '请求',
       tokens: 'Token',
-      cache: '缓存',
       recentUsage: '最近使用',
       viewModelDistribution: '模型分布',
       viewSpendingRanking: '用户消费榜',
@@ -1559,17 +1425,6 @@ export default {
       spendShort: '消费',
       requestsShort: '请求',
       tokensShort: 'Token',
-      last7Days: '近 7 天',
-      noUsageRecords: '暂无使用记录',
-      startUsingApi: '开始使用 API 后，使用历史将显示在这里。',
-      viewAllUsage: '查看全部',
-      quickActions: '快捷操作',
-      manageUsers: '管理用户',
-      viewUserAccounts: '查看和管理用户账户',
-      manageAccounts: '管理账号',
-      configureAiAccounts: '配置 AI 平台账号',
-      systemSettings: '系统设置',
-      configureSystem: '配置系统设置',
       failedToLoad: '加载仪表盘数据失败'
     },
 
@@ -1916,10 +1771,7 @@ export default {
       createUser: '创建用户',
       editUser: '编辑用户',
       deleteUser: '删除用户',
-      deleteConfirmMessage: "确定要删除用户 '{email}' 吗？此操作无法撤销。",
-      searchPlaceholder: '邮箱/用户名/备注/API Key 模糊搜索...',
       searchUsers: '邮箱/用户名/备注/API Key 模糊搜索',
-      roleFilter: '角色筛选',
       allRoles: '全部角色',
       allStatus: '全部状态',
       allGroups: '全部分组',
@@ -1932,7 +1784,6 @@ export default {
       apiKeyGroupPublic: '公开',
       apiKeyGroupSubscription: '订阅',
       apiKeyGroupDisabled: '已禁用',
-      statusFilter: '状态筛选',
       allStatuses: '全部状态',
       admin: '管理员',
       user: '用户',
@@ -2018,41 +1869,11 @@ export default {
         user: '用户'
       },
       form: {
-        emailLabel: '邮箱',
-        emailPlaceholder: '请输入邮箱',
-        usernameLabel: '用户名',
-        usernamePlaceholder: '请输入用户名（选填）',
-        notesLabel: '备注',
-        notesPlaceholder: '请输入备注（仅管理员可见）',
-        notesHint: '此备注仅对管理员可见',
-        passwordLabel: '密码',
-        passwordPlaceholder: '请输入密码（留空则不修改）',
-        roleLabel: '角色',
-        selectRole: '选择角色',
-        balanceLabel: '余额',
-        concurrencyLabel: '并发数',
-        statusLabel: '状态',
-        selectStatus: '选择状态',
         rpmLimit: '每分钟请求数 (RPM)',
         rpmLimitPlaceholder: '0 表示不限制',
         rpmLimitHint: '该用户每分钟最大请求数，0 = 不限制；仅在所用分组未设置 rpm_limit 时作为兜底生效'
       },
-      adjustBalance: '调整余额',
-      adjustConcurrency: '调整并发数',
-      adjustmentAmount: '调整金额',
-      adjustmentAmountHint: '正数增加，负数减少',
       currentBalance: '当前余额',
-      currentConcurrency: '当前并发数',
-      saving: '保存中...',
-      noUsers: '暂无用户',
-      noUsersDescription: '创建您的第一个用户以开始使用系统。',
-      userCreatedSuccess: '用户创建成功',
-      userUpdatedSuccess: '用户更新成功',
-      userDeletedSuccess: '用户删除成功',
-      balanceAdjustedSuccess: '余额调整成功',
-      concurrencyAdjustedSuccess: '并发数调整成功',
-      failedToSave: '保存用户失败',
-      failedToAdjust: '调整失败',
       emailRequired: '请输入邮箱',
       concurrencyMin: '并发数不能小于1',
       soraStorageQuota: 'Sora 存储配额',
@@ -2248,10 +2069,7 @@ export default {
         rpmOverrideHint: '该用户在此分组的 RPM 上限；留空 = 使用分组默认；0 = 不限制',
         rateDefault: '默认',
         rpmDefault: '默认',
-        exclusive: '独占',
         type: '类型',
-        priority: '优先级',
-        apiKeys: 'API 密钥数',
         accounts: '账号数',
         capacity: '容量',
         usage: '用量',
@@ -2276,28 +2094,9 @@ export default {
         rateMultiplier: '费率倍数',
         status: '状态',
         exclusive: '专属分组',
-        nameLabel: '分组名称',
-        namePlaceholder: '请输入分组名称',
-        descriptionLabel: '描述',
-        descriptionPlaceholder: '请输入描述（可选）',
-        rateMultiplierLabel: '费率倍数',
-        rateMultiplierHint: '1.0 = 标准费率，0.5 = 半价，2.0 = 双倍',
         rpmLimit: '每分钟请求数 (RPM)',
         rpmLimitPlaceholder: '0 表示不限制',
         rpmLimitHint: '每用户在本分组每分钟最大请求数，0 = 不限制；一旦设置即接管该用户的限流（覆盖用户级 rpm_limit）',
-        exclusiveLabel: '专属分组',
-        exclusiveHint: '专属分组，可以手动指定给用户',
-        platformLabel: '平台限制',
-        platformPlaceholder: '选择平台（留空则不限制）',
-        accountsLabel: '指定账号',
-        accountsPlaceholder: '选择账号（留空则不限制）',
-        priorityLabel: '优先级',
-        priorityHint: '数值越小优先级越高，用于账号调度',
-        statusLabel: '状态'
-      },
-      exclusiveObj: {
-        yes: '是',
-        no: '否'
       },
       exclusive: '专属',
       exclusiveHint: '专属分组，可以手动指定给特定用户',
@@ -2317,19 +2116,12 @@ export default {
         gemini: 'Gemini',
         antigravity: 'Antigravity',
       },
-      saving: '保存中...',
-      noGroups: '暂无分组',
-      noGroupsDescription: '创建分组以更好地管理 API 密钥和费率。',
-      groupCreatedSuccess: '分组创建成功',
-      groupUpdatedSuccess: '分组更新成功',
-      groupDeletedSuccess: '分组删除成功',
       failedToLoad: '加载分组列表失败',
       failedToSave: '保存分组失败',
       failedToDelete: '删除分组失败',
       allPlatforms: '全部平台',
       allStatus: '全部状态',
       allGroups: '全部分组',
-      exclusiveFilter: '专属',
       nonExclusive: '公开',
       public: '公开',
       rateAndAccounts: '{rate}x 费率 · {count} 个账号',
@@ -3254,9 +3046,6 @@ export default {
       crsBack: '返回',
       editAccount: '编辑账号',
       deleteAccount: '删除账号',
-      deleteConfirmMessage: "确定要删除账号 '{name}' 吗？",
-      refreshCookie: '刷新 Cookie',
-      testAccount: '测试账号',
       searchAccounts: '搜索账号...',
       notes: '备注',
       notesPlaceholder: '请输入备注',
@@ -3403,8 +3192,6 @@ export default {
         antigravityApikey: '通过 Base URL + API Key 连接',
         upstream: '对接上游',
         upstreamDesc: '通过 Base URL + API Key 连接上游',
-        api_key: 'API Key',
-        cookie: 'Cookie'
       },
       status: {
         active: '正常',
@@ -3516,37 +3303,7 @@ export default {
       needsReauth: '需要重新授权',
       rateLimited: '限流中',
       usageError: '获取失败',
-      form: {
-        nameLabel: '账号名称',
-        namePlaceholder: '请输入账号名称',
-        platformLabel: '平台',
-        selectPlatform: '选择平台',
-        typeLabel: '类型',
-        selectType: '选择类型',
-        credentialsLabel: '凭证',
-        credentialsPlaceholder: '请输入 Cookie 或 API Key',
-        priorityLabel: '优先级',
-        priorityHint: '数值越小优先级越高',
-        weightLabel: '权重',
-        weightHint: '用于负载均衡的权重值',
-        statusLabel: '状态'
-      },
-      filters: {
-        platform: '平台',
-        allPlatforms: '全部平台',
-        type: '类型',
-        allTypes: '全部类型',
-        status: '状态',
-        allStatuses: '全部状态'
-      },
-      saving: '保存中...',
-      refreshing: '刷新中...',
       testing: '测试中...',
-      noAccounts: '暂无账号',
-      noAccountsDescription: '添加 AI 平台账号以开始使用 API 网关。',
-      accountCreatedSuccess: '账号添加成功',
-      accountUpdatedSuccess: '账号更新成功',
-      accountDeletedSuccess: '账号删除成功',
       bulkSchedulableEnabled: '成功启用 {count} 个账号的调度',
       bulkSchedulableDisabled: '成功停止 {count} 个账号的调度',
       bulkSchedulablePartial: '部分调度更新成功：成功 {success} 个，失败 {failed} 个',
@@ -3601,11 +3358,8 @@ export default {
       resetStatus: '重置状态',
       statusReset: '账号状态已重置',
       failedToResetStatus: '重置账号状态失败',
-      cookieRefreshedSuccess: 'Cookie 刷新成功',
-      testSuccess: '账号测试通过',
       testFailed: '账号测试失败',
       failedToLoad: '加载账号列表失败',
-      failedToSave: '保存账号失败',
       failedToDelete: '删除账号失败',
       failedToRefresh: '刷新 Cookie 失败',
       // Create/Edit Account Modal
@@ -4377,8 +4131,6 @@ export default {
       createProxy: '添加代理',
       editProxy: '编辑代理',
       deleteProxy: '删除代理',
-      deleteConfirmMessage: "确定要删除代理 '{name}' 吗？",
-      testProxy: '测试代理',
       dataImport: '导入',
       dataExportSelected: '导出选中',
       dataImportTitle: '导入代理',
@@ -4412,26 +4164,6 @@ export default {
         expiry: '有效期',
         createdAt: '创建时间',
         actions: '操作',
-        nameLabel: '名称',
-        namePlaceholder: '请输入代理名称',
-        protocolLabel: '协议',
-        selectProtocol: '选择协议',
-        hostLabel: '主机',
-        hostPlaceholder: '请输入主机地址',
-        portLabel: '端口',
-        portPlaceholder: '请输入端口',
-        usernameLabel: '用户名（可选）',
-        usernamePlaceholder: '请输入用户名',
-        passwordLabel: '密码（可选）',
-        passwordPlaceholder: '请输入密码',
-        priorityLabel: '优先级',
-        statusLabel: '状态'
-      },
-      filters: {
-        protocol: '协议',
-        allProtocols: '全部协议',
-        status: '状态',
-        allStatuses: '全部状态'
       },
       // Additional keys used in ProxiesView
       copyProxyUrl: '复制代理 URL',
@@ -4499,12 +4231,8 @@ export default {
       batchImportAllSkipped: '全部 {skipped} 个代理已存在，跳过导入',
       failedToImport: '批量导入失败',
       // Other messages
-      saving: '保存中...',
-      testing: '测试中...',
       creating: '创建中...',
       updating: '更新中...',
-      noProxies: '暂无代理',
-      noProxiesDescription: '添加代理服务器以增强 API 访问稳定性。',
       proxyCreated: '代理添加成功',
       proxyUpdated: '代理更新成功',
       proxyDeleted: '代理删除成功',
@@ -4533,12 +4261,7 @@ export default {
       qualityStatusFail: '失败',
       qualityStatusChallenge: '挑战',
       qualityTargetBase: '基础连通性',
-      proxyCreatedSuccess: '代理添加成功',
-      proxyUpdatedSuccess: '代理更新成功',
-      proxyDeletedSuccess: '代理删除成功',
-      testSuccess: '代理测试通过',
       failedToLoad: '加载代理列表失败',
-      failedToSave: '保存代理失败',
       failedToDelete: '删除代理失败',
       failedToCreate: '创建代理失败',
       failedToUpdate: '更新代理失败',
@@ -4576,7 +4299,6 @@ export default {
         usedBy: '使用者',
         usedAt: '使用时间',
         expiresAt: '过期时间',
-        createdAt: '创建时间',
         actions: '操作'
       },
       types: {
@@ -4655,43 +4377,11 @@ export default {
         expired: '已过期',
         disabled: '已禁用'
       },
-      form: {
-        typeLabel: '类型',
-        selectType: '选择类型',
-        valueLabel: '面值',
-        valuePlaceholder: '请输入面值',
-        balanceHint: '余额金额（美元）',
-        concurrencyHint: '并发数增量',
-        countLabel: '数量',
-        countPlaceholder: '请输入数量',
-        countHint: '要生成的兑换码数量',
-        prefixLabel: '前缀（可选）',
-        prefixPlaceholder: '例如：GIFT',
-        expiresLabel: '过期时间（可选）'
-      },
-      filters: {
-        type: '类型',
-        allTypes: '全部类型',
-        status: '状态',
-        allStatuses: '全部状态',
-        search: '搜索兑换码'
-      },
       generating: '生成中...',
-      copyCode: '复制',
       copied: '已复制！',
-      disableCode: '禁用',
-      enableCode: '启用',
       deleteCode: '删除',
-      deleteConfirmMessage: '确定要删除此兑换码吗？',
-      noCodes: '暂无兑换码',
-      noCodesDescription: '生成兑换码以向用户分发余额或并发数。',
-      codesGeneratedSuccess: '兑换码生成成功，共 {count} 个',
-      codeDisabledSuccess: '兑换码已禁用',
-      codeEnabledSuccess: '兑换码已启用',
-      codeDeletedSuccess: '兑换码删除成功',
       failedToLoad: '加载兑换码列表失败',
       failedToGenerate: '生成兑换码失败',
-      failedToUpdate: '更新兑换码失败',
       failedToDelete: '删除兑换码失败'
     },
 
@@ -7548,7 +7238,6 @@ export default {
     expiresToday: '今天到期',
     expiresTomorrow: '明天到期',
     viewAll: '查看全部订阅',
-    noSubscriptions: '暂无有效订阅',
     unlimited: '无限制'
   },
 
@@ -7558,13 +7247,9 @@ export default {
     latestVersion: '最新版本',
     upToDate: '已是最新版本',
     updateAvailable: '有新版本可用！',
-    releaseNotes: '更新日志',
-    noReleaseNotes: '暂无更新日志',
-    viewUpdate: '查看更新',
     viewRelease: '查看发布',
     viewChangelog: '查看更新日志',
     refresh: '刷新',
-    sourceMode: '源码构建',
     sourceModeHint: '源码构建请使用 git pull 更新',
     updateNow: '立即更新',
     updating: '正在更新...',
@@ -7578,13 +7263,7 @@ export default {
 
   // Recharge / Subscription Page
   purchase: {
-    title: '充值/订阅',
     description: '通过内嵌页面完成充值/订阅',
-    openInNewTab: '新窗口打开',
-    notEnabledTitle: '该功能未开启',
-    notEnabledDesc: '管理员暂未开启充值/订阅入口，请联系管理员。',
-    notConfiguredTitle: '充值/订阅链接未配置',
-    notConfiguredDesc: '管理员已开启入口，但尚未配置充值/订阅链接，请联系管理员。'
   },
 
   // Custom Page (iframe embed)
@@ -7600,22 +7279,13 @@ export default {
   // Announcements Page
   announcements: {
     title: '公告',
-    description: '查看系统公告',
-    unreadOnly: '仅显示未读',
     markRead: '标记已读',
     markAllRead: '全部已读',
-    viewAll: '查看全部公告',
     markedAsRead: '已标记为已读',
     allMarkedAsRead: '所有公告已标记为已读',
-    newCount: '有 {count} 条新公告',
-    readAt: '已读时间',
     read: '已读',
     unread: '未读',
-    startsAt: '开始时间',
-    endsAt: '结束时间',
     empty: '暂无公告',
-    emptyUnread: '暂无未读公告',
-    total: '条公告',
     emptyDescription: '暂时没有任何系统公告',
     readStatus: '您已阅读此公告',
     markReadHint: '点击"已读"标记此公告',
@@ -7654,10 +7324,6 @@ export default {
   // Onboarding Tour
   onboarding: {
     restartTour: '重新查看新手引导',
-    dontShowAgain: '不再提示',
-    dontShowAgainTitle: '永久关闭新手引导',
-    confirmDontShow: '确定不再显示新手引导吗？\n\n您可以随时在右上角头像菜单中重新开启。',
-    confirmExit: '确定要退出新手引导吗？您可以随时在右上角菜单重新开始。',
     interactiveHint: '按 Enter 或点击继续',
     navigation: {
       flipPage: '翻页',
@@ -7696,25 +7362,21 @@ export default {
         title: '✏️ 1. 分组名称',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">为您的分组起一个易于识别的名称。</p><div style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>💡 命名建议：</b><ul style="margin: 8px 0 0 16px;"><li>"测试分组" - 用于测试</li><li>"VIP专线" - 高质量服务</li><li>"免费试用" - 体验版</li></ul></div><p style="font-size: 13px; color: #97A0AF;">填写完成后点击"下一步"继续</p></div>',
-        nextBtn: '下一步'
       },
       groupPlatform: {
         title: '🤖 2. 选择平台',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">选择该分组支持的 AI 平台。</p><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 平台说明：</b><ul style="margin: 8px 0 0 16px;"><li><b>Anthropic</b> - Claude 系列模型</li><li><b>OpenAI</b> - GPT 系列模型</li><li><b>Google</b> - Gemini 系列模型</li></ul></div><p style="font-size: 13px; color: #97A0AF;">一个分组只能选择一个平台</p></div>',
-        nextBtn: '下一步'
       },
       groupMultiplier: {
         title: '💰 3. 费率倍数',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">设置该分组的计费倍率，控制用户的实际扣费。</p><div style="padding: 8px 12px; background: rgba(224,179,78,.10); border-left: 3px solid #E0B34E; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>⚙️ 计费规则：</b><ul style="margin: 8px 0 0 16px;"><li><b>1.0</b> - 原价计费（成本价）</li><li><b>1.5</b> - 用户消耗 $1，扣除 $1.5</li><li><b>2.0</b> - 用户消耗 $1，扣除 $2</li><li><b>0.8</b> - 补贴模式（亏本运营）</li></ul></div><p style="font-size: 13px; color: #97A0AF;">建议测试分组设置为 1.0</p></div>',
-        nextBtn: '下一步'
       },
       groupExclusive: {
         title: '🔒 4. 专属分组（可选）',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">控制分组的可见性和访问权限。</p><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔐 权限说明：</b><ul style="margin: 8px 0 0 16px;"><li><b>关闭</b> - 公开分组，所有用户可见</li><li><b>开启</b> - 专属分组，仅指定用户可见</li></ul></div><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 使用场景：</b>VIP 用户专属、内部测试、特殊客户等</p></div>',
-        nextBtn: '下一步'
       },
       groupSubmit: {
         title: '✅ 保存分组',
@@ -7735,31 +7397,26 @@ export default {
         title: '✏️ 1. 账号名称',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">为账号设置一个便于识别的名称。</p><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 命名建议：</b>"Claude主账号"、"GPT备用1"、"测试账号" 等</p></div>',
-        nextBtn: '下一步'
       },
       accountPlatform: {
         title: '🤖 2. 选择平台',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">选择该账号对应的服务商平台。</p><p style="padding: 8px 12px; background: rgba(224,179,78,.10); border-left: 3px solid #E0B34E; border-radius: 4px; font-size: 13px;"><b>⚠️ 重要：</b>平台必须与刚才创建的分组平台一致</p></div>',
-        nextBtn: '下一步'
       },
       accountType: {
         title: '🔐 3. 授权方式',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">选择账号的授权方式。</p><div style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>✅ 推荐：OAuth 方式</b><ul style="margin: 8px 0 0 16px;"><li>无需手动提取密钥</li><li>更安全，支持自动刷新</li><li>适用于 Claude Code、ChatGPT OAuth</li></ul></div><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px;"><b>📌 Session Key 方式</b><ul style="margin: 8px 0 0 16px;"><li>需要手动从浏览器提取</li><li>可能需要定期更新</li><li>适用于不支持 OAuth 的平台</li></ul></div></div>',
-        nextBtn: '下一步'
       },
       accountPriority: {
         title: '⚖️ 4. 优先级（可选）',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">设置账号的调用优先级。</p><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📊 优先级规则：</b><ul style="margin: 8px 0 0 16px;"><li>数字越小，优先级越高</li><li>系统优先使用低数值账号</li><li>相同优先级则随机选择</li></ul></div><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 使用场景：</b>主账号设置低数值，备用账号设置高数值</p></div>',
-        nextBtn: '下一步'
       },
       accountGroups: {
         title: '🎯 5. 分配分组',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>关键步骤！</b>将账号分配到刚才创建的分组。</p><div style="padding: 8px 12px; background: #fee2e2; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>⚠️ 重要提醒：</b><ul style="margin: 8px 0 0 16px;"><li>必须勾选至少一个分组</li><li>未分配分组的账号无法使用</li><li>一个账号可以分配给多个分组</li></ul></div><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 提示：</b>请勾选刚才创建的测试分组</p></div>',
-        nextBtn: '下一步'
       },
       accountSubmit: {
         title: '✅ 保存账号',
@@ -7772,33 +7429,6 @@ export default {
           '<div class="q-tour"><p>分组 + 账号就位，网关已经可以对外服务了。</p><p>最后一步：到用户端「我的密钥」（或随时按 <kbd>⌘K</kbd> 搜索）为自己创建一把 API Key，发起第一次调用。</p><div class="q-tour-tip">引导可随时在右上角头像菜单中重新开启</div></div>',
         doneBtn: '完成'
       },
-      keyManage: {
-        title: '🔑 第三步：生成密钥',
-        description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;"><b>恭喜！账号配置完成 🎉</b></p><p style="margin-bottom: 12px;">最后一步，生成 API Key 来测试服务是否正常工作。</p><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🔑 API Key 的作用：</b><ul style="margin: 8px 0 0 16px;"><li>用于调用 AI 服务的凭证</li><li>每个 Key 绑定一个分组</li><li>可以设置配额和有效期</li><li>支持独立的使用统计</li></ul></div><p style="margin-top: 16px; color: #46C98C; font-weight: 600;">👉 点击左侧的"API 密钥"</p></div>'
-      },
-      createKey: {
-        title: '➕ 创建密钥',
-        description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">点击按钮创建您的第一个 API Key。</p><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 提示：</b>创建后请立即复制保存，密钥只显示一次</p><p style="margin-top: 12px; color: #46C98C; font-weight: 600;">👉 点击"创建密钥"按钮</p></div>'
-      },
-      keyName: {
-        title: '✏️ 1. 密钥名称',
-        description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">为密钥设置一个便于管理的名称。</p><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 命名建议：</b>"测试密钥"、"生产环境"、"移动端" 等</p></div>',
-        nextBtn: '下一步'
-      },
-      keyGroup: {
-        title: '🎯 2. 选择分组',
-        description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">选择刚才配置好的分组。</p><div style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>📌 分组决定：</b><ul style="margin: 8px 0 0 16px;"><li>该密钥可以使用哪些账号</li><li>计费倍率是多少</li><li>是否为专属密钥</li></ul></div><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 提示：</b>选择刚才创建的测试分组</p></div>',
-        nextBtn: '下一步'
-      },
-      keySubmit: {
-        title: '🎉 生成并复制',
-        description:
-          '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">点击创建后，系统会生成完整的 API Key。</p><div style="padding: 8px 12px; background: #fee2e2; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>⚠️ 重要提醒：</b><ul style="margin: 8px 0 0 16px;"><li>密钥只显示一次，请立即复制</li><li>丢失后需要重新生成</li><li>妥善保管，不要泄露给他人</li></ul></div><div style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px; margin-bottom: 12px;"><b>🚀 下一步：</b><ul style="margin: 8px 0 0 16px;"><li>复制生成的 sk-xxx 密钥</li><li>在支持 OpenAI 接口的客户端中使用</li><li>开始体验 AI 服务！</li></ul></div><p style="margin-top: 12px; color: #46C98C; font-weight: 600;">👉 点击"创建"按钮</p></div>'
-      }
     },
     // User tour steps
     user: {
@@ -7823,13 +7453,11 @@ export default {
         title: '✏️ 密钥名称',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">为密钥起一个便于识别的名称。</p><p style="padding: 8px 12px; background: rgba(70,201,140,.08); border-left: 3px solid #46C98C; border-radius: 4px; font-size: 13px;"><b>💡 示例：</b>"我的第一个密钥"、"测试用" 等</p></div>',
-        nextBtn: '下一步'
       },
       keyGroup: {
         title: '🎯 选择分组',
         description:
           '<div style="line-height: 1.7;"><p style="margin-bottom: 12px;">选择管理员为您分配的服务分组。</p><p style="padding: 8px 12px; background: rgba(92,168,255,.08); border-left: 3px solid #5CA8FF; border-radius: 4px; font-size: 13px;"><b>📌 分组说明：</b><br/>不同分组可能有不同的服务质量和计费标准，请根据需要选择。</p></div>',
-        nextBtn: '下一步'
       },
       keySubmit: {
         title: '🎉 完成创建',
