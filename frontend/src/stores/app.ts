@@ -116,9 +116,11 @@ export const useAppStore = defineStore('app', () => {
 
     toasts.value.push(toast)
 
-    // Auto-dismiss if duration is specified
+    // Auto-dismiss if duration is specified. Store the timer handle on the toast
+    // so manual hide / clearAll / reset can cancel it (otherwise the timer keeps
+    // firing hideToast on a now-nonexistent id).
     if (duration !== undefined) {
-      setTimeout(() => {
+      toast.timeoutId = window.setTimeout(() => {
         hideToast(id)
       }, duration)
     }
@@ -169,6 +171,10 @@ export const useAppStore = defineStore('app', () => {
   function hideToast(id: string): void {
     const index = toasts.value.findIndex((t) => t.id === id)
     if (index !== -1) {
+      const toast = toasts.value[index]
+      if (toast.timeoutId !== undefined) {
+        clearTimeout(toast.timeoutId)
+      }
       toasts.value.splice(index, 1)
     }
   }
@@ -177,6 +183,11 @@ export const useAppStore = defineStore('app', () => {
    * Clear all toasts
    */
   function clearAllToasts(): void {
+    for (const toast of toasts.value) {
+      if (toast.timeoutId !== undefined) {
+        clearTimeout(toast.timeoutId)
+      }
+    }
     toasts.value = []
   }
 
@@ -229,6 +240,12 @@ export const useAppStore = defineStore('app', () => {
     sidebarCollapsed.value = false
     loading.value = false
     loadingCount.value = 0
+    // Cancel any pending auto-dismiss timers before nuking the array.
+    for (const toast of toasts.value) {
+      if (toast.timeoutId !== undefined) {
+        clearTimeout(toast.timeoutId)
+      }
+    }
     toasts.value = []
   }
 

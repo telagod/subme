@@ -7,6 +7,7 @@ import { resolveDocumentTitle } from '@/router/title'
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
 import { Button } from '@/components/ui/button'
 import { useAppStore, useAuthStore, useSubscriptionStore, useAnnouncementStore } from '@/stores'
+import { useAdminSettingsStore } from '@/stores/adminSettings'
 import { getSetupStatus } from '@/api/setup'
 
 const router = useRouter()
@@ -15,6 +16,7 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const subscriptionStore = useSubscriptionStore()
 const announcementStore = useAnnouncementStore()
+const adminSettingsStore = useAdminSettingsStore()
 
 /**
  * Update favicon dynamically
@@ -90,6 +92,8 @@ router.afterEach(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
+  // Tear down admin-settings window listener (registered in onMounted)
+  adminSettingsStore.uninstallEventListeners()
 })
 
 const routeError = ref(false)
@@ -105,6 +109,10 @@ watch(() => route.path, () => {
 })
 
 onMounted(async () => {
+  // Own the admin-settings window listener lifecycle here so it cleans up properly
+  // on app teardown / HMR (previously leaked at module load).
+  adminSettingsStore.installEventListeners()
+
   // Check if setup is needed
   try {
     const status = await getSetupStatus()

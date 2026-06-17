@@ -79,6 +79,8 @@ export const useAuthStore = defineStore('auth', () => {
   const pendingAuthSession = ref<PendingAuthSessionSummary | null>(null)
   let refreshIntervalId: ReturnType<typeof setInterval> | null = null
   let tokenRefreshTimeoutId: ReturnType<typeof setTimeout> | null = null
+  // In-flight token-refresh promise — single-flight dedup (see performTokenRefresh)
+  let refreshInFlight: Promise<void> | null = null
 
   // ==================== Computed ====================
 
@@ -200,25 +202,44 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Perform the actual token refresh
+   *
+   * In-flight dedup: while a refresh is pending, concurrent callers (proactive timer
+   * fire + an extra re-schedule racing against it) reuse the same promise instead of
+   * issuing duplicate /auth/refresh calls and stomping on each other's response.
+   *
+   * NOTE: the axios 401 interceptor (api/client.ts) uses its own subscriber-based
+   * `isRefreshing` flag and cannot import this store (circular dep). The two paths
+   * deliberately remain independent — each is single-flight within its own scope.
    */
   async function performTokenRefresh(): Promise<void> {
     if (!refreshTokenValue.value) {
       return
     }
 
-    try {
-      const response = await authAPI.refreshToken()
-
-      // Update state
-      token.value = response.access_token
-      refreshTokenValue.value = response.refresh_token
-
-      // Schedule next refresh (this also updates tokenExpiresAt and localStorage)
-      scheduleTokenRefresh(response.expires_in)
-    } catch (error) {
-      console.error('Token refresh failed:', error)
-      // Don't clear auth here - the interceptor will handle 401 errors
+    // Dedup: reuse in-flight promise
+    if (refreshInFlight) {
+      return refreshInFlight
     }
+
+    refreshInFlight = (async () => {
+      try {
+        const response = await authAPI.refreshToken()
+
+        // Update state
+        token.value = response.access_token
+        refreshTokenValue.value = response.refresh_token
+
+        // Schedule next refresh (this also updates tokenExpiresAt and localStorage)
+        scheduleTokenRefresh(response.expires_in)
+      } catch (error) {
+        console.error('Token refresh failed:', error)
+        // Don't clear auth here - the interceptor will handle 401 errors
+      } finally {
+        refreshInFlight = null
+      }
+    })()
+
+    return refreshInFlight
   }
 
   /**
@@ -397,11 +418,19 @@ export const useAuthStore = defineStore('auth', () => {
    * Clears all authentication state and persisted data
    */
   async function logout(): Promise<void> {
-    // Call API logout (revokes refresh token on server)
-    await authAPI.logout()
-
-    // Clear state
-    clearAuth()
+    // CRITICAL: clearAuth() must always run, even when the server logout call
+    // 401s / 5xxs / network-fails. Otherwise refreshIntervalId + tokenRefreshTimeoutId
+    // stay alive as zombies and keep polling /me with a stale token.
+    try {
+      // Call API logout (revokes refresh token on server)
+      await authAPI.logout()
+    } catch (error) {
+      // Swallow — server-side revoke is best-effort; local teardown must proceed.
+      console.error('Logout API call failed:', error)
+    } finally {
+      // Clear state
+      clearAuth()
+    }
   }
 
   /**

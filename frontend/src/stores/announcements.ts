@@ -4,6 +4,9 @@ import { announcementsAPI } from '@/api'
 import type { UserAnnouncement } from '@/types'
 
 const THROTTLE_MS = 20 * 60 * 1000 // 20 minutes
+// Backoff window after a fetch failure — avoid hammering a 5xx backend on every
+// nav / visibility-change tick.
+const ERROR_BACKOFF_MS = 60 * 1000 // 60 seconds
 
 export const useAnnouncementStore = defineStore('announcements', () => {
   // State
@@ -12,37 +15,71 @@ export const useAnnouncementStore = defineStore('announcements', () => {
   const lastFetchTime = ref(0)
   const popupQueue = ref<UserAnnouncement[]>([])
   const currentPopup = ref<UserAnnouncement | null>(null)
+  // Surfaced fetch failure (most recent)
+  const fetchError = ref<unknown>(null)
 
   // Session-scoped dedup set — not reactive, used as plain lookup only
   let shownPopupIds = new Set<number>()
+
+  // In-flight fetch promise — single-flight dedup so a burst of route changes
+  // doesn't fan out into N concurrent /announcements calls.
+  let fetchInFlight: Promise<void> | null = null
+
+  // Setter timeout handle for the "show next popup after a short delay" path.
+  // Tracked so reset() / repeated dismiss() calls don't leak overlapping timers.
+  let pendingNextTimeoutId: number | null = null
 
   // Getters
   const unreadCount = computed(() =>
     announcements.value.filter((a) => !a.read_at).length
   )
 
+  function schedulePendingNext(delayMs: number) {
+    if (pendingNextTimeoutId !== null) {
+      clearTimeout(pendingNextTimeoutId)
+    }
+    pendingNextTimeoutId = window.setTimeout(() => {
+      pendingNextTimeoutId = null
+      showNextPopup()
+    }, delayMs)
+  }
+
   // Actions
-  async function fetchAnnouncements(force = false) {
+  async function fetchAnnouncements(force = false): Promise<void> {
     const now = Date.now()
     if (!force && lastFetchTime.value > 0 && now - lastFetchTime.value < THROTTLE_MS) {
       return
     }
 
-    // Set immediately to prevent concurrent duplicate requests
-    lastFetchTime.value = now
-
-    try {
-      loading.value = true
-      const all = await announcementsAPI.list(false)
-      announcements.value = all.slice(0, 20)
-      enqueueNewPopups()
-    } catch (err: any) {
-      // Revert throttle timestamp on failure so retry is allowed
-      lastFetchTime.value = 0
-      console.error('Failed to fetch announcements:', err)
-    } finally {
-      loading.value = false
+    // Single-flight dedup: concurrent callers reuse the same promise.
+    if (fetchInFlight) {
+      return fetchInFlight
     }
+
+    // Set immediately to prevent concurrent duplicate requests (belt & braces
+    // with fetchInFlight — also keeps throttle correct across awaits).
+    lastFetchTime.value = now
+    fetchError.value = null
+
+    fetchInFlight = (async () => {
+      try {
+        loading.value = true
+        const all = await announcementsAPI.list(false)
+        announcements.value = all.slice(0, 20)
+        enqueueNewPopups()
+      } catch (err: any) {
+        fetchError.value = err
+        // Backoff: keep throttle alive for ERROR_BACKOFF_MS instead of resetting
+        // to 0 (which lets every subsequent nav / visibility-change re-hammer 5xx).
+        lastFetchTime.value = now - THROTTLE_MS + ERROR_BACKOFF_MS
+        console.error('Failed to fetch announcements:', err)
+      } finally {
+        loading.value = false
+        fetchInFlight = null
+      }
+    })()
+
+    return fetchInFlight
   }
 
   function enqueueNewPopups() {
@@ -79,9 +116,9 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     // Mark as read (fire-and-forget, UI already updated)
     markAsRead(id)
 
-    // Show next popup after a short delay
+    // Show next popup after a short delay (tracked handle, clears prior timer)
     if (popupQueue.value.length > 0) {
-      setTimeout(() => showNextPopup(), 300)
+      schedulePendingNext(300)
     }
   }
 
@@ -89,7 +126,7 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     if (!currentPopup.value) return
     currentPopup.value = null
     if (popupQueue.value.length > 0) {
-      setTimeout(() => showNextPopup(), 300)
+      schedulePendingNext(300)
     }
   }
 
@@ -132,6 +169,11 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     popupQueue.value = []
     currentPopup.value = null
     loading.value = false
+    fetchError.value = null
+    if (pendingNextTimeoutId !== null) {
+      clearTimeout(pendingNextTimeoutId)
+      pendingNextTimeoutId = null
+    }
   }
 
   return {
@@ -139,6 +181,7 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     announcements,
     loading,
     currentPopup,
+    fetchError,
     // Getters
     unreadCount,
     // Actions

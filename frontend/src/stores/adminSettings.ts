@@ -7,6 +7,9 @@ import type { CustomMenuItem } from '@/types'
 export const useAdminSettingsStore = defineStore('adminSettings', () => {
   const loaded = ref(false)
   const loading = ref(false)
+  // Surfaced fetch failure for UI to render an inline error / retry. catch path
+  // no longer flips `loaded`, so the next call naturally retries.
+  const fetchError = ref<unknown>(null)
 
   const readCachedBool = (key: string, defaultValue: boolean): boolean => {
     try {
@@ -63,6 +66,7 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
     }
 
     loading.value = true
+    fetchError.value = null
     try {
       const [settings, paymentConfigResp] = await Promise.all([
         adminAPI.settings.getSettings(),
@@ -84,8 +88,9 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
 
       loaded.value = true
     } catch (err) {
-      // Keep cached/default value: do not "flip" the UI based on a transient fetch failure.
-      loaded.value = true
+      // Surface error and KEEP loaded=false so the next fetch() retries automatically.
+      // Cached/default values for UI continue to apply (already initialized at module scope).
+      fetchError.value = err
       console.error('[adminSettings] Failed to fetch settings:', err)
     } finally {
       loading.value = false
@@ -118,10 +123,16 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
 
   // Keep UI consistent if we learn that ops is disabled via feature-gated 404s.
   // (event is dispatched from the axios interceptor)
+  //
+  // Lifecycle: previously the listener was registered at module-load time, with the
+  // cleanup handle captured but never invoked — a guaranteed window-leak across HMR
+  // and app teardown. Ownership is now App.vue, which calls installEventListeners()
+  // on mount and uninstallEventListeners() on beforeUnmount.
   let eventHandlerCleanup: (() => void) | null = null
 
-  function initializeEventListeners() {
+  function installEventListeners() {
     if (eventHandlerCleanup) return
+    if (typeof window === 'undefined') return
 
     try {
       const handler = () => {
@@ -136,13 +147,17 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
     }
   }
 
-  if (typeof window !== 'undefined') {
-    initializeEventListeners()
+  function uninstallEventListeners() {
+    if (eventHandlerCleanup) {
+      eventHandlerCleanup()
+      eventHandlerCleanup = null
+    }
   }
 
   return {
     loaded,
     loading,
+    fetchError,
     opsMonitoringEnabled,
     opsRealtimeMonitoringEnabled,
     opsQueryModeDefault,
@@ -152,6 +167,8 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
     setOpsMonitoringEnabledLocal,
     setOpsRealtimeMonitoringEnabledLocal,
     setPaymentEnabledLocal,
-    setOpsQueryModeDefaultLocal
+    setOpsQueryModeDefaultLocal,
+    installEventListeners,
+    uninstallEventListeners
   }
 })

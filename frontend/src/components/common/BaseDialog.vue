@@ -33,8 +33,8 @@
               variant="ghost"
               size="icon"
               @click="emit('close')"
-              class="-mr-2"
-              aria-label="Close modal"
+              class="-mr-2 dialog-close-btn"
+              :aria-label="t('common.closeModal')"
             >
               <Icon name="x" size="md" />
             </Button>
@@ -57,8 +57,11 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted, ref, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import { Button } from '@/components/ui/button'
+
+const { t } = useI18n()
 
 // 生成唯一ID以避免多个对话框时ID冲突
 let dialogIdCounter = 0
@@ -134,12 +137,28 @@ watch(
       document.body.classList.add('modal-open')
 
       // 等待DOM更新后设置焦点到对话框
+      // A11y: prefer [autofocus], then first focusable inside body that ISN'T
+      // the close-X button — Close-X being the first DOM-order focusable was
+      // a poor default (screen-reader users heard "Close modal" before the title).
+      // Fall back to Close-X only if nothing else is focusable.
       await nextTick()
       if (dialogRef.value) {
-        const firstFocusable = dialogRef.value.querySelector<HTMLElement>(
+        const focusableSelector =
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-        firstFocusable?.focus()
+
+        const autofocusEl =
+          dialogRef.value.querySelector<HTMLElement>('[autofocus]')
+        if (autofocusEl) {
+          autofocusEl.focus()
+        } else {
+          const allFocusable = Array.from(
+            dialogRef.value.querySelectorAll<HTMLElement>(focusableSelector)
+          )
+          const firstNonClose = allFocusable.find(
+            (el) => !el.classList.contains('dialog-close-btn')
+          )
+          ;(firstNonClose ?? allFocusable[0])?.focus()
+        }
       }
     } else {
       document.body.classList.remove('modal-open')

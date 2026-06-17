@@ -27,7 +27,16 @@
             <tr v-if="rows.length === 0">
               <td colspan="12" class="px-9 py-9 text-center text-[13px] text-muted-foreground">{{ t('admin.ops.errorLog.noErrors') }}</td>
             </tr>
-            <tr v-for="log in rows" :key="log.id" class="cursor-pointer border-b border-border last:border-b-0" @click="emit('openErrorDetail', log.id)">
+            <tr
+              v-for="log in rows"
+              :key="log.id"
+              class="cursor-pointer border-b border-border last:border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              role="button"
+              :tabindex="0"
+              @click="emit('openErrorDetail', log.id)"
+              @keydown.enter.prevent="emit('openErrorDetail', log.id)"
+              @keydown.space.prevent="emit('openErrorDetail', log.id)"
+            >
               <!-- Time -->
               <td class="whitespace-nowrap px-3 py-[7px]">
                 <TooltipProvider>

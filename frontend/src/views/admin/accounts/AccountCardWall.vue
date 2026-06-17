@@ -92,6 +92,7 @@
                 size="icon"
                 class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-ring/50 hover:bg-muted hover:text-foreground"
                 :title="account.status === 'active' ? t('admin.accountCardWall.toggleDisable') : t('admin.accountCardWall.toggleEnable')"
+                :aria-label="account.status === 'active' ? t('admin.accountCardWall.toggleDisable') : t('admin.accountCardWall.toggleEnable')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('toggle-status', account)"
               >
@@ -103,6 +104,7 @@
                 size="icon"
                 class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-ring/50 hover:bg-muted hover:text-foreground"
                 :title="t('admin.accountCardWall.refreshToken')"
+                :aria-label="t('admin.accountCardWall.refreshToken')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('refresh', account)"
               >
@@ -113,6 +115,7 @@
                 size="icon"
                 class="h-[26px] w-[26px] rounded-md border border-border text-muted-foreground hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
                 :title="t('admin.accountCardWall.deleteBtn')"
+                :aria-label="t('admin.accountCardWall.deleteBtn')"
                 :disabled="operating.has(account.id)"
                 @click.stop="$emit('delete', account)"
               >

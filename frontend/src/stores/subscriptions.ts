@@ -11,15 +11,17 @@ import type { UserSubscription } from '@/types'
 // Cache TTL: 60 seconds
 const CACHE_TTL_MS = 60_000
 
-// Request generation counter to invalidate stale in-flight responses
-let requestGeneration = 0
-
 export const useSubscriptionStore = defineStore('subscriptions', () => {
   // State
   const activeSubscriptions = ref<UserSubscription[]>([])
   const loading = ref(false)
   const loaded = ref(false)
   const lastFetchedAt = ref<number | null>(null)
+
+  // Request generation counter to invalidate stale in-flight responses.
+  // Scoped to the store instance (was module-level → shared across hypothetical
+  // multi-instance / test setups).
+  let requestGeneration = 0
 
   // In-flight request deduplication
   let activePromise: Promise<UserSubscription[]> | null = null
@@ -50,6 +52,14 @@ export const useSubscriptionStore = defineStore('subscriptions', () => {
     // Return in-flight request if exists (deduplication)
     if (activePromise && !force) {
       return activePromise
+    }
+
+    // force=true: explicitly invalidate any in-flight request so the new one wins.
+    // Silence the abandoned promise's rejection (.catch noop) to avoid an
+    // unhandled-rejection warning if it later fails.
+    if (force && activePromise) {
+      activePromise.catch(() => {})
+      activePromise = null
     }
 
     const currentGeneration = ++requestGeneration

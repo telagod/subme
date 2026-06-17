@@ -339,6 +339,7 @@ export default {
     inactive: 'Inactive',
     more: 'More',
     close: 'Close',
+    closeModal: 'Close modal',
     lightMode: 'Switch to light',
     darkMode: 'Switch to dark',
     enabled: 'Enabled',

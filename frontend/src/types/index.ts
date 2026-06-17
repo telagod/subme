@@ -454,6 +454,10 @@ export interface Toast {
   title?: string
   duration?: number // in milliseconds, undefined means no auto-dismiss
   startTime?: number // timestamp when toast was created, for progress bar
+  // Handle for the auto-dismiss setTimeout so hideToast/clearAllToasts/reset
+  // can cancel it. Without this, manually hidden toasts left dangling timers
+  // that would later fire hideToast(id) on a non-existent toast.
+  timeoutId?: number
 }
 
 export interface AppState {

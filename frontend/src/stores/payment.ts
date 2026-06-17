@@ -21,6 +21,12 @@ export const usePaymentStore = defineStore('payment', () => {
   const configLoading = ref(false)
   const configLoaded = ref(false)
 
+  // Surfaced fetch errors — UI can render inline retry / banner.
+  // Each fetch entry point clears its corresponding error before issuing the request.
+  const configError = ref<unknown>(null)
+  const plansError = ref<unknown>(null)
+  const orderError = ref<unknown>(null)
+
   // ==================== Actions ====================
 
   /** Fetch payment configuration */
@@ -29,12 +35,14 @@ export const usePaymentStore = defineStore('payment', () => {
     if (configLoading.value) return config.value
 
     configLoading.value = true
+    configError.value = null
     try {
       const response = await paymentAPI.getConfig()
       config.value = response.data
       configLoaded.value = true
       return config.value
     } catch (error: unknown) {
+      configError.value = error
       console.error('[payment] Failed to fetch config:', error)
       return null
     } finally {
@@ -44,6 +52,7 @@ export const usePaymentStore = defineStore('payment', () => {
 
   /** Fetch available subscription plans */
   async function fetchPlans(): Promise<SubscriptionPlan[]> {
+    plansError.value = null
     try {
       const response = await paymentAPI.getPlans()
       // Backend returns features as newline-separated string; parse to array
@@ -55,6 +64,7 @@ export const usePaymentStore = defineStore('payment', () => {
       }))
       return plans.value
     } catch (error: unknown) {
+      plansError.value = error
       console.error('[payment] Failed to fetch plans:', error)
       return []
     }
@@ -62,12 +72,19 @@ export const usePaymentStore = defineStore('payment', () => {
 
   /** Create a new order and set it as current */
   async function createOrder(params: CreateOrderRequest) {
-    const response = await paymentAPI.createOrder(params)
-    return response.data
+    orderError.value = null
+    try {
+      const response = await paymentAPI.createOrder(params)
+      return response.data
+    } catch (error: unknown) {
+      orderError.value = error
+      throw error
+    }
   }
 
   /** Poll order status by ID (read-only, no upstream check) */
   async function pollOrderStatus(orderId: number): Promise<PaymentOrder | null> {
+    orderError.value = null
     try {
       const response = await paymentAPI.getOrder(orderId)
       const order = response.data
@@ -76,6 +93,7 @@ export const usePaymentStore = defineStore('payment', () => {
       }
       return order
     } catch (error: unknown) {
+      orderError.value = error
       console.error('[payment] Failed to poll order status:', error)
       return null
     }
@@ -92,6 +110,9 @@ export const usePaymentStore = defineStore('payment', () => {
     plans,
     configLoading,
     configLoaded,
+    configError,
+    plansError,
+    orderError,
     fetchConfig,
     fetchPlans,
     createOrder,

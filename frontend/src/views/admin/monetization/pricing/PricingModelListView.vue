@@ -187,8 +187,12 @@
             <TableRow
               v-for="m in sortedModels"
               :key="m.id"
-              class="pml-row cursor-pointer hover:bg-muted/40"
+              class="pml-row cursor-pointer hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              role="button"
+              :tabindex="0"
               @click="openDetail(m)"
+              @keydown.enter.prevent="openDetail(m)"
+              @keydown.space.prevent="openDetail(m)"
             >
               <TableCell class="pml-td">
                 <div class="flex items-center gap-1.5">
