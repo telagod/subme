@@ -291,12 +291,20 @@ watch(validationToastMessage, (value, previousValue) => {
 // ==================== Lifecycle ====================
 
 onMounted(async () => {
-  const expiredFlag = sessionStorage.getItem('auth_expired')
-  if (expiredFlag) {
-    sessionStorage.removeItem('auth_expired')
-    const message = t('auth.reloginRequired')
-    errorMessage.value = message
-    appStore.showWarning(message)
+  // SSR safety: onMounted only runs client-side, but Safari private mode can throw on storage access;
+  // guard the whole block so a SecurityError can't break login bootstrap.
+  if (typeof window !== 'undefined') {
+    try {
+      const expiredFlag = window.sessionStorage.getItem('auth_expired')
+      if (expiredFlag) {
+        window.sessionStorage.removeItem('auth_expired')
+        const message = t('auth.reloginRequired')
+        errorMessage.value = message
+        appStore.showWarning(message)
+      }
+    } catch {
+      // Storage disabled (Safari private, iframe sandbox without storage-access) — skip silently
+    }
   }
 
   try {
@@ -352,8 +360,9 @@ function hasAcceptedLoginAgreement(revision: string): boolean {
   if (!revision) {
     return false
   }
+  if (typeof window === 'undefined') return false
   try {
-    const raw = localStorage.getItem(LOGIN_AGREEMENT_STORAGE_KEY)
+    const raw = window.localStorage.getItem(LOGIN_AGREEMENT_STORAGE_KEY)
     if (!raw) {
       return false
     }
@@ -365,21 +374,31 @@ function hasAcceptedLoginAgreement(revision: string): boolean {
 }
 
 function acceptLoginAgreement(): void {
-  if (loginAgreementRevision.value) {
-    localStorage.setItem(
-      LOGIN_AGREEMENT_STORAGE_KEY,
-      JSON.stringify({
-        revision: loginAgreementRevision.value,
-        accepted_at: new Date().toISOString()
-      })
-    )
+  if (loginAgreementRevision.value && typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(
+        LOGIN_AGREEMENT_STORAGE_KEY,
+        JSON.stringify({
+          revision: loginAgreementRevision.value,
+          accepted_at: new Date().toISOString()
+        })
+      )
+    } catch (err) {
+      const name = (err as { name?: string })?.name
+      if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+        appStore.showError(t('common.storageFullPersistDisabled'))
+      }
+      // SecurityError 等其他错误:用户当前会话视为已接受,持久化失败不阻塞登录
+    }
   }
   agreementAccepted.value = true
   showAgreementModal.value = false
 }
 
 function rejectLoginAgreement(): void {
-  localStorage.removeItem(LOGIN_AGREEMENT_STORAGE_KEY)
+  if (typeof window !== 'undefined') {
+    try { window.localStorage.removeItem(LOGIN_AGREEMENT_STORAGE_KEY) } catch { /* best-effort */ }
+  }
   agreementAccepted.value = false
   showAgreementModal.value = false
   appStore.showWarning('未同意最新条款前，无法输入账号密码或使用快捷登录。')

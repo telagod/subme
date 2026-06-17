@@ -270,6 +270,7 @@ export default {
     copiedToClipboard: '已复制到剪贴板',
     copied: '已复制',
     copyFailed: '复制失败',
+    storageFullPersistDisabled: '浏览器存储已满，该偏好将无法跨刷新保存。',
     verifying: '验证中...',
     processing: '处理中...',
     contactSupport: '联系客服',

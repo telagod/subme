@@ -88,9 +88,13 @@ const hint = ref(t('payment.stripePopup.redirecting'))
 
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
-function closeWindow() { window.close() }
+function closeWindow() { if (typeof window !== 'undefined') window.close() }
 
 onMounted(() => {
+  // SSR / non-browser guard: onMounted fires post-mount but the whole popup view
+  // makes no sense outside a browser context, so we bail early to keep prerender safe.
+  if (typeof window === 'undefined') return
+
   const handler = (event: MessageEvent) => {
     if (event.origin !== window.location.origin) return
     if (event.data?.type !== 'STRIPE_POPUP_INIT') return
@@ -154,8 +158,16 @@ async function initStripe(clientSecret: string, publishableKey: string) {
 function startPolling() {
   pollTimer = setInterval(async () => {
     try {
-      const token = document.cookie.split('; ').find(c => c.startsWith('token='))?.split('=')[1]
-        || localStorage.getItem('token') || ''
+      // SSR / Worker: document and localStorage are absent. The polling itself only runs
+      // after user clicks pay in a real browser, but defensive guard keeps the static
+      // route prerender-safe.
+      let token = ''
+      if (typeof document !== 'undefined') {
+        token = document.cookie.split('; ').find(c => c.startsWith('token='))?.split('=')[1] || ''
+      }
+      if (!token && typeof window !== 'undefined') {
+        try { token = window.localStorage.getItem('token') || '' } catch { /* private mode */ }
+      }
       const res = await fetch('/api/v1/payment/orders/' + orderId, {
         headers: token ? { Authorization: 'Bearer ' + token } : {},
         credentials: 'include',

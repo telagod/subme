@@ -86,12 +86,30 @@ export function performRefresh(refreshToken: string): Promise<RefreshResult> {
 
       // Persist immediately so subsequent reads of localStorage see the
       // canonical fresh tokens, regardless of which caller wakes first.
-      try {
-        localStorage.setItem(AUTH_TOKEN_KEY, access_token)
-        localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken)
-        localStorage.setItem(TOKEN_EXPIRES_AT_KEY, String(Date.now() + expires_in * 1000))
-      } catch {
-        // localStorage may throw in private mode / quota; non-fatal for the refresh itself.
+      // SSR safety: in non-browser contexts we simply skip persistence — the
+      // returned tokens are still propagated to the caller.
+      if (typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(AUTH_TOKEN_KEY, access_token)
+          window.localStorage.setItem(REFRESH_TOKEN_KEY, nextRefreshToken)
+          window.localStorage.setItem(TOKEN_EXPIRES_AT_KEY, String(Date.now() + expires_in * 1000))
+        } catch (err) {
+          // Distinguish QuotaExceededError (private mode / disk full) from generic SecurityError:
+          //   - Quota: surface a warning via app store so admins/users see why their session
+          //     keeps logging out across refreshes.
+          //   - Other: silent. Refresh itself succeeded; in-memory caller still gets the token.
+          const name = (err as { name?: string })?.name
+          if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+            // Lazy import to avoid pulling pinia into this low-level coordinator.
+            import('@/stores/app').then(({ useAppStore }) => {
+              try {
+                useAppStore().showError?.(
+                  'Browser storage is full; session will not persist across reloads.'
+                )
+              } catch { /* store not ready yet (boot path) */ }
+            }).catch(() => {})
+          }
+        }
       }
 
       return {

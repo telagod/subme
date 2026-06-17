@@ -6,16 +6,20 @@ const { t } = i18n.global
 
 /**
  * 检测是否支持 Clipboard API（需要安全上下文：HTTPS/localhost）
+ * SSR-safe:服务端无 window/navigator,返回 false 走降级。
  */
 function isClipboardSupported(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false
   return !!(navigator.clipboard && window.isSecureContext)
 }
 
 /**
  * 降级方案：使用 textarea + execCommand
  * 使用 textarea 而非 input，以正确处理多行文本
+ * SSR-safe:服务端无 document 直接返回 false。
  */
 function fallbackCopy(text: string): boolean {
+  if (typeof document === 'undefined') return false
   const textarea = document.createElement('textarea')
   textarea.value = text
   textarea.style.cssText = 'position:fixed;left:-9999px;top:-9999px'
@@ -23,8 +27,10 @@ function fallbackCopy(text: string): boolean {
   textarea.select()
   try {
     return document.execCommand('copy')
+  } catch {
+    return false
   } finally {
-    document.body.removeChild(textarea)
+    try { document.body.removeChild(textarea) } catch { /* node 已被外部清理 */ }
   }
 }
 

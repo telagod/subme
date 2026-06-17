@@ -270,6 +270,7 @@ export default {
     copiedToClipboard: 'Copied to clipboard',
     copied: 'Copied',
     copyFailed: 'Failed to copy',
+    storageFullPersistDisabled: 'Browser storage is full; this preference will not persist across reloads.',
     verifying: 'Verifying...',
     processing: 'Processing...',
     contactSupport: 'Contact Support',

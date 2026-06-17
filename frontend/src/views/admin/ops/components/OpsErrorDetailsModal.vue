@@ -178,6 +178,18 @@ watch(
   }
 )
 
+// 立即触发搜索:按 Enter 时取消正在等待的 debounce,直接 fetch。
+// 保留 watch 上的 debounce 用于持续输入场景,Enter 只是快进。
+function onSearchEnter() {
+  if (!props.show) return
+  if (searchTimeout) {
+    window.clearTimeout(searchTimeout)
+    searchTimeout = null
+  }
+  page.value = 1
+  fetchErrorLogs()
+}
+
 watch(
   () => [statusCode.value, phase.value, errorOwner.value, viewMode.value] as const,
   () => {
@@ -198,7 +210,13 @@ watch(
             <div style="pointer-events:none;position:absolute;inset-y:0;left:0;display:flex;align-items:center;padding-left:10px;">
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-muted-foreground"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
-            <Input v-model="q" type="text" class="h-[30px] pl-[30px] text-[11.5px]" :placeholder="t('admin.ops.errorDetails.searchPlaceholder')" />
+            <Input
+              v-model="q"
+              type="text"
+              class="h-[30px] pl-[30px] text-[11.5px]"
+              :placeholder="t('admin.ops.errorDetails.searchPlaceholder')"
+              @keydown.enter="onSearchEnter"
+            />
           </div>
           <Select :model-value="statusCode" :options="statusCodeSelectOptions" @update:model-value="statusCode = $event as any" />
           <Select :model-value="phase" :options="phaseSelectOptions" @update:model-value="phase = String($event ?? '')" />

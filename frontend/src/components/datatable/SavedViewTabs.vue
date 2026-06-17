@@ -135,6 +135,8 @@ function deleteView(id: string) {
 }
 
 function saveCurrentView() {
+  // SSR / progressive enhancement: 服务端无 window.prompt;客户端事件链才会触发,但加固兜底
+  if (typeof window === 'undefined' || typeof window.prompt !== 'function') return
   const name = window.prompt(t('datatable.savedViews.namePrompt'))
   if (!name || !name.trim()) return
   const newView: SavedView = {

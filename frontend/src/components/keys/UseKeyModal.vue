@@ -381,7 +381,8 @@ const comment = (value: string) => wrapToken('text-muted-foreground', value)
 // Syntax highlighting helpers
 // Generate file configs based on platform and active tab
 const currentFiles = computed((): FileConfig[] => {
-  const baseUrl = props.baseUrl || window.location.origin
+  // SSR/hydration safety: window 在服务端不存在;props.baseUrl 总会在客户端有值,但 computed 首跑可能落在 SSR
+  const baseUrl = props.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
   const apiKey = props.apiKey
   const baseRoot = baseUrl.replace(/\/v1\/?$/, '').replace(/\/+$/, '')
   const ensureV1 = (value: string) => {

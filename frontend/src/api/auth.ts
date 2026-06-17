@@ -29,17 +29,66 @@ export function isTotp2FARequired(response: LoginResponse): response is TotpLogi
 }
 
 /**
+ * SSR-safe localStorage helpers.
+ *
+ * Wraps every read/write in:
+ *   - typeof window guard (SSR / Worker contexts)
+ *   - try/catch (Safari private mode: getItem throws SecurityError;
+ *     QuotaExceededError on persistent quotas; iframe storage-disabled scenarios)
+ *
+ * On write failure we asynchronously surface QuotaExceededError to the user via
+ * appStore. We dynamically import the store to avoid a circular dep at boot.
+ */
+function safeGetItem(key: string): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(key, value)
+  } catch (err) {
+    const name = (err as { name?: string })?.name
+    if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      // Lazy load app store to avoid pulling pinia/i18n into the auth bootstrap path.
+      import('@/stores/app').then(({ useAppStore }) => {
+        try {
+          useAppStore().showError?.('Browser storage is full; sign-in state may not persist.')
+        } catch {
+          // store not initialized yet (pre-bootstrap); swallow
+        }
+      }).catch(() => {})
+    }
+    // Other errors (SecurityError in Safari private mode etc.) are best-effort.
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(key)
+  } catch {
+    // best-effort
+  }
+}
+
+/**
  * Store authentication token in localStorage
  */
 export function setAuthToken(token: string): void {
-  localStorage.setItem('auth_token', token)
+  safeSetItem('auth_token', token)
 }
 
 /**
  * Store refresh token in localStorage
  */
 export function setRefreshToken(token: string): void {
-  localStorage.setItem('refresh_token', token)
+  safeSetItem('refresh_token', token)
 }
 
 /**
@@ -48,28 +97,28 @@ export function setRefreshToken(token: string): void {
  */
 export function setTokenExpiresAt(expiresIn: number): void {
   const expiresAt = Date.now() + expiresIn * 1000
-  localStorage.setItem('token_expires_at', String(expiresAt))
+  safeSetItem('token_expires_at', String(expiresAt))
 }
 
 /**
  * Get authentication token from localStorage
  */
 export function getAuthToken(): string | null {
-  return localStorage.getItem('auth_token')
+  return safeGetItem('auth_token')
 }
 
 /**
  * Get refresh token from localStorage
  */
 export function getRefreshToken(): string | null {
-  return localStorage.getItem('refresh_token')
+  return safeGetItem('refresh_token')
 }
 
 /**
  * Get token expiration timestamp from localStorage
  */
 export function getTokenExpiresAt(): number | null {
-  const value = localStorage.getItem('token_expires_at')
+  const value = safeGetItem('token_expires_at')
   return value ? parseInt(value, 10) : null
 }
 
@@ -77,10 +126,10 @@ export function getTokenExpiresAt(): number | null {
  * Clear authentication token from localStorage
  */
 export function clearAuthToken(): void {
-  localStorage.removeItem('auth_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('auth_user')
-  localStorage.removeItem('token_expires_at')
+  safeRemoveItem('auth_token')
+  safeRemoveItem('refresh_token')
+  safeRemoveItem('auth_user')
+  safeRemoveItem('token_expires_at')
 }
 
 /**
@@ -100,7 +149,7 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
     if (data.expires_in) {
       setTokenExpiresAt(data.expires_in)
     }
-    localStorage.setItem('auth_user', JSON.stringify(data.user))
+    safeSetItem('auth_user', JSON.stringify(data.user))
   }
 
   return data
@@ -122,7 +171,7 @@ export async function login2FA(request: TotpLogin2FARequest): Promise<AuthRespon
   if (data.expires_in) {
     setTokenExpiresAt(data.expires_in)
   }
-  localStorage.setItem('auth_user', JSON.stringify(data.user))
+  safeSetItem('auth_user', JSON.stringify(data.user))
 
   return data
 }
@@ -143,7 +192,7 @@ export async function register(userData: RegisterRequest): Promise<AuthResponse>
   if (data.expires_in) {
     setTokenExpiresAt(data.expires_in)
   }
-  localStorage.setItem('auth_user', JSON.stringify(data.user))
+  safeSetItem('auth_user', JSON.stringify(data.user))
 
   return data
 }

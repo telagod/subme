@@ -728,6 +728,9 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
 
     const result = await paymentStore.createOrder(payload) as CreateOrderResult & { resume_token?: string }
     const openWindow = (url: string) => {
+      // SSR guard: payment flows are click-driven, but a stray prerender of this view
+      // (sitemap crawler / hydration test) would otherwise crash on window.open.
+      if (typeof window === 'undefined') return
       const win = window.open(url, 'paymentPopup', getPaymentPopupFeatures())
       if (!win || win.closed) {
         window.location.href = url
@@ -772,12 +775,14 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
     })
 
     if (decision.kind === 'wechat_oauth' && decision.oauth?.authorize_url) {
-      window.location.href = buildWechatOAuthAuthorizeUrl(decision.oauth.authorize_url, {
-        paymentType: visibleMethod,
-        orderType,
-        planId,
-        orderAmount,
-      })
+      if (typeof window !== 'undefined') {
+        window.location.href = buildWechatOAuthAuthorizeUrl(decision.oauth.authorize_url, {
+          paymentType: visibleMethod,
+          orderType,
+          planId,
+          orderAmount,
+        })
+      }
       return
     }
 
@@ -795,11 +800,11 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
       return
     }
     if (decision.kind === 'stripe_route') {
-      window.location.href = decision.paymentState.payUrl
+      if (typeof window !== 'undefined') window.location.href = decision.paymentState.payUrl
       return
     }
     if (decision.kind === 'airwallex_route') {
-      window.location.href = decision.paymentState.payUrl
+      if (typeof window !== 'undefined') window.location.href = decision.paymentState.payUrl
       return
     }
     if (decision.kind === 'wechat_jsapi' && decision.jsapi) {
@@ -846,7 +851,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
     }
     if (decision.kind === 'redirect_waiting' && decision.paymentState.payUrl) {
       if (isMobileDevice()) {
-        window.location.href = decision.paymentState.payUrl
+        if (typeof window !== 'undefined') window.location.href = decision.paymentState.payUrl
         return
       }
       openWindow(decision.paymentState.payUrl)

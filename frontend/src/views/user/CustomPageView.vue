@@ -287,7 +287,9 @@ function scrollToHeading(id: string) {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     activeHeadingId.value = id
-    if (window.innerWidth <= 640) {
+    // SSR / pre-mount guard: tocVisible is initialized from window.innerWidth elsewhere,
+    // but this handler is invoked from click events so we just guard the read.
+    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
       tocVisible.value = false
     }
   }

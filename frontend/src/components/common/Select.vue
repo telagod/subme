@@ -205,7 +205,9 @@ const dropdownStyle = computed(() => {
   }
 
   if (dropdownPosition.value === 'top') {
-    style.bottom = `${window.innerHeight - rect.top + 4}px`
+    // SSR guard: this computed re-runs on hydration; window only exists client-side.
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0
+    style.bottom = `${viewportHeight - rect.top + 4}px`
   } else {
     style.top = `${rect.bottom + 4}px`
   }
@@ -319,10 +321,12 @@ const updateTriggerRect = () => {
 
 const calculateDropdownPosition = () => {
   if (!containerRef.value) return
+  if (typeof window === 'undefined') return
   updateTriggerRect()
 
   nextTick(() => {
     if (!dropdownRef.value || !triggerRect.value) return
+    if (typeof window === 'undefined') return
     const dropdownHeight = dropdownRef.value.offsetHeight || 240
     const spaceBelow = window.innerHeight - triggerRect.value.bottom
     const spaceAbove = triggerRect.value.top
