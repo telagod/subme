@@ -278,13 +278,40 @@ const resetRuntimeConfig = async () => {
   }
 }
 
+// 把相对时间窗口（5m/30m/1h/6h/24h/7d/30d）换算成毫秒。
+// 后端 cleanup endpoint 不像 ListSystemLogs 那样支持 time_range 字符串，
+// 只认绝对的 start_time/end_time，所以前端要先转过去。
+const timeRangeToMs = (r: string): number | null => {
+  const m: Record<string, number> = {
+    '5m': 5 * 60_000,
+    '30m': 30 * 60_000,
+    '1h': 60 * 60_000,
+    '6h': 6 * 60 * 60_000,
+    '24h': 24 * 60 * 60_000,
+    '7d': 7 * 24 * 60 * 60_000,
+    '30d': 30 * 24 * 60 * 60_000,
+  }
+  return m[r] ?? null
+}
+
 const cleanupCurrentFilter = async () => {
   const ok = window.confirm('确认按当前筛选条件清理系统日志？该操作不可撤销。')
   if (!ok) return
   try {
+    // 优先用用户显式填的绝对时间；都没填就把 time_range 推导成绝对窗口。
+    let startISO = toRFC3339(filters.start_time)
+    let endISO = toRFC3339(filters.end_time)
+    if (!startISO && !endISO) {
+      const span = timeRangeToMs(filters.time_range)
+      if (span != null) {
+        const now = Date.now()
+        startISO = new Date(now - span).toISOString()
+        endISO = new Date(now).toISOString()
+      }
+    }
     const payload = {
-      start_time: toRFC3339(filters.start_time),
-      end_time: toRFC3339(filters.end_time),
+      start_time: startISO,
+      end_time: endISO,
       level: filters.level.trim() && filters.level !== 'all' ? filters.level.trim() : undefined,
       component: filters.component.trim() || undefined,
       request_id: filters.request_id.trim() || undefined,
@@ -294,6 +321,12 @@ const cleanupCurrentFilter = async () => {
       platform: filters.platform.trim() || undefined,
       model: filters.model.trim() || undefined,
       q: filters.q.trim() || undefined
+    }
+    // 兜底防御：若所有字段都为空 / undefined，直接告知用户而不是让后端 400。
+    const hasAny = Object.values(payload).some((v) => v !== undefined && v !== '')
+    if (!hasAny) {
+      appStore.showError('至少需要一个筛选条件才能清理日志')
+      return
     }
     const res = await opsAPI.cleanupSystemLogs(payload)
     appStore.showSuccess(`清理完成，删除 ${res.deleted || 0} 条日志`)
