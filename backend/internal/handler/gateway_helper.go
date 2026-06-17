@@ -127,6 +127,17 @@ func (e *ConcurrencyError) Error() string {
 	return fmt.Sprintf("%s concurrency limit reached", e.SlotType)
 }
 
+// WaitQueueFullError 表示请求等待队列已满，应当返回 429。
+// 由 AcquireUserSlotWithWait 在内部 IncrementWaitCount 拒绝时抛出，由
+// concurrencyErrorResponse 通过 errors.As 转 rate_limit_error。
+type WaitQueueFullError struct {
+	SlotType string
+}
+
+func (e *WaitQueueFullError) Error() string {
+	return "Too many pending requests, please retry later"
+}
+
 // ConcurrencyHelper provides common concurrency slot management for gateway handlers
 type ConcurrencyHelper struct {
 	concurrencyService *service.ConcurrencyService
@@ -219,21 +230,48 @@ func (h *ConcurrencyHelper) TryAcquireAccountSlot(ctx context.Context, accountID
 // AcquireUserSlotWithWait acquires a user concurrency slot, waiting if necessary.
 // For streaming requests, sends ping events during the wait.
 // streamStarted is updated if streaming response has begun.
+//
+// 内部统一接管 wait queue 计数（IncrementWaitCount / DecrementWaitCount），
+// 调用方不再需要在 handler 热路径里重复 27 行队列闸门逻辑。
+// 队列满时返回 *WaitQueueFullError，由 concurrencyErrorResponse 统一映射 429。
 func (h *ConcurrencyHelper) AcquireUserSlotWithWait(c *gin.Context, userID int64, maxConcurrency int, isStream bool, streamStarted *bool) (func(), error) {
+	return h.acquireUserSlotWithWaitTimeout(c, userID, maxConcurrency, maxConcurrencyWait, isStream, streamStarted)
+}
+
+// acquireUserSlotWithWaitTimeout 是 AcquireUserSlotWithWait 的可注入超时版本，
+// 单测 / Gemini 等场景下复用。保持 wait queue 计数与槽位获取的语义闭环。
+func (h *ConcurrencyHelper) acquireUserSlotWithWaitTimeout(c *gin.Context, userID int64, maxConcurrency int, timeout time.Duration, isStream bool, streamStarted *bool) (func(), error) {
 	ctx := c.Request.Context()
 
-	// Try to acquire immediately
+	// Fast path: 立即抢槽成功，无需排队，零计数器调用。
 	releaseFunc, acquired, err := h.TryAcquireUserSlot(ctx, userID, maxConcurrency)
 	if err != nil {
 		return nil, err
 	}
-
 	if acquired {
 		return releaseFunc, nil
 	}
 
+	// Slow path: 进入排队，先做队列闸门检查。
+	// queueLimit = CalculateMaxWait - maxConcurrency，确保 maxConcurrency 阻塞额度独立于排队额度，
+	// 排队额度下限保 1 防止极端边界把请求踢飞。
+	queueLimit := service.CalculateMaxWait(maxConcurrency) - maxConcurrency
+	if queueLimit < 1 {
+		queueLimit = 1
+	}
+	canWait, err := h.IncrementWaitCount(ctx, userID, queueLimit)
+	if err != nil {
+		return nil, err
+	}
+	if !canWait {
+		return nil, &WaitQueueFullError{SlotType: "user"}
+	}
+	// 注意：waitForSlotWithPingTimeout 内可能因超时/取消 early return，
+	// defer 保证 Decrement 仍触发，复刻原 handler 里的 waitCounted 守卫语义。
+	defer h.DecrementWaitCount(ctx, userID)
+
 	// Need to wait - handle streaming ping if needed
-	return h.waitForSlotWithPing(c, "user", userID, maxConcurrency, isStream, streamStarted)
+	return h.waitForSlotWithPingTimeout(c, "user", userID, maxConcurrency, timeout, isStream, streamStarted, false)
 }
 
 // AcquireAccountSlotWithWait acquires an account concurrency slot, waiting if necessary.

@@ -1016,45 +1016,12 @@ func (h *OpenAIGatewayHandler) acquireResponsesUserSlot(
 	reqLog *zap.Logger,
 ) (func(), bool) {
 	ctx := c.Request.Context()
-	releaseFunc, acquired, acquireErr := h.concurrencyHelper.TryAcquireUserSlot(ctx, uid, maxConcurrency)
-	if acquireErr != nil {
-		reqLog.Warn("openai.user_slot_acquire_failed", zap.Error(acquireErr))
-		h.handleConcurrencyError(c, acquireErr, "user", *streamStarted)
+	// wait queue 计数由 helper 内部统一接管：fast path 零计数器，slow path 排队闸门 + defer Decrement。
+	releaseFunc, err := h.concurrencyHelper.AcquireUserSlotWithWait(c, uid, maxConcurrency, isStream, streamStarted)
+	if err != nil {
+		reqLog.Warn("openai.user_slot_acquire_failed", zap.Error(err))
+		h.handleConcurrencyError(c, err, "user", *streamStarted)
 		return nil, false
-	}
-	if acquired {
-		return wrapReleaseOnDone(ctx, releaseFunc), true
-	}
-
-	waitCap := service.CalculateMaxWait(maxConcurrency)
-	canEnqueue, enqueueErr := h.concurrencyHelper.IncrementWaitCount(ctx, uid, waitCap)
-	if enqueueErr != nil {
-		reqLog.Warn("openai.user_wait_counter_increment_failed", zap.Error(enqueueErr))
-		// Degrade gracefully: proceed to blocking acquire if wait counter fails
-	} else if !canEnqueue {
-		reqLog.Info("openai.user_wait_queue_full", zap.Int("max_wait", waitCap))
-		h.errorResponse(c, http.StatusTooManyRequests, "rate_limit_error", "Too many pending requests, please retry later")
-		return nil, false
-	}
-
-	enqueued := enqueueErr == nil && canEnqueue
-	defer func() {
-		if enqueued {
-			h.concurrencyHelper.DecrementWaitCount(ctx, uid)
-		}
-	}()
-
-	releaseFunc, waitErr := h.concurrencyHelper.AcquireUserSlotWithWait(c, uid, maxConcurrency, isStream, streamStarted)
-	if waitErr != nil {
-		reqLog.Warn("openai.user_slot_acquire_failed_after_wait", zap.Error(waitErr))
-		h.handleConcurrencyError(c, waitErr, "user", *streamStarted)
-		return nil, false
-	}
-
-	// Successfully acquired: exit wait counter immediately.
-	if enqueued {
-		h.concurrencyHelper.DecrementWaitCount(ctx, uid)
-		enqueued = false
 	}
 	return wrapReleaseOnDone(ctx, releaseFunc), true
 }
