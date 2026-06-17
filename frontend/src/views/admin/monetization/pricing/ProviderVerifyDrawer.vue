@@ -37,6 +37,14 @@
           <span v-if="detail.baseline.source" class="pvd-note-source">{{ detail.baseline.source }}</span>
           <span v-if="detail.overridden" class="pvd-note-manual-tag">{{ t('admin.providerVerify.overriddenLabel') }}</span>
         </div>
+        <!-- B3: 同步失败 inline 提示 + 重试，避免静默展示空 providers -->
+        <div v-if="syncFailed && !syncing" class="flex items-center gap-2 px-3 py-2 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs">
+          <InfoIcon class="w-3.5 h-3.5 flex-shrink-0" />
+          <span class="flex-1 min-w-0">{{ t('admin.providerVerify.syncFailed') }}</span>
+          <Button variant="outline" size="sm" :disabled="syncing" class="h-7 px-2 text-xs font-semibold" @click="retrySync">
+            <RefreshCwIcon class="w-3 h-3 mr-1" :class="syncing ? 'animate-spin' : ''" />{{ t('admin.providerVerify.retry') }}
+          </Button>
+        </div>
         <div class="pvd-table-wrap">
           <div v-if="syncing" class="pvd-sync-overlay"><RefreshCwIcon class="pvd-sync-ico" /><span class="pvd-sync-txt">{{ t('admin.providerVerify.syncing') }}</span></div>
           <table v-if="sortedProviders.length" class="pvd-table">
@@ -206,6 +214,8 @@ const loading = ref(false)
 const syncing = ref(false)
 const error = ref<string | null>(null)
 const descExpanded = ref(false)
+// B3: sync 失败时给 UI 一个明确信号 + 重试入口，避免 console.warn 后静默展示空 providers
+const syncFailed = ref(false)
 
 // ── 编辑面板状态 ──
 const editOpen = ref(false)
@@ -232,7 +242,7 @@ watch(() => [props.open, props.slug] as const, ([nowOpen, nowSlug]) => {
 }, { immediate: true })
 
 async function load(slug: string) {
-  loading.value = true; error.value = null; detail.value = null
+  loading.value = true; error.value = null; detail.value = null; syncFailed.value = false
   editOpen.value = false
   try {
     const d = await modelCatalogAPI.getModelCatalogDetail(slug)
@@ -241,13 +251,33 @@ async function load(slug: string) {
       try {
         await modelCatalogAPI.syncModelEndpoints(slug)
         detail.value = await modelCatalogAPI.getModelCatalogDetail(slug)
-      } catch (e) { console.warn('[ProviderVerifyDrawer] sync failed', e) }
-      finally { syncing.value = false }
+        syncFailed.value = false
+      } catch (e) {
+        syncFailed.value = true
+        console.warn('[ProviderVerifyDrawer] sync failed', e)
+      } finally { syncing.value = false }
     } else { detail.value = d }
     // 用现有 override 填充表单
     seedFormFromDetail(detail.value)
   } catch (e: unknown) { error.value = e instanceof Error ? e.message : String(e) }
   finally { loading.value = false }
+}
+
+async function retrySync() {
+  if (!detail.value || syncing.value) return
+  const slug = detail.value.id
+  syncing.value = true
+  syncFailed.value = false
+  try {
+    await modelCatalogAPI.syncModelEndpoints(slug)
+    detail.value = await modelCatalogAPI.getModelCatalogDetail(slug)
+    seedFormFromDetail(detail.value)
+  } catch (e) {
+    syncFailed.value = true
+    console.warn('[ProviderVerifyDrawer] sync retry failed', e)
+  } finally {
+    syncing.value = false
+  }
 }
 
 function seedFormFromDetail(d: CatalogModelDetail | null) {

@@ -7296,6 +7296,8 @@ export default {
       saving: 'Saving…',
       restoreBtn: 'Restore auto',
       saveSuccess: 'Override saved',
+      syncFailed: 'Sync failed, the displayed provider list may not be up to date',
+      retry: 'Retry',
     },
 
     plansCatalog: {

@@ -224,7 +224,6 @@ func registerDashboardRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		dashboard.POST("/users-usage", h.Admin.Dashboard.GetBatchUsersUsage)
 		dashboard.POST("/api-keys-usage", h.Admin.Dashboard.GetBatchAPIKeysUsage)
 		dashboard.GET("/user-breakdown", h.Admin.Dashboard.GetUserBreakdown)
-		dashboard.POST("/aggregation/backfill", h.Admin.Dashboard.BackfillAggregation)
 	}
 }
 
@@ -242,8 +241,6 @@ func registerUserManagementRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		users.GET("/:id/usage", h.Admin.User.GetUserUsage)
 		users.GET("/:id/balance-history", h.Admin.User.GetBalanceHistory)
 		users.POST("/:id/replace-group", h.Admin.User.ReplaceGroup)
-		users.GET("/:id/rpm-status", h.Admin.User.GetUserRPMStatus)
-		users.POST("/batch-concurrency", h.Admin.User.BatchUpdateConcurrency)
 		users.GET("/:id/platform-quotas", h.Admin.User.GetUserPlatformQuotas)
 		users.PUT("/:id/platform-quotas", h.Admin.User.UpdateUserPlatformQuotas)
 		users.POST("/:id/platform-quotas/reset", h.Admin.User.ResetUserPlatformQuotaWindow)
@@ -294,7 +291,6 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		accounts.POST("/:id/refresh", h.Admin.Account.Refresh)
 		accounts.POST("/:id/apply-oauth-credentials", h.Admin.Account.ApplyOAuthCredentials)
 		accounts.POST("/:id/set-privacy", h.Admin.Account.SetPrivacy)
-		accounts.POST("/:id/refresh-tier", h.Admin.Account.RefreshTier)
 		accounts.GET("/:id/stats", h.Admin.Account.GetStats)
 		accounts.POST("/:id/clear-error", h.Admin.Account.ClearError)
 		accounts.POST("/:id/revert-proxy-fallback", h.Admin.Account.RevertProxyFallback)
@@ -313,7 +309,6 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		accounts.GET("/data", h.Admin.Account.ExportData)
 		accounts.POST("/data", h.Admin.Account.ImportData)
 		accounts.POST("/batch-update-credentials", h.Admin.Account.BatchUpdateCredentials)
-		accounts.POST("/batch-refresh-tier", h.Admin.Account.BatchRefreshTier)
 		accounts.POST("/bulk-update", h.Admin.Account.BulkUpdate)
 		accounts.POST("/batch-clear-error", h.Admin.Account.BatchClearError)
 		accounts.POST("/batch-delete", h.Admin.Account.BatchDelete)
@@ -402,7 +397,6 @@ func registerRedeemCodeRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		codes.GET("/stats", h.Admin.Redeem.GetStats)
 		codes.GET("/export", h.Admin.Redeem.Export)
 		codes.GET("/:id", h.Admin.Redeem.GetByID)
-		codes.POST("/create-and-redeem", h.Admin.Redeem.CreateAndRedeem)
 		codes.POST("/generate", h.Admin.Redeem.Generate)
 		codes.DELETE("/:id", h.Admin.Redeem.Delete)
 		codes.POST("/batch-delete", h.Admin.Redeem.BatchDelete)

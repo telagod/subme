@@ -37,7 +37,7 @@ This directory contains the Vue Router configuration for the Subme frontend appl
 | `/admin/dashboard` | AdminDashboardView | Admin dashboard                 |
 | `/admin/users`     | AdminUsersView     | User management                 |
 | `/admin/groups`    | AdminGroupsView    | Group management                |
-| `/admin/accounts`  | AdminAccountsView  | Account management              |
+| `/admin/accounts`  | AccountsPoolView   | Account pool management         |
 | `/admin/proxies`   | AdminProxiesView   | Proxy management                |
 | `/admin/redeem`    | AdminRedeemView    | Redeem code management          |
 

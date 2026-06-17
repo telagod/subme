@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -39,20 +38,6 @@ type GenerateRedeemCodesRequest struct {
 	Value         float64    `json:"value"`
 	GroupID       *int64     `json:"group_id"`      // 订阅类型必填
 	ValidityDays  int        `json:"validity_days"` // 订阅类型使用，正数增加/负数退款扣减
-	ExpiresAt     *time.Time `json:"expires_at"`
-	ExpiresInDays *int       `json:"expires_in_days" binding:"omitempty,min=1,max=3650"`
-}
-
-// CreateAndRedeemCodeRequest represents creating a fixed code and redeeming it for a target user.
-// Type 为 omitempty 而非 required 是为了向后兼容旧版调用方（不传 type 时默认 balance）。
-type CreateAndRedeemCodeRequest struct {
-	Code          string     `json:"code" binding:"required,min=3,max=128"`
-	Type          string     `json:"type" binding:"omitempty,oneof=balance concurrency subscription invitation"` // 不传时默认 balance（向后兼容）
-	Value         float64    `json:"value" binding:"required"`
-	UserID        int64      `json:"user_id" binding:"required,gt=0"`
-	GroupID       *int64     `json:"group_id"`      // subscription 类型必填
-	ValidityDays  int        `json:"validity_days"` // subscription 类型：正数增加，负数退款扣减
-	Notes         string     `json:"notes"`
 	ExpiresAt     *time.Time `json:"expires_at"`
 	ExpiresInDays *int       `json:"expires_in_days" binding:"omitempty,min=1,max=3650"`
 }
@@ -161,109 +146,6 @@ func (h *RedeemHandler) Generate(c *gin.Context) {
 		}
 		return out, nil
 	})
-}
-
-// CreateAndRedeem creates a fixed redeem code and redeems it for a target user in one step.
-// POST /api/v1/admin/redeem-codes/create-and-redeem
-func (h *RedeemHandler) CreateAndRedeem(c *gin.Context) {
-	if h.redeemService == nil {
-		response.InternalError(c, "redeem service not configured")
-		return
-	}
-
-	var req CreateAndRedeemCodeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "Invalid request: "+err.Error())
-		return
-	}
-	req.Code = strings.TrimSpace(req.Code)
-	// 向后兼容：旧版调用方（如 Sub2ApiPay）不传 type 字段，默认当作 balance 充值处理。
-	// 请勿删除此默认值逻辑，否则会导致旧版调用方 400 报错。
-	if req.Type == "" {
-		req.Type = "balance"
-	}
-
-	if req.Type == "subscription" {
-		if req.GroupID == nil {
-			response.BadRequest(c, "group_id is required for subscription type")
-			return
-		}
-		if req.ValidityDays == 0 {
-			response.BadRequest(c, "validity_days must not be zero for subscription type")
-			return
-		}
-	}
-
-	expiresAt, err := computeRedeemExpiry(req.ExpiresAt, req.ExpiresInDays)
-	if err != nil {
-		response.ErrorFrom(c, err)
-		return
-	}
-
-	executeAdminIdempotentJSON(c, "admin.redeem_codes.create_and_redeem", req, service.DefaultWriteIdempotencyTTL(), func(ctx context.Context) (any, error) {
-		existing, err := h.redeemService.GetByCode(ctx, req.Code)
-		if err == nil {
-			return h.resolveCreateAndRedeemExisting(ctx, existing, req.UserID)
-		}
-		if !errors.Is(err, service.ErrRedeemCodeNotFound) {
-			return nil, err
-		}
-
-		createErr := h.redeemService.CreateCode(ctx, &service.RedeemCode{
-			Code:         req.Code,
-			Type:         req.Type,
-			Value:        req.Value,
-			Status:       service.StatusUnused,
-			Notes:        req.Notes,
-			GroupID:      req.GroupID,
-			ValidityDays: req.ValidityDays,
-			ExpiresAt:    expiresAt,
-		})
-		if createErr != nil {
-			// Unique code race: if code now exists, use idempotent semantics by used_by.
-			existingAfterCreateErr, getErr := h.redeemService.GetByCode(ctx, req.Code)
-			if getErr == nil {
-				return h.resolveCreateAndRedeemExisting(ctx, existingAfterCreateErr, req.UserID)
-			}
-			return nil, createErr
-		}
-
-		redeemed, redeemErr := h.redeemService.Redeem(ctx, req.UserID, req.Code)
-		if redeemErr != nil {
-			return nil, redeemErr
-		}
-		return gin.H{"redeem_code": dto.RedeemCodeFromServiceAdmin(redeemed)}, nil
-	})
-}
-
-func (h *RedeemHandler) resolveCreateAndRedeemExisting(ctx context.Context, existing *service.RedeemCode, userID int64) (any, error) {
-	if existing == nil {
-		return nil, infraerrors.Conflict("REDEEM_CODE_CONFLICT", "redeem code conflict")
-	}
-
-	// If previous run created the code but crashed before redeem, redeem it now.
-	if existing.IsExpired() {
-		return nil, service.ErrRedeemCodeExpired
-	}
-	if existing.CanUse() {
-		redeemed, err := h.redeemService.Redeem(ctx, userID, existing.Code)
-		if err == nil {
-			return gin.H{"redeem_code": dto.RedeemCodeFromServiceAdmin(redeemed)}, nil
-		}
-		if !errors.Is(err, service.ErrRedeemCodeUsed) {
-			return nil, err
-		}
-		latest, getErr := h.redeemService.GetByCode(ctx, existing.Code)
-		if getErr == nil {
-			existing = latest
-		}
-	}
-
-	if existing.UsedBy != nil && *existing.UsedBy == userID {
-		return gin.H{"redeem_code": dto.RedeemCodeFromServiceAdmin(existing)}, nil
-	}
-
-	return nil, infraerrors.Conflict("REDEEM_CODE_CONFLICT", "redeem code already used by another user")
 }
 
 // Delete handles deleting a redeem code

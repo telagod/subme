@@ -1084,6 +1084,10 @@ const loadUsage = async (options?: { source?: 'passive' | 'active'; bypassCache?
 const requestAutoLoad = (source?: 'passive' | 'active') => {
   if (!shouldFetchUsage.value) return
   loadUsage({ source }).catch((e) => {
+    // 与 loadUsage catch 一致：自动加载失败也要写入 error.value，避免上层 UI 看到 loading=false 但无错误的"假静默"。
+    if (!unmounted.value) {
+      error.value = t('common.error')
+    }
     console.error('Failed to auto load usage:', e)
   })
 }

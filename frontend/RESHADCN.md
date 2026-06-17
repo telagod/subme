@@ -50,7 +50,7 @@
 - **全站 QUENCH CSS 变量残留 = 0**（冷钢/淬钢视觉变量彻底清除）
 - 组件库系统契约全加固：Input(defineExpose+null)·Button(class 类型)·Switch/Checkbox(checked 兼容)·Textarea(null)
 - 每波 typecheck 0 / build 绿，对抗审查揪出的 fail/真 warn 全部定点修
-- [x] 波3b-huge：**8 核心巨页**(UsersView/AccountsView/ChannelsView/SubscriptionsView/RedeemView/ProxiesView/RiskControlView/BulkEditAccountModal) ✅ opus 波迁移完成 / typecheck 0 / build 绿
+- [x] 波3b-huge：**8 核心巨页**(UsersView/AccountsView/ChannelsView/SubscriptionsView/RedeemView/ProxiesView/RiskControlView/BulkEditAccountModal) ✅ opus 波迁移完成 / typecheck 0 / build 绿 _(AccountsView 已 deprecated, see Phase 4 migration → AccountsPoolView)_
   - 修复：BulkEdit 6 处 `<Input> v-model.number`(雷点,number/number|null 分类) · proxyExpiry.ts util badge-*→Tailwind · RiskControlView 畸形 ` /50` class · **session limit 中断的半成品已 git 回滚重迁**
 - [x] 超巨页 opus 波（`wf_ac24f037`）：EditAccountModal/GroupsView/CreateAccountModal ✅ 迁移完成 / typecheck 0 / build 绿
   - **Input.vue 根治支持 `modelModifiers.number/.trim`**（CreateAccountModal 15 处 `<Input v-model.number>` 雷点一次修死,改 useVModel→computed get/set）

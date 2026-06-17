@@ -7478,6 +7478,8 @@ export default {
       saving: '保存中…',
       restoreBtn: '恢复自动',
       saveSuccess: '覆盖已保存',
+      syncFailed: '同步失败，显示的可能不是最新供应商列表',
+      retry: '重试',
     },
 
     plansCatalog: {

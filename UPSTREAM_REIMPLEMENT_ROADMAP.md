@@ -80,7 +80,7 @@
 |-----------|------|
 | **thinking reasoning_effort auto-fill** `[billing/gateway]` | 纯 analytics（填 NULL 列非计费正确性），硬依赖 #15 thinking_protocol。**defer 到子系统到位** |
 | **wait queue 热路径收敛** `[account-repo]` | 本地散落 5 handler，但已有 hotpath/fastpath test 疑部分做过。**先核对本地现状再决定** |
-| **前端 account id 列** `[account-repo]` | `AccountsView.vue` 加 id 列，适配本地 shadcn + Zinc 文案 |
+| **前端 account id 列** `[account-repo]` | `AccountsPoolView.vue` 加 id 列，适配本地 shadcn + Zinc 文案 |
 | **Claude OAuth system prompt blocks 可配置** `[model-compat]` | 纯加法 admin 配置，本地硬编码 3-block 功能等价。仅产品需要时做，适配本地 settings registry |
 | **Bedrock beta token whitelist 扩展** `[bedrock]` | 本地 deliberate policy（注掉 context-management）。reconcile 本地 const 处理，核 AWS 当前文档 |
 

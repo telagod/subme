@@ -280,6 +280,7 @@ async function loadData() {
       availability.value = availData
     }
   } catch (err: any) {
+    // dev console; production build suppresses console.*
     console.error('[OpsConcurrencyCard] Failed to load data', err)
     errorMessage.value = err?.response?.data?.detail || t('admin.ops.concurrency.loadFailed')
   } finally {
