@@ -130,32 +130,39 @@
           :show-now-when-idle="true"
           color="emerald"
         />
-        <div class="flex items-center gap-1.5 mt-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            class="h-auto gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-primary-200"
-            :disabled="activeQueryLoading"
-            @click="loadActiveUsage"
-          >
-            <svg
-              class="h-2.5 w-2.5"
-              :class="{ 'animate-spin': activeQueryLoading }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <!--
+          Upstream codex /wham/usage quota query + reset. The local active-sampling
+          refresh button is rendered via the pre-actions slot so the user sees a
+          single row of related buttons instead of two stacked rows.
+        -->
+        <OpenAIQuotaResetCell :account="account" class="mt-0.5">
+          <template #pre-actions>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="h-auto gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium text-primary disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="activeQueryLoading"
+              @click="loadActiveUsage"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            {{ t('admin.accounts.usageWindow.activeQuery') }}
-          </Button>
-        </div>
+              <svg
+                class="h-2.5 w-2.5"
+                :class="{ 'animate-spin': activeQueryLoading }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              {{ t('admin.accounts.usageWindow.activeQuery') }}
+            </Button>
+          </template>
+        </OpenAIQuotaResetCell>
       </div>
       <div v-else-if="loading" class="space-y-1.5">
         <div class="flex items-center gap-1">
@@ -169,7 +176,11 @@
           <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
         </div>
       </div>
-      <div v-else class="text-xs text-muted-foreground">-</div>
+      <div v-else>
+        <div class="text-xs text-muted-foreground">-</div>
+        <!-- Always allow on-demand upstream quota query, even before local data exists. -->
+        <OpenAIQuotaResetCell :account="account" class="mt-1" />
+      </div>
     </template>
 
     <!-- Antigravity OAuth accounts: fetch usage from API -->
@@ -518,6 +529,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import UsageProgressBar from './UsageProgressBar.vue'
 import AccountQuotaInfo from './AccountQuotaInfo.vue'
+import OpenAIQuotaResetCell from './OpenAIQuotaResetCell.vue'
 
 // Module-level cache shared across all AccountUsageCell instances
 const _usageCache = new Map<number, { data: AccountUsageInfo; ts: number }>()
