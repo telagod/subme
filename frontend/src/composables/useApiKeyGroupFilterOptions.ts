@@ -25,6 +25,12 @@ export interface ApiKeyGroupFilterOption {
   /** Marks the row as a disabled section header (not selectable). */
   kind?: 'group-header'
   disabled?: boolean
+  /**
+   * Index signature so this shape is assignable to
+   * `Array<Record<string, unknown>>` — the loose options shape
+   * accepted by `@/components/common/Select.vue` alongside SelectOption[].
+   */
+  [key: string]: unknown
 }
 
 export interface ApiKeyGroupFilterLabels {
