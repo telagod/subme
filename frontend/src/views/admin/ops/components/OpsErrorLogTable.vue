@@ -160,7 +160,7 @@
 
 <style scoped>
 /* od-badge* classes are returned by script functions (getStatusClass / getTypeBadge / getSeverityClass)
-   and cannot be changed without touching <script>. Redefined here using semantic tokens — no QUENCH vars. */
+   and cannot be changed without touching the script block. Redefined here using semantic tokens — no QUENCH vars. */
 .od-badge {
   display: inline-flex;
   align-items: center;
