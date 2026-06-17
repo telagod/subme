@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log/slog"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -66,7 +67,23 @@ type scheduledMonitor struct {
 	id       int64
 	name     string
 	interval time.Duration
+	jitter   time.Duration // ± [0, jitter] per-tick uniform offset; 0 = fixed interval
 	cancel   context.CancelFunc
+}
+
+// nextDelay computes the next wait duration: interval ± [0, jitter] uniform random offset.
+// Validation already ensures interval - jitter >= monitorMinIntervalSeconds, but we still
+// clamp here as a defense against dirty rows that violate the DB-side constraint.
+func (s *scheduledMonitor) nextDelay() time.Duration {
+	if s.jitter <= 0 {
+		return s.interval
+	}
+	offset := time.Duration(rand.Int64N(int64(2*s.jitter) + 1)) // [0, 2*jitter]
+	d := s.interval - s.jitter + offset
+	if floor := monitorMinIntervalSeconds * time.Second; d < floor {
+		d = floor
+	}
+	return d
 }
 
 // NewChannelMonitorRunner constructs the scheduler. Start is called once from wire.
@@ -137,6 +154,10 @@ func (r *ChannelMonitorRunner) Schedule(m *ChannelMonitor) {
 			"monitor_id", m.ID, "interval_seconds", m.IntervalSeconds)
 		return
 	}
+	jitterDur := time.Duration(m.JitterSeconds) * time.Second
+	if jitterDur < 0 {
+		jitterDur = 0
+	}
 
 	r.guard.Lock()
 	if r.halted {
@@ -157,6 +178,7 @@ func (r *ChannelMonitorRunner) Schedule(m *ChannelMonitor) {
 		id:       m.ID,
 		name:     m.Name,
 		interval: tickInterval,
+		jitter:   jitterDur,
 		cancel:   taskCancel,
 	}
 	r.taskMap[m.ID] = entry
@@ -203,13 +225,15 @@ func (r *ChannelMonitorRunner) Stop() {
 }
 
 // runScheduled is the per-monitor loop: fires immediately (so new/enabled monitors run at once),
-// then repeats at the configured interval; exits when context is cancelled.
+// then repeats at interval ± jitter; exits when context is cancelled.
+// Uses time.Timer rather than time.Ticker because the wait duration must be
+// re-randomized every cycle when jitter > 0.
 func (r *ChannelMonitorRunner) runScheduled(taskCtx context.Context, entry *scheduledMonitor) {
 	defer r.waitGrp.Done()
 
 	r.fire(taskCtx, entry)
 
-	tick := time.NewTicker(entry.interval)
+	tick := time.NewTimer(entry.nextDelay())
 	defer tick.Stop()
 	for {
 		select {
@@ -217,6 +241,7 @@ func (r *ChannelMonitorRunner) runScheduled(taskCtx context.Context, entry *sche
 			return
 		case <-tick.C:
 			r.fire(taskCtx, entry)
+			tick.Reset(entry.nextDelay())
 		}
 	}
 }

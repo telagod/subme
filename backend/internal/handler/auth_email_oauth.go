@@ -78,6 +78,7 @@ func (h *AuthHandler) emailOAuthStart(c *gin.Context, providerName string) {
 	emailOAuthSetCookie(c, emailOAuthStateCookieName, encodeCookieValue(csrfState), useSecure)
 	emailOAuthSetCookie(c, emailOAuthRedirectCookie, encodeCookieValue(destination), useSecure)
 	emailOAuthSetCookie(c, emailOAuthProviderCookie, encodeCookieValue(providerName), useSecure)
+	captureOAuthPromoCode(c, useSecure)
 	if affCode := strings.TrimSpace(coalesce(c.Query("aff_code"), c.Query("aff"))); affCode != "" {
 		emailOAuthSetCookie(c, emailOAuthAffiliateCookie, encodeCookieValue(affCode), useSecure)
 	} else {
@@ -119,6 +120,7 @@ func (h *AuthHandler) emailOAuthCallback(c *gin.Context, providerName string) {
 		emailOAuthClearCookie(c, emailOAuthRedirectCookie, useSecure)
 		emailOAuthClearCookie(c, emailOAuthProviderCookie, useSecure)
 		emailOAuthClearCookie(c, emailOAuthAffiliateCookie, useSecure)
+		clearOAuthPromoCodeCookie(c, useSecure)
 	}()
 	savedState, readErr := readCookieDecoded(c, emailOAuthStateCookieName)
 	if readErr != nil || savedState == "" || savedState != csrfState {
@@ -181,7 +183,13 @@ func (h *AuthHandler) emailOAuthCallbackWithProfile(
 		return
 	}
 
-	tokens, loggedInUser, loginErr := h.authService.LoginOrRegisterVerifiedEmailOAuthWithInvitation(c.Request.Context(), identityInput, "", affCode)
+	tokens, loggedInUser, loginErr := h.authService.LoginOrRegisterVerifiedEmailOAuthWithSignupCodes(
+		c.Request.Context(),
+		identityInput,
+		"",
+		affCode,
+		readOAuthPromoCode(c),
+	)
 	if loginErr != nil {
 		if errors.Is(loginErr, service.ErrOAuthInvitationRequired) {
 			if pendErr := h.createEmailOAuthRegistrationPendingSession(c, providerName, uiCallback, postLoginDest, userProfile); pendErr != nil {
@@ -427,6 +435,7 @@ func (h *AuthHandler) completeEmailOAuthRegistration(c *gin.Context, providerNam
 		response.ErrorFrom(c, infraerrors.InternalServer("PENDING_AUTH_BIND_APPLY_FAILED", "could not commit pending session transaction").WithCause(commitErr))
 		return
 	}
+	h.authService.ApplyOAuthSignupPromoCode(c.Request.Context(), newUser.ID, pendingOAuthPromoCode(pendingSession))
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), newUser.ID)
 	wipeCookies()
 	writeOAuthTokenPairResponse(c, tokens)

@@ -45,6 +45,7 @@ func (repo *channelMonitorRepository) Create(ctx context.Context, m *service.Cha
 		SetGroupName(m.GroupName).
 		SetEnabled(m.Enabled).
 		SetIntervalSeconds(m.IntervalSeconds).
+		SetJitterSeconds(m.JitterSeconds).
 		SetCreatedBy(m.CreatedBy).
 		SetExtraHeaders(coalesceHeadersMap(m.ExtraHeaders)).
 		SetBodyOverrideMode(fallbackBodyMode(m.BodyOverrideMode))
@@ -88,6 +89,7 @@ func (repo *channelMonitorRepository) Update(ctx context.Context, m *service.Cha
 		SetGroupName(m.GroupName).
 		SetEnabled(m.Enabled).
 		SetIntervalSeconds(m.IntervalSeconds).
+		SetJitterSeconds(m.JitterSeconds).
 		SetExtraHeaders(coalesceHeadersMap(m.ExtraHeaders)).
 		SetBodyOverrideMode(fallbackBodyMode(m.BodyOverrideMode))
 	if m.TemplateID != nil {
@@ -707,6 +709,7 @@ func convertEntMonitorToService(entity *dbent.ChannelMonitor) *service.ChannelMo
 		GroupName:        entity.GroupName,
 		Enabled:          entity.Enabled,
 		IntervalSeconds:  entity.IntervalSeconds,
+		JitterSeconds:    entity.JitterSeconds,
 		LastCheckedAt:    entity.LastCheckedAt,
 		CreatedBy:        entity.CreatedBy,
 		CreatedAt:        entity.CreatedAt,

@@ -213,8 +213,15 @@ func extractOpenAIEmbeddingsUsage(payload []byte) OpenAIUsage {
 		usageResult.Get("cache_creation_input_tokens"),
 		usageResult.Get("input_tokens_details.cache_creation_tokens"),
 	)
+	// 多模态 embedding（如 doubao-embedding-vision）回传图文 token 拆分，
+	// 用于图文不同价计费；纯文本 embedding 该字段为 0，行为不变。
+	imageInputTokens := firstPositiveGJSONInt(
+		usageResult.Get("prompt_tokens_details.image_tokens"),
+		usageResult.Get("input_tokens_details.image_tokens"),
+	)
 	return OpenAIUsage{
 		InputTokens:              promptTokens,
+		ImageInputTokens:         imageInputTokens,
 		OutputTokens:             completionTokens,
 		CacheReadInputTokens:     cachedRead,
 		CacheCreationInputTokens: cachedCreation,

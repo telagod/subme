@@ -43,6 +43,15 @@ func validateInterval(seconds int) error {
 	return nil
 }
 
+// validateJitter 校验 jitter_seconds：必须非负，且 interval - jitter 不得低于最小检测间隔，
+// 防止随机偏移后实际等待时长过短打爆上游。
+func validateJitter(jitterSec, intervalSec int) error {
+	if jitterSec < 0 || intervalSec-jitterSec < monitorMinIntervalSeconds {
+		return ErrChannelMonitorInvalidJitter
+	}
+	return nil
+}
+
 // validateEndpoint checks the endpoint URL:
 //   - scheme must be https (rejects http to avoid plaintext credentials and SSRF surface)
 //   - must be origin-only (no path/query/fragment) to prevent path duplication

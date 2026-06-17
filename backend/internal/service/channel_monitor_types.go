@@ -40,6 +40,7 @@ type ChannelMonitor struct {
 	GroupName       string
 	Enabled         bool
 	IntervalSeconds int
+	JitterSeconds   int // 每次调度 ± [0, jitter] 的均匀随机偏移（秒）；0 = 固定间隔
 	LastCheckedAt   *time.Time
 	CreatedBy       int64
 	CreatedAt       time.Time
@@ -77,6 +78,7 @@ type ChannelMonitorCreateParams struct {
 	GroupName        string
 	Enabled          bool
 	IntervalSeconds  int
+	JitterSeconds    int
 	CreatedBy        int64
 	TemplateID       *int64
 	ExtraHeaders     map[string]string
@@ -96,6 +98,7 @@ type ChannelMonitorUpdateParams struct {
 	GroupName       *string
 	Enabled         *bool
 	IntervalSeconds *int
+	JitterSeconds   *int
 	// Custom snapshot fields: nil pointer = no update, non-nil = overwrite.
 	// TemplateID uses ClearTemplate flag for explicit three-state handling:
 	// nil=no update, &nil=clear, &&id=set to id.
