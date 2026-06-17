@@ -7,8 +7,14 @@
         (account.type === 'oauth' || account.type === 'setup-token')
       "
     >
+      <!-- Error state — checked BEFORE loading so a late catch can't be hidden by a
+           still-pending overlapping fetch (E9). -->
+      <div v-if="error" class="text-xs text-destructive">
+        {{ error }}
+      </div>
+
       <!-- Loading state -->
-      <div v-if="loading" class="space-y-1.5">
+      <div v-else-if="loading" class="space-y-1.5">
         <!-- OAuth: 3 rows, Setup Token: 1 row -->
         <div class="flex items-center gap-1">
           <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
@@ -27,11 +33,6 @@
             <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
           </div>
         </template>
-      </div>
-
-      <!-- Error state -->
-      <div v-else-if="error" class="text-xs text-destructive">
-        {{ error }}
       </div>
 
       <!-- Usage data -->
@@ -268,6 +269,11 @@
         </Badge>
       </div>
 
+      <!-- Error state — checked before loading (E9) -->
+      <div v-else-if="error" class="text-xs text-destructive">
+        {{ error }}
+      </div>
+
       <!-- Loading state -->
       <div v-else-if="loading" class="space-y-1.5">
         <div class="flex items-center gap-1">
@@ -275,11 +281,6 @@
           <div class="h-1.5 w-8 animate-pulse rounded-full bg-muted"></div>
           <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
         </div>
-      </div>
-
-      <!-- Error state -->
-      <div v-else-if="error" class="text-xs text-destructive">
-        {{ error }}
       </div>
 
       <!-- Usage data from API -->
@@ -410,15 +411,16 @@
           <div class="h-3 w-8 animate-pulse rounded bg-muted"></div>
           <div class="h-3 w-12 animate-pulse rounded bg-muted"></div>
         </div>
-        <div v-if="loading" class="space-y-1">
+        <!-- Error takes precedence over loading to avoid the stuck-spinner race (E9) -->
+        <div v-if="error" class="text-xs text-destructive">
+          {{ error }}
+        </div>
+        <div v-else-if="loading" class="space-y-1">
           <div class="flex items-center gap-1">
             <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
             <div class="h-1.5 w-8 animate-pulse rounded-full bg-muted"></div>
             <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
           </div>
-        </div>
-        <div v-else-if="error" class="text-xs text-destructive">
-          {{ error }}
         </div>
         <!-- Gemini: show daily usage bars when available -->
         <div v-else-if="geminiUsageAvailable" class="space-y-1">

@@ -361,6 +361,15 @@ export default {
     noOptionsFound: '无匹配选项',
     noGroupsAvailable: '无可用分组',
     unknownError: '发生未知错误',
+    retry: '重试',
+    errorState: {
+      title: '加载失败',
+      description: '加载该模块时出现问题，请稍后重试。',
+      forbiddenTitle: '无权访问',
+      forbiddenDescription: '你没有权限查看该内容。',
+      networkTitle: '网络异常',
+      networkDescription: '无法连接到服务器，请检查网络后重试。',
+    },
     saving: '保存中...',
     selectedCount: '（已选 {count} 个）',
     refresh: '刷新',
@@ -4314,7 +4323,8 @@ export default {
         todayTokens: '今日 Token',
         todayCost: '今日费用',
         usageTrend: '30天费用与请求趋势',
-        noData: '该账号暂无使用数据'
+        noData: '该账号暂无使用数据',
+        loadFailed: '账号统计数据加载失败'
       }
     },
 
@@ -7609,7 +7619,8 @@ export default {
     emptyDescription: '暂时没有任何系统公告',
     readStatus: '您已阅读此公告',
     markReadHint: '点击"已读"标记此公告',
-    readLater: '稍后再看'
+    readLater: '稍后再看',
+    fetchFailed: '公告加载失败，请稍后重试。'
   },
 
   // User Subscriptions Page

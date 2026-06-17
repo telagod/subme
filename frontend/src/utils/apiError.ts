@@ -114,7 +114,21 @@ export function extractI18nErrorMessage(
 }
 
 /**
- * Extract a displayable error message from an API error.
+ * Canonical error-message extractor.
+ *
+ * Use this for **every** `catch` block instead of reaching into `error.response?.data?.detail`
+ * or `error.message` directly — those bypass i18n and surface raw backend strings to users.
+ *
+ * Hierarchy (first match wins):
+ *   1. `i18nMap[code]` — caller-supplied per-code translated string
+ *   2. `err.message` — interceptor-normalized message (already locale-aware via Accept-Language)
+ *   3. `err.error` — legacy field
+ *   4. `err.response.data.detail` / `.message` — raw axios fallback
+ *   5. `err instanceof Error ? err.message` — generic JS error
+ *   6. `fallback` — caller-provided default (typically a `t('...')` value)
+ *
+ * For granular i18n by error code, prefer `extractI18nErrorMessage(err, t, namespace, fallback)`
+ * which looks up `<namespace>.<reason>` keys.
  *
  * @param err - The caught error (unknown type)
  * @param fallback - Fallback message if none can be extracted (use t('common.error') or similar)

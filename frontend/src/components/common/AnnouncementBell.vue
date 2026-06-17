@@ -80,6 +80,15 @@
                 </div>
               </div>
 
+              <!-- Fetch error: surface fetchError instead of silently showing empty state -->
+              <div v-else-if="fetchError && announcements.length === 0" class="px-6 py-8">
+                <ErrorState
+                  :description="t('announcements.fetchFailed')"
+                  :on-retry="retryFetch"
+                  :loading="loading"
+                />
+              </div>
+
               <!-- Announcements List -->
               <div v-else-if="announcements.length > 0">
                 <div
@@ -296,14 +305,22 @@ import type { UserAnnouncement } from '@/types'
 import Icon from '@/components/icons/Icon.vue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import ErrorState from '@/components/common/ErrorState.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 const announcementStore = useAnnouncementStore()
 
 // Use store state (storeToRefs for reactivity)
-const { announcements, loading } = storeToRefs(announcementStore)
+const { announcements, loading, fetchError } = storeToRefs(announcementStore)
 const unreadCount = computed(() => announcementStore.unreadCount)
+
+// Retry handler for ErrorState — calls the store fetcher with force=true to bypass
+// TTL + error-backoff window. Swallows failures (store already logs) so the button
+// stays responsive across retries.
+async function retryFetch() {
+  await announcementStore.fetchAnnouncements(true)
+}
 
 // Local modal state
 const isModalOpen = ref(false)

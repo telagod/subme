@@ -6,24 +6,34 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { paymentAPI } from '@/api/payment'
+import { useFetchState } from '@/composables/useFetchState'
 import type { PaymentConfig, PaymentOrder, SubscriptionPlan, CreateOrderRequest } from '@/types/payment'
 
 export const usePaymentStore = defineStore('payment', () => {
   // ==================== State ====================
 
-  /** Payment configuration from backend */
-  const config = ref<PaymentConfig | null>(null)
   /** Currently active order (for payment flow) */
   const currentOrder = ref<PaymentOrder | null>(null)
   /** Available subscription plans */
   const plans = ref<SubscriptionPlan[]>([])
 
-  const configLoading = ref(false)
-  const configLoaded = ref(false)
+  // Config fetch state — backed by useFetchState for single-flight + load-guard.
+  // Original public surface (config / configLoading / configLoaded / configError /
+  // fetchConfig) is preserved one-to-one; fetchConfig still swallows errors and
+  // returns null on failure to keep call sites (StripePaymentView, etc.) intact.
+  const configState = useFetchState<PaymentConfig>(async () => {
+    const response = await paymentAPI.getConfig()
+    return response.data
+  })
+
+  /** Payment configuration from backend */
+  const config = configState.data
+  const configLoading = configState.loading
+  const configLoaded = configState.loaded
+  const configError = configState.error
 
   // Surfaced fetch errors — UI can render inline retry / banner.
   // Each fetch entry point clears its corresponding error before issuing the request.
-  const configError = ref<unknown>(null)
   const plansError = ref<unknown>(null)
   const orderError = ref<unknown>(null)
 
@@ -31,22 +41,13 @@ export const usePaymentStore = defineStore('payment', () => {
 
   /** Fetch payment configuration */
   async function fetchConfig(force = false): Promise<PaymentConfig | null> {
-    if (configLoaded.value && !force) return config.value
-    if (configLoading.value) return config.value
-
-    configLoading.value = true
-    configError.value = null
+    // Preserve original swallow-and-return-null contract; throws would break the
+    // existing try/await chain in callers and the StripePaymentView spec.
     try {
-      const response = await paymentAPI.getConfig()
-      config.value = response.data
-      configLoaded.value = true
-      return config.value
+      return await configState.fetch(force)
     } catch (error: unknown) {
-      configError.value = error
       console.error('[payment] Failed to fetch config:', error)
       return null
-    } finally {
-      configLoading.value = false
     }
   }
 

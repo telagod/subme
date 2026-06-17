@@ -361,6 +361,15 @@ export default {
     noOptionsFound: 'No options found',
     noGroupsAvailable: 'No groups available',
     unknownError: 'Unknown error occurred',
+    retry: 'Retry',
+    errorState: {
+      title: 'Failed to load',
+      description: 'Something went wrong while loading this section.',
+      forbiddenTitle: 'Access denied',
+      forbiddenDescription: 'You do not have permission to view this content.',
+      networkTitle: 'Network error',
+      networkDescription: 'Could not reach the server. Check your connection and try again.',
+    },
     saving: 'Saving...',
     selectedCount: '({count} selected)',
     refresh: 'Refresh',
@@ -4163,7 +4172,8 @@ export default {
         todayTokens: 'Today Tokens',
         todayCost: 'Today Cost',
         usageTrend: '30-Day Cost & Request Trend',
-        noData: 'No usage data available for this account'
+        noData: 'No usage data available for this account',
+        loadFailed: 'Failed to load account statistics'
       },
       usageWindow: {
         statsTitle: '5-Hour Window Usage Statistics',
@@ -7428,7 +7438,8 @@ export default {
     emptyDescription: 'There are no system announcements at this time',
     readStatus: 'You have read this announcement',
     markReadHint: 'Click "Mark as read" to mark this announcement',
-    readLater: 'Read later'
+    readLater: 'Read later',
+    fetchFailed: 'Could not load announcements. Please try again.'
   },
 
   // User Subscriptions Page

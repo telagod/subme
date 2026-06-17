@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { announcementsAPI } from '@/api'
+import { useFetchState } from '@/composables/useFetchState'
 import type { UserAnnouncement } from '@/types'
 
 const THROTTLE_MS = 20 * 60 * 1000 // 20 minutes
@@ -11,23 +12,31 @@ const ERROR_BACKOFF_MS = 60 * 1000 // 60 seconds
 export const useAnnouncementStore = defineStore('announcements', () => {
   // State
   const announcements = ref<UserAnnouncement[]>([])
-  const loading = ref(false)
-  const lastFetchTime = ref(0)
   const popupQueue = ref<UserAnnouncement[]>([])
   const currentPopup = ref<UserAnnouncement | null>(null)
-  // Surfaced fetch failure (most recent)
-  const fetchError = ref<unknown>(null)
 
   // Session-scoped dedup set — not reactive, used as plain lookup only
   let shownPopupIds = new Set<number>()
 
-  // In-flight fetch promise — single-flight dedup so a burst of route changes
-  // doesn't fan out into N concurrent /announcements calls.
-  let fetchInFlight: Promise<void> | null = null
-
   // Setter timeout handle for the "show next popup after a short delay" path.
   // Tracked so reset() / repeated dismiss() calls don't leak overlapping timers.
   let pendingNextTimeoutId: number | null = null
+
+  // Fetch layer (TTL + error backoff + single-flight) delegated to useFetchState.
+  // The fetcher itself runs the side effect (slice + enqueue popups) on success
+  // so the upstream contract (Promise<void> with mutated store state) stays.
+  const fetchState = useFetchState<true>(
+    async () => {
+      const all = await announcementsAPI.list(false)
+      announcements.value = all.slice(0, 20)
+      enqueueNewPopups()
+      return true
+    },
+    { cacheMs: THROTTLE_MS, errorBackoffMs: ERROR_BACKOFF_MS }
+  )
+
+  const loading = fetchState.loading
+  const fetchError = fetchState.error
 
   // Getters
   const unreadCount = computed(() =>
@@ -46,40 +55,14 @@ export const useAnnouncementStore = defineStore('announcements', () => {
 
   // Actions
   async function fetchAnnouncements(force = false): Promise<void> {
-    const now = Date.now()
-    if (!force && lastFetchTime.value > 0 && now - lastFetchTime.value < THROTTLE_MS) {
-      return
+    // Preserve original swallow-on-failure contract — call sites in
+    // useAppLifecycle invoke this without await/.catch and would otherwise
+    // surface as unhandled rejections.
+    try {
+      await fetchState.fetch(force)
+    } catch (err) {
+      console.error('Failed to fetch announcements:', err)
     }
-
-    // Single-flight dedup: concurrent callers reuse the same promise.
-    if (fetchInFlight) {
-      return fetchInFlight
-    }
-
-    // Set immediately to prevent concurrent duplicate requests (belt & braces
-    // with fetchInFlight — also keeps throttle correct across awaits).
-    lastFetchTime.value = now
-    fetchError.value = null
-
-    fetchInFlight = (async () => {
-      try {
-        loading.value = true
-        const all = await announcementsAPI.list(false)
-        announcements.value = all.slice(0, 20)
-        enqueueNewPopups()
-      } catch (err: any) {
-        fetchError.value = err
-        // Backoff: keep throttle alive for ERROR_BACKOFF_MS instead of resetting
-        // to 0 (which lets every subsequent nav / visibility-change re-hammer 5xx).
-        lastFetchTime.value = now - THROTTLE_MS + ERROR_BACKOFF_MS
-        console.error('Failed to fetch announcements:', err)
-      } finally {
-        loading.value = false
-        fetchInFlight = null
-      }
-    })()
-
-    return fetchInFlight
   }
 
   function enqueueNewPopups() {
@@ -164,12 +147,11 @@ export const useAnnouncementStore = defineStore('announcements', () => {
 
   function reset() {
     announcements.value = []
-    lastFetchTime.value = 0
     shownPopupIds = new Set()
     popupQueue.value = []
     currentPopup.value = null
-    loading.value = false
-    fetchError.value = null
+    // Clears data/loading/loaded/error/lastFetchedAt and any inflight handle.
+    fetchState.reset()
     if (pendingNextTimeoutId !== null) {
       clearTimeout(pendingNextTimeoutId)
       pendingNextTimeoutId = null

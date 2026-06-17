@@ -28,6 +28,13 @@
           <div v-if="tasksLoading" class="text-sm text-muted-foreground">
             {{ t('admin.usage.cleanup.loadingTasks') }}
           </div>
+          <ErrorState
+            v-else-if="tasksError"
+            variant="compact"
+            :title="tasksError"
+            :on-retry="loadTasks"
+            :loading="tasksLoading"
+          />
           <div v-else-if="tasks.length === 0" class="text-sm text-muted-foreground">
             {{ t('admin.usage.cleanup.noTasks') }}
           </div>
@@ -126,6 +133,8 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import UsageFilters from '@/components/admin/usage/UsageFilters.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
+import { extractApiErrorMessage } from '@/utils/apiError'
 import { adminUsageAPI } from '@/api/admin/usage'
 import type { AdminUsageQueryParams, UsageCleanupTask, CreateUsageCleanupTaskRequest } from '@/api/admin/usage'
 import { requestTypeToLegacyStream } from '@/utils/usageRequestType'
@@ -149,6 +158,7 @@ const localEndDate = ref('')
 
 const tasks = ref<UsageCleanupTask[]>([])
 const tasksLoading = ref(false)
+const tasksError = ref<string>('')
 const tasksPage = ref(1)
 const tasksPageSize = ref(5)
 const tasksTotal = ref(0)
@@ -241,6 +251,7 @@ const getUserTimezone = () => {
 const loadTasks = async () => {
   if (!props.show) return
   tasksLoading.value = true
+  tasksError.value = ''
   try {
     const res = await adminUsageAPI.listCleanupTasks({
       page: tasksPage.value,
@@ -256,7 +267,8 @@ const loadTasks = async () => {
     }
   } catch (error) {
     console.error('Failed to load cleanup tasks:', error)
-    appStore.showError(t('admin.usage.cleanup.loadFailed'))
+    // Inline error + retry inside the panel — drop the redundant toast (E7 dedup rule).
+    tasksError.value = extractApiErrorMessage(error, t('admin.usage.cleanup.loadFailed'))
   } finally {
     tasksLoading.value = false
   }

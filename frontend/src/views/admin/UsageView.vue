@@ -2,8 +2,24 @@
   <AppLayout>
     <div class="space-y-6">
       <UsageStatsCards :stats="usageStats" />
+      <!-- Stats error banner -->
+      <ErrorState
+        v-if="statsError"
+        variant="compact"
+        :title="t('admin.usage.failedToLoadStats', 'Failed to load usage stats')"
+        :on-retry="() => loadStats(true)"
+        :loading="endpointStatsLoading"
+      />
       <!-- Charts Section -->
       <div class="space-y-4">
+        <!-- Charts error banner — inline retry instead of redundant toast on the same surface -->
+        <ErrorState
+          v-if="chartsError || modelStatsError"
+          variant="compact"
+          :title="t('admin.usage.failedToLoadChartData', 'Failed to load chart data')"
+          :on-retry="retryCharts"
+          :loading="chartsLoading || modelStatsLoading"
+        />
         <Card class="p-4">
           <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
@@ -122,6 +138,14 @@
         </Button>
       </div>
       <div v-show="activeTab === 'usage'">
+        <ErrorState
+          v-if="logsError && !loading"
+          variant="compact"
+          class="mb-3"
+          :title="t('admin.usage.failedToLoadLogs', 'Failed to load usage logs')"
+          :on-retry="loadLogs"
+          :loading="loading"
+        />
         <UsageTable
           :data="usageLogs"
           :loading="loading"
@@ -185,6 +209,7 @@ import EndpointDistributionChart from '@/components/charts/EndpointDistributionC
 import Icon from '@/components/icons/Icon.vue'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import ErrorState from '@/components/common/ErrorState.vue'
 import type { AdminUsageLog, TrendDataPoint, ModelStat, GroupStat, EndpointStat, AdminUser } from '@/types'; import type { AdminUsageStatsResponse, AdminUsageQueryParams } from '@/api/admin/usage'
 
 const { t } = useI18n()
@@ -356,7 +381,7 @@ const loadLogs = async () => {
     if (error?.name === 'AbortError') return
     console.error('Failed to load usage logs:', error)
     logsError.value = true
-    appStore.showError(t('admin.usage.failedToLoadLogs', 'Failed to load usage logs'))
+    // Inline ErrorState above the table renders + offers retry — no toast.
   } finally { if(abortController === c) loading.value = false }
 }
 const loadStats = async (force = false) => {
@@ -384,7 +409,7 @@ const loadStats = async (force = false) => {
     upstreamEndpointStats.value = []
     endpointPathStats.value = []
     statsError.value = true
-    appStore.showError(t('admin.usage.failedToLoadStats', 'Failed to load usage stats'))
+    // Inline ErrorState above shows the failure + retry button — no toast.
   } finally {
     if (seq === statsReqSeq) endpointStatsLoading.value = false
   }
@@ -447,7 +472,7 @@ const loadModelStats = async (source: ModelDistributionSource, force = false) =>
     }
     loadedModelSources[source] = false
     modelStatsError.value = true
-    appStore.showError(t('admin.usage.failedToLoadModelStats', 'Failed to load model stats'))
+    // Inline ErrorState above the chart row surfaces this + retry — no toast.
   } finally {
     if (seq === modelStatsReqSeq) modelStatsLoading.value = false
   }
@@ -486,9 +511,16 @@ const loadChartData = async () => {
     if (error?.name === 'AbortError') return
     console.error('Failed to load chart data:', error)
     chartsError.value = true
-    appStore.showError(t('admin.usage.failedToLoadChartData', 'Failed to load chart data'))
+    // Inline ErrorState above the chart row surfaces this + retry — no toast.
   } finally { if (seq === chartReqSeq) chartsLoading.value = false }
 }
+// Retry both chart datasets when the combined inline ErrorState retry is clicked.
+const retryCharts = () => {
+  invalidateModelStatsCache()
+  loadChartData()
+  loadModelStats(modelDistributionSource.value, true)
+}
+
 const applyFilters = () => {
   pagination.page = 1
   invalidateModelStatsCache()

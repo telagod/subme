@@ -170,6 +170,7 @@
               :start-date="startDate"
               :end-date="endDate"
               @ranking-click="goToUserUsage"
+              @ranking-retry="loadUserSpendingRanking"
             />
             <TokenUsageTrend :trend-data="trendData" :loading="chartsLoading" />
           </div>
@@ -183,6 +184,14 @@
               <div v-if="userTrendLoading" class="flex h-full items-center justify-center">
                 <LoadingSpinner size="md" />
               </div>
+              <ErrorState
+                v-else-if="userTrendError"
+                variant="compact"
+                class="h-full"
+                :title="t('admin.dashboard.failedToLoadUsersTrend', 'Failed to load users trend')"
+                :on-retry="loadUsersTrend"
+                :loading="userTrendLoading"
+              />
               <Line v-else-if="userTrendChartData" :data="userTrendChartData" :options="lineOptions" />
               <div v-else class="flex h-full items-center justify-center text-sm text-muted-foreground">
                 {{ t('admin.dashboard.noDataAvailable') }}
@@ -217,6 +226,7 @@ import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -550,7 +560,7 @@ const loadUsersTrend = async () => {
     console.error('Error loading users trend:', error)
     userTrend.value = []
     userTrendError.value = true
-    appStore.showError(t('admin.dashboard.failedToLoadUsersTrend', 'Failed to load users trend'))
+    // Inline ErrorState in the chart slot now handles surfacing + retry — no toast.
   } finally {
     if (currentSeq === usersTrendLoadSeq) {
       userTrendLoading.value = false
@@ -582,7 +592,7 @@ const loadUserSpendingRanking = async () => {
     rankingTotalRequests.value = 0
     rankingTotalTokens.value = 0
     rankingError.value = true
-    appStore.showError(t('admin.dashboard.failedToLoadRanking', 'Failed to load user spending ranking'))
+    // Inline ErrorState (with retry) inside ModelDistributionChart surfaces this — no toast.
   } finally {
     if (currentSeq === rankingLoadSeq) {
       rankingLoading.value = false

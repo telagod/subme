@@ -2,6 +2,9 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { adminAPI } from '@/api'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
+import { extractApiErrorMessage } from '@/utils/apiError'
+import { i18n } from '@/i18n'
 import type { CustomMenuItem } from '@/types'
 
 export const useAdminSettingsStore = defineStore('adminSettings', () => {
@@ -92,6 +95,17 @@ export const useAdminSettingsStore = defineStore('adminSettings', () => {
       // Cached/default values for UI continue to apply (already initialized at module scope).
       fetchError.value = err
       console.error('[adminSettings] Failed to fetch settings:', err)
+      // No component consumes fetchError directly, so route through the global app
+      // toast so admins actually see the failure instead of silently using cached defaults.
+      try {
+        const appStore = useAppStore()
+        const t = i18n.global.t
+        appStore.showError(
+          extractApiErrorMessage(err, t('admin.settings.fetchFailed', 'Failed to load admin settings')),
+        )
+      } catch {
+        // ignore toast failures (e.g. during early bootstrap before pinia/i18n ready)
+      }
     } finally {
       loading.value = false
     }

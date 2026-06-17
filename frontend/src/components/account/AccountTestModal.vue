@@ -62,6 +62,13 @@
             </SelectItem>
           </SelectContent>
         </SelectRoot>
+        <ErrorState
+          v-if="modelsLoadError"
+          variant="compact"
+          :title="modelsLoadError"
+          :on-retry="loadAvailableModels"
+          :loading="loadingModels"
+        />
       </div>
 
       <div v-if="isOpenAIAccount" class="space-y-1.5">
@@ -275,6 +282,8 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select as SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import ErrorState from '@/components/common/ErrorState.vue'
+import { extractApiErrorMessage } from '@/utils/apiError'
 import { useClipboard } from '@/composables/useClipboard'
 import { adminAPI } from '@/api/admin'
 import type { Account, ClaudeModel } from '@/types'
@@ -307,6 +316,7 @@ const outputLines = ref<OutputLine[]>([])
 const streamingContent = ref('')
 const errorMessage = ref('')
 const availableModels = ref<ClaudeModel[]>([])
+const modelsLoadError = ref<string>('')
 const selectedModelId = ref('')
 const testPrompt = ref('')
 const loadingModels = ref(false)
@@ -371,6 +381,7 @@ const loadAvailableModels = async () => {
   if (!props.account) return
 
   loadingModels.value = true
+  modelsLoadError.value = ''
   selectedModelId.value = '' // Reset selection before loading
   try {
     const models = await adminAPI.accounts.getAvailableModels(props.account.id)
@@ -389,9 +400,14 @@ const loadAvailableModels = async () => {
     }
   } catch (error) {
     console.error('Failed to load available models:', error)
-    // Fallback to empty list
+    // Fallback to empty list — surface the failure via inline ErrorState with retry,
+    // so the user is not left staring at a permanently empty model picker.
     availableModels.value = []
     selectedModelId.value = ''
+    modelsLoadError.value = extractApiErrorMessage(
+      error,
+      t('admin.accounts.failedToLoadModels', 'Failed to load available models'),
+    )
   } finally {
     loadingModels.value = false
   }

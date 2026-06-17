@@ -187,12 +187,14 @@
     <div v-else-if="rankingLoading" class="flex h-48 items-center justify-center">
       <LoadingSpinner />
     </div>
-    <div
+    <ErrorState
       v-else-if="rankingError"
-      class="flex h-48 items-center justify-center text-sm text-muted-foreground"
-    >
-      {{ t('admin.dashboard.failedToLoad') }}
-    </div>
+      variant="compact"
+      class="h-48"
+      :title="t('admin.dashboard.failedToLoad')"
+      :on-retry="() => emit('rankingRetry')"
+      :loading="rankingLoading"
+    />
     <div v-else-if="rankingDisplayItems.length > 0 && rankingChartData" class="flex items-center gap-6">
       <div class="h-48 w-48">
         <Doughnut :data="rankingChartData" :options="rankingDoughnutOptions" />
@@ -259,6 +261,7 @@ import { useI18n } from 'vue-i18n'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -341,6 +344,7 @@ const emit = defineEmits<{
   'update:metric': [value: DistributionMetric]
   'update:source': [value: ModelSource]
   'ranking-click': [item: UserSpendingRankingItem]
+  'rankingRetry': []
 }>()
 
 const enableRankingView = computed(() => props.enableRankingView)

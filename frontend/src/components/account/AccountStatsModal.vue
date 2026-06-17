@@ -37,6 +37,13 @@
         <LoadingSpinner />
       </div>
 
+      <!-- Error State -->
+      <ErrorState
+        v-else-if="error"
+        :title="error"
+        :on-retry="loadStats"
+      />
+
       <template v-else-if="stats">
         <!-- Row 1: Main Stats Cards -->
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -485,6 +492,8 @@ import {
 import { Line } from 'vue-chartjs'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
+import { extractApiErrorMessage } from '@/utils/apiError'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -518,6 +527,7 @@ const emit = defineEmits<{
 
 const loading = ref(false)
 const stats = ref<AccountUsageStatsResponse | null>(null)
+const error = ref<string>('')
 
 // Dark mode detection
 // dark-only: no branching needed
@@ -672,6 +682,7 @@ watch(
       await loadStats()
     } else {
       stats.value = null
+      error.value = ''
     }
   }
 )
@@ -680,11 +691,15 @@ const loadStats = async () => {
   if (!props.account) return
 
   loading.value = true
+  error.value = ''
   try {
     stats.value = await adminAPI.accounts.getStats(props.account.id, 30)
-  } catch (error) {
-    console.error('Failed to load account stats:', error)
+  } catch (err) {
+    console.error('Failed to load account stats:', err)
     stats.value = null
+    // Inline error with retry — modal is self-contained, so prefer inline over toast
+    // to avoid the duplicate display anti-pattern (E5).
+    error.value = extractApiErrorMessage(err, t('admin.accounts.stats.loadFailed'))
   } finally {
     loading.value = false
   }
