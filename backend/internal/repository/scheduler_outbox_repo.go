@@ -13,7 +13,14 @@ type schedulerOutboxRepository struct {
 	db *sql.DB
 }
 
-const schedulerOutboxDedupWindow = 10 * time.Second
+type schedulerOutboxCleanupLease struct {
+	conn *sql.Conn
+}
+
+const (
+	schedulerOutboxDedupWindow      = 10 * time.Second
+	schedulerOutboxDefaultCleanSize = 5000
+)
 
 func NewSchedulerOutboxRepository(db *sql.DB) service.SchedulerOutboxRepository {
 	return &schedulerOutboxRepository{db: db}
@@ -77,6 +84,71 @@ func (r *schedulerOutboxRepository) MaxID(ctx context.Context) (int64, error) {
 		return 0, err
 	}
 	return maxID, nil
+}
+
+// DeleteConsumedUpTo 删除 id <= watermark 且超过 10s grace 窗口的已消费 outbox 行。
+//
+// 10s grace 防御 PG 序列号在事务内提前分配但提交延迟的竞争：若某 Tx 在 watermark
+// 推进前持有 id=N（未提交），watermark 跨过 N 后该 Tx 才提交，此时 row N 已经
+// "低于 watermark" 但 poller 还未见过；grace 让此类慢事务先被消费再被裁剪。
+//
+// 使用 bounded CTE 限制单次删除批量，避免大事务长时间持锁。
+func (r *schedulerOutboxRepository) DeleteConsumedUpTo(ctx context.Context, watermark int64, limit int) (int64, error) {
+	if watermark <= 0 {
+		return 0, nil
+	}
+	if limit <= 0 {
+		limit = schedulerOutboxDefaultCleanSize
+	}
+	result, err := r.db.ExecContext(ctx, `
+		WITH doomed AS (
+			SELECT id
+			FROM scheduler_outbox
+			WHERE id <= $1
+				AND created_at < NOW() - INTERVAL '10 seconds'
+			ORDER BY id ASC
+			LIMIT $2
+		)
+		DELETE FROM scheduler_outbox o
+		USING doomed d
+		WHERE o.id = d.id
+	`, watermark, limit)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+// TryAcquireCleanupLock 尝试获取 PG advisory lock，防止多实例同时执行裁剪。
+// 锁绑定在专用 *sql.Conn 上，由 Release 释放并归还连接。
+func (r *schedulerOutboxRepository) TryAcquireCleanupLock(ctx context.Context) (service.SchedulerOutboxCleanupLease, bool, error) {
+	conn, err := r.db.Conn(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	var acquired bool
+	if err := conn.QueryRowContext(ctx, "SELECT pg_try_advisory_lock(hashtext('scheduler_outbox_cleanup'))").Scan(&acquired); err != nil {
+		_ = conn.Close()
+		return nil, false, err
+	}
+	if !acquired {
+		_ = conn.Close()
+		return nil, false, nil
+	}
+	return &schedulerOutboxCleanupLease{conn: conn}, true, nil
+}
+
+// Release 释放 advisory lock 并归还连接。可重入安全（nil/已释放调用不报错）。
+func (l *schedulerOutboxCleanupLease) Release() {
+	if l == nil || l.conn == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, _ = l.conn.ExecContext(ctx, "SELECT pg_advisory_unlock(hashtext('scheduler_outbox_cleanup'))")
+	_ = l.conn.Close()
+	l.conn = nil
 }
 
 func enqueueSchedulerOutbox(ctx context.Context, exec sqlExecutor, eventType string, accountID *int64, groupID *int64, payload any) error {

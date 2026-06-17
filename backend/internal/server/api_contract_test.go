@@ -1026,7 +1026,7 @@ func TestAPIContracts(t *testing.T) {
 					"google_oauth_client_secret_configured": false,
 					"google_oauth_redirect_url": "",
 					"google_oauth_frontend_redirect_url": "/auth/oauth/callback",
-					"site_name": "Sub2API",
+					"site_name": "subme",
 					"site_logo": "",
 					"site_subtitle": "Subscription to API Conversion Platform",
 					"api_base_url": "",
@@ -1675,6 +1675,10 @@ func (s *stubAccountRepo) ListActive(ctx context.Context) ([]service.Account, er
 	return nil, errors.New("not implemented")
 }
 
+func (s *stubAccountRepo) ListOAuthRefreshCandidates(ctx context.Context) ([]service.Account, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (s *stubAccountRepo) ListByPlatform(ctx context.Context, platform string) ([]service.Account, error) {
 	return nil, errors.New("not implemented")
 }
@@ -2000,7 +2004,7 @@ func (r *stubUserSubscriptionRepo) ListActiveByUserID(ctx context.Context, userI
 func (stubUserSubscriptionRepo) ListByGroupID(ctx context.Context, groupID int64, params pagination.PaginationParams) ([]service.UserSubscription, *pagination.PaginationResult, error) {
 	return nil, nil, errors.New("not implemented")
 }
-func (stubUserSubscriptionRepo) List(ctx context.Context, params pagination.PaginationParams, userID, groupID *int64, status, platform, sortBy, sortOrder string) ([]service.UserSubscription, *pagination.PaginationResult, error) {
+func (stubUserSubscriptionRepo) List(ctx context.Context, params pagination.PaginationParams, userID, groupID *int64, status, platform, sortBy, sortOrder string, opts ...service.ListSubscriptionOption) ([]service.UserSubscription, *pagination.PaginationResult, error) {
 	return nil, nil, errors.New("not implemented")
 }
 func (stubUserSubscriptionRepo) ExistsByUserIDAndGroupID(ctx context.Context, userID, groupID int64) (bool, error) {
