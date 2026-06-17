@@ -4,6 +4,7 @@ package service
 
 import (
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -181,4 +182,77 @@ func TestRequestTypeCyberBlocked_Wire(t *testing.T) {
 	parsed, err := ParseUsageRequestType("cyber")
 	require.NoError(t, err)
 	require.Equal(t, RequestTypeCyberBlocked, parsed)
+}
+
+// phase-2: CyberPolicyMark 字段扩展 —— Body + UpstreamInTok/OutTok 由 DetectAndMark 填充。
+func TestDetectAndMarkOpsCyberPolicy_PopulatesBodyAndTokens(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	t.Run("openai responses style usage", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		body := []byte(`{"error":{"code":"cyber_policy","message":"flagged"},"usage":{"input_tokens":123,"output_tokens":456}}`)
+		got := DetectAndMarkOpsCyberPolicy(c, body, 400)
+		require.Equal(t, VerdictBlocked, got.Verdict)
+
+		mark := GetOpsCyberPolicy(c)
+		require.NotNil(t, mark)
+		require.Equal(t, VerdictBlocked, mark.Verdict)
+		require.Equal(t, "cyber_policy", mark.Code)
+		require.Equal(t, "flagged", mark.Message)
+		require.Equal(t, 400, mark.UpstreamStatus)
+		require.NotEmpty(t, mark.Body, "body snapshot must be captured for audit")
+		require.Equal(t, int64(123), mark.UpstreamInTok)
+		require.Equal(t, int64(456), mark.UpstreamOutTok)
+	})
+
+	t.Run("chat completions style usage", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		body := []byte(`{"error":{"code":"cyber_policy"},"usage":{"prompt_tokens":7,"completion_tokens":11}}`)
+		DetectAndMarkOpsCyberPolicy(c, body, 400)
+		mark := GetOpsCyberPolicy(c)
+		require.NotNil(t, mark)
+		require.Equal(t, int64(7), mark.UpstreamInTok)
+		require.Equal(t, int64(11), mark.UpstreamOutTok)
+	})
+
+	t.Run("response wrapped usage", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		body := []byte(`{"response":{"error":{"code":"cyber_policy"},"usage":{"input_tokens":3,"output_tokens":5}}}`)
+		DetectAndMarkOpsCyberPolicy(c, body, 400)
+		mark := GetOpsCyberPolicy(c)
+		require.NotNil(t, mark)
+		require.Equal(t, int64(3), mark.UpstreamInTok)
+		require.Equal(t, int64(5), mark.UpstreamOutTok)
+	})
+
+	t.Run("missing usage defaults to zero", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		body := []byte(`{"error":{"code":"cyber_policy","message":"no usage"}}`)
+		DetectAndMarkOpsCyberPolicy(c, body, 400)
+		mark := GetOpsCyberPolicy(c)
+		require.NotNil(t, mark)
+		require.Equal(t, int64(0), mark.UpstreamInTok)
+		require.Equal(t, int64(0), mark.UpstreamOutTok)
+	})
+
+	t.Run("non-blocked verdicts do not populate body/tokens", func(t *testing.T) {
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		body := []byte(`{"error":{"code":"content_policy","message":"x"}}`)
+		got := DetectAndMarkOpsCyberPolicy(c, body, 400)
+		require.Equal(t, VerdictNone, got.Verdict)
+		require.Nil(t, GetOpsCyberPolicy(c), "non-blocked does not mark")
+	})
+}
+
+// phase-2: body 快照过长时按 cyberPolicyBodySnapshotMaxBytes 截断。
+func TestDetectAndMarkOpsCyberPolicy_BodyTruncated(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	// 构造一个 >4KB 的合法 JSON——其它字段是 padding。
+	padding := strings.Repeat("a", cyberPolicyBodySnapshotMaxBytes*2)
+	body := []byte(`{"error":{"code":"cyber_policy","message":"` + padding + `"}}`)
+	DetectAndMarkOpsCyberPolicy(c, body, 400)
+	mark := GetOpsCyberPolicy(c)
+	require.NotNil(t, mark)
+	require.LessOrEqual(t, len(mark.Body), cyberPolicyBodySnapshotMaxBytes,
+		"body snapshot must be bounded to avoid memory blowup")
 }

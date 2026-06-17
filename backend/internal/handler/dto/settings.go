@@ -258,6 +258,10 @@ type SystemSettings struct {
 
 	// 允许终端用户在用量页查看自己的失败请求
 	AllowUserViewErrorRequests bool `json:"allow_user_view_error_requests"`
+
+	// cyber_policy phase-2：免 ban 账号 ID 列表（命中后仅做 ops 日志记录，不进入 Blocked verdict）。
+	// 空列表 = 无账号免 ban（默认）。
+	CyberPolicyBanExcludedAccounts []int64 `json:"cyber_policy_ban_excluded_accounts"`
 }
 
 type DefaultSubscriptionSetting struct {

@@ -483,6 +483,8 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 		bodyHash := service.HashUsageRequestPayload(rawBody)
 		inbound := GetInboundEndpoint(c)
 		upstream := GetUpstreamEndpoint(c, acct.Platform)
+		// cyber_policy phase-2：捕获 mark 后投递给异步 worker pool；mark 是 ptr，gin.Context 不进 goroutine。
+		cyberMark := service.GetOpsCyberPolicy(c)
 
 		// Submit usage record via bounded worker pool to avoid unbounded goroutines.
 		h.submitOpenAIUsageRecordTask(c.Request.Context(), fwdResult, func(ctx context.Context) {
@@ -498,6 +500,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 				IPAddress:          clientAddr,
 				RequestPayloadHash: bodyHash,
 				APIKeyService:      h.apiKeyService,
+				CyberMark:          cyberMark,
 				ChannelUsageFields: channelMap.ToUsageFields(requestedModel, fwdResult.UpstreamModel),
 			}); recErr != nil {
 				logger.L().With(
@@ -878,6 +881,8 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 		bodyHash := service.HashUsageRequestPayload(rawBody)
 		inbound := GetInboundEndpoint(c)
 		upstreamEP := GetUpstreamEndpoint(c, acct.Platform)
+		// cyber_policy phase-2：捕获 mark 后投递给异步 worker pool；mark 是 ptr，gin.Context 不进 goroutine。
+		cyberMark := service.GetOpsCyberPolicy(c)
 
 		h.submitOpenAIUsageRecordTask(c.Request.Context(), fwdResult, func(ctx context.Context) {
 			if recErr := h.gatewayService.RecordUsage(ctx, &service.OpenAIRecordUsageInput{
@@ -892,6 +897,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 				IPAddress:          clientAddr,
 				RequestPayloadHash: bodyHash,
 				APIKeyService:      h.apiKeyService,
+				CyberMark:          cyberMark,
 				ChannelUsageFields: channelMapMsg.ToUsageFields(requestedModel, fwdResult.UpstreamModel),
 			}); recErr != nil {
 				logger.L().With(
@@ -1446,6 +1452,8 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 				h.gatewayService.ReportOpenAIAccountScheduleResult(acct.ID, true, result.FirstTokenMs)
 				inbound := GetInboundEndpoint(c)
 				upstreamEP := GetUpstreamEndpoint(c, acct.Platform)
+				// cyber_policy phase-2：捕获 mark（若 WS 多轮路径在后续 phase-3 接入，可直接生效）。
+				cyberMark := service.GetOpsCyberPolicy(c)
 				h.submitOpenAIUsageRecordTask(ctx, result, func(taskCtx context.Context) {
 					if recErr := h.gatewayService.RecordUsage(taskCtx, &service.OpenAIRecordUsageInput{
 						Result:             result,
@@ -1459,6 +1467,7 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 						IPAddress:          clientAddr,
 						RequestPayloadHash: bodyHash,
 						APIKeyService:      h.apiKeyService,
+						CyberMark:          cyberMark,
 						ChannelUsageFields: channelMapWS.ToUsageFields(requestedModel, result.UpstreamModel),
 					}); recErr != nil {
 						reqLog.Error("openai.websocket_record_usage_failed",

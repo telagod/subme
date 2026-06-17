@@ -473,3 +473,8 @@ const AdminAPIKeyPrefix = "admin-"
 // SettingKeyAllowUserViewErrorRequests controls whether end users can view
 // their own failed requests on the usage page. Default false (opt-in).
 const SettingKeyAllowUserViewErrorRequests = "allow_user_view_error_requests"
+
+// SettingKeyCyberPolicyBanExcludedAccounts —— cyber_policy phase-2：免 ban 账号 ID 列表（JSON）。
+// 命中 cyber_policy 但账号在此列表中时，仅 ops 日志记录，不进入 Blocked verdict 路径。
+// JSON 数组示例："[1,2,3]"；空 / 缺省 / 非法 JSON 一律按空列表处理。
+const SettingKeyCyberPolicyBanExcludedAccounts = "cyber_policy_ban_excluded_accounts"

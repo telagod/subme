@@ -213,6 +213,8 @@ func (h *OpenAIGatewayHandler) Embeddings(c *gin.Context) {
 		callerIP := ip.GetClientIP(c)
 		inEndpoint := GetInboundEndpoint(c)
 		outEndpoint := GetUpstreamEndpoint(c, upstreamAccount.Platform)
+		// cyber_policy phase-2：捕获 mark 后投递给异步 worker pool。
+		cyberMark := service.GetOpsCyberPolicy(c)
 
 		h.submitOpenAIUsageRecordTask(c.Request.Context(), fwdResult, func(bgCtx context.Context) {
 			if recErr := h.gatewayService.RecordUsage(bgCtx, &service.OpenAIRecordUsageInput{
@@ -226,6 +228,7 @@ func (h *OpenAIGatewayHandler) Embeddings(c *gin.Context) {
 				UserAgent:          callerUA,
 				IPAddress:          callerIP,
 				APIKeyService:      h.apiKeyService,
+				CyberMark:          cyberMark,
 				ChannelUsageFields: mapping.ToUsageFields(requestedModel, fwdResult.UpstreamModel),
 			}); recErr != nil {
 				logger.L().With(

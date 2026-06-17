@@ -302,6 +302,9 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		AffiliateEnabled: settings.AffiliateEnabled,
 
 		AllowUserViewErrorRequests: settings.AllowUserViewErrorRequests,
+
+		// cyber_policy phase-2：免 ban 账号 ID 列表回显。
+		CyberPolicyBanExcludedAccounts: settings.CyberPolicyBanExcludedAccounts,
 	}
 
 	// OpenAI fast policy (stored under a dedicated setting key)
@@ -668,6 +671,9 @@ type UpdateSettingsRequest struct {
 	AuthSourceDingTalkPlatformQuotas map[string]*service.DefaultPlatformQuotaSetting `json:"auth_source_default_dingtalk_platform_quotas"`
 
 	AllowUserViewErrorRequests *bool `json:"allow_user_view_error_requests"`
+
+	// cyber_policy phase-2：免 ban 账号 ID 列表（PATCH 语义：nil = 不修改，non-nil = 整体覆盖）。
+	CyberPolicyBanExcludedAccounts *[]int64 `json:"cyber_policy_ban_excluded_accounts"`
 }
 
 // UpdateSettings 更新系统设置
@@ -1607,6 +1613,13 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			return previousSettings.AllowUserViewErrorRequests
 		}(),
+		CyberPolicyBanExcludedAccounts: func() []int64 {
+			// PATCH 语义：req=nil → 保留 previous；non-nil → 整体覆盖（含空集合显式置空）。
+			if req.CyberPolicyBanExcludedAccounts != nil {
+				return *req.CyberPolicyBanExcludedAccounts
+			}
+			return previousSettings.CyberPolicyBanExcludedAccounts
+		}(),
 		OpsMonitoringEnabled: func() bool {
 			if req.OpsMonitoringEnabled != nil {
 				return *req.OpsMonitoringEnabled
@@ -2117,8 +2130,9 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 
 		AffiliateEnabled: updatedSettings.AffiliateEnabled,
 
-		RiskControlEnabled:         updatedSettings.RiskControlEnabled,
-		AllowUserViewErrorRequests: updatedSettings.AllowUserViewErrorRequests,
+		RiskControlEnabled:             updatedSettings.RiskControlEnabled,
+		AllowUserViewErrorRequests:     updatedSettings.AllowUserViewErrorRequests,
+		CyberPolicyBanExcludedAccounts: updatedSettings.CyberPolicyBanExcludedAccounts,
 	}
 	if fastPolicy, err := h.settingService.GetOpenAIFastPolicySettings(c.Request.Context()); err != nil {
 		slog.Error("openai_fast_policy_settings_get_failed", "error", err)

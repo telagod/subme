@@ -229,6 +229,11 @@ type SystemSettings struct {
 
 	// 允许终端用户在用量页查看自己的失败请求
 	AllowUserViewErrorRequests bool
+
+	// cyber_policy phase-2：免疫账号 ID 列表（命中后仍仅做 ops 日志记录，不进入 Blocked verdict 路径）。
+	// 默认空列表 = 无账号免 ban，与 phase-1 行为完全一致。
+	// 该字段在 DB 中以 JSON 数组形式存放，例如 "[1,2,3]"；空 / 非法时按空列表处理。
+	CyberPolicyBanExcludedAccounts []int64
 }
 
 type DefaultSubscriptionSetting struct {

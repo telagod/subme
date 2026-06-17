@@ -3533,6 +3533,30 @@ func shouldFailoverOpenAIPassthroughResponse(statusCode int) bool {
 	}
 }
 
+// detectAndMarkOpsCyberPolicyForAccount 是 phase-2 ban-exclusion 包装：
+// 若账号在 cyber_policy 免 ban 列表中，仅返回 detection（用于 ops 日志），不写 context mark，
+// 也不进入 phase-2 token-aware RecordUsage 阻断流程；否则等价 DetectAndMarkOpsCyberPolicy。
+//
+// 行为约束：
+//   - 默认 ban-exclusion 列表为空 → 行为与 phase-1 完全一致。
+//   - settingService 为 nil（极端测试场景）一律视为不在列表中。
+//   - 调用方仍可在 detection.Hit() 时附加 cyber_policy_blocked 类型 ops 事件——
+//     ops 审计应记录所有命中（含 excluded），仅业务层（Mark + RecordUsage）跳过。
+func (s *OpenAIGatewayService) detectAndMarkOpsCyberPolicyForAccount(
+	ctx context.Context,
+	c *gin.Context,
+	account *Account,
+	body []byte,
+	upstreamStatus int,
+) CyberPolicyDetection {
+	if s != nil && account != nil && s.settingService != nil &&
+		s.settingService.IsAccountCyberPolicyBanExcluded(ctx, account.ID) {
+		// 走纯检测路径：跳过 Mark（business-side blocked 路径），保留 ops 日志可见性。
+		return DetectCyberPolicy(body)
+	}
+	return DetectAndMarkOpsCyberPolicy(c, body, upstreamStatus)
+}
+
 func (s *OpenAIGatewayService) handleFailoverErrorResponsePassthrough(
 	ctx context.Context,
 	resp *http.Response,
@@ -3556,8 +3580,8 @@ func (s *OpenAIGatewayService) handleFailoverErrorResponsePassthrough(
 	logOpenAIInstructionsRequiredDebug(ctx, c, account, resp.StatusCode, upstreamMsg, requestBody, body)
 	reqModel, _, _ := extractOpenAIRequestMetaFromBody(requestBody)
 	_ = s.handleOpenAIAccountUpstreamError(ctx, account, resp.StatusCode, resp.Header, body, reqModel)
-	// cyber_policy phase-1：detect + ops 日志记录（不改变响应/failover 行为；phase-2 再决定阻断/计费）。
-	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+	// cyber_policy phase-1+phase-2：detect + ops 日志记录；ban-exclusion 命中跳过 mark（仅 ops）。
+	if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(ctx, c, account, body, resp.StatusCode); cyberDet.Hit() {
 		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 			Platform:           account.Platform,
 			AccountID:          account.ID,
@@ -3614,9 +3638,9 @@ func (s *OpenAIGatewayService) handleErrorResponsePassthrough(
 	// 避免粘性路由继续复用刚被限流的账号。
 	reqModel, _, _ := extractOpenAIRequestMetaFromBody(requestBody)
 	_ = s.handleOpenAIAccountUpstreamError(ctx, account, resp.StatusCode, resp.Header, body, reqModel)
-	// cyber_policy phase-1：仅 detect + ops 日志记录。透传路径会原样把 body 回给客户端，
-	// 此处不改变响应行为；handler 可在后续 phase-2 基于 mark 触发账号 / session 行为。
-	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+	// cyber_policy phase-1+phase-2：透传错误路径 detect + ops 日志记录；ban-exclusion 命中跳过 mark。
+	// 透传模式仍会原样把 body 回给客户端——此处仅控制 business-side blocked 路径（RecordUsage / session-block）。
+	if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(ctx, c, account, body, resp.StatusCode); cyberDet.Hit() {
 		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 			Platform:           account.Platform,
 			AccountID:          account.ID,
@@ -3916,9 +3940,9 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 				}
 				forceFlushFailedEvent = true
 				sawFailedEvent = true
-				// cyber_policy phase-1：流式上游 response.failed 事件中 detect + ops 日志记录。
+				// cyber_policy phase-1+phase-2：流式上游 response.failed 事件 detect + ops 日志记录；ban-exclusion 命中跳过 mark。
 				// 流式 status=200（已发 header），SSE 终止事件携带 error.code=cyber_policy。
-				if cyberDet := DetectAndMarkOpsCyberPolicy(c, dataBytes, resp.StatusCode); cyberDet.Hit() {
+				if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(ctx, c, account, dataBytes, resp.StatusCode); cyberDet.Hit() {
 					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 						Platform:           account.Platform,
 						AccountID:          account.ID,
@@ -4359,9 +4383,9 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 		)
 	}
 
-	// cyber_policy phase-1：detect + ops 日志记录。
-	// 命中后仅做标记，不改变响应映射、不冷却账号；phase-2 再决定是否阻断 session / 排除 ban。
-	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+	// cyber_policy phase-1+phase-2：detect + ops 日志记录；ban-exclusion 命中跳过 mark。
+	// phase-2 mark 落地后，handler 异步 RecordUsage 写 RequestTypeCyberBlocked + tokens=0。
+	if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(ctx, c, account, body, resp.StatusCode); cyberDet.Hit() {
 		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 			Platform:           account.Platform,
 			AccountID:          account.ID,
@@ -4529,10 +4553,10 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 	}
 	setOpsUpstreamError(c, resp.StatusCode, upstreamMsg, upstreamDetail)
 
-	// cyber_policy phase-1：compat 路径同样做 detect + ops 日志。
+	// cyber_policy phase-1+phase-2：compat 路径 detect + ops 日志；ban-exclusion 命中跳过 mark。
 	// compat 路径以各自格式重写错误体（Chat Completions / Anthropic），不原样透传 responses 格式，
-	// phase-1 不改变响应映射；phase-2 再决定 client 端 cyber 错误格式。
-	if cyberDet := DetectAndMarkOpsCyberPolicy(c, body, resp.StatusCode); cyberDet.Hit() {
+	// phase-2 不改 client 端 cyber 错误格式；仅控制 business-side blocked 路径（RecordUsage）。
+	if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(c.Request.Context(), c, account, body, resp.StatusCode); cyberDet.Hit() {
 		appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 			Platform:           account.Platform,
 			AccountID:          account.ID,
@@ -4856,8 +4880,8 @@ func (s *OpenAIGatewayService) handleStreamingResponse(ctx context.Context, resp
 				}
 				forceFlushFailedEvent = true
 				sawFailedEvent = true
-				// cyber_policy phase-1：非透传流也 detect + ops 日志记录（不改变响应）。
-				if cyberDet := DetectAndMarkOpsCyberPolicy(c, dataBytes, resp.StatusCode); cyberDet.Hit() {
+				// cyber_policy phase-1+phase-2：非透传流也 detect + ops 日志记录；ban-exclusion 命中跳过 mark。
+				if cyberDet := s.detectAndMarkOpsCyberPolicyForAccount(ctx, c, account, dataBytes, resp.StatusCode); cyberDet.Hit() {
 					appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 						Platform:           account.Platform,
 						AccountID:          account.ID,
@@ -5849,6 +5873,15 @@ type OpenAIRecordUsageInput struct {
 	IPAddress          string // 请求的客户端 IP 地址
 	RequestPayloadHash string
 	APIKeyService      APIKeyQuotaUpdater
+	// CyberMark 是 cyber_policy phase-2 注入项：handler 在 forward 返回后从 gin.Context
+	// 读出（service.GetOpsCyberPolicy(c)）后置入此字段，再投递到 async 工作池，避免在
+	// goroutine 中持有 gin.Context。
+	//
+	// 仅当 CyberMark != nil && Verdict == VerdictBlocked 时，RecordUsage 走 cyber-blocked
+	// 短路径：保留业务身份字段（user / api_key / account / model），但 tokens=0、cost=0、
+	// RequestType=RequestTypeCyberBlocked，并跳过 applyUsageBilling 链路——安全阻断流量
+	// 不应触发计费、限额扣减或订阅消耗。
+	CyberMark *CyberPolicyMark
 	ChannelUsageFields
 }
 
@@ -5863,6 +5896,13 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 	}
 	if s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI {
 		s.rateLimitService.ResetOpenAI403Counter(ctx, input.Account.ID)
+	}
+
+	// cyber_policy phase-2：token-aware 短路径。
+	// 安全阻断流量保留业务身份字段供 admin 报表追溯来源，但 tokens=0、cost=0、跳过 billing。
+	// 该分支必须在所有 token / cost 数学之前——避免上游 usage snapshot 进入计费链路。
+	if input.CyberMark != nil && input.CyberMark.Verdict == VerdictBlocked {
+		return s.recordCyberBlockedUsage(ctx, input)
 	}
 
 	apiKey := input.APIKey
@@ -6078,6 +6118,109 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 	}
 	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway")
 
+	return nil
+}
+
+// recordCyberBlockedUsage 写入一条 cyber_policy 阻断事件的 usage 行：
+//   - tokens=0、cost=0：安全阻断流量不进入计费、限额扣减、订阅消耗。
+//   - RequestType=RequestTypeCyberBlocked：admin 报表可按 type=cyber 过滤。
+//   - 保留 user_id / api_key_id / account_id / requested_model / inbound_endpoint：
+//     admin 报表能定位是谁、用哪个 key、哪个 account、哪个 model 触发了 cyber。
+//   - 不调用 applyUsageBilling：billing/quota/subscription consume 全部跳过。
+//   - 不刷 deferred last-used：阻断不是一次有效使用。
+//
+// errors：仅在 input.APIKey / input.User / input.Account 为 nil 时返回 error；
+// 其余情况 best-effort 写日志，与 SIMPLE MODE 路径语义一致。
+func (s *OpenAIGatewayService) recordCyberBlockedUsage(ctx context.Context, input *OpenAIRecordUsageInput) error {
+	if input == nil {
+		return errors.New("openai cyber usage input is nil")
+	}
+	apiKey := input.APIKey
+	user := input.User
+	account := input.Account
+	result := input.Result
+	if apiKey == nil || user == nil || account == nil || result == nil {
+		return errors.New("openai cyber usage missing required identity fields")
+	}
+
+	requestedModel := result.Model
+	if input.OriginalModel != "" {
+		requestedModel = input.OriginalModel
+	}
+	durationMs := int(result.Duration.Milliseconds())
+	accountRateMultiplier := account.BillingRateMultiplier()
+	requestID := resolveUsageBillingRequestID(ctx, result.RequestID)
+	if result.OpenAIWSMode {
+		if upstreamRequestID := strings.TrimSpace(result.RequestID); upstreamRequestID != "" {
+			requestID = upstreamRequestID
+		}
+	}
+
+	billingMode := string(BillingModeToken)
+	usageLog := &UsageLog{
+		UserID:           user.ID,
+		APIKeyID:         apiKey.ID,
+		AccountID:        account.ID,
+		RequestID:        requestID,
+		Model:            result.Model,
+		RequestedModel:   requestedModel,
+		UpstreamModel:    optionalNonEqualStringPtr(result.UpstreamModel, result.Model),
+		ServiceTier:      result.ServiceTier,
+		ReasoningEffort:  result.ReasoningEffort,
+		InboundEndpoint:  optionalTrimmedStringPtr(input.InboundEndpoint),
+		UpstreamEndpoint: optionalTrimmedStringPtr(input.UpstreamEndpoint),
+
+		// tokens 全 0：cyber 阻断流量不计费。
+		InputTokens:         0,
+		OutputTokens:        0,
+		CacheCreationTokens: 0,
+		CacheReadTokens:     0,
+		ImageOutputTokens:   0,
+		ImageCount:          0,
+
+		// cost 全 0：明示零费用，admin 报表与 token 总数一致。
+		InputCost:         0,
+		OutputCost:        0,
+		ImageOutputCost:   0,
+		CacheCreationCost: 0,
+		CacheReadCost:     0,
+		TotalCost:         0,
+		ActualCost:        0,
+
+		RateMultiplier:        1.0,
+		AccountRateMultiplier: &accountRateMultiplier,
+		BillingType:           BillingTypeBalance,
+		RequestType:           RequestTypeCyberBlocked,
+		Stream:                result.Stream,
+		OpenAIWSMode:          result.OpenAIWSMode,
+		DurationMs:            &durationMs,
+		FirstTokenMs:          result.FirstTokenMs,
+		BillingMode:           &billingMode,
+		ChannelID:             optionalInt64Ptr(input.ChannelID),
+		ModelMappingChain:     optionalTrimmedStringPtr(input.ModelMappingChain),
+		CreatedAt:             time.Now(),
+	}
+	if input.UserAgent != "" {
+		ua := input.UserAgent
+		usageLog.UserAgent = &ua
+	}
+	if input.IPAddress != "" {
+		addr := input.IPAddress
+		usageLog.IPAddress = &addr
+	}
+	if apiKey.GroupID != nil {
+		usageLog.GroupID = apiKey.GroupID
+	}
+	if input.Subscription != nil {
+		usageLog.SubscriptionID = &input.Subscription.ID
+	}
+	// 保持 RequestType / 旧字段一致（Stream/OpenAIWSMode 已显式设置）。
+	usageLog.SyncRequestTypeAndLegacyFields()
+	// cyber 阻断 RequestType 应保持 RequestTypeCyberBlocked，覆盖 SyncRequestTypeAndLegacyFields
+	// 可能 derive 出来的 sync/stream/ws_v2 推断结果。
+	usageLog.RequestType = RequestTypeCyberBlocked
+
+	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway.cyber_blocked")
 	return nil
 }
 

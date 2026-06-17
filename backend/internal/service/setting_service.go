@@ -199,6 +199,21 @@ type SettingService struct {
 	// instance owns its own cache, no shared package-level state.
 	openAIQuotaAutoPauseSettingsCache atomic.Value // *cachedOpenAIQuotaAutoPauseSettings
 	openAIQuotaAutoPauseSettingsSF    singleflight.Group
+
+	// cyberPolicyBanExcludedCache 缓存 cyber_policy 免 ban 账号集合（map[int64]struct{}）。
+	// 配置量级极小（几十个 account ID），forward 热路径上 O(1) 查找，避免每个 forward 请求查 DB。
+	// TTL 60s + 错误降级到 5s，与其他 forwarding settings 一致。
+	cyberPolicyBanExcludedCache atomic.Value // *cachedCyberPolicyBanExcluded
+	cyberPolicyBanExcludedSF    singleflight.Group
+}
+
+const cyberPolicyBanExcludedCacheTTL = 60 * time.Second
+const cyberPolicyBanExcludedErrorTTL = 5 * time.Second
+const cyberPolicyBanExcludedDBTimeout = 5 * time.Second
+
+type cachedCyberPolicyBanExcluded struct {
+	set       map[int64]struct{}
+	expiresAt int64 // unix nano
 }
 
 // DefaultPlatformQuotaSetting 单 platform 三档限额（nil = 沿用上层；0 = 显式禁用；>0 = 上限）
@@ -1951,6 +1966,20 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 
 	updates[SettingKeyAllowUserViewErrorRequests] = strconv.FormatBool(settings.AllowUserViewErrorRequests)
 
+	// cyber_policy phase-2：免 ban 账号 ID 列表持久化为 JSON 数组。
+	// 仅写入合法 ID（>0），空集合写 "[]" 而非空串以便回读区分。
+	cleanedExclusions := make([]int64, 0, len(settings.CyberPolicyBanExcludedAccounts))
+	for _, id := range settings.CyberPolicyBanExcludedAccounts {
+		if id > 0 {
+			cleanedExclusions = append(cleanedExclusions, id)
+		}
+	}
+	if exclusionBlob, err := json.Marshal(cleanedExclusions); err == nil {
+		updates[SettingKeyCyberPolicyBanExcludedAccounts] = string(exclusionBlob)
+	} else {
+		updates[SettingKeyCyberPolicyBanExcludedAccounts] = "[]"
+	}
+
 	return updates, nil
 }
 
@@ -2096,6 +2125,20 @@ func (s *SettingService) refreshCachedSettings(settings *SystemSettings) {
 		value:     settings.OpenAIAllowClaudeCodeCodexPlugin,
 		expiresAt: time.Now().Add(openAIAllowCodexPluginCacheTTL).UnixNano(),
 	})
+	// cyber_policy phase-2：使免 ban 账号缓存与最新 SystemSettings 同步，避免 60s 旧值生效。
+	s.cyberPolicyBanExcludedSF.Forget("cyber_policy_ban_excluded")
+	{
+		excludedSet := make(map[int64]struct{}, len(settings.CyberPolicyBanExcludedAccounts))
+		for _, id := range settings.CyberPolicyBanExcludedAccounts {
+			if id > 0 {
+				excludedSet[id] = struct{}{}
+			}
+		}
+		s.cyberPolicyBanExcludedCache.Store(&cachedCyberPolicyBanExcluded{
+			set:       excludedSet,
+			expiresAt: time.Now().Add(cyberPolicyBanExcludedCacheTTL).UnixNano(),
+		})
+	}
 	if s.onUpdate != nil {
 		s.onUpdate() // Invalidate cache after settings update
 	}
@@ -2384,6 +2427,82 @@ func (s *SettingService) IsRewriteMessageCacheControlEnabled(ctx context.Context
 func (s *SettingService) GetClaudeOAuthSystemPromptInjectionSettings(ctx context.Context) (enabled bool, prompt string, blocks string) {
 	result := s.getGatewayForwardingSettingsCached(ctx)
 	return result.claudeOAuthSystemPromptInjection, result.claudeOAuthSystemPrompt, result.claudeOAuthSystemPromptBlocks
+}
+
+// IsAccountCyberPolicyBanExcluded 查询账号是否在 cyber_policy 免 ban 列表中。
+// forward 热路径在 phase-1 hook 处调用，命中则跳过 Blocked verdict 标记（仅做 ops 日志）。
+// 60s 进程内缓存；DB / JSON 解析错误一律降级为"不在列表"，与 phase-1 行为一致。
+func (s *SettingService) IsAccountCyberPolicyBanExcluded(ctx context.Context, accountID int64) bool {
+	if s == nil || accountID <= 0 {
+		return false
+	}
+	excluded := s.getCyberPolicyBanExcludedSet(ctx)
+	if len(excluded) == 0 {
+		return false
+	}
+	_, ok := excluded[accountID]
+	return ok
+}
+
+// getCyberPolicyBanExcludedSet 返回缓存的免 ban 账号集合（read-only；调用方不得修改）。
+func (s *SettingService) getCyberPolicyBanExcludedSet(ctx context.Context) map[int64]struct{} {
+	if s == nil {
+		return nil
+	}
+	if cached, ok := s.cyberPolicyBanExcludedCache.Load().(*cachedCyberPolicyBanExcluded); ok && cached != nil {
+		if time.Now().UnixNano() < cached.expiresAt {
+			return cached.set
+		}
+	}
+	val, _, _ := s.cyberPolicyBanExcludedSF.Do("cyber_policy_ban_excluded", func() (any, error) {
+		if cached, ok := s.cyberPolicyBanExcludedCache.Load().(*cachedCyberPolicyBanExcluded); ok && cached != nil {
+			if time.Now().UnixNano() < cached.expiresAt {
+				return cached.set, nil
+			}
+		}
+		dbCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cyberPolicyBanExcludedDBTimeout)
+		defer cancel()
+		raw, err := s.settingRepo.GetValue(dbCtx, SettingKeyCyberPolicyBanExcludedAccounts)
+		if err != nil {
+			s.cyberPolicyBanExcludedCache.Store(&cachedCyberPolicyBanExcluded{
+				set:       map[int64]struct{}{},
+				expiresAt: time.Now().Add(cyberPolicyBanExcludedErrorTTL).UnixNano(),
+			})
+			return map[int64]struct{}{}, nil
+		}
+		set := parseCyberPolicyBanExcludedAccounts(raw)
+		s.cyberPolicyBanExcludedCache.Store(&cachedCyberPolicyBanExcluded{
+			set:       set,
+			expiresAt: time.Now().Add(cyberPolicyBanExcludedCacheTTL).UnixNano(),
+		})
+		return set, nil
+	})
+	if set, ok := val.(map[int64]struct{}); ok {
+		return set
+	}
+	return nil
+}
+
+// parseCyberPolicyBanExcludedAccounts 解析 JSON 数组形式的账号 ID 列表。
+// 非法 JSON / 空字符串 / 非数字元素一律降级为空集，与默认行为一致。
+func parseCyberPolicyBanExcludedAccounts(raw string) map[int64]struct{} {
+	set := map[int64]struct{}{}
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return set
+	}
+	var ids []int64
+	if err := json.Unmarshal([]byte(raw), &ids); err != nil {
+		slog.Warn("[Setting] parseCyberPolicyBanExcludedAccounts: invalid JSON, treating as empty list", "error", err)
+		return set
+	}
+	for _, id := range ids {
+		if id <= 0 {
+			continue
+		}
+		set[id] = struct{}{}
+	}
+	return set
 }
 
 // IsEmailVerifyEnabled 检查是否开启邮件验证
@@ -3445,6 +3564,27 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	}
 
 	result.AllowUserViewErrorRequests = settings[SettingKeyAllowUserViewErrorRequests] == "true" // default false
+
+	// cyber_policy phase-2：免 ban 账号 ID 列表（JSON 数组）。
+	// 缺省 / 空 / 非法 JSON 一律降级为空列表，与默认行为一致。
+	if raw := strings.TrimSpace(settings[SettingKeyCyberPolicyBanExcludedAccounts]); raw != "" {
+		var ids []int64
+		if err := json.Unmarshal([]byte(raw), &ids); err != nil {
+			slog.Warn("[Setting] parseSettings: unmarshal cyber_policy_ban_excluded_accounts failed", "error", err)
+		} else {
+			// 过滤非法 ID（<= 0）。
+			cleaned := make([]int64, 0, len(ids))
+			for _, id := range ids {
+				if id > 0 {
+					cleaned = append(cleaned, id)
+				}
+			}
+			result.CyberPolicyBanExcludedAccounts = cleaned
+		}
+	}
+	if result.CyberPolicyBanExcludedAccounts == nil {
+		result.CyberPolicyBanExcludedAccounts = []int64{}
+	}
 
 	return result
 }
