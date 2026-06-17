@@ -116,13 +116,40 @@
 
         <Separator orientation="vertical" class="h-6" />
 
-        <!-- 高级筛选（移入 toolbar） -->
-        <AdvancedFilter
-          :fields="filterFields"
-          v-model="filterValues"
-          @apply="onFilterApply"
-          @clear="onFilterClear"
-        />
+        <!-- 高级筛选（带折叠记忆 + activeCount badge） -->
+        <div class="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            class="h-8 gap-1.5 text-[12px]"
+            :class="filtersCollapsed ? 'text-muted-foreground' : 'border-primary/40 text-primary bg-primary/5'"
+            :aria-expanded="!filtersCollapsed"
+            @click="toggleFiltersCollapsed"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h18M6 12h12m-9 7.5h6"/>
+            </svg>
+            {{ filtersCollapsed ? t('admin.accountsQuench.filtersToggleShow') : t('admin.accountsQuench.filtersToggleHide') }}
+            <span
+              v-if="accountActiveFilterCount > 0"
+              class="ml-0.5 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full border border-primary/30 bg-primary/10 px-1 font-mono text-[10px] text-primary"
+            >{{ accountActiveFilterCount }}</span>
+          </Button>
+          <Button
+            v-if="accountActiveFilterCount > 0"
+            variant="ghost"
+            size="sm"
+            class="h-8 px-1.5 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            @click="clearAccountFilters"
+          >{{ t('admin.accountsQuench.filtersClearAll') }}</Button>
+          <AdvancedFilter
+            v-if="!filtersCollapsed"
+            :fields="filterFields"
+            v-model="filterValues"
+            @apply="onFilterApply"
+            @clear="onFilterClear"
+          />
+        </div>
 
         <Separator orientation="vertical" class="h-6" />
 
@@ -238,8 +265,14 @@
           @bulk-delete="handleBulkDelete(selectedIds, () => { selectedIds = [] }); reload()"
           @bulk-reset-status="handleBulkResetStatus(selectedIds, () => { selectedIds = [] }); reload()"
           @bulk-refresh-token="handleBulkRefreshToken(selectedIds, () => { selectedIds = [] }); reload()"
-          @bulk-toggle-schedulable="(v: boolean) => { handleBulkToggleSchedulable(selectedIds, v, () => { selectedIds = [] }); reload() }"
+          @bulk-toggle-schedulable="(v: boolean) => onBulkToggleSchedulable(v)"
           @bulk-edit-selected="handleBulkEditSelected(selectedIds)"
+          @bulk-delete-filtered="openBulkDeleteFilteredConfirm"
+          @bulk-edit-filtered="onBulkEditFiltered"
+          @bulk-retry-failed="onBulkRetryFailed"
+          @revert-proxy-fallback="onRevertProxyFallback"
+          :active-filter-count="accountActiveFilterCount"
+          :last-failed-delete-ids="lastFailedDeleteIds"
           @select-page="selectedIds = accounts.map(a => a.id)"
           @clear-selection="selectedIds = []"
         />
@@ -276,7 +309,7 @@
     <BulkEditAccountModal
       v-if="showBulkEdit"
       :show="showBulkEdit"
-      :account-ids="bulkEditTarget?.accountIds ?? []"
+      :account-ids="bulkEditTarget && bulkEditTarget.mode === 'selected' ? bulkEditTarget.accountIds : []"
       :selected-platforms="bulkEditTarget?.selectedPlatforms ?? []"
       :selected-types="bulkEditTarget?.selectedTypes ?? []"
       :target="bulkEditTarget ?? undefined"
@@ -295,6 +328,16 @@
     <SyncFromCrsModal    v-if="showSync"     :show="showSync"     @close="showSync=false"  @synced="reload" />
     <ImportDataModal     v-if="showImportData" :show="showImportData" @close="showImportData=false" @imported="() => { showImportData=false; reload() }" />
     <ConfirmDialog :show="showDeleteDialog" :title="t('admin.accountsQuench.deleteTitle')" :message="t('admin.accountsQuench.deleteConfirmFmt', { name: deletingAcc?.name })" :confirm-text="t('common.delete')" :cancel-text="t('admin.accountsQuench.cancelBtn')" :danger="true" @confirm="confirmDelete" @cancel="showDeleteDialog=false" />
+    <ConfirmDialog
+      :show="showBulkDeleteFilteredDialog"
+      :title="t('admin.accountsQuench.bulkDeleteFilteredTitle')"
+      :message="t('admin.accountsQuench.bulkDeleteFilteredMsg', { count: bulkDeleteFilteredPreviewCount })"
+      :confirm-text="t('common.delete')"
+      :cancel-text="t('admin.accountsQuench.cancelBtn')"
+      :danger="true"
+      @confirm="confirmBulkDeleteFiltered"
+      @cancel="showBulkDeleteFilteredDialog=false"
+    />
     <ConfirmDialog :show="showExportDialog" :title="t('admin.accountsQuench.exportTitle')" :message="t('admin.accountsQuench.exportMsg')" :confirm-text="t('admin.accountsQuench.exportConfirmBtn')" :cancel-text="t('admin.accountsQuench.cancelBtn')" @confirm="doExport" @cancel="showExportDialog=false" />
     <ErrorPassthroughRulesModal v-if="showErrorPassthrough" :show="showErrorPassthrough" @close="showErrorPassthrough=false" />
     <TLSFingerprintProfilesModal v-if="showTLSProfiles" :show="showTLSProfiles" @close="showTLSProfiles=false" />
@@ -304,6 +347,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
 import { useTableLoader } from '@/composables/useTableLoader'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -344,6 +388,7 @@ const BulkEditAccountModal        = defineAsyncComponent(() => import('@/compone
 const ScheduledTestsPanel         = defineAsyncComponent(() => import('@/components/admin/account/ScheduledTestsPanel.vue'))
 
 const { t } = useI18n()
+const appStore = useAppStore()
 const viewMode = ref<'matrix' | 'table'>('matrix')
 const proxies = ref<AccountProxy[]>([]), groups = ref<AdminGroup[]>([])
 const selectedIds = ref<number[]>([]), sortBy = ref('name'), sortOrder = ref<'asc' | 'desc'>('asc')
@@ -419,6 +464,25 @@ const filterFields = computed<FilterFieldDef[]>(() => [
     label: t('admin.accountsQuench.filterPrivacyMode'),
     type: 'boolean',
   },
+  {
+    key: 'schedulable',
+    label: t('admin.accountsQuench.filterSchedulable'),
+    type: 'select',
+    // 严禁空 value (reka-ui crash) — 用显式 'true'/'false' 字符串哨兵
+    options: [
+      { value: 'true',  label: t('admin.accountsQuench.filterSchedulableYes') },
+      { value: 'false', label: t('admin.accountsQuench.filterSchedulableNo') },
+    ],
+  },
+  {
+    key: 'has_proxy',
+    label: t('admin.accountsQuench.filterHasProxy'),
+    type: 'select',
+    options: [
+      { value: 'true',  label: t('admin.accountsQuench.filterHasProxyYes') },
+      { value: 'false', label: t('admin.accountsQuench.filterHasProxyNo') },
+    ],
+  },
 ])
 
 // ── 把 filterValues → params（提前映射，不丢字段）──────────────────
@@ -431,6 +495,35 @@ function applyFiltersToParams(vals: AdvancedFilterValues) {
   p.privacy_mode = typeof vals.privacy_mode === 'boolean'
     ? (vals.privacy_mode ? '1' : '0')
     : ''
+  p.schedulable  = typeof vals.schedulable  === 'string' ? vals.schedulable  : ''
+  p.has_proxy    = typeof vals.has_proxy    === 'string' ? vals.has_proxy    : ''
+}
+
+// ── 折叠态记忆 (localStorage) + 计数 badge ─────────────────────────
+const FILTERS_COLLAPSED_KEY = 'account-pool-filters-collapsed'
+const filtersCollapsed = ref<boolean>((() => {
+  try { return localStorage.getItem(FILTERS_COLLAPSED_KEY) === '1' } catch { return false }
+})())
+function toggleFiltersCollapsed() {
+  filtersCollapsed.value = !filtersCollapsed.value
+  try { localStorage.setItem(FILTERS_COLLAPSED_KEY, filtersCollapsed.value ? '1' : '0') } catch { /* noop */ }
+}
+
+// ── 激活字段计数 + 一键清空 ─────────────────────────────────────────
+const accountActiveFilterCount = computed(() => {
+  const p = params as any
+  let n = 0
+  for (const k of ['platform', 'type', 'status', 'group', 'privacy_mode', 'schedulable', 'has_proxy']) {
+    const v = p[k]
+    if (v != null && v !== '' && v !== 'all') n++
+  }
+  return n
+})
+
+function clearAccountFilters() {
+  filterValues.value = {}
+  applyFiltersToParams({})
+  reload()
 }
 
 function onFilterApply(vals: AdvancedFilterValues) {
@@ -448,7 +541,7 @@ function onFilterClear() {
 // 表格加载器
 const { items: accounts, loading, params, pagination, load: baseLoad, reload: baseReload, debouncedReload, handlePageChange: basePageChange } = useTableLoader<Account, any>({
   fetchFn: adminAPI.accounts.list,
-  initialParams: { platform: '', type: '', status: '', group: '', privacy_mode: '', search: '', sort_by: 'name', sort_order: 'asc' }
+  initialParams: { platform: '', type: '', status: '', group: '', privacy_mode: '', schedulable: '', has_proxy: '', search: '', sort_by: 'name', sort_order: 'asc' }
 })
 
 const {
@@ -456,7 +549,9 @@ const {
   bulkDeleteProgress, refreshTodayStats, patchInList,
   handleToggleStatus, handleRefreshOne, handleRecoverState, handleResetQuota, handleSetPrivacy,
   handleToggleSchedulable, handleBulkDelete, handleBulkResetStatus, handleBulkRefreshToken,
-  handleBulkToggleSchedulable, handleBulkEditSelected, handleExportData,
+  handleBulkToggleSchedulable, handleBulkEditSelected,
+  handleBulkDeleteFiltered, handleBulkEditFiltered,
+  handleExportData,
   showBulkEdit, bulkEditTarget, closeBulkEdit,
 } = useAccountPoolActions(accounts, {
   params,
@@ -469,6 +564,8 @@ const {
 const DEFAULT_HIDDEN_COLUMNS = [
   'today_stats', 'groups', 'proxy', 'priority',
   'rate_multiplier', 'last_used_at', 'created_at',
+  // GAP-11 新列默认隐藏，与 legacy 一致
+  'notes', 'expires_at', 'antigravity_tier', 'openai_compact_meta',
 ]
 const {
   hiddenColumns,
@@ -578,6 +675,91 @@ const onBulkEditSaved = () => {
   reload()
 }
 
+// ── filtered 操作：批量删除（T3 红线，显式 ConfirmDialog） ────────────
+const showBulkDeleteFilteredDialog = ref(false)
+const bulkDeleteFilteredPreviewCount = ref(0)
+// 失败 ids（提供「重试失败」按钮）
+const lastFailedDeleteIds = ref<number[]>([])
+
+const buildFilterSnapshot = () => {
+  const p = params as any
+  return {
+    platform: p.platform || '',
+    type: p.type || '',
+    status: p.status || '',
+    group: p.group || '',
+    privacy_mode: p.privacy_mode || '',
+    schedulable: p.schedulable || '',
+    has_proxy: p.has_proxy || '',
+    search: p.search || '',
+    sort_by: sortBy.value,
+    sort_order: sortOrder.value,
+  }
+}
+
+const openBulkDeleteFilteredConfirm = async () => {
+  try {
+    const filters = buildFilterSnapshot()
+    const preview = await adminAPI.accounts.list(1, 1, filters)
+    bulkDeleteFilteredPreviewCount.value = preview.total
+    if (preview.total === 0) {
+      // 用 status 文案 + appStore 风格统一
+      autoRefresh.enterSilentWindow()
+      return
+    }
+    showBulkDeleteFilteredDialog.value = true
+  } catch { /* 静默 */ }
+}
+
+const confirmBulkDeleteFiltered = async () => {
+  showBulkDeleteFilteredDialog.value = false
+  const filters = buildFilterSnapshot()
+  autoRefresh.enterSilentWindow()
+  const result = await handleBulkDeleteFiltered(filters, () => { selectedIds.value = [] })
+  lastFailedDeleteIds.value = result?.failedIds ?? []
+  await reload()
+}
+
+const onBulkEditFiltered = async () => {
+  const filters = buildFilterSnapshot()
+  autoRefresh.enterSilentWindow()
+  await handleBulkEditFiltered(filters)
+}
+
+const onBulkRetryFailed = async () => {
+  if (lastFailedDeleteIds.value.length === 0) return
+  const ids = [...lastFailedDeleteIds.value]
+  lastFailedDeleteIds.value = []
+  autoRefresh.enterSilentWindow()
+  await handleBulkDelete(ids, () => { selectedIds.value = [] })
+  await reload()
+}
+
+// 批量调度切换包装：失败时保留 failedIds 在 selection 中（legacy 行为）
+const onBulkToggleSchedulable = async (v: boolean) => {
+  await handleBulkToggleSchedulable(
+    selectedIds.value,
+    v,
+    () => { selectedIds.value = [] },
+    (ids: number[]) => { selectedIds.value = ids },
+    () => { reload() },
+  )
+}
+
+const onRevertProxyFallback = async (a: Account) => {
+  try {
+    await adminAPI.accounts.revertProxyFallback(a.id)
+    appStore.showSuccess(t('admin.accountsQuench.proxyRevertSuccess'))
+    // 拉新行替换；server 已切回原 proxy
+    try {
+      const fresh = await adminAPI.accounts.getById(a.id)
+      patchInList(fresh)
+    } catch { /* 失败回退到 reload */ await reload() }
+  } catch (err: any) {
+    appStore.showError(err?.response?.data?.message || t('admin.accountsQuench.proxyRevertFailed'))
+  }
+}
+
 const openActionMenu = (a: Account, e: MouseEvent) => {
   actionMenu.acc = a
   const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect()
@@ -587,7 +769,16 @@ const openActionMenu = (a: Account, e: MouseEvent) => {
 const doExport = () => {
   const p = params as any
   handleExportData(
-    { platform: p.platform || undefined, type: p.type || undefined, status: p.status || undefined, group: p.group || undefined, privacy_mode: p.privacy_mode || undefined, search: p.search || undefined },
+    {
+      platform: p.platform || undefined,
+      type: p.type || undefined,
+      status: p.status || undefined,
+      group: p.group || undefined,
+      privacy_mode: p.privacy_mode || undefined,
+      schedulable: p.schedulable || undefined,
+      has_proxy: p.has_proxy || undefined,
+      search: p.search || undefined,
+    },
     sortBy.value, sortOrder.value
   )
   showExportDialog.value = false

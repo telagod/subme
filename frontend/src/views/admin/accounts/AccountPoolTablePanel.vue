@@ -1,55 +1,95 @@
 <template>
   <!-- 表格模式面板，对齐旧视图全量列能力 -->
   <div class="flex flex-col gap-2">
-    <!-- 批量操作 Bar（进度条 + 快捷按钮） -->
+    <!-- 批量操作 Bar（进度条 + 快捷按钮 + filtered 入口） -->
     <div
-      v-if="selectedIds.length > 0 || bulkDeleteProgress"
+      v-if="selectedIds.length > 0 || bulkDeleteProgress || (activeFilterCount ?? 0) > 0 || (lastFailedDeleteIds?.length ?? 0) > 0"
       class="flex flex-wrap items-center gap-2.5 rounded-[10px] border border-border bg-card px-3.5 py-2.5 shadow-sm"
     >
       <div class="flex items-center gap-2 text-[13px] text-foreground">
-        {{ t('admin.accountTablePanel.bulkSelected', { n: selectedIds.length }) }}
-        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('select-page')">{{ t('admin.accountTablePanel.bulkSelectPage') }}</Button>
-        <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('clear-selection')">{{ t('admin.accountTablePanel.bulkClear') }}</Button>
+        <template v-if="selectedIds.length > 0">
+          {{ t('admin.accountTablePanel.bulkSelected', { n: selectedIds.length }) }}
+          <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('select-page')">{{ t('admin.accountTablePanel.bulkSelectPage') }}</Button>
+          <Button variant="link" size="sm" class="h-auto p-0 text-xs" @click="$emit('clear-selection')">{{ t('admin.accountTablePanel.bulkClear') }}</Button>
+        </template>
+        <span
+          v-else-if="(activeFilterCount ?? 0) > 0"
+          class="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground"
+        >
+          <span class="inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full border border-primary/30 bg-primary/10 px-1 font-mono text-[10px] text-primary">{{ activeFilterCount }}</span>
+          <span>filtered</span>
+        </span>
       </div>
       <div class="ml-auto flex flex-wrap gap-1.5">
+        <!-- 已勾选：常规批量动作 -->
+        <template v-if="selectedIds.length > 0">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            class="text-destructive border-destructive/40 hover:bg-destructive/10"
+            @click="$emit('bulk-delete')"
+          >{{ t('admin.accountTablePanel.bulkDelete') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            @click="$emit('bulk-reset-status')"
+          >{{ t('admin.accountTablePanel.bulkResetStatus') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            @click="$emit('bulk-refresh-token')"
+          >{{ t('admin.accountTablePanel.bulkRefreshToken') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            @click="$emit('bulk-toggle-schedulable', true)"
+          >{{ t('admin.accountTablePanel.bulkEnableSchedule') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            @click="$emit('bulk-toggle-schedulable', false)"
+          >{{ t('admin.accountTablePanel.bulkDisableSchedule') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            class="text-primary border-primary/40 hover:bg-primary/10"
+            @click="$emit('bulk-edit-selected')"
+          >{{ t('admin.accountTablePanel.bulkEdit') }}</Button>
+        </template>
+
+        <!-- 未勾选 + 有 active filter：filtered 模式入口 -->
+        <template v-else-if="(activeFilterCount ?? 0) > 0">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            class="text-destructive border-destructive/40 hover:bg-destructive/10"
+            @click="$emit('bulk-delete-filtered')"
+          >{{ t('admin.accountsQuench.bulkDeleteFiltered') }}</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!!bulkDeleteProgress"
+            class="text-primary border-primary/40 hover:bg-primary/10"
+            @click="$emit('bulk-edit-filtered')"
+          >{{ t('admin.accountsQuench.bulkEditFiltered') }}</Button>
+        </template>
+
+        <!-- 失败重试 -->
         <Button
+          v-if="(lastFailedDeleteIds?.length ?? 0) > 0"
           variant="outline"
           size="sm"
           :disabled="!!bulkDeleteProgress"
-          class="text-destructive border-destructive/40 hover:bg-destructive/10"
-          @click="$emit('bulk-delete')"
-        >{{ t('admin.accountTablePanel.bulkDelete') }}</Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!!bulkDeleteProgress"
-          @click="$emit('bulk-reset-status')"
-        >{{ t('admin.accountTablePanel.bulkResetStatus') }}</Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!!bulkDeleteProgress"
-          @click="$emit('bulk-refresh-token')"
-        >{{ t('admin.accountTablePanel.bulkRefreshToken') }}</Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!!bulkDeleteProgress"
-          @click="$emit('bulk-toggle-schedulable', true)"
-        >{{ t('admin.accountTablePanel.bulkEnableSchedule') }}</Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!!bulkDeleteProgress"
-          @click="$emit('bulk-toggle-schedulable', false)"
-        >{{ t('admin.accountTablePanel.bulkDisableSchedule') }}</Button>
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!!bulkDeleteProgress"
-          class="text-primary border-primary/40 hover:bg-primary/10"
-          @click="$emit('bulk-edit-selected')"
-        >{{ t('admin.accountTablePanel.bulkEdit') }}</Button>
+          class="text-amber-500 border-amber-500/40 hover:bg-amber-500/10"
+          @click="$emit('bulk-retry-failed')"
+        >{{ t('admin.accountsQuench.bulkRetryFailed') }} ({{ lastFailedDeleteIds?.length }})</Button>
       </div>
       <!-- 进度条 -->
       <div v-if="bulkDeleteProgress" class="mt-0.5 flex w-full items-center gap-2">
@@ -182,13 +222,40 @@
         />
       </template>
 
-      <!-- 代理 -->
+      <!-- 代理 (含 fallback chip + revert + expiry 三态) -->
       <template #cell-proxy="{ row }">
-        <div v-if="row.proxy" class="flex items-center gap-1 text-[12px] text-foreground">
-          <span>{{ (row.proxy as any).name }}</span>
-          <span v-if="(row.proxy as any).country_code" class="text-muted-foreground">({{ (row.proxy as any).country_code }})</span>
+        <div class="flex flex-col gap-0.5">
+          <div v-if="row.proxy" class="flex items-center gap-1 text-[12px] text-foreground">
+            <span class="truncate">{{ (row.proxy as any).name }}</span>
+            <span v-if="(row.proxy as any).country_code" class="text-[10px] text-muted-foreground">({{ (row.proxy as any).country_code }})</span>
+          </div>
+          <span v-else class="text-[12px] text-muted-foreground">-</span>
+          <!-- expiry 倒计时 -->
+          <div v-if="(row.proxy as any)?.expires_at" class="flex items-center gap-1">
+            <span
+              v-if="proxyIsExpired(row)"
+              class="inline-flex items-center gap-1 border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive rounded"
+            >{{ t('admin.accountsQuench.proxyExpired') }}</span>
+            <span
+              v-else
+              class="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-medium rounded"
+              :class="proxyExpiryChipClass(row)"
+            >{{ t('admin.accountsQuench.proxyDaysRemaining', { days: proxyDaysRemaining(row) }) }}</span>
+          </div>
+          <!-- fallback 状态 + revert -->
+          <div v-if="(row as any).proxy_fallback_origin_id" class="flex items-center gap-1">
+            <span
+              class="inline-flex items-center border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500 rounded"
+              :title="t('admin.accountsQuench.proxyFallbackOriginTip', { origin: (row as any).proxy_fallback_origin_id })"
+            >{{ t('admin.accountsQuench.proxyFallbackActive') }}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              class="h-[18px] px-1 text-[10px] text-muted-foreground hover:text-primary"
+              @click="$emit('revert-proxy-fallback', row as any)"
+            >{{ t('admin.accountsQuench.proxyRevert') }}</Button>
+          </div>
         </div>
-        <span v-else class="text-[12px] text-muted-foreground">-</span>
       </template>
 
       <!-- 优先级 -->
@@ -209,6 +276,57 @@
       <!-- 创建时间 -->
       <template #cell-created_at="{ value }">
         <span class="text-[11px] text-muted-foreground">{{ formatDateTime(value as string | Date | null | undefined) }}</span>
+      </template>
+
+      <!-- 备注 (截断 + tooltip 全文) -->
+      <template #cell-notes="{ value }">
+        <span
+          v-if="value"
+          :title="String(value)"
+          class="block max-w-[220px] truncate text-[12px] text-foreground"
+        >{{ value }}</span>
+        <span v-else class="text-[12px] text-muted-foreground">-</span>
+      </template>
+
+      <!-- 到期时间 (chip: 已过期 / 自动暂停) -->
+      <template #cell-expires_at="{ row, value }">
+        <div class="flex flex-col items-start gap-0.5">
+          <span class="text-[11px] text-muted-foreground">{{ formatExpiresUnix(value as number | null) }}</span>
+          <div v-if="isExpiredUnix(value) || ((row as any).auto_pause_on_expired && value)" class="flex flex-wrap items-center gap-1">
+            <span
+              v-if="isExpiredUnix(value)"
+              class="inline-flex items-center border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive rounded"
+            >{{ t('admin.accountTablePanel.expired') }}</span>
+            <span
+              v-if="(row as any).auto_pause_on_expired && value"
+              class="inline-flex items-center border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500 rounded"
+            >{{ t('admin.accountTablePanel.autoPauseOnExpired') }}</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- Antigravity tier (free/pro/ultra) -->
+      <template #cell-antigravity_tier="{ row }">
+        <span
+          v-if="antigravityTierLabel(row as any)"
+          class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded"
+          :class="antigravityTierClass(row as any)"
+        >{{ antigravityTierLabel(row as any) }}</span>
+        <span v-else class="text-[12px] text-muted-foreground">-</span>
+      </template>
+
+      <!-- OpenAI compact meta (active/blocked/auto + checkedAt tooltip) -->
+      <template #cell-openai_compact_meta="{ row }">
+        <span
+          v-if="openaiCompactMeta(row as any)"
+          class="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[10px] font-medium rounded"
+          :class="openaiCompactMeta(row as any)!.className"
+          :title="openaiCompactTitle(row as any)"
+        >
+          <span class="h-1 w-1 rounded-full" :class="openaiCompactMeta(row as any)!.dotClass"></span>
+          {{ openaiCompactMeta(row as any)!.label }}
+        </span>
+        <span v-else class="text-[12px] text-muted-foreground">-</span>
       </template>
 
       <!-- 操作列 -->
@@ -275,6 +393,10 @@ const props = defineProps<{
   toggleColumn?: (key: string) => void
   /** 重置为默认（可选） */
   resetColumns?: () => void
+  /** 当前激活的 filter 数量 (用于 filtered 入口可见性) */
+  activeFilterCount?: number
+  /** 上一次失败的删除 ids (用于「重试失败」按钮) */
+  lastFailedDeleteIds?: number[]
 }>()
 
 const emit = defineEmits<{
@@ -292,6 +414,10 @@ const emit = defineEmits<{
   'bulk-refresh-token': []
   'bulk-toggle-schedulable': [schedulable: boolean]
   'bulk-edit-selected': []
+  'bulk-delete-filtered': []
+  'bulk-edit-filtered': []
+  'bulk-retry-failed': []
+  'revert-proxy-fallback': [account: Account]
   'select-page': []
   'clear-selection': []
 }>()
@@ -302,19 +428,24 @@ const { t } = useI18n()
 type AccountColumnDef = ColumnDef<Record<string, unknown>> & { lockHidden?: boolean }
 
 const columns = computed<AccountColumnDef[]>(() => [
-  { key: 'name',            title: t('admin.accountTablePanel.colName'),        sortable: true,  lockHidden: true },
-  { key: 'capacity',        title: t('admin.accountTablePanel.colCapacity')                     },
-  { key: 'status',          title: t('admin.accountTablePanel.colStatus'),      sortable: true,  width: '90px' },
-  { key: 'schedulable',     title: '⚙',                                         sortable: true,  width: '44px' },
-  { key: 'groups',          title: t('admin.accountTablePanel.colGroups')                       },
-  { key: 'usage',           title: t('admin.accountTablePanel.colUsage'),                       width: '280px' },
-  { key: 'today_stats',     title: t('admin.accountTablePanel.colTodayStats')                   },
-  { key: 'proxy',           title: t('admin.accountTablePanel.colProxy')                        },
-  { key: 'priority',        title: t('admin.accountTablePanel.colPriority'),    sortable: true,  width: '70px', align: 'right' },
-  { key: 'rate_multiplier', title: t('admin.accountTablePanel.colMultiplier'),  sortable: true,  width: '70px', align: 'right' },
-  { key: 'last_used_at',    title: t('admin.accountTablePanel.colLastUsed'),    sortable: true,  width: '110px' },
-  { key: 'created_at',      title: t('admin.accountTablePanel.colCreatedAt'),   sortable: true,  width: '110px' },
-  { key: 'actions',         title: '',                                                           width: '88px', lockHidden: true },
+  { key: 'name',                title: t('admin.accountTablePanel.colName'),            sortable: true,  lockHidden: true },
+  { key: 'capacity',            title: t('admin.accountTablePanel.colCapacity')                          },
+  { key: 'status',              title: t('admin.accountTablePanel.colStatus'),          sortable: true,  width: '90px' },
+  { key: 'schedulable',         title: '⚙',                                             sortable: true,  width: '44px' },
+  { key: 'groups',              title: t('admin.accountTablePanel.colGroups')                            },
+  { key: 'usage',               title: t('admin.accountTablePanel.colUsage'),                            width: '280px' },
+  { key: 'today_stats',         title: t('admin.accountTablePanel.colTodayStats')                        },
+  { key: 'proxy',               title: t('admin.accountTablePanel.colProxy')                             },
+  { key: 'priority',            title: t('admin.accountTablePanel.colPriority'),        sortable: true,  width: '70px', align: 'right' },
+  { key: 'rate_multiplier',     title: t('admin.accountTablePanel.colMultiplier'),      sortable: true,  width: '70px', align: 'right' },
+  { key: 'last_used_at',        title: t('admin.accountTablePanel.colLastUsed'),        sortable: true,  width: '110px' },
+  { key: 'created_at',          title: t('admin.accountTablePanel.colCreatedAt'),       sortable: true,  width: '110px' },
+  // GAP-11 新增列：notes / expires_at / antigravity_tier / openai_compact_meta（默认隐藏，由父级控制）
+  { key: 'notes',               title: t('admin.accountTablePanel.colNotes')                             },
+  { key: 'expires_at',          title: t('admin.accountTablePanel.colExpiresAt'),       sortable: true,  width: '130px' },
+  { key: 'antigravity_tier',    title: t('admin.accountTablePanel.colAntigravityTier'),                  width: '72px' },
+  { key: 'openai_compact_meta', title: t('admin.accountTablePanel.colOpenAICompact'),                    width: '90px' },
+  { key: 'actions',             title: '',                                                               width: '88px', lockHidden: true },
 ])
 
 // 可切换的列（去掉锁定列） + 当前隐藏的数量
@@ -351,5 +482,112 @@ function accountEmail(row: any): string {
 function onSelected(rows: Record<string, unknown>[]) {
   const ids = rows.map(r => r['id'] as number)
   emit('update:selectedIds', ids)
+}
+
+// ─── GAP-11 helpers: expiry / antigravity tier / openai compact ────────
+function formatExpiresUnix(value: number | null): string {
+  if (!value) return '-'
+  return formatDateTime(new Date(value * 1000))
+}
+function isExpiredUnix(value: unknown): boolean {
+  if (typeof value !== 'number' || !value) return false
+  return value * 1000 <= Date.now()
+}
+
+function antigravityTierFromRow(row: any): string | null {
+  if (row?.platform !== 'antigravity') return null
+  const extra = row.extra as Record<string, unknown> | undefined
+  const lca = extra?.load_code_assist as Record<string, unknown> | undefined
+  if (!lca) return null
+  const paid = lca.paidTier as Record<string, unknown> | undefined
+  if (paid && typeof paid.id === 'string') return paid.id
+  const current = lca.currentTier as Record<string, unknown> | undefined
+  if (current && typeof current.id === 'string') return current.id
+  return null
+}
+
+function antigravityTierLabel(row: any): string | null {
+  switch (antigravityTierFromRow(row)) {
+    case 'free-tier':     return t('admin.accountTablePanel.tierFree')
+    case 'g1-pro-tier':   return t('admin.accountTablePanel.tierPro')
+    case 'g1-ultra-tier': return t('admin.accountTablePanel.tierUltra')
+    default: return null
+  }
+}
+
+// chip: free=muted / pro=primary/10 / ultra=primary (不沿用 legacy sky/purple/rose)
+function antigravityTierClass(row: any): string {
+  switch (antigravityTierFromRow(row)) {
+    case 'free-tier':     return 'border border-border bg-muted text-muted-foreground'
+    case 'g1-pro-tier':   return 'border border-primary/30 bg-primary/10 text-primary'
+    case 'g1-ultra-tier': return 'border border-primary/50 bg-primary text-primary-foreground'
+    default: return ''
+  }
+}
+
+type OpenAICompactState = 'active' | 'blocked' | 'auto'
+function openaiCompactState(row: any): OpenAICompactState | null {
+  if (row?.platform !== 'openai' || (row?.type !== 'oauth' && row?.type !== 'apikey')) return null
+  const extra = row.extra as Record<string, unknown> | undefined
+  const mode = typeof extra?.openai_compact_mode === 'string' ? extra.openai_compact_mode : 'auto'
+  if (mode === 'force_on')  return 'active'
+  if (mode === 'force_off') return 'blocked'
+  if (typeof extra?.openai_compact_supported === 'boolean') {
+    return extra.openai_compact_supported ? 'active' : 'blocked'
+  }
+  return 'auto'
+}
+
+function openaiCompactMeta(row: any): { label: string; className: string; dotClass: string } | null {
+  const state = openaiCompactState(row)
+  if (!state) return null
+  switch (state) {
+    case 'active':  return {
+      label: t('admin.accountTablePanel.compactSupported'),
+      className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500',
+      dotClass: 'bg-emerald-500',
+    }
+    case 'blocked': return {
+      label: t('admin.accountTablePanel.compactUnsupported'),
+      className: 'border-destructive/30 bg-destructive/10 text-destructive',
+      dotClass: 'bg-destructive',
+    }
+    case 'auto':    return {
+      label: t('admin.accountTablePanel.compactAuto'),
+      className: 'border-border bg-muted text-muted-foreground',
+      dotClass: 'bg-muted-foreground',
+    }
+  }
+}
+
+function openaiCompactTitle(row: any): string {
+  const meta = openaiCompactMeta(row)
+  if (!meta) return ''
+  const extra = row.extra as Record<string, unknown> | undefined
+  const checkedAt = typeof extra?.openai_compact_checked_at === 'string' ? extra.openai_compact_checked_at : ''
+  if (!checkedAt) return meta.label
+  return `${meta.label} | ${t('admin.accountTablePanel.compactLastChecked')}: ${formatDateTime(new Date(checkedAt))}`
+}
+
+// ─── GAP-12 helpers: proxy expiry ──────────────────────────────────────
+const EXPIRY_WARN_DAYS = 7
+const EXPIRY_DANGER_DAYS = 3
+function proxyDaysRemaining(row: any): number {
+  const expiresAt = row?.proxy?.expires_at
+  if (!expiresAt) return 0
+  return Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000)
+}
+function proxyIsExpired(row: any): boolean {
+  const status = row?.proxy?.status
+  if (status === 'expired') return true
+  const expiresAt = row?.proxy?.expires_at
+  if (!expiresAt) return false
+  return new Date(expiresAt).getTime() <= Date.now()
+}
+function proxyExpiryChipClass(row: any): string {
+  const d = proxyDaysRemaining(row)
+  if (d <= EXPIRY_DANGER_DAYS) return 'border-destructive/30 bg-destructive/10 text-destructive'
+  if (d <= EXPIRY_WARN_DAYS)   return 'border-amber-500/30 bg-amber-500/10 text-amber-500'
+  return 'border-border bg-muted text-muted-foreground'
 }
 </script>

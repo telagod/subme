@@ -8,12 +8,33 @@ import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
 import type { Account, AccountPlatform, AccountType, WindowStats } from '@/types'
 
-export type BulkEditTarget = {
-  mode: 'selected'
-  accountIds: number[]
-  selectedPlatforms: AccountPlatform[]
-  selectedTypes: AccountType[]
+export type BulkEditFilters = {
+  platform?: string
+  type?: string
+  status?: string
+  group?: string
+  search?: string
+  privacy_mode?: string
+  schedulable?: string
+  has_proxy?: string
+  sort_by?: string
+  sort_order?: 'asc' | 'desc'
 }
+
+export type BulkEditTarget =
+  | {
+      mode: 'selected'
+      accountIds: number[]
+      selectedPlatforms: AccountPlatform[]
+      selectedTypes: AccountType[]
+    }
+  | {
+      mode: 'filtered'
+      filters: BulkEditFilters
+      previewCount: number
+      selectedPlatforms: AccountPlatform[]
+      selectedTypes: AccountType[]
+    }
 
 // 与 legacy AccountsView 保持一致的"未分组" / "未设置 privacy_mode"哨兵值
 export const ACCOUNT_UNGROUPED_GROUP_QUERY_VALUE = 'ungrouped'
@@ -33,6 +54,8 @@ export function accountMatchesCurrentFilters(
   const status       = (params.status       as string | undefined) || ''
   const group        = (params.group        as string | undefined) || ''
   const privacy_mode = (params.privacy_mode as string | undefined) || ''
+  const schedulable  = (params.schedulable  as string | undefined) || ''
+  const has_proxy    = (params.has_proxy    as string | undefined) || ''
   const search       = String((params.search as string | undefined) || '').trim().toLowerCase()
 
   if (platform && account.platform !== platform) return false
@@ -87,6 +110,18 @@ export function accountMatchesCurrentFilters(
     } else if (accPrivacy !== privacy_mode) {
       return false
     }
+  }
+
+  if (schedulable === 'true' || schedulable === '1') {
+    if (!account.schedulable) return false
+  } else if (schedulable === 'false' || schedulable === '0') {
+    if (account.schedulable) return false
+  }
+
+  if (has_proxy === 'true' || has_proxy === '1') {
+    if (!account.proxy_id && !account.proxy) return false
+  } else if (has_proxy === 'false' || has_proxy === '0') {
+    if (account.proxy_id || account.proxy) return false
   }
 
   if (search && !account.name.toLowerCase().includes(search)) return false
@@ -275,6 +310,86 @@ export function useAccountPoolActions(
     }
   }
 
+  /**
+   * 本地行级 patch：批量调度切换成功后，原地刷新 schedulable 字段
+   * (避免对每条触发 mergeRuntimeFields / 过滤判定)
+   */
+  const updateSchedulableInList = (accountIds: number[], schedulable: boolean) => {
+    if (accountIds.length === 0) return
+    const idSet = new Set(accountIds)
+    const next = accounts.value.map(a => idSet.has(a.id) ? { ...a, schedulable } : a)
+    accounts.value = next
+    triggerRef(accounts as Ref<Account[]>)
+  }
+
+  /**
+   * 兼容后端三种返回 shape（来自 legacy AccountsView）:
+   *   A: { success_ids:[], failed_ids:[] } —— 显式 id 清单（最高优先级）
+   *   B: { results:[{account_id, success}] } —— 行级结果（次优）
+   *   C: { success_count, failed_count } —— 仅计数（兜底；若 failed=0 且 success=accountIds.length 则可推断 ids）
+   * 判定顺序: 显式 ids → results → counts（与 legacy 完全一致）
+   */
+  const normalizeBulkSchedulableResult = (
+    result: {
+      success?: number
+      failed?: number
+      success_ids?: number[]
+      failed_ids?: number[]
+      results?: Array<{ account_id: number; success: boolean }>
+    },
+    accountIds: number[]
+  ) => {
+    const responseSuccessIds = Array.isArray(result.success_ids) ? result.success_ids : []
+    const responseFailedIds  = Array.isArray(result.failed_ids)  ? result.failed_ids  : []
+    if (responseSuccessIds.length > 0 || responseFailedIds.length > 0) {
+      return {
+        successIds: responseSuccessIds,
+        failedIds:  responseFailedIds,
+        successCount: typeof result.success === 'number' ? result.success : responseSuccessIds.length,
+        failedCount:  typeof result.failed  === 'number' ? result.failed  : responseFailedIds.length,
+        hasIds: true,
+        hasCounts: true,
+      }
+    }
+
+    const results = Array.isArray(result.results) ? result.results : []
+    if (results.length > 0) {
+      const successIds = results.filter(item => item.success).map(item => item.account_id)
+      const failedIds  = results.filter(item => !item.success).map(item => item.account_id)
+      return {
+        successIds,
+        failedIds,
+        successCount: typeof result.success === 'number' ? result.success : successIds.length,
+        failedCount:  typeof result.failed  === 'number' ? result.failed  : failedIds.length,
+        hasIds: true,
+        hasCounts: true,
+      }
+    }
+
+    const hasExplicitCounts = typeof result.success === 'number' || typeof result.failed === 'number'
+    const successCount = typeof result.success === 'number' ? result.success : 0
+    const failedCount  = typeof result.failed  === 'number' ? result.failed  : 0
+    if (hasExplicitCounts && failedCount === 0 && successCount === accountIds.length && accountIds.length > 0) {
+      return {
+        successIds: accountIds,
+        failedIds: [],
+        successCount,
+        failedCount,
+        hasIds: true,
+        hasCounts: true,
+      }
+    }
+
+    return {
+      successIds: [],
+      failedIds: [],
+      successCount,
+      failedCount,
+      hasIds: false,
+      hasCounts: hasExplicitCounts,
+    }
+  }
+
   // ── 批量操作 ─────────────────────────────────────────────────────────
   const handleBulkDelete = async (
     selectedIds: number[],
@@ -339,22 +454,145 @@ export function useAccountPoolActions(
     }
   }
 
+  /**
+   * 批量调度切换：用 normalizeBulkSchedulableResult 处理三种 shape
+   * 成功 ids → updateSchedulableInList 行级 patch（不走 patchInList 的过滤判定）
+   * 失败 ids → toast + setSelectedIds(failedIds) 保留 selection（legacy 行为）
+   * shape 全部失败时 toast + reload（call onDone 之后让上层 reload）
+   *
+   * @param onUpdateSelection 上层提供的 selection 更新器（成功全清 / 失败保留 failedIds）
+   * @param onReloadOnUnknown shape 无法识别时上层应触发 reload
+   */
   const handleBulkToggleSchedulable = async (
     selectedIds: number[],
     schedulable: boolean,
-    onDone: () => void
+    onDone: () => void,
+    onUpdateSelection?: (ids: number[]) => void,
+    onReloadOnUnknown?: () => void,
   ) => {
+    if (selectedIds.length === 0) return
     if (!confirm(`确认${schedulable ? '启用' : '禁用'}已选账号的调度？`)) return
+    const accountIds = [...selectedIds]
     try {
-      const res = await adminAPI.accounts.bulkUpdate(selectedIds, { schedulable })
-      if (res.failed > 0) {
-        appStore.showError(`部分失败：成功 ${res.success}，失败 ${res.failed}`)
+      const result = await adminAPI.accounts.bulkUpdate(accountIds, { schedulable })
+      const { successIds, failedIds, successCount, failedCount, hasIds, hasCounts } =
+        normalizeBulkSchedulableResult(result, accountIds)
+
+      if (!hasIds && !hasCounts) {
+        appStore.showError('批量结果格式无法识别，已重新加载列表。')
+        onUpdateSelection?.(accountIds)
+        onReloadOnUnknown?.()
+        return
+      }
+
+      if (successIds.length > 0) updateSchedulableInList(successIds, schedulable)
+
+      if (successCount > 0 && failedCount === 0) {
+        appStore.showSuccess(
+          schedulable
+            ? `已启用 ${successCount} 个账号调度。`
+            : `已禁用 ${successCount} 个账号调度。`
+        )
+      }
+      if (failedCount > 0) {
+        appStore.showError(`调度切换部分失败：成功 ${successCount}，失败 ${failedCount}。`)
+        onUpdateSelection?.(failedIds.length > 0 ? failedIds : accountIds)
       } else {
-        appStore.showSuccess(`已${schedulable ? '启用' : '禁用'} ${res.success} 个账号调度`)
-        onDone()
+        if (hasIds) {
+          onDone()
+        } else {
+          onUpdateSelection?.(accountIds)
+        }
       }
     } catch (err: any) {
       appStore.showError(err?.message || '操作失败')
+    }
+  }
+
+  // ── 批量编辑 / 删除：filtered 模式 ───────────────────────────────────────
+  /**
+   * 拉取当前 filter 命中的所有 account ids。
+   * 1. preview = list(1, 1) 拿 total
+   * 2. 分页 list(p, 500) 累加 ids
+   */
+  const fetchFilteredAccountIds = async (
+    filters: BulkEditFilters,
+    onProgress?: (current: number, total: number) => void,
+  ): Promise<{ ids: number[]; total: number }> => {
+    const preview = await adminAPI.accounts.list(1, 1, filters as any)
+    const totalCount = preview.total
+    if (totalCount === 0) return { ids: [], total: 0 }
+    const allIds: number[] = []
+    const fetchPageSize = 500
+    const fetchPages = Math.ceil(totalCount / fetchPageSize)
+    for (let p = 1; p <= fetchPages; p++) {
+      const res = await adminAPI.accounts.list(p, fetchPageSize, filters as any)
+      for (const a of res.items) allIds.push((a as Account).id)
+      onProgress?.(Math.min(p * fetchPageSize, totalCount), totalCount)
+    }
+    return { ids: allIds, total: totalCount }
+  }
+
+  /** filtered 模式批量删除（T3 红线由上层 ConfirmDialog 兜底，本函数不再 confirm） */
+  const handleBulkDeleteFiltered = async (
+    filters: BulkEditFilters,
+    onDone: () => void,
+  ): Promise<{ failedIds: number[] } | null> => {
+    let failedIds: number[] = []
+    try {
+      const { ids, total } = await fetchFilteredAccountIds(filters)
+      if (total === 0 || ids.length === 0) {
+        appStore.showError('当前筛选无匹配账号。')
+        return null
+      }
+      const batchSize = 50
+      let totalSuccess = 0, totalFailed = 0
+      bulkDeleteProgress.value = { current: 0, total: ids.length }
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const chunk = ids.slice(i, i + batchSize)
+        const res = await adminAPI.accounts.batchDelete(chunk)
+        totalSuccess += res.success ?? 0
+        totalFailed  += res.failed  ?? 0
+        // 后端若返回 errors 则提取失败 id
+        if (Array.isArray(res.errors)) {
+          for (const e of res.errors) failedIds.push(e.account_id)
+        }
+        bulkDeleteProgress.value = { current: Math.min(i + batchSize, ids.length), total: ids.length }
+      }
+      if (totalFailed > 0) {
+        appStore.showError(`部分失败：成功 ${totalSuccess}，失败 ${totalFailed}。`)
+      } else {
+        appStore.showSuccess(`已删除 ${totalSuccess} 个账号。`)
+        onDone()
+      }
+    } catch (err: any) {
+      appStore.showError(err?.message || '批量删除失败')
+    } finally {
+      bulkDeleteProgress.value = null
+    }
+    return { failedIds }
+  }
+
+  /** filtered 模式：构造 target 并打开 BulkEditModal */
+  const handleBulkEditFiltered = async (filters: BulkEditFilters) => {
+    try {
+      const preview = await adminAPI.accounts.list(1, 100, filters as any)
+      if (preview.total === 0) {
+        appStore.showError('当前筛选无匹配账号。')
+        return
+      }
+      const platforms = Array.from(new Set(preview.items.map((a: any) => a.platform))) as AccountPlatform[]
+      const types     = Array.from(new Set(preview.items.map((a: any) => a.type)))     as AccountType[]
+      bulkEditTarget.value = {
+        mode: 'filtered',
+        filters,
+        previewCount: preview.total,
+        selectedPlatforms: platforms,
+        selectedTypes: types,
+      }
+      showBulkEdit.value = true
+    } catch (err: any) {
+      appStore.showError(err?.message || '加载筛选范围失败')
     }
   }
 
@@ -425,6 +663,11 @@ export function useAccountPoolActions(
     handleBulkRefreshToken,
     handleBulkToggleSchedulable,
     handleBulkEditSelected,
+    handleBulkDeleteFiltered,
+    handleBulkEditFiltered,
+    fetchFilteredAccountIds,
+    updateSchedulableInList,
+    normalizeBulkSchedulableResult,
     handleExportData,
     showBulkEdit,
     bulkEditTarget,
