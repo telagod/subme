@@ -24,6 +24,14 @@ export interface UseFetchStateOptions {
   cacheMs?: number
   /** Backoff window after a failure; throttle stays active until elapsed. */
   errorBackoffMs?: number
+  /**
+   * Optional commit gate. Invoked after the fetcher resolves but BEFORE the
+   * result is written to `data` / `loaded` / `lastFetchedAt`. If it returns
+   * false, the commit is skipped but fetch() still resolves with the value so
+   * the caller's contract is preserved. Used by useGenerationGuard to drop
+   * stale responses without surfacing them as errors. Default: always commit.
+   */
+  shouldCommit?: () => boolean
 }
 
 export interface UseFetchState<T> {
@@ -42,6 +50,7 @@ export function useFetchState<T>(
 ): UseFetchState<T> {
   const cacheMs = options.cacheMs ?? 0
   const errorBackoffMs = options.errorBackoffMs ?? 0
+  const shouldCommit = options.shouldCommit
 
   const data = ref<T | null>(null) as Ref<T | null>
   const loading = ref(false)
@@ -69,6 +78,14 @@ export function useFetchState<T>(
     inflight = (async () => {
       try {
         const result = await fetcher()
+        // Commit gate: useGenerationGuard plugs in here to drop stale responses
+        // without poisoning data/loaded/lastFetchedAt. When skipped, we also
+        // roll lastFetchedAt back to its pre-fetch value (captured above) so a
+        // stale response cannot keep the TTL alive past a reset().
+        if (shouldCommit && !shouldCommit()) {
+          lastFetchedAt.value = 0
+          return result
+        }
         data.value = result
         loaded.value = true
         return result

@@ -236,4 +236,103 @@ describe('useSubscriptionStore', () => {
       expect(mockGetActiveSubscriptions).not.toHaveBeenCalled()
     })
   })
+
+  // --- generation guard (stale-response protection) ---
+
+  describe('generation guard', () => {
+    it('clear() 后旧响应到达不会复活订阅数据（防 logout 后污染）', async () => {
+      // Simulates: user loads page → in-flight fetch A → logout → A resolves
+      // late and tries to commit. Without generation guard this resurrects
+      // the previous user's data after auth state cleared.
+      let resolveA: (v: any) => void
+      mockGetActiveSubscriptions.mockImplementation(
+        () => new Promise((resolve) => {
+          resolveA = resolve
+        })
+      )
+      const store = useSubscriptionStore()
+
+      // Start fetch A — leaves it hanging.
+      const pA = store.fetchActiveSubscriptions()
+
+      // Simulate logout mid-flight.
+      store.clear()
+      expect(store.activeSubscriptions).toHaveLength(0)
+
+      // A's response now arrives, late.
+      resolveA!(fakeSubscriptions)
+      await pA.catch(() => {}) // promise itself resolves, but state must not move
+
+      // Critical: store must still be empty. Stale response was dropped.
+      expect(store.activeSubscriptions).toHaveLength(0)
+      expect(store.hasActiveSubscriptions).toBe(false)
+    })
+
+    it('force=true 跨过 reset 后的旧响应不会覆盖新结果', async () => {
+      // Simulates poll/force races: request A starts → clear() → fetch B starts
+      // and resolves first with fresh data → A resolves late with stale data.
+      // Without generation guard, A overwrites B.
+      const resolvers: Array<(v: any) => void> = []
+      mockGetActiveSubscriptions.mockImplementation(
+        () => new Promise((resolve) => {
+          resolvers.push(resolve)
+        })
+      )
+      const store = useSubscriptionStore()
+
+      // Request A — kept hanging.
+      const pA = store.fetchActiveSubscriptions()
+      expect(resolvers).toHaveLength(1)
+
+      // clear() invalidates generation, drops inflight handle so B is a
+      // brand-new request to the underlying useFetchState layer.
+      store.clear()
+
+      // Request B — fresh.
+      const updatedSubs = [fakeSubscriptions[0]]
+      const pB = store.fetchActiveSubscriptions()
+      expect(resolvers).toHaveLength(2)
+
+      // B resolves first with the fresh data.
+      resolvers[1]!(updatedSubs)
+      await pB
+      expect(store.activeSubscriptions).toEqual(updatedSubs)
+
+      // A resolves late with stale data.
+      resolvers[0]!(fakeSubscriptions)
+      await pA.catch(() => {})
+
+      // Critical: B's payload must survive — A's stale commit was suppressed.
+      expect(store.activeSubscriptions).toEqual(updatedSubs)
+    })
+
+    it('clear() 后 polling 不会用旧响应污染状态', async () => {
+      // Simulates: polling tick fires fetch(true), logout fires clear()
+      // before the request returns. The polling response must not commit.
+      let resolvePoll: (v: any) => void
+      mockGetActiveSubscriptions.mockImplementation(
+        () => new Promise((resolve) => {
+          resolvePoll = resolve
+        })
+      )
+      const store = useSubscriptionStore()
+
+      store.startPolling()
+      // Tick the poll interval.
+      vi.advanceTimersByTime(5 * 60 * 1000)
+      expect(mockGetActiveSubscriptions).toHaveBeenCalledTimes(1)
+
+      // Logout fires before poll response lands. clear() also stops the timer.
+      store.clear()
+
+      // Poll response arrives late.
+      resolvePoll!(fakeSubscriptions)
+      // Flush microtasks so the polling .catch handler runs.
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(store.activeSubscriptions).toHaveLength(0)
+      expect(store.hasActiveSubscriptions).toBe(false)
+    })
+  })
 })
