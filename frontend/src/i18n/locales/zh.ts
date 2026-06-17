@@ -3162,6 +3162,10 @@ export default {
           revokeDesc: '立即终止该用户的订阅，不可恢复'
         },
         tip: '提示：订阅分组下拉列表中只会显示计费类型为「订阅」且状态为「正常」的分组。如果没有可选项，请先到分组管理中创建。'
+      },
+      localStorage: {
+        quotaExceeded: '本地存储已满，设置无法保存',
+        writeFailed: '保存列设置失败'
       }
     },
 
@@ -7266,6 +7270,9 @@ export default {
       bulkSchedulableDisabled: '已禁用 {count} 个账号调度。',
       bulkSchedulablePartial: '调度切换部分失败：成功 {success}，失败 {failed}。',
       bulkSchedulableResultUnknown: '批量结果格式无法识别，已重新加载列表。',
+      autoRefresh: {
+        persistentFailure: '自动刷新连续失败 3 次，已暂停。请手动重新启用。'
+      },
     },
 
     accountTablePanel: {

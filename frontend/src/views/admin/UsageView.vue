@@ -213,6 +213,11 @@ let abortController: AbortController | null = null; let exportAbortController: A
 let chartReqSeq = 0
 let statsReqSeq = 0
 let modelStatsReqSeq = 0
+// Error flags for failed loaders — surface visible state instead of "silently 0".
+const logsError = ref(false)
+const statsError = ref(false)
+const modelStatsError = ref(false)
+const chartsError = ref(false)
 const exportProgress = reactive({ show: false, progress: 0, current: 0, total: 0, estimatedTime: '' })
 const cleanupDialogVisible = ref(false)
 // Balance history modal state
@@ -340,17 +345,24 @@ const buildUsageListParams = (
 
 const loadLogs = async () => {
   abortController?.abort(); const c = new AbortController(); abortController = c; loading.value = true
+  logsError.value = false
   try {
     const res = await adminAPI.usage.list(
       buildUsageListParams(pagination.page, pagination.page_size, false),
       { signal: c.signal }
     )
     if(!c.signal.aborted) { usageLogs.value = res.items; pagination.total = res.total }
-  } catch (error: any) { if(error?.name !== 'AbortError') console.error('Failed to load usage logs:', error) } finally { if(abortController === c) loading.value = false }
+  } catch (error: any) {
+    if (error?.name === 'AbortError') return
+    console.error('Failed to load usage logs:', error)
+    logsError.value = true
+    appStore.showError(t('admin.usage.failedToLoadLogs', 'Failed to load usage logs'))
+  } finally { if(abortController === c) loading.value = false }
 }
 const loadStats = async (force = false) => {
   const seq = ++statsReqSeq
   endpointStatsLoading.value = true
+  statsError.value = false
   try {
     const requestType = filters.value.request_type
     const legacyStream = requestType ? requestTypeToLegacyStream(requestType) : filters.value.stream
@@ -364,12 +376,15 @@ const loadStats = async (force = false) => {
     inboundEndpointStats.value = s.endpoints || []
     upstreamEndpointStats.value = s.upstream_endpoints || []
     endpointPathStats.value = s.endpoint_paths || []
-  } catch (error) {
+  } catch (error: any) {
     if (seq !== statsReqSeq) return
+    if (error?.name === 'AbortError') return
     console.error('Failed to load usage stats:', error)
     inboundEndpointStats.value = []
     upstreamEndpointStats.value = []
     endpointPathStats.value = []
+    statsError.value = true
+    appStore.showError(t('admin.usage.failedToLoadStats', 'Failed to load usage stats'))
   } finally {
     if (seq === statsReqSeq) endpointStatsLoading.value = false
   }
@@ -389,6 +404,7 @@ const loadModelStats = async (source: ModelDistributionSource, force = false) =>
 
   const seq = ++modelStatsReqSeq
   modelStatsLoading.value = true
+  modelStatsError.value = false
   try {
     const requestType = filters.value.request_type
     const legacyStream = requestType ? requestTypeToLegacyStream(requestType) : filters.value.stream
@@ -418,8 +434,9 @@ const loadModelStats = async (source: ModelDistributionSource, force = false) =>
       mappingModelStats.value = models
     }
     loadedModelSources[source] = true
-  } catch (error) {
+  } catch (error: any) {
     if (seq !== modelStatsReqSeq) return
+    if (error?.name === 'AbortError') return
     console.error('Failed to load model stats:', error)
     if (source === 'requested') {
       requestedModelStats.value = []
@@ -429,6 +446,8 @@ const loadModelStats = async (source: ModelDistributionSource, force = false) =>
       mappingModelStats.value = []
     }
     loadedModelSources[source] = false
+    modelStatsError.value = true
+    appStore.showError(t('admin.usage.failedToLoadModelStats', 'Failed to load model stats'))
   } finally {
     if (seq === modelStatsReqSeq) modelStatsLoading.value = false
   }
@@ -437,6 +456,7 @@ const loadModelStats = async (source: ModelDistributionSource, force = false) =>
 const loadChartData = async () => {
   const seq = ++chartReqSeq
   chartsLoading.value = true
+  chartsError.value = false
   try {
     const requestType = filters.value.request_type
     const legacyStream = requestType ? requestTypeToLegacyStream(requestType) : filters.value.stream
@@ -461,7 +481,13 @@ const loadChartData = async () => {
     if (seq !== chartReqSeq) return
     trendData.value = snapshot.trend || []
     groupStats.value = snapshot.groups || []
-  } catch (error) { console.error('Failed to load chart data:', error) } finally { if (seq === chartReqSeq) chartsLoading.value = false }
+  } catch (error: any) {
+    if (seq !== chartReqSeq) return
+    if (error?.name === 'AbortError') return
+    console.error('Failed to load chart data:', error)
+    chartsError.value = true
+    appStore.showError(t('admin.usage.failedToLoadChartData', 'Failed to load chart data'))
+  } finally { if (seq === chartReqSeq) chartsLoading.value = false }
 }
 const applyFilters = () => {
   pagination.page = 1

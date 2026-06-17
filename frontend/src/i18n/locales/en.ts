@@ -3073,6 +3073,10 @@ export default {
           revokeDesc: 'Immediately terminate the subscription (irreversible)'
         },
         tip: 'Tip: Only groups with billing type "Subscription" and status "Active" appear in the group dropdown. If no options are available, create one in Group Management first.'
+      },
+      localStorage: {
+        quotaExceeded: 'Local storage quota exceeded, settings won\'t persist',
+        writeFailed: 'Failed to save column preferences'
       }
     },
 
@@ -7085,6 +7089,9 @@ export default {
       bulkSchedulableDisabled: '{count} accounts disabled from scheduling.',
       bulkSchedulablePartial: 'Schedulable update partial: {success} ok, {failed} failed.',
       bulkSchedulableResultUnknown: 'Bulk update result format unrecognized; list reloaded.',
+      autoRefresh: {
+        persistentFailure: 'Auto-refresh failed 3 times consecutively, paused. Re-enable manually.'
+      },
     },
 
     accountTablePanel: {

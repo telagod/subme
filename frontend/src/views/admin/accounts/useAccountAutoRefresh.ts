@@ -24,7 +24,9 @@
  * accountsRef: 直接持有 accounts ref，merge 时原地替换。
  */
 import { ref, onBeforeUnmount, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
+import { useAppStore } from '@/stores/app'
 import type { Account } from '@/types'
 import { buildOpenAIUsageRefreshKey } from '@/utils/accountUsageRefresh'
 
@@ -61,6 +63,8 @@ export interface UseAccountAutoRefreshReturn {
   intervals: typeof AUTO_REFRESH_INTERVALS
   /** 是否在 silent window 内（响应式） */
   hasPendingListSync: Ref<boolean>
+  /** 连续失败次数（达到阈值会自动暂停 polling） */
+  consecutiveFailures: Ref<number>
   setEnabled: (value: boolean) => void
   setIntervalSeconds: (seconds: AutoRefreshInterval) => void
   enterSilentWindow: () => void
@@ -105,6 +109,11 @@ export function useAccountAutoRefresh(
   const hasPendingListSync = ref(false)
   const etag = ref<string | null>(null)
   const silentUntil = ref(0)
+  const consecutiveFailures = ref(0)
+  const FAILURE_THRESHOLD = 3
+
+  const appStore = useAppStore()
+  const { t } = useI18n()
 
   let timerId: number | undefined
 
@@ -196,8 +205,21 @@ export function useAccountAutoRefresh(
       }
 
       if (onAfterRefresh) await onAfterRefresh()
+      // success: reset failure counter
+      consecutiveFailures.value = 0
     } catch (e) {
       console.error('Auto refresh failed:', e)
+      consecutiveFailures.value++
+      if (consecutiveFailures.value === FAILURE_THRESHOLD) {
+        appStore.showError(
+          t(
+            'admin.accountsQuench.autoRefresh.persistentFailure',
+            'Auto-refresh failed 3 times consecutively, paused. Re-enable manually.'
+          )
+        )
+        // auto-pause to stop bleeding (setEnabled also persists + stops timer-driven fetches)
+        setEnabled(false)
+      }
     } finally {
       fetching.value = false
     }
@@ -256,6 +278,8 @@ export function useAccountAutoRefresh(
     saveToStorage()
     if (value) {
       countdown.value = intervalSeconds.value
+      // 用户重新启用：清空连续失败计数,给一个全新窗口
+      consecutiveFailures.value = 0
       start()
     } else {
       stop()
@@ -285,6 +309,7 @@ export function useAccountAutoRefresh(
     fetching,
     intervals: AUTO_REFRESH_INTERVALS,
     hasPendingListSync,
+    consecutiveFailures,
     setEnabled,
     setIntervalSeconds,
     enterSilentWindow,

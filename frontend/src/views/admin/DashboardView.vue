@@ -529,9 +529,12 @@ const loadDashboardSnapshot = async (includeStats: boolean) => {
   }
 }
 
+const userTrendError = ref(false)
+
 const loadUsersTrend = async () => {
   const currentSeq = ++usersTrendLoadSeq
   userTrendLoading.value = true
+  userTrendError.value = false
   try {
     const response = await adminAPI.dashboard.getUserUsageTrend({
       start_date: startDate.value,
@@ -541,10 +544,13 @@ const loadUsersTrend = async () => {
     })
     if (currentSeq !== usersTrendLoadSeq) return
     userTrend.value = response.trend || []
-  } catch (error) {
+  } catch (error: any) {
     if (currentSeq !== usersTrendLoadSeq) return
+    if (error?.name === 'AbortError') return
     console.error('Error loading users trend:', error)
     userTrend.value = []
+    userTrendError.value = true
+    appStore.showError(t('admin.dashboard.failedToLoadUsersTrend', 'Failed to load users trend'))
   } finally {
     if (currentSeq === usersTrendLoadSeq) {
       userTrendLoading.value = false
@@ -567,14 +573,16 @@ const loadUserSpendingRanking = async () => {
     rankingTotalActualCost.value = response.total_actual_cost || 0
     rankingTotalRequests.value = response.total_requests || 0
     rankingTotalTokens.value = response.total_tokens || 0
-  } catch (error) {
+  } catch (error: any) {
     if (currentSeq !== rankingLoadSeq) return
+    if (error?.name === 'AbortError') return
     console.error('Error loading user spending ranking:', error)
     rankingItems.value = []
     rankingTotalActualCost.value = 0
     rankingTotalRequests.value = 0
     rankingTotalTokens.value = 0
     rankingError.value = true
+    appStore.showError(t('admin.dashboard.failedToLoadRanking', 'Failed to load user spending ranking'))
   } finally {
     if (currentSeq === rankingLoadSeq) {
       rankingLoading.value = false

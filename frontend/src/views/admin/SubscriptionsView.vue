@@ -819,6 +819,11 @@ const saveUserColumnMode = () => {
     localStorage.setItem(USER_COLUMN_MODE_KEY, userColumnMode.value)
   } catch (e) {
     console.error('Failed to save user column mode:', e)
+    if (e instanceof DOMException && (e.name === 'QuotaExceededError' || (e as any).code === 22)) {
+      appStore.showError(t('admin.subscriptions.localStorage.quotaExceeded', 'Local storage quota exceeded, settings won\'t persist'))
+    } else {
+      appStore.showError(t('admin.subscriptions.localStorage.writeFailed', 'Failed to save column preferences'))
+    }
   }
 }
 
@@ -879,6 +884,11 @@ const saveColumnsToStorage = () => {
     localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify([...hiddenColumns]))
   } catch (e) {
     console.error('Failed to save columns:', e)
+    if (e instanceof DOMException && (e.name === 'QuotaExceededError' || (e as any).code === 22)) {
+      appStore.showError(t('admin.subscriptions.localStorage.quotaExceeded', 'Local storage quota exceeded, settings won\'t persist'))
+    } else {
+      appStore.showError(t('admin.subscriptions.localStorage.writeFailed', 'Failed to save column preferences'))
+    }
   }
 }
 
