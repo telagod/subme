@@ -59,7 +59,8 @@ export async function list(
     status?: 'active' | 'disabled'
     role?: 'admin' | 'user'
     search?: string
-    group_name?: string              // fuzzy filter by allowed group name
+    group_name?: string              // fuzzy filter by allowed (authorized) group name
+    api_key_group_id?: number        // exact filter by the group id bound to the user's API keys
     attributes?: Record<number, string>  // attributeId -> value
     include_subscriptions?: boolean
     sort_by?: string
@@ -85,6 +86,11 @@ export async function list(
     role: filters?.role,
     search: filters?.search,
     group_name: filters?.group_name,
+    // Only emit api_key_group_id when caller picked a real group; backend ignores zero/undefined.
+    api_key_group_id:
+      typeof filters?.api_key_group_id === 'number' && filters.api_key_group_id > 0
+        ? filters.api_key_group_id
+        : undefined,
     include_subscriptions: filters?.include_subscriptions,
     sort_by: filters?.sort_by,
     sort_order: filters?.sort_order,

@@ -54,6 +54,16 @@
               @change="applyFilter"
             />
 
+            <!-- API Key Group Filter: filter users by the group bound to their API keys -->
+            <Select
+              v-model="filters.apiKeyGroup"
+              class="w-48"
+              :options="apiKeyGroupFilterOptions"
+              searchable
+              :search-placeholder="t('admin.users.apiKeyGroupSearch')"
+              @change="applyFilter"
+            />
+
             <!-- Dynamic Attribute Filters -->
             <template v-for="attr in filterableAttributes" :key="attr.id">
               <div class="w-36">
@@ -709,6 +719,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import Select from '@/components/common/Select.vue'
+import { buildApiKeyGroupFilterOptions } from '@/composables/useApiKeyGroupFilterOptions'
 import CollapsibleFilters from '@/components/common/CollapsibleFilters.vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import { defineAsyncComponent } from 'vue'
@@ -956,7 +967,7 @@ const loadInitialSortState = (): { sort_by: string; sort_order: 'asc' | 'desc' }
 }
 const sortState = reactive(loadInitialSortState())
 
-// Groups data for the groups column
+// Groups data for the groups column and the existing "authorized group" fuzzy filter (active groups only).
 const allGroups = ref<AdminGroup[]>([])
 const loadAllGroups = async () => {
   if (allGroups.value.length > 0) return
@@ -964,6 +975,18 @@ const loadAllGroups = async () => {
     allGroups.value = await adminAPI.groups.getAll()
   } catch (e) {
     console.error('Failed to load groups:', e)
+  }
+}
+
+// Separate loader for the API Key group filter — pulls inactive groups too so
+// admins can still surface users whose keys are bound to a now-disabled group.
+const allGroupsForApiKeyFilter = ref<AdminGroup[]>([])
+const loadAllGroupsForApiKeyFilter = async () => {
+  if (allGroupsForApiKeyFilter.value.length > 0) return
+  try {
+    allGroupsForApiKeyFilter.value = await adminAPI.groups.getAllIncludingInactive()
+  } catch (e) {
+    console.error('Failed to load groups for API key filter:', e)
   }
 }
 // Resolve user's accessible groups: exclusive groups first, then public groups
@@ -1006,11 +1029,25 @@ const groupFilterOptions = computed(() => {
   return options
 })
 
-// Filter values (role, status, and custom attributes)
+// API Key group filter options: partitioned by type with disabled-header rows
+// (value = group id, null = clear filter). Uses allGroupsForApiKeyFilter which
+// includes disabled groups so that "lingering" key bindings are filterable.
+const apiKeyGroupFilterOptions = computed(() =>
+  buildApiKeyGroupFilterOptions(allGroupsForApiKeyFilter.value, {
+    all: t('admin.users.apiKeyGroupAll'),
+    exclusive: t('admin.users.apiKeyGroupExclusive'),
+    public: t('admin.users.apiKeyGroupPublic'),
+    subscription: t('admin.users.apiKeyGroupSubscription'),
+    disabled: t('admin.users.apiKeyGroupDisabled'),
+  })
+)
+
+// Filter values (role, status, group, api-key-group, and custom attributes)
 const filters = reactive({
   role: '',
   status: '',
-  group: ''  // group name for fuzzy match, '' = all
+  group: '',  // group name for fuzzy match, '' = all
+  apiKeyGroup: null as number | null,  // exact group id bound to user's API keys, null = all
 })
 const activeAttributeFilters = reactive<Record<number, string>>({})
 
@@ -1037,6 +1074,9 @@ const loadSavedFilters = () => {
       if (parsed.role) filters.role = parsed.role
       if (parsed.status) filters.status = parsed.status
       if (parsed.group) filters.group = parsed.group
+      if (typeof parsed.apiKeyGroup === 'number' && parsed.apiKeyGroup > 0) {
+        filters.apiKeyGroup = parsed.apiKeyGroup
+      }
       if (parsed.attributes) {
         Object.assign(activeAttributeFilters, parsed.attributes)
       }
@@ -1053,6 +1093,7 @@ const saveFiltersToStorage = () => {
       role: filters.role,
       status: filters.status,
       group: filters.group,
+      apiKeyGroup: filters.apiKeyGroup,
       attributes: activeAttributeFilters
     }
     localStorage.setItem(FILTER_VALUES_KEY, JSON.stringify(values))
@@ -1423,6 +1464,12 @@ const loadUsers = async () => {
         status: filters.status as any,
         search: searchQuery.value || undefined,
         group_name: filters.group || undefined,
+        // Only pass api_key_group_id when a real (positive) group id is picked;
+        // null means the "All API Key groups" sentinel — let the API layer drop it.
+        api_key_group_id:
+          typeof filters.apiKeyGroup === 'number' && filters.apiKeyGroup > 0
+            ? filters.apiKeyGroup
+            : undefined,
         attributes: Object.keys(attrFilters).length > 0 ? attrFilters : undefined,
         // 始终请求 subscriptions：列隐藏时仍需用于 UserPlatformQuotaModal 的 active-subscription 警示 banner
         include_subscriptions: true,
@@ -1501,6 +1548,7 @@ const userActiveFilterCount = computed(() => {
   if (filters.role) count++
   if (filters.status) count++
   if (filters.group) count++
+  if (typeof filters.apiKeyGroup === 'number' && filters.apiKeyGroup > 0) count++
   for (const value of Object.values(activeAttributeFilters)) {
     if (value) count++
   }
@@ -1512,6 +1560,7 @@ const clearUserFilters = () => {
   filters.role = ''
   filters.status = ''
   filters.group = ''
+  filters.apiKeyGroup = null
   for (const key of Object.keys(activeAttributeFilters)) {
     activeAttributeFilters[Number(key)] = ''
   }
@@ -1655,6 +1704,8 @@ onMounted(async () => {
   loadUsers()
   // Group filter is always visible in the collapsible section; also load if groups column is visible
   loadAllGroups()
+  // API Key group filter is also always visible — fetch the include-inactive list eagerly.
+  loadAllGroupsForApiKeyFilter()
   document.addEventListener('click', handleClickOutside)
   window.addEventListener('scroll', handleScroll, true)
 })
