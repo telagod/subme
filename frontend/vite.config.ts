@@ -71,24 +71,24 @@ export default defineConfig(({ mode }) => {
          */
         manualChunks(id: string) {
           if (id.includes('node_modules')) {
-            // Vue 核心库
-            if (
-              id.includes('/vue/') ||
-              id.includes('/vue-router/') ||
-              id.includes('/pinia/') ||
-              id.includes('/@vue/')
-            ) {
+            // Vue 运行时（vue + @vue/*）
+            if (id.includes('/vue/') || id.includes('/@vue/')) {
               return 'vendor-vue'
+            }
+
+            // 路由
+            if (id.includes('/vue-router/')) {
+              return 'vendor-router'
+            }
+
+            // 状态管理
+            if (id.includes('/pinia/')) {
+              return 'vendor-pinia'
             }
 
             // xlsx 单独分离（~200KB，仅导出功能用到）
             if (id.includes('/xlsx/')) {
               return 'vendor-xlsx'
-            }
-
-            // UI 工具库
-            if (id.includes('/@vueuse/')) {
-              return 'vendor-ui'
             }
 
             // 图表库
@@ -99,6 +99,45 @@ export default defineConfig(({ mode }) => {
             // 国际化
             if (id.includes('/vue-i18n/') || id.includes('/@intlify/')) {
               return 'vendor-i18n'
+            }
+
+            // 支付 SDK：体积大且仅在结账/充值路径触发
+            if (id.includes('/@stripe/')) {
+              return 'vendor-stripe'
+            }
+            if (id.includes('/@airwallex/')) {
+              return 'vendor-airwallex'
+            }
+
+            // markdown / 净化器：公告、协议页延迟加载
+            if (id.includes('/marked/') || id.includes('/dompurify/')) {
+              return 'vendor-markdown'
+            }
+
+            // 引导库：onboarding 触发后再加载
+            if (id.includes('/driver.js/')) {
+              return 'vendor-driver'
+            }
+
+            // shadcn-vue 底层：reka-ui（无头组件）+ 样式工具
+            if (
+              id.includes('/reka-ui/') ||
+              id.includes('/class-variance-authority/') ||
+              id.includes('/tailwind-merge/') ||
+              id.includes('/tailwindcss-animate/') ||
+              id.includes('/clsx/')
+            ) {
+              return 'vendor-shadcn'
+            }
+
+            // 通用 UI 工具
+            if (id.includes('/@vueuse/')) {
+              return 'vendor-ui'
+            }
+
+            // 图标库
+            if (id.includes('/lucide-vue-next/')) {
+              return 'vendor-icons'
             }
 
             // 其他小型第三方库合并

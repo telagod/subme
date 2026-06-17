@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted, nextTick } from 'vue'
-import { driver, type Driver, type DriveStep } from 'driver.js'
-import 'driver.js/dist/driver.css'
+// driver.js 与样式延迟到 startTour 实际触发时再加载，避免污染主包
+import type { Driver, DriveStep } from 'driver.js'
 import { useAuthStore as useUserStore } from '@/stores/auth'
 import { useOnboardingStore } from '@/stores/onboarding'
 import { useI18n } from 'vue-i18n'
@@ -109,6 +109,12 @@ export function useOnboardingTour(options: OnboardingOptions) {
     if (driverInstance) {
       driverInstance.destroy()
     }
+
+    // 延迟加载 driver.js（含样式），仅在首次启动引导时才拉取
+    const [{ driver }] = await Promise.all([
+      import('driver.js'),
+      import('driver.js/dist/driver.css')
+    ])
 
     // 创建新的 driver 实例并存储到 store
     driverInstance = driver({

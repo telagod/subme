@@ -80,10 +80,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+// marked / dompurify 改为弹窗出现时异步加载
 import { useAnnouncementStore } from '@/stores/announcements'
 import { formatRelativeWithDateTime } from '@/utils/format'
 import Icon from '@/components/icons/Icon.vue'
@@ -93,17 +92,23 @@ import { Badge } from '@/components/ui/badge'
 const { t } = useI18n()
 const announcementStore = useAnnouncementStore()
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-})
+const renderedContent = ref('')
 
-const renderedContent = computed(() => {
-  const content = announcementStore.currentPopup?.content
-  if (!content) return ''
-  const html = marked.parse(content) as string
-  return DOMPurify.sanitize(html)
-})
+let markdownRenderer: ((content: string) => string) | null = null
+async function getMarkdownRenderer(): Promise<(content: string) => string> {
+  if (markdownRenderer) return markdownRenderer
+  const [{ marked }, { default: DOMPurify }] = await Promise.all([
+    import('marked'),
+    import('dompurify')
+  ])
+  marked.setOptions({ breaks: true, gfm: true })
+  markdownRenderer = (content: string) => {
+    if (!content) return ''
+    const html = marked.parse(content) as string
+    return DOMPurify.sanitize(html)
+  }
+  return markdownRenderer
+}
 
 function handleDismiss() {
   announcementStore.dismissPopup()
@@ -129,11 +134,24 @@ onBeforeUnmount(() => {
 
 watch(
   () => announcementStore.currentPopup,
-  (popup) => {
+  async (popup) => {
     if (popup) {
       document.body.style.overflow = 'hidden'
+      const content = popup.content
+      if (content) {
+        const render = await getMarkdownRenderer()
+        // 防御：等待异步加载期间 popup 可能已变化
+        if (announcementStore.currentPopup === popup) {
+          renderedContent.value = render(content)
+        }
+      } else {
+        renderedContent.value = ''
+      }
+    } else {
+      renderedContent.value = ''
     }
-  }
+  },
+  { immediate: true }
 )
 </script>
 

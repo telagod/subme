@@ -131,8 +131,7 @@ import Icon from '@/components/icons/Icon.vue'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { buildEmbeddedUrl, detectTheme } from '@/utils/embedded-url'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+// marked / dompurify 改为加载远端 markdown 时按需引入
 
 interface TocItem {
   id: string
@@ -245,6 +244,10 @@ async function fetchAndRenderMarkdown(slug: string) {
       (match, alt, src) => isRelativeMarkdownAsset(src) ? `![${alt}](${buildPageImageUrl(slug, src)})` : match
     )
 
+    const [{ marked }, { default: DOMPurify }] = await Promise.all([
+      import('marked'),
+      import('dompurify')
+    ])
     const html = marked.parse(raw) as string
     const sanitized = DOMPurify.sanitize(html, {
       ADD_TAGS: ['iframe'],

@@ -81,10 +81,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+// marked / dompurify 延迟到协议页真正渲染时再拉取
 import Icon from '@/components/icons/Icon.vue'
 import { Button } from '@/components/ui/button'
 import { getPublicSettings } from '@/api/auth'
@@ -97,11 +96,23 @@ const route = useRoute()
 const settings = ref<PublicSettings | null>(null)
 const loading = ref(true)
 const loadError = ref(false)
+const renderedHtml = ref('')
 
-marked.setOptions({
-  breaks: true,
-  gfm: true,
-})
+let markdownRenderer: ((content: string) => string) | null = null
+async function getMarkdownRenderer(): Promise<(content: string) => string> {
+  if (markdownRenderer) return markdownRenderer
+  const [{ marked }, { default: DOMPurify }] = await Promise.all([
+    import('marked'),
+    import('dompurify')
+  ])
+  marked.setOptions({ breaks: true, gfm: true })
+  markdownRenderer = (content: string) => {
+    if (!content) return ''
+    const html = marked.parse(content) as string
+    return DOMPurify.sanitize(html)
+  }
+  return markdownRenderer
+}
 
 const documentId = computed(() => String(route.params.documentId || ''))
 const documents = computed(() => settings.value?.login_agreement_documents ?? [])
@@ -122,14 +133,22 @@ const currentDocument = computed<LoginAgreementDocument | null>(() => {
 
 const hasContent = computed(() => Boolean(currentDocument.value?.content_md?.trim()))
 
-const renderedHtml = computed(() => {
-  const content = currentDocument.value?.content_md?.trim() || ''
-  if (!content) {
-    return ''
-  }
-  const html = marked.parse(content) as string
-  return DOMPurify.sanitize(html)
-})
+watch(
+  currentDocument,
+  async (doc) => {
+    const content = doc?.content_md?.trim() || ''
+    if (!content) {
+      renderedHtml.value = ''
+      return
+    }
+    const render = await getMarkdownRenderer()
+    // 防御：异步加载期间文档可能切换
+    if (currentDocument.value === doc) {
+      renderedHtml.value = render(content)
+    }
+  },
+  { immediate: true }
+)
 
 const documentIcon = computed<LegalDocumentIcon>(() => {
   const title = currentDocument.value?.title || ''
