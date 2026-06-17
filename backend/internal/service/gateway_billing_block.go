@@ -63,20 +63,30 @@ func extractFirstUserText(reqBody []byte) string {
 	return found
 }
 
+// buildBillingAttributionText produces the textual billing attribution header used
+// inside the first Claude Code-shaped system block. The cch=00000 placeholder is
+// later replaced with the actual xxhash64 digest of the full body.
+func buildBillingAttributionText(reqBody []byte, cliVer string) (string, error) {
+	if cliVer == "" {
+		return "", fmt.Errorf("CLI version must be provided")
+	}
+	fp := computeClaudeCodeFingerprint(reqBody, cliVer)
+	return fmt.Sprintf(
+		"x-anthropic-billing-header: cc_version=%s.%s; cc_entrypoint=cli; cch=00000;",
+		cliVer, fp,
+	), nil
+}
+
 // buildBillingAttributionBlockJSON produces a system-array billing attribution
 // block matching the real Claude Code CLI format. The cch=00000 placeholder is
 // later replaced with the actual xxhash64 digest of the full body.
 func buildBillingAttributionBlockJSON(reqBody []byte, cliVer string) ([]byte, error) {
-	if cliVer == "" {
-		return nil, fmt.Errorf("CLI version must be provided")
+	text, err := buildBillingAttributionText(reqBody, cliVer)
+	if err != nil {
+		return nil, err
 	}
-	fp := computeClaudeCodeFingerprint(reqBody, cliVer)
-	headerText := fmt.Sprintf(
-		"x-anthropic-billing-header: cc_version=%s.%s; cc_entrypoint=cli; cch=00000;",
-		cliVer, fp,
-	)
 	return json.Marshal(map[string]string{
 		"type": "text",
-		"text": headerText,
+		"text": text,
 	})
 }

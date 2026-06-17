@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/telagod/subme/internal/pkg/claude"
+	"github.com/tidwall/gjson"
 )
 
 func TestIsClaudeCodeClient(t *testing.T) {
@@ -464,4 +466,52 @@ func TestRewriteSystemForNonClaudeCode(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRewriteSystemForNonClaudeCodeWithPrompt_UsesCustomExpansionPrompt(t *testing.T) {
+	body := []byte(`{"model":"claude-3","system":"Project instructions","messages":[{"role":"user","content":"hello"}]}`)
+	customPrompt := "Custom Claude OAuth expansion prompt"
+
+	result := rewriteSystemForNonClaudeCodeWithPrompt(body, "Project instructions", customPrompt)
+
+	system := gjson.GetBytes(result, "system")
+	require.True(t, system.IsArray())
+	require.Len(t, system.Array(), 3)
+	require.Equal(t, customPrompt, system.Array()[2].Get("text").String())
+	require.Equal(t, "ephemeral", system.Array()[2].Get("cache_control.type").String())
+}
+
+func TestRewriteSystemForNonClaudeCodeWithPromptBlocks_UsesConfiguredBlocks(t *testing.T) {
+	body := []byte(`{"model":"claude-3","system":"Project instructions","messages":[{"role":"user","content":"hello"}]}`)
+	blocks := `{
+		"blocks": [
+			{"type":"text","text":"prefix {cc_version}.{fp}","cache_control":true},
+			{"enabled":false,"type":"text","text":"disabled"},
+			{"type":"text","text":"{claude_code_system_prompt}"},
+			{"type":"text","text":"tail","cache_control":{"type":"ephemeral","ttl":"1h"}}
+		]
+	}`
+
+	result := rewriteSystemForNonClaudeCodeWithPromptBlocks(body, "Project instructions", "", blocks)
+
+	system := gjson.GetBytes(result, "system")
+	require.True(t, system.IsArray())
+	arr := system.Array()
+	require.Len(t, arr, 3)
+	require.Contains(t, arr[0].Get("text").String(), "prefix "+claude.CLICurrentVersion+".")
+	require.Equal(t, "ephemeral", arr[0].Get("cache_control.type").String())
+	require.Equal(t, claude.DefaultCacheControlTTL, arr[0].Get("cache_control.ttl").String())
+	require.Equal(t, claudeCodeSystemPrompt, arr[1].Get("text").String())
+	require.False(t, arr[1].Get("cache_control").Exists())
+	require.Equal(t, "tail", arr[2].Get("text").String())
+	require.Equal(t, "1h", arr[2].Get("cache_control.ttl").String())
+}
+
+func TestValidateClaudeOAuthSystemPromptBlocksConfig(t *testing.T) {
+	require.NoError(t, ValidateClaudeOAuthSystemPromptBlocksConfig(""))
+	require.NoError(t, ValidateClaudeOAuthSystemPromptBlocksConfig(`[{"type":"text","text":"hi","cache_control":true}]`))
+	require.NoError(t, ValidateClaudeOAuthSystemPromptBlocksConfig(`{"blocks":[{"type":"text","text":"hi"}]}`))
+	require.Error(t, ValidateClaudeOAuthSystemPromptBlocksConfig("not-json"))
+	require.Error(t, ValidateClaudeOAuthSystemPromptBlocksConfig(`[{"type":"image","text":"x"}]`))
+	require.Error(t, ValidateClaudeOAuthSystemPromptBlocksConfig(`[{"type":"text","text":"x","cache_control":"weird"}]`))
 }

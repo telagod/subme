@@ -6,11 +6,13 @@
  *   SettingsView.vue lines 3674–4431  (activeTab === 'gateway', second block)
  *   SettingsView.vue lines  205–1352  (activeTab === 'gateway', first block)
  *
- * Flat form. bindings migrated (13 keys):
+ * Flat form. bindings migrated (16 keys):
  *   min_claude_code_version, max_claude_code_version
  *   allow_ungrouped_key_scheduling, openai_advanced_scheduler_enabled
  *   enable_fingerprint_unification, enable_metadata_passthrough,
- *   enable_cch_signing, enable_anthropic_cache_ttl_1h_injection,
+ *   enable_cch_signing, enable_claude_oauth_system_prompt_injection,
+ *   claude_oauth_system_prompt, claude_oauth_system_prompt_blocks,
+ *   enable_anthropic_cache_ttl_1h_injection,
  *   rewrite_message_cache_control, antigravity_user_agent_version,
  *   openai_codex_user_agent, openai_allow_claude_code_codex_plugin
  *   allow_user_view_error_requests
@@ -93,6 +95,28 @@ const forwarding: SettingsSection = {
       label: 'admin.settings.gatewayForwarding.cchSigning',
       type: 'switch',
       help: 'admin.settings.gatewayForwarding.cchSigningHint',
+    },
+    {
+      key: 'enable_claude_oauth_system_prompt_injection',
+      label: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptInjection',
+      type: 'switch',
+      help: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptInjectionHint',
+    },
+    {
+      key: 'claude_oauth_system_prompt',
+      label: 'admin.settings.gatewayForwarding.claudeOAuthSystemPrompt',
+      type: 'textarea',
+      placeholder: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptPlaceholder',
+      help: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptHint',
+      showWhen: (values) => values.enable_claude_oauth_system_prompt_injection !== false,
+    },
+    {
+      key: 'claude_oauth_system_prompt_blocks',
+      label: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocks',
+      type: 'json',
+      placeholder: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocksPlaceholder',
+      help: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocksHint',
+      showWhen: (values) => values.enable_claude_oauth_system_prompt_injection !== false,
     },
     {
       key: 'enable_anthropic_cache_ttl_1h_injection',
