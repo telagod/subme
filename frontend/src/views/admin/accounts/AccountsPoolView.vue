@@ -10,17 +10,58 @@
           @input="debouncedReload"
         />
 
-        <Button
-          variant="outline"
-          size="icon"
-          class="w-8 h-8 rounded-lg"
-          :class="{ 'apv-spin': loading }"
-          :title="t('admin.accountsQuench.refresh')"
-          :aria-label="t('admin.accountsQuench.refresh')"
-          @click="handleManualRefresh"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
-        </Button>
+        <!-- 刷新分裂按钮: 点击=手动刷新, 旁边小箭头=自动刷新设置 -->
+        <div class="flex items-stretch">
+          <Button
+            variant="outline"
+            size="icon"
+            class="w-8 h-8 rounded-r-none border-r-0"
+            :class="[
+              { 'apv-spin': loading || autoRefresh.fetching.value },
+              autoRefresh.enabled.value && 'border-primary/50',
+            ]"
+            :title="t('admin.accountsQuench.refresh')"
+            :aria-label="t('admin.accountsQuench.refresh')"
+            @click="handleManualRefresh"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          </Button>
+          <DropdownMenu v-model:open="showAutoRefreshDropdown">
+            <DropdownMenuTrigger as-child>
+              <Button
+                variant="outline"
+                size="icon"
+                class="h-8 w-6 rounded-l-none px-0.5"
+                :class="autoRefresh.enabled.value && 'border-primary/50 text-primary'"
+                :aria-label="t('admin.accountsQuench.autoRefreshTitle')"
+              >
+                <span v-if="autoRefresh.enabled.value && autoRefresh.countdown.value > 0" class="font-mono text-[10px] tabular-nums">{{ autoRefresh.countdown.value }}</span>
+                <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-48">
+              <DropdownMenuLabel class="text-[11px] text-muted-foreground">{{ t('admin.accountsQuench.autoRefreshTitle') }}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                :model-value="autoRefresh.enabled.value"
+                @select="(e) => { e.preventDefault(); autoRefresh.setEnabled(!autoRefresh.enabled.value) }"
+                class="text-[12px]"
+              >
+                {{ t('admin.accountsQuench.enableAutoRefresh') }}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                v-for="sec in autoRefresh.intervals"
+                :key="sec"
+                :model-value="autoRefresh.intervalSeconds.value === sec"
+                @select="(e) => { e.preventDefault(); autoRefresh.setIntervalSeconds(sec) }"
+                class="text-[12px]"
+              >
+                {{ autoRefreshIntervalLabel(sec) }}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <!-- 工具菜单 -->
         <div class="relative" ref="toolsMenuRef">
@@ -73,67 +114,84 @@
           </Button>
         </div>
 
-        <Button variant="outline" size="sm" class="ml-auto gap-1.5 font-semibold" @click="showCreate = true">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          {{ t('admin.accountsQuench.addAccountBtn') }}
-        </Button>
-      </div>
+        <Separator orientation="vertical" class="h-6" />
 
-      <!-- ── 高级筛选栏 ── -->
-      <div class="flex items-start">
+        <!-- 高级筛选（移入 toolbar） -->
         <AdvancedFilter
           :fields="filterFields"
           v-model="filterValues"
           @apply="onFilterApply"
           @clear="onFilterClear"
         />
+
+        <Separator orientation="vertical" class="h-6" />
+
+        <!-- 供给总览条（inline strip,移入 toolbar） -->
+        <div class="inline-flex items-center gap-2.5 px-3 h-8 bg-card border border-border rounded-md shadow-sm text-xs">
+          <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+            <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryTotal') }}</span>
+            <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.total }}</span>
+          </span>
+          <span class="text-border select-none" aria-hidden="true">·</span>
+          <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+            <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryActive') }}</span>
+            <span
+              class="text-sm font-semibold font-mono tabular-nums"
+              :class="summary.active > 0 ? 'text-emerald-500' : 'text-muted-foreground'"
+            >{{ summary.active }}</span>
+          </span>
+          <span class="text-border select-none" aria-hidden="true">·</span>
+          <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+            <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryInactive') }}</span>
+            <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.inactive }}</span>
+          </span>
+          <span class="text-border select-none" aria-hidden="true">·</span>
+          <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryError') }}</span>
+            <span
+              class="text-sm font-semibold font-mono tabular-nums"
+              :class="summary.error > 0 ? 'text-destructive' : 'text-muted-foreground'"
+            >{{ summary.error }}</span>
+            <span
+              v-if="summary.error > 0"
+              class="apv-sdot-pulse w-[6px] h-[6px] rounded-full flex-shrink-0 bg-destructive"
+              aria-hidden="true"
+            ></span>
+          </span>
+          <span class="text-border select-none" aria-hidden="true">·</span>
+          <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
+            <span
+              class="text-sm font-semibold font-mono tabular-nums"
+              :class="summary.rate_limited > 0 ? 'text-amber-500' : 'text-muted-foreground'"
+            >{{ summary.rate_limited }}</span>
+            <span
+              v-if="summary.rate_limited > 0"
+              class="apv-sdot-pulse-warn w-[6px] h-[6px] rounded-full flex-shrink-0 bg-amber-500"
+              aria-hidden="true"
+            ></span>
+          </span>
+        </div>
+
+        <Button variant="outline" size="sm" class="ml-auto gap-1.5 font-semibold" @click="showCreate = true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          {{ t('admin.accountsQuench.addAccountBtn') }}
+        </Button>
       </div>
 
-      <!-- ── 供给总览条（inline strip） ── -->
-      <div class="inline-flex w-fit items-center gap-2.5 px-3 py-1.5 bg-card border border-border rounded-md shadow-sm text-xs">
-        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
-          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryTotal') }}</span>
-          <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.total }}</span>
-        </span>
-        <span class="text-border select-none" aria-hidden="true">·</span>
-        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
-          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryActive') }}</span>
-          <span
-            class="text-sm font-semibold font-mono tabular-nums"
-            :class="summary.active > 0 ? 'text-emerald-500' : 'text-muted-foreground'"
-          >{{ summary.active }}</span>
-        </span>
-        <span class="text-border select-none" aria-hidden="true">·</span>
-        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
-          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryInactive') }}</span>
-          <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.inactive }}</span>
-        </span>
-        <span class="text-border select-none" aria-hidden="true">·</span>
-        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryError') }}</span>
-          <span
-            class="text-sm font-semibold font-mono tabular-nums"
-            :class="summary.error > 0 ? 'text-destructive' : 'text-muted-foreground'"
-          >{{ summary.error }}</span>
-          <span
-            v-if="summary.error > 0"
-            class="apv-sdot-pulse w-[6px] h-[6px] rounded-full flex-shrink-0 bg-destructive"
-            aria-hidden="true"
-          ></span>
-        </span>
-        <span class="text-border select-none" aria-hidden="true">·</span>
-        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
-          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
-          <span
-            class="text-sm font-semibold font-mono tabular-nums"
-            :class="summary.rate_limited > 0 ? 'text-amber-500' : 'text-muted-foreground'"
-          >{{ summary.rate_limited }}</span>
-          <span
-            v-if="summary.rate_limited > 0"
-            class="apv-sdot-pulse-warn w-[6px] h-[6px] rounded-full flex-shrink-0 bg-amber-500"
-            aria-hidden="true"
-          ></span>
-        </span>
+      <!-- ── 列表待同步提示条 ── -->
+      <div
+        v-if="autoRefresh.hasPendingListSync.value"
+        class="flex w-fit items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-500"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+        <span>{{ t('admin.accountsQuench.listPendingSyncHint') }}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="h-auto px-1.5 py-0.5 text-xs text-amber-500 hover:bg-amber-500/15 hover:text-amber-500"
+          @click="syncPendingListChanges"
+        >{{ t('admin.accountsQuench.listPendingSyncAction') }}</Button>
       </div>
 
       <!-- ── 主体 ── -->
@@ -165,6 +223,9 @@
           :today-stats-loading="todayStatsLoading"
           :manual-refresh-token="manualRefreshToken"
           :toggling-schedulable="togglingSchedulable"
+          :hidden-columns="hiddenColumns"
+          :toggle-column="toggleColumn"
+          :reset-columns="resetColumns"
           @edit="openEdit"
           @delete="openDeleteDialog"
           @more="openActionMenu"
@@ -253,11 +314,21 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { AdvancedFilter } from '@/components/datatable'
 import type { FilterFieldDef, AdvancedFilterValues } from '@/components/datatable'
 import { useAccountPoolActions } from './useAccountPoolActions'
+import { useAccountAutoRefresh } from './useAccountAutoRefresh'
+import { useColumnVisibility } from '@/composables/useColumnVisibility'
 import type { Account, ClaudeModel, Proxy as AccountProxy, AdminGroup } from '@/types'
 import type { SelectOption } from '@/components/common/Select.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu'
 
 const CreateAccountModal          = defineAsyncComponent(() => import('@/components/account/CreateAccountModal.vue'))
 const EditAccountModal            = defineAsyncComponent(() => import('@/components/account/EditAccountModal.vue'))
@@ -387,12 +458,68 @@ const {
   handleToggleSchedulable, handleBulkDelete, handleBulkResetStatus, handleBulkRefreshToken,
   handleBulkToggleSchedulable, handleBulkEditSelected, handleExportData,
   showBulkEdit, bulkEditTarget, closeBulkEdit,
-} = useAccountPoolActions(accounts)
+} = useAccountPoolActions(accounts, {
+  params,
+  pagination,
+  // 行被本地移除（filter 不匹配）→ 标记列表待同步
+  onLocalListMutation: () => { autoRefresh?.markPendingListSync() },
+})
+
+// ── 列可见性（仅 table 模式生效，但 composable 可复用到其它表）──────────
+const DEFAULT_HIDDEN_COLUMNS = [
+  'today_stats', 'groups', 'proxy', 'priority',
+  'rate_multiplier', 'last_used_at', 'created_at',
+]
+const {
+  hiddenColumns,
+  toggleColumn,
+  resetToDefault: resetColumns,
+} = useColumnVisibility('account-pool-hidden-columns', DEFAULT_HIDDEN_COLUMNS)
 
 const load = async () => { await baseLoad(); await refreshTodayStats() }
 const reload = async () => { await baseReload(); await refreshTodayStats() }
-const handleManualRefresh = async () => { await reload(); manualRefreshToken.value++ }
+const handleManualRefresh = async () => {
+  await reload()
+  manualRefreshToken.value++
+  autoRefresh?.clearPendingListSync()
+}
 const handlePageChange = (page: number) => { basePageChange(page) }
+
+// ── 自动刷新（ETag 增量 + silent window + modal 暂停）──────────────────
+const showAutoRefreshDropdown = ref(false)
+const isAnyAccountModalOpen = () =>
+  showCreate.value || showEdit.value || showReAuth.value || showTest.value
+  || showStats.value || showTempUnsched.value || showDeleteDialog.value
+  || showExportDialog.value || showSync.value || showImportData.value
+  || showErrorPassthrough.value || showTLSProfiles.value
+  || showBulkEdit.value || showSchedule.value
+
+const autoRefresh = useAccountAutoRefresh({
+  accountsRef: accounts,
+  params,
+  pagination,
+  loading,
+  isModalOpen: isAnyAccountModalOpen,
+  shouldPause: () => showToolsMenu.value || showAutoRefreshDropdown.value || actionMenu.show,
+  onAfterRefresh: refreshTodayStats,
+  // 增量 merge 替换了某行，若该行正被其它 ref 引用则同步（避免 modal 数据残旧）
+  onAccountReplaced: (next) => {
+    if (editingAcc.value?.id === next.id) editingAcc.value = next
+    if (reAuthAcc.value?.id === next.id) reAuthAcc.value = next
+    if (testingAcc.value?.id === next.id) testingAcc.value = next
+    if (statsAcc.value?.id === next.id) statsAcc.value = next
+    if (tempUnschedAcc.value?.id === next.id) tempUnschedAcc.value = next
+    if (actionMenu.acc?.id === next.id) actionMenu.acc = next
+  },
+})
+
+const autoRefreshIntervalLabel = (sec: number) => t(`admin.accountsQuench.refreshInterval${sec}s`)
+
+const syncPendingListChanges = async () => {
+  autoRefresh.clearPendingListSync()
+  await reload()
+  manualRefreshToken.value++
+}
 
 const summary = computed(() => {
   const now = Date.now()
@@ -407,11 +534,17 @@ const summary = computed(() => {
   return { total: accounts.value.length, active, inactive, error, rate_limited }
 })
 
-const onAccountCreated = () => { showCreate.value = false; reload() }
+const onAccountCreated = () => {
+  showCreate.value = false
+  autoRefresh.enterSilentWindow()
+  reload()
+}
 const openEdit = (a: Account) => { editingAcc.value = a; showEdit.value = true }
 const handleAccountUpdated = (updated?: Account) => {
   showEdit.value = false; showReAuth.value = false; reAuthAcc.value = null
-  if (updated) patchInList(updated); else reload()
+  if (updated) patchInList(updated)
+  else reload()
+  autoRefresh.enterSilentWindow()
 }
 const openDeleteDialog = (a: Account) => { deletingAcc.value = a; showDeleteDialog.value = true }
 const confirmDelete = async () => {
@@ -441,6 +574,7 @@ const closeSchedule = () => {
 const onBulkEditSaved = () => {
   closeBulkEdit()
   selectedIds.value = []
+  autoRefresh.enterSilentWindow()
   reload()
 }
 

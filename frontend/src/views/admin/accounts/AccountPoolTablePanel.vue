@@ -63,9 +63,47 @@
       </div>
     </div>
 
+    <!-- 工具条: 列显隐配置 -->
+    <div class="flex items-center justify-end gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="outline" size="sm" class="h-7 gap-1.5 text-[12px]">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+            {{ t('admin.accountsQuench.columnSettingsLabel') }}
+            <span
+              v-if="hiddenCount > 0"
+              class="ml-0.5 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-primary/15 px-1 font-mono text-[10px] text-primary"
+            >{{ hiddenCount }}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-56">
+          <DropdownMenuLabel class="text-[11px] text-muted-foreground">
+            {{ t('admin.accountsQuench.columnSettingsTitle') }}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem
+            v-for="col in toggleableColumns"
+            :key="col.key"
+            :model-value="isColumnVisible(col.key)"
+            @select="(e) => { e.preventDefault(); toggleColumn?.(col.key) }"
+            class="text-[12px]"
+          >
+            {{ col.title }}
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            class="text-[12px] text-muted-foreground"
+            @select="(e) => { e.preventDefault(); resetColumns?.() }"
+          >
+            {{ t('admin.accountsQuench.columnSettingsReset') }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
     <!-- DataTableV2 -->
     <DataTableV2
-      :columns="(columns as any)"
+      :columns="(visibleColumns as any)"
       :rows="(accounts as any[])"
       :total="total"
       :loading="loading"
@@ -206,6 +244,15 @@ import AccountGroupsCell from '@/components/account/AccountGroupsCell.vue'
 import { formatDateTime, formatRelativeTime } from '@/utils/format'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu'
 
 const props = defineProps<{
   accounts: Account[]
@@ -222,6 +269,12 @@ const props = defineProps<{
   todayStatsLoading?: boolean
   manualRefreshToken?: number
   togglingSchedulable: number | null
+  /** 隐藏列 key 集合 (来自 useColumnVisibility) */
+  hiddenColumns?: Set<string>
+  /** 切换列显隐 */
+  toggleColumn?: (key: string) => void
+  /** 重置为默认（可选） */
+  resetColumns?: () => void
 }>()
 
 const emit = defineEmits<{
@@ -245,8 +298,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const columns = computed<ColumnDef<Record<string, unknown>>[]>(() => [
-  { key: 'name',            title: t('admin.accountTablePanel.colName'),        sortable: true  },
+// 列定义：lockHidden 表示该列不可由用户切换（永远显示，如 name/actions）
+type AccountColumnDef = ColumnDef<Record<string, unknown>> & { lockHidden?: boolean }
+
+const columns = computed<AccountColumnDef[]>(() => [
+  { key: 'name',            title: t('admin.accountTablePanel.colName'),        sortable: true,  lockHidden: true },
   { key: 'capacity',        title: t('admin.accountTablePanel.colCapacity')                     },
   { key: 'status',          title: t('admin.accountTablePanel.colStatus'),      sortable: true,  width: '90px' },
   { key: 'schedulable',     title: '⚙',                                         sortable: true,  width: '44px' },
@@ -258,8 +314,28 @@ const columns = computed<ColumnDef<Record<string, unknown>>[]>(() => [
   { key: 'rate_multiplier', title: t('admin.accountTablePanel.colMultiplier'),  sortable: true,  width: '70px', align: 'right' },
   { key: 'last_used_at',    title: t('admin.accountTablePanel.colLastUsed'),    sortable: true,  width: '110px' },
   { key: 'created_at',      title: t('admin.accountTablePanel.colCreatedAt'),   sortable: true,  width: '110px' },
-  { key: 'actions',         title: '',                                                           width: '88px' },
+  { key: 'actions',         title: '',                                                           width: '88px', lockHidden: true },
 ])
+
+// 可切换的列（去掉锁定列） + 当前隐藏的数量
+const toggleableColumns = computed(() => columns.value.filter(c => !c.lockHidden))
+const hiddenCount = computed(() => {
+  if (!props.hiddenColumns) return 0
+  let n = 0
+  for (const col of toggleableColumns.value) {
+    if (props.hiddenColumns.has(col.key)) n++
+  }
+  return n
+})
+
+function isColumnVisible(key: string): boolean {
+  return !props.hiddenColumns?.has(key)
+}
+
+// 过滤掉用户隐藏的列；lockHidden 列强制保留
+const visibleColumns = computed(() =>
+  columns.value.filter(c => c.lockHidden || isColumnVisible(c.key))
+)
 
 const progressPercent = computed(() => {
   if (!props.bulkDeleteProgress) return 0
