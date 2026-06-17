@@ -89,50 +89,51 @@
         />
       </div>
 
-      <!-- ── 供给总览条 ── -->
-      <div class="flex items-center gap-0.5 px-4 py-2.5 bg-card border border-border rounded-[10px] shadow-sm">
-        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
-          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-muted-foreground"></span>
-          <div class="flex flex-col">
-            <span class="text-[20px] font-bold font-mono tabular-nums text-foreground leading-[1.2]">{{ summary.total }}</span>
-            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryTotal') }}</span>
-          </div>
-        </div>
-        <Separator orientation="vertical" class="h-7 mx-1" />
-        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
-          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-emerald-500"></span>
-          <div class="flex flex-col">
-            <span class="text-[20px] font-bold font-mono tabular-nums text-emerald-500 leading-[1.2]">{{ summary.active }}</span>
-            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryActive') }}</span>
-          </div>
-        </div>
-        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative">
-          <span class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-muted-foreground"></span>
-          <div class="flex flex-col">
-            <span class="text-[20px] font-bold font-mono tabular-nums text-muted-foreground leading-[1.2]">{{ summary.inactive }}</span>
-            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryInactive') }}</span>
-          </div>
-        </div>
-        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative rounded-lg" :class="{ 'bg-destructive/5': summary.error > 0 }">
+      <!-- ── 供给总览条（inline strip） ── -->
+      <div class="inline-flex w-fit items-center gap-2.5 px-3 py-1.5 bg-card border border-border rounded-md shadow-sm text-xs">
+        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryTotal') }}</span>
+          <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.total }}</span>
+        </span>
+        <span class="text-border select-none" aria-hidden="true">·</span>
+        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryActive') }}</span>
           <span
-            class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-destructive"
-            :class="{ 'apv-sdot-pulse': summary.error > 0 }"
-          ></span>
-          <div class="flex flex-col">
-            <span class="text-[20px] font-bold font-mono tabular-nums leading-[1.2]" :class="summary.error > 0 ? 'text-destructive' : 'text-muted-foreground'">{{ summary.error }}</span>
-            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryError') }}</span>
-          </div>
-        </div>
-        <div class="flex flex-row items-center gap-1.5 px-3.5 py-1 relative rounded-lg" :class="{ 'bg-amber-500/5': summary.rate_limited > 0 }">
+            class="text-sm font-semibold font-mono tabular-nums"
+            :class="summary.active > 0 ? 'text-emerald-500' : 'text-muted-foreground'"
+          >{{ summary.active }}</span>
+        </span>
+        <span class="text-border select-none" aria-hidden="true">·</span>
+        <span class="inline-flex items-baseline gap-1.5 whitespace-nowrap">
+          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryInactive') }}</span>
+          <span class="text-sm font-semibold font-mono tabular-nums text-foreground">{{ summary.inactive }}</span>
+        </span>
+        <span class="text-border select-none" aria-hidden="true">·</span>
+        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryError') }}</span>
           <span
-            class="w-[7px] h-[7px] rounded-full flex-shrink-0 bg-amber-500"
-            :class="{ 'apv-sdot-pulse-warn': summary.rate_limited > 0 }"
+            class="text-sm font-semibold font-mono tabular-nums"
+            :class="summary.error > 0 ? 'text-destructive' : 'text-muted-foreground'"
+          >{{ summary.error }}</span>
+          <span
+            v-if="summary.error > 0"
+            class="apv-sdot-pulse w-[6px] h-[6px] rounded-full flex-shrink-0 bg-destructive"
+            aria-hidden="true"
           ></span>
-          <div class="flex flex-col">
-            <span class="text-[20px] font-bold font-mono tabular-nums leading-[1.2]" :class="summary.rate_limited > 0 ? 'text-amber-500' : 'text-muted-foreground'">{{ summary.rate_limited }}</span>
-            <span class="text-[10px] text-muted-foreground tracking-[.04em] whitespace-nowrap">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
-          </div>
-        </div>
+        </span>
+        <span class="text-border select-none" aria-hidden="true">·</span>
+        <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <span class="text-muted-foreground">{{ t('admin.accountsQuench.summaryRateLimited') }}</span>
+          <span
+            class="text-sm font-semibold font-mono tabular-nums"
+            :class="summary.rate_limited > 0 ? 'text-amber-500' : 'text-muted-foreground'"
+          >{{ summary.rate_limited }}</span>
+          <span
+            v-if="summary.rate_limited > 0"
+            class="apv-sdot-pulse-warn w-[6px] h-[6px] rounded-full flex-shrink-0 bg-amber-500"
+            aria-hidden="true"
+          ></span>
+        </span>
       </div>
 
       <!-- ── 主体 ── -->
@@ -210,7 +211,26 @@
     <AccountTestModal    v-if="showTest"     :show="showTest"     :account="testingAcc"    @close="showTest=false; testingAcc=null" />
     <AccountStatsModal   v-if="showStats"    :show="showStats"    :account="statsAcc"      @close="showStats=false; statsAcc=null" />
     <TempUnschedModal    v-if="showTempUnsched" :show="showTempUnsched" :account="tempUnschedAcc" @close="showTempUnsched=false" @reset="a => { showTempUnsched=false; patchInList(a) }" />
-    <AccountActionMenu   :show="actionMenu.show" :account="actionMenu.acc" :position="actionMenu.pos" @close="actionMenu.show=false" @test="a=>{testingAcc=a;showTest=true}" @stats="a=>{statsAcc=a;showStats=true}" @reauth="a=>{reAuthAcc=a;showReAuth=true}" @refresh-token="handleRefreshOne" @recover-state="handleRecoverState" @reset-quota="handleResetQuota" @set-privacy="handleSetPrivacy" @schedule="a=>router.push({ path:'/admin/accounts/legacy', query:{ schedule_id: a.id } })" />
+    <AccountActionMenu   :show="actionMenu.show" :account="actionMenu.acc" :position="actionMenu.pos" @close="actionMenu.show=false" @test="a=>{testingAcc=a;showTest=true}" @stats="a=>{statsAcc=a;showStats=true}" @reauth="a=>{reAuthAcc=a;showReAuth=true}" @refresh-token="handleRefreshOne" @recover-state="handleRecoverState" @reset-quota="handleResetQuota" @set-privacy="handleSetPrivacy" @schedule="openSchedule" />
+    <BulkEditAccountModal
+      v-if="showBulkEdit"
+      :show="showBulkEdit"
+      :account-ids="bulkEditTarget?.accountIds ?? []"
+      :selected-platforms="bulkEditTarget?.selectedPlatforms ?? []"
+      :selected-types="bulkEditTarget?.selectedTypes ?? []"
+      :target="bulkEditTarget ?? undefined"
+      :proxies="proxies"
+      :groups="groups"
+      @close="closeBulkEdit"
+      @updated="onBulkEditSaved"
+    />
+    <ScheduledTestsPanel
+      v-if="showSchedule"
+      :show="showSchedule"
+      :account-id="scheduleAccount?.id ?? null"
+      :model-options="scheduleModelOptions"
+      @close="closeSchedule"
+    />
     <SyncFromCrsModal    v-if="showSync"     :show="showSync"     @close="showSync=false"  @synced="reload" />
     <ImportDataModal     v-if="showImportData" :show="showImportData" @close="showImportData=false" @imported="() => { showImportData=false; reload() }" />
     <ConfirmDialog :show="showDeleteDialog" :title="t('admin.accountsQuench.deleteTitle')" :message="t('admin.accountsQuench.deleteConfirmFmt', { name: deletingAcc?.name })" :confirm-text="t('common.delete')" :cancel-text="t('admin.accountsQuench.cancelBtn')" :danger="true" @confirm="confirmDelete" @cancel="showDeleteDialog=false" />
@@ -223,7 +243,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import { adminAPI } from '@/api/admin'
 import { useTableLoader } from '@/composables/useTableLoader'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -234,7 +253,8 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { AdvancedFilter } from '@/components/datatable'
 import type { FilterFieldDef, AdvancedFilterValues } from '@/components/datatable'
 import { useAccountPoolActions } from './useAccountPoolActions'
-import type { Account, Proxy as AccountProxy, AdminGroup } from '@/types'
+import type { Account, ClaudeModel, Proxy as AccountProxy, AdminGroup } from '@/types'
+import type { SelectOption } from '@/components/common/Select.vue'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -249,9 +269,10 @@ const SyncFromCrsModal            = defineAsyncComponent(() => import('@/compone
 const ImportDataModal             = defineAsyncComponent(() => import('@/components/admin/account/ImportDataModal.vue'))
 const ErrorPassthroughRulesModal  = defineAsyncComponent(() => import('@/components/admin/ErrorPassthroughRulesModal.vue'))
 const TLSFingerprintProfilesModal = defineAsyncComponent(() => import('@/components/admin/TLSFingerprintProfilesModal.vue'))
+const BulkEditAccountModal        = defineAsyncComponent(() => import('@/components/account/BulkEditAccountModal.vue'))
+const ScheduledTestsPanel         = defineAsyncComponent(() => import('@/components/admin/account/ScheduledTestsPanel.vue'))
 
 const { t } = useI18n()
-const router = useRouter()
 const viewMode = ref<'matrix' | 'table'>('matrix')
 const proxies = ref<AccountProxy[]>([]), groups = ref<AdminGroup[]>([])
 const selectedIds = ref<number[]>([]), sortBy = ref('name'), sortOrder = ref<'asc' | 'desc'>('asc')
@@ -270,6 +291,11 @@ const testingAcc = ref<Account | null>(null), statsAcc = ref<Account | null>(nul
 const tempUnschedAcc = ref<Account | null>(null), deletingAcc = ref<Account | null>(null)
 
 const actionMenu = reactive<{ show: boolean; acc: Account | null; pos: any }>({ show: false, acc: null, pos: null })
+
+// ── ScheduledTests 状态（直接挂模态，不再 router.push 旧页）──
+const showSchedule = ref(false)
+const scheduleAccount = ref<Account | null>(null)
+const scheduleModelOptions = ref<SelectOption[]>([])
 
 // ── 高级筛选状态 ──────────────────────────────────────────────────
 const filterValues = ref<AdvancedFilterValues>({})
@@ -359,7 +385,8 @@ const {
   bulkDeleteProgress, refreshTodayStats, patchInList,
   handleToggleStatus, handleRefreshOne, handleRecoverState, handleResetQuota, handleSetPrivacy,
   handleToggleSchedulable, handleBulkDelete, handleBulkResetStatus, handleBulkRefreshToken,
-  handleBulkToggleSchedulable, handleBulkEditSelected, handleExportData
+  handleBulkToggleSchedulable, handleBulkEditSelected, handleExportData,
+  showBulkEdit, bulkEditTarget, closeBulkEdit,
 } = useAccountPoolActions(accounts)
 
 const load = async () => { await baseLoad(); await refreshTodayStats() }
@@ -394,6 +421,29 @@ const confirmDelete = async () => {
     showDeleteDialog.value = false; deletingAcc.value = null; reload()
   } catch { /* 静默 */ }
 }
+const openSchedule = async (a: Account) => {
+  scheduleAccount.value = a
+  scheduleModelOptions.value = []
+  showSchedule.value = true
+  try {
+    const models = await adminAPI.accounts.getAvailableModels(a.id)
+    scheduleModelOptions.value = models.map((m: ClaudeModel) => ({ value: m.id, label: m.display_name || m.id }))
+  } catch {
+    scheduleModelOptions.value = []
+  }
+}
+const closeSchedule = () => {
+  showSchedule.value = false
+  scheduleAccount.value = null
+  scheduleModelOptions.value = []
+}
+
+const onBulkEditSaved = () => {
+  closeBulkEdit()
+  selectedIds.value = []
+  reload()
+}
+
 const openActionMenu = (a: Account, e: MouseEvent) => {
   actionMenu.acc = a
   const rect = (e.currentTarget as HTMLElement)?.getBoundingClientRect()

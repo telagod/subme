@@ -3,14 +3,23 @@
  * 涵盖：单账号 CRUD、批量操作、今日统计、调度、导出
  */
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
-import type { Account, WindowStats } from '@/types'
+import type { Account, AccountPlatform, AccountType, WindowStats } from '@/types'
+
+export type BulkEditTarget = {
+  mode: 'selected'
+  accountIds: number[]
+  selectedPlatforms: AccountPlatform[]
+  selectedTypes: AccountType[]
+}
 
 export function useAccountPoolActions(accounts: { value: Account[] }) {
-  const router   = useRouter()
   const appStore = useAppStore()
+
+  // ── BulkEdit 状态（直接挂模态，不再 router.push 旧页）──────────────────
+  const showBulkEdit    = ref(false)
+  const bulkEditTarget  = ref<BulkEditTarget | null>(null)
 
   // ── 操作中的账号 ID 集合 ──────────────────────────────────────────────
   const operatingSet    = reactive<Set<number>>(new Set())
@@ -203,10 +212,23 @@ export function useAccountPoolActions(accounts: { value: Account[] }) {
   }
 
   const handleBulkEditSelected = (selectedIds: number[]) => {
-    router.push({
-      path: '/admin/accounts/legacy',
-      query: { bulk_ids: selectedIds.join(',') }
-    })
+    if (selectedIds.length === 0) return
+    const idSet = new Set(selectedIds)
+    const selected = accounts.value.filter(a => idSet.has(a.id))
+    const platforms = Array.from(new Set(selected.map(a => a.platform))) as AccountPlatform[]
+    const types     = Array.from(new Set(selected.map(a => a.type)))     as AccountType[]
+    bulkEditTarget.value = {
+      mode: 'selected',
+      accountIds: [...selectedIds],
+      selectedPlatforms: platforms,
+      selectedTypes: types,
+    }
+    showBulkEdit.value = true
+  }
+
+  const closeBulkEdit = () => {
+    showBulkEdit.value = false
+    bulkEditTarget.value = null
   }
 
   // ── 导出 ─────────────────────────────────────────────────────────────
@@ -255,5 +277,8 @@ export function useAccountPoolActions(accounts: { value: Account[] }) {
     handleBulkToggleSchedulable,
     handleBulkEditSelected,
     handleExportData,
+    showBulkEdit,
+    bulkEditTarget,
+    closeBulkEdit,
   }
 }
