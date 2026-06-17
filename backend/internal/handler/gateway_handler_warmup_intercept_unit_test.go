@@ -70,6 +70,16 @@ func (f *fakeGroupRepo) GetByID(context.Context, int64) (*service.Group, error) 
 func (f *fakeGroupRepo) GetByIDLite(context.Context, int64) (*service.Group, error) {
 	return f.group, nil
 }
+func (f *fakeGroupRepo) GetByIDsLite(_ context.Context, ids []int64) (map[int64]*service.Group, error) {
+	out := make(map[int64]*service.Group, len(ids))
+	if f.group == nil {
+		return out, nil
+	}
+	for _, id := range ids {
+		out[id] = f.group
+	}
+	return out, nil
+}
 func (f *fakeGroupRepo) Update(context.Context, *service.Group) error          { return nil }
 func (f *fakeGroupRepo) Delete(context.Context, int64) error                   { return nil }
 func (f *fakeGroupRepo) DeleteCascade(context.Context, int64) ([]int64, error) { return nil, nil }

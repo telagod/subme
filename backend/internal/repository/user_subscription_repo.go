@@ -169,6 +169,55 @@ func (r *userSubscriptionRepository) ListActiveByUserID(ctx context.Context, use
 	return userSubscriptionEntitiesToService(subs), nil
 }
 
+// ListActiveByUserIDs batch-loads active subscriptions for a set of user IDs in
+// a single query (IN clause), bucketing the result by user_id. This avoids the
+// N+1 pattern of calling ListActiveByUserID once per user from callers that
+// iterate over a user list.
+func (r *userSubscriptionRepository) ListActiveByUserIDs(ctx context.Context, userIDs []int64) (map[int64][]service.UserSubscription, error) {
+	result := make(map[int64][]service.UserSubscription, len(userIDs))
+	if len(userIDs) == 0 {
+		return result, nil
+	}
+
+	// de-duplicate to keep the IN clause minimal
+	seen := make(map[int64]struct{}, len(userIDs))
+	unique := make([]int64, 0, len(userIDs))
+	for _, id := range userIDs {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		unique = append(unique, id)
+	}
+	if len(unique) == 0 {
+		return result, nil
+	}
+
+	client := clientFromContext(ctx, r.client)
+	subs, err := client.UserSubscription.Query().
+		Where(
+			usersubscription.UserIDIn(unique...),
+			usersubscription.StatusEQ(service.SubscriptionStatusActive),
+			usersubscription.ExpiresAtGT(time.Now()),
+		).
+		WithGroup().
+		Order(dbent.Desc(usersubscription.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	converted := userSubscriptionEntitiesToService(subs)
+	for i := range converted {
+		uid := converted[i].UserID
+		result[uid] = append(result[uid], converted[i])
+	}
+	return result, nil
+}
+
 func (r *userSubscriptionRepository) ListByGroupID(ctx context.Context, groupID int64, params pagination.PaginationParams) ([]service.UserSubscription, *pagination.PaginationResult, error) {
 	client := clientFromContext(ctx, r.client)
 	q := client.UserSubscription.Query().Where(usersubscription.GroupIDEQ(groupID))

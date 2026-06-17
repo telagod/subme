@@ -33,12 +33,20 @@ func (s *userGroupRateRepoStubForGroupRate) GetByUserID(_ context.Context, _ int
 	panic("unexpected GetByUserID call")
 }
 
+func (s *userGroupRateRepoStubForGroupRate) GetByUserIDs(_ context.Context, _ []int64) (map[int64]map[int64]float64, error) {
+	panic("unexpected GetByUserIDs call")
+}
+
 func (s *userGroupRateRepoStubForGroupRate) GetByUserAndGroup(_ context.Context, _, _ int64) (*float64, error) {
 	panic("unexpected GetByUserAndGroup call")
 }
 
 func (s *userGroupRateRepoStubForGroupRate) GetRPMOverrideByUserAndGroup(_ context.Context, _, _ int64) (*int, error) {
 	panic("unexpected GetRPMOverrideByUserAndGroup call")
+}
+
+func (s *userGroupRateRepoStubForGroupRate) GetRPMOverridesByUserAndGroups(_ context.Context, _ int64, _ []int64) (map[int64]int, error) {
+	panic("unexpected GetRPMOverridesByUserAndGroups call")
 }
 
 func (s *userGroupRateRepoStubForGroupRate) GetByGroupID(_ context.Context, groupID int64) ([]UserGroupRateEntry, error) {

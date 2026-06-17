@@ -169,6 +169,58 @@ func (r *userGroupRateRepository) GetRPMOverrideByUserAndGroup(ctx context.Conte
 	return &v, nil
 }
 
+// GetRPMOverridesByUserAndGroups 批量获取某用户在多个分组的 rpm_override。
+// 仅返回非 NULL 项；调用方按 map 命中与否判断是否存在 override，避免在 group 循环
+// 里逐次调用 GetRPMOverrideByUserAndGroup 的 N+1 模式。
+func (r *userGroupRateRepository) GetRPMOverridesByUserAndGroups(ctx context.Context, userID int64, groupIDs []int64) (map[int64]int, error) {
+	result := make(map[int64]int, len(groupIDs))
+	if userID <= 0 || len(groupIDs) == 0 {
+		return result, nil
+	}
+
+	// 去重
+	seen := make(map[int64]struct{}, len(groupIDs))
+	unique := make([]int64, 0, len(groupIDs))
+	for _, id := range groupIDs {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		unique = append(unique, id)
+	}
+	if len(unique) == 0 {
+		return result, nil
+	}
+
+	rows, err := r.sql.QueryContext(ctx, `
+		SELECT group_id, rpm_override
+		FROM user_group_rate_multipliers
+		WHERE user_id = $1 AND group_id = ANY($2) AND rpm_override IS NOT NULL
+	`, userID, pq.Array(unique))
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var gid int64
+		var rpm sql.NullInt32
+		if err := rows.Scan(&gid, &rpm); err != nil {
+			return nil, err
+		}
+		if rpm.Valid {
+			result[gid] = int(rpm.Int32)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // SyncUserGroupRates 同步用户的分组专属 rate_multiplier。
 //   - 传入空 map：清空该用户所有行的 rate_multiplier；若 rpm_override 也为 NULL 则整行删除。
 //   - 值为 nil：清空对应行的 rate_multiplier（保留 rpm_override）。

@@ -17,6 +17,10 @@ type UserSubscriptionRepository interface {
 
 	ListByUserID(ctx context.Context, userID int64) ([]UserSubscription, error)
 	ListActiveByUserID(ctx context.Context, userID int64) ([]UserSubscription, error)
+	// ListActiveByUserIDs batch-loads active subscriptions for multiple users in a
+	// single query. Each entry in the returned map is keyed by user_id; users
+	// without active subscriptions may be absent from the map.
+	ListActiveByUserIDs(ctx context.Context, userIDs []int64) (map[int64][]UserSubscription, error)
 	ListByGroupID(ctx context.Context, groupID int64, params pagination.PaginationParams) ([]UserSubscription, *pagination.PaginationResult, error)
 	List(ctx context.Context, params pagination.PaginationParams, userID, groupID *int64, status, platform, sortBy, sortOrder string, opts ...ListSubscriptionOption) ([]UserSubscription, *pagination.PaginationResult, error)
 

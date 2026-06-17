@@ -93,6 +93,10 @@ func (s *userGroupRateRepoStubForListUsers) GetRPMOverrideByUserAndGroup(_ conte
 	panic("unexpected GetRPMOverrideByUserAndGroup call")
 }
 
+func (s *userGroupRateRepoStubForListUsers) GetRPMOverridesByUserAndGroups(_ context.Context, _ int64, _ []int64) (map[int64]int, error) {
+	panic("unexpected GetRPMOverridesByUserAndGroups call")
+}
+
 func (s *userGroupRateRepoStubForListUsers) SyncUserGroupRates(_ context.Context, userID int64, rates map[int64]*float64) error {
 	panic("unexpected SyncUserGroupRates call")
 }
@@ -121,7 +125,7 @@ func (s *userGroupRateRepoStubForListUsers) DeleteByUserID(_ context.Context, us
 	panic("unexpected DeleteByUserID call")
 }
 
-func TestAdminService_ListUsers_BatchRateFallbackToSingle(t *testing.T) {
+func TestAdminService_ListUsers_BatchRateLoadsViaSingleQuery(t *testing.T) {
 	userRepo := &userRepoStubForListUsers{
 		users: []User{
 			{ID: 101, Username: "u1"},
@@ -129,8 +133,7 @@ func TestAdminService_ListUsers_BatchRateFallbackToSingle(t *testing.T) {
 		},
 	}
 	rateRepo := &userGroupRateRepoStubForListUsers{
-		batchErr: errors.New("batch unavailable"),
-		singleData: map[int64]map[int64]float64{
+		batchData: map[int64]map[int64]float64{
 			101: {11: 1.1},
 			202: {22: 2.2},
 		},
@@ -145,9 +148,31 @@ func TestAdminService_ListUsers_BatchRateFallbackToSingle(t *testing.T) {
 	require.Equal(t, int64(2), total)
 	require.Len(t, users, 2)
 	require.Equal(t, 1, rateRepo.batchCalls)
-	require.ElementsMatch(t, []int64{101, 202}, rateRepo.singleCall)
+	require.Empty(t, rateRepo.singleCall, "per-user fallback path must not be invoked")
 	require.Equal(t, 1.1, users[0].GroupRates[11])
 	require.Equal(t, 2.2, users[1].GroupRates[22])
+}
+
+func TestAdminService_ListUsers_BatchRateErrorIsNonFatal(t *testing.T) {
+	userRepo := &userRepoStubForListUsers{
+		users: []User{
+			{ID: 101, Username: "u1"},
+		},
+	}
+	rateRepo := &userGroupRateRepoStubForListUsers{
+		batchErr: errors.New("batch unavailable"),
+	}
+	svc := &adminServiceImpl{
+		userRepo:          userRepo,
+		userGroupRateRepo: rateRepo,
+	}
+
+	users, total, err := svc.ListUsers(context.Background(), 1, 20, UserListFilters{}, "", "")
+	require.NoError(t, err, "rate batch error must not abort the list response")
+	require.Equal(t, int64(1), total)
+	require.Len(t, users, 1)
+	require.Equal(t, 1, rateRepo.batchCalls)
+	require.Empty(t, rateRepo.singleCall, "per-user fallback path must not be invoked")
 }
 
 func TestAdminService_ListUsers_PassesSortParams(t *testing.T) {

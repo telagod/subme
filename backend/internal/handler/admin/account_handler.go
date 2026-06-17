@@ -1472,15 +1472,27 @@ func (h *AccountHandler) BatchUpdateCredentials(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// 阶段一：预验证所有账号存在，收集 credentials
+	// 阶段一：批量预验证所有账号存在，收集 credentials。
+	// 用 GetAccountsByIDs 一次性拉取，避免每账号一次 SELECT 的 N+1 模式。
 	type accountUpdate struct {
 		ID          int64
 		Credentials map[string]any
 	}
+	accounts, err := h.adminService.GetAccountsByIDs(ctx, req.AccountIDs)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	accountByID := make(map[int64]*service.Account, len(accounts))
+	for _, acc := range accounts {
+		if acc != nil {
+			accountByID[acc.ID] = acc
+		}
+	}
 	updates := make([]accountUpdate, 0, len(req.AccountIDs))
 	for _, accountID := range req.AccountIDs {
-		account, err := h.adminService.GetAccount(ctx, accountID)
-		if err != nil {
+		account, ok := accountByID[accountID]
+		if !ok || account == nil {
 			response.Error(c, 404, fmt.Sprintf("Account %d not found", accountID))
 			return
 		}

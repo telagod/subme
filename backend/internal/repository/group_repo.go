@@ -115,6 +115,45 @@ func (r *groupRepository) GetByIDLite(ctx context.Context, id int64) (*service.G
 	return groupEntityToService(m), nil
 }
 
+// GetByIDsLite batch-loads multiple groups in a single IN-clause query.
+// Returns a map keyed by group ID; missing IDs are absent (no error). Mirrors
+// GetByIDLite semantics: AccountCount is not populated.
+func (r *groupRepository) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*service.Group, error) {
+	result := make(map[int64]*service.Group, len(ids))
+	if len(ids) == 0 {
+		return result, nil
+	}
+
+	// de-duplicate input IDs so the IN clause stays minimal
+	seen := make(map[int64]struct{}, len(ids))
+	unique := make([]int64, 0, len(ids))
+	for _, id := range ids {
+		if id <= 0 {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		unique = append(unique, id)
+	}
+	if len(unique) == 0 {
+		return result, nil
+	}
+
+	rows, err := r.client.Group.Query().
+		Where(group.IDIn(unique...)).
+		All(ctx)
+	if err != nil {
+		return nil, translatePersistenceError(err, nil, nil)
+	}
+
+	for _, m := range rows {
+		result[m.ID] = groupEntityToService(m)
+	}
+	return result, nil
+}
+
 func (r *groupRepository) Update(ctx context.Context, groupIn *service.Group) error {
 	builder := r.client.Group.UpdateOneID(groupIn.ID).
 		SetName(groupIn.Name).

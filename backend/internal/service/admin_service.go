@@ -560,10 +560,6 @@ type adminServiceImpl struct {
 	runtimeBlocker       AccountRuntimeBlocker
 }
 
-type userGroupRateBatchReader interface {
-	GetByUserIDs(ctx context.Context, userIDs []int64) (map[int64]map[int64]float64, error)
-}
-
 // NewAdminService creates a new AdminService
 func NewAdminService(
 	userRepo UserRepository,
@@ -628,43 +624,24 @@ func (s *adminServiceImpl) ListUsers(ctx context.Context, page, pageSize int, fi
 			}
 		}
 	}
-	// 批量加载用户专属分组倍率
+	// 批量加载用户专属分组倍率（一次 IN 查询消除 N+1）
 	if s.userGroupRateRepo != nil && len(users) > 0 {
-		if batchRepo, ok := s.userGroupRateRepo.(userGroupRateBatchReader); ok {
-			userIDs := make([]int64, 0, len(users))
+		userIDs := make([]int64, 0, len(users))
+		for i := range users {
+			userIDs = append(userIDs, users[i].ID)
+		}
+		ratesByUser, err := s.userGroupRateRepo.GetByUserIDs(ctx, userIDs)
+		if err != nil {
+			logger.LegacyPrintf("service.admin", "failed to load user group rates in batch: err=%v", err)
+		} else {
 			for i := range users {
-				userIDs = append(userIDs, users[i].ID)
-			}
-			ratesByUser, err := batchRepo.GetByUserIDs(ctx, userIDs)
-			if err != nil {
-				logger.LegacyPrintf("service.admin", "failed to load user group rates in batch: err=%v", err)
-				s.loadUserGroupRatesOneByOne(ctx, users)
-			} else {
-				for i := range users {
-					if rates, ok := ratesByUser[users[i].ID]; ok {
-						users[i].GroupRates = rates
-					}
+				if rates, ok := ratesByUser[users[i].ID]; ok {
+					users[i].GroupRates = rates
 				}
 			}
-		} else {
-			s.loadUserGroupRatesOneByOne(ctx, users)
 		}
 	}
 	return users, result.Total, nil
-}
-
-func (s *adminServiceImpl) loadUserGroupRatesOneByOne(ctx context.Context, users []User) {
-	if s.userGroupRateRepo == nil {
-		return
-	}
-	for i := range users {
-		rates, err := s.userGroupRateRepo.GetByUserID(ctx, users[i].ID)
-		if err != nil {
-			logger.LegacyPrintf("service.admin", "failed to load user group rates: user_id=%d err=%v", users[i].ID, err)
-			continue
-		}
-		users[i].GroupRates = rates
-	}
 }
 
 func (s *adminServiceImpl) GetUser(ctx context.Context, id int64) (*User, error) {
@@ -1079,6 +1056,28 @@ func (s *adminServiceImpl) GetUserRPMStatus(ctx context.Context, userID int64) (
 	}
 	sort.Slice(groupIDs, func(i, j int) bool { return groupIDs[i] < groupIDs[j] })
 
+	// 批量加载分组元数据，消除 GetByIDLite 的 N+1
+	groupMetaByID := map[int64]*Group{}
+	if s.groupRepo != nil && len(groupIDs) > 0 {
+		batchGroups, groupErr := s.groupRepo.GetByIDsLite(ctx, groupIDs)
+		if groupErr != nil {
+			logger.LegacyPrintf("service.admin", "failed to batch load group rpm status metadata: user_id=%d err=%v", userID, groupErr)
+		} else {
+			groupMetaByID = batchGroups
+		}
+	}
+
+	// 批量加载用户在所有相关分组上的 rpm_override，消除 GetRPMOverrideByUserAndGroup 的 N+1
+	overridesByGroup := map[int64]int{}
+	if s.userGroupRateRepo != nil && len(groupIDs) > 0 {
+		batchOverrides, overrideErr := s.userGroupRateRepo.GetRPMOverridesByUserAndGroups(ctx, userID, groupIDs)
+		if overrideErr != nil {
+			logger.LegacyPrintf("service.admin", "failed to batch load rpm overrides: user_id=%d err=%v", userID, overrideErr)
+		} else {
+			overridesByGroup = batchOverrides
+		}
+	}
+
 	var perGroup []UserGroupRPMStatus
 	for _, groupID := range groupIDs {
 		used, getErr := s.userRPMCache.GetUserGroupRPM(ctx, userID, groupID)
@@ -1091,24 +1090,15 @@ func (s *adminServiceImpl) GetUserRPMStatus(ctx context.Context, userID int64) (
 			Used:    used,
 		}
 
-		if s.groupRepo != nil {
-			if group, groupErr := s.groupRepo.GetByIDLite(ctx, groupID); groupErr == nil && group != nil {
-				entry.GroupName = group.Name
-				entry.Limit = group.RPMLimit
-				entry.Source = "group"
-			} else if groupErr != nil {
-				logger.LegacyPrintf("service.admin", "failed to get group rpm status metadata: group_id=%d err=%v", groupID, groupErr)
-			}
+		if group, ok := groupMetaByID[groupID]; ok && group != nil {
+			entry.GroupName = group.Name
+			entry.Limit = group.RPMLimit
+			entry.Source = "group"
 		}
 
-		if s.userGroupRateRepo != nil {
-			override, overrideErr := s.userGroupRateRepo.GetRPMOverrideByUserAndGroup(ctx, userID, groupID)
-			if overrideErr != nil {
-				logger.LegacyPrintf("service.admin", "failed to get rpm override: user_id=%d group_id=%d err=%v", userID, groupID, overrideErr)
-			} else if override != nil {
-				entry.Limit = *override
-				entry.Source = "override"
-			}
+		if override, ok := overridesByGroup[groupID]; ok {
+			entry.Limit = override
+			entry.Source = "override"
 		}
 
 		perGroup = append(perGroup, entry)
@@ -1846,11 +1836,15 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 			}
 		}
 
-		// 校验源分组的平台是否与新分组一致
+		// 校验源分组的平台是否与新分组一致（批量加载避免 N+1）
+		srcGroups, err := s.groupRepo.GetByIDsLite(ctx, uniqueSourceGroupIDs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load source groups: %w", err)
+		}
 		for _, srcGroupID := range uniqueSourceGroupIDs {
-			srcGroup, err := s.groupRepo.GetByIDLite(ctx, srcGroupID)
-			if err != nil {
-				return nil, fmt.Errorf("source group %d not found: %w", srcGroupID, err)
+			srcGroup, ok := srcGroups[srcGroupID]
+			if !ok || srcGroup == nil {
+				return nil, fmt.Errorf("source group %d not found", srcGroupID)
 			}
 			if srcGroup.Platform != platform {
 				return nil, fmt.Errorf("source group %d platform mismatch: expected %s, got %s", srcGroupID, platform, srcGroup.Platform)
@@ -1858,7 +1852,6 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 		}
 
 		// 获取所有源分组的账号（去重）
-		var err error
 		accountIDsToCopy, err = s.groupRepo.GetAccountIDsByGroupIDs(ctx, uniqueSourceGroupIDs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get accounts from source groups: %w", err)
@@ -2174,11 +2167,15 @@ func (s *adminServiceImpl) UpdateGroup(ctx context.Context, id int64, input *Upd
 			}
 		}
 
-		// 校验源分组的平台是否与当前分组一致
+		// 校验源分组的平台是否与当前分组一致（批量加载避免 N+1）
+		srcGroups, err := s.groupRepo.GetByIDsLite(ctx, uniqueSourceGroupIDs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load source groups: %w", err)
+		}
 		for _, srcGroupID := range uniqueSourceGroupIDs {
-			srcGroup, err := s.groupRepo.GetByIDLite(ctx, srcGroupID)
-			if err != nil {
-				return nil, fmt.Errorf("source group %d not found: %w", srcGroupID, err)
+			srcGroup, ok := srcGroups[srcGroupID]
+			if !ok || srcGroup == nil {
+				return nil, fmt.Errorf("source group %d not found", srcGroupID)
 			}
 			if srcGroup.Platform != group.Platform {
 				return nil, fmt.Errorf("source group %d platform mismatch: expected %s, got %s", srcGroupID, group.Platform, srcGroup.Platform)

@@ -355,13 +355,17 @@ func (s *AnnouncementService) ListUserReadStatus(
 		return nil, nil, fmt.Errorf("get read map: %w", err)
 	}
 
+	// Batch-load active subscriptions for all users in a single query to avoid
+	// an N+1 pattern (was: ListActiveByUserID per user inside the loop).
+	subsByUser, err := s.userSubRepo.ListActiveByUserIDs(ctx, userIDs)
+	if err != nil {
+		return nil, nil, fmt.Errorf("list active subscriptions: %w", err)
+	}
+
 	out := make([]AnnouncementUserReadStatus, 0, len(users))
 	for i := range users {
 		u := users[i]
-		subs, err := s.userSubRepo.ListActiveByUserID(ctx, u.ID)
-		if err != nil {
-			return nil, nil, fmt.Errorf("list active subscriptions: %w", err)
-		}
+		subs := subsByUser[u.ID]
 		activeGroupIDs := make(map[int64]struct{}, len(subs))
 		for j := range subs {
 			activeGroupIDs[subs[j].GroupID] = struct{}{}

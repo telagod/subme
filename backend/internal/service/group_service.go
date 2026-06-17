@@ -17,6 +17,11 @@ type GroupRepository interface {
 	Create(ctx context.Context, group *Group) error
 	GetByID(ctx context.Context, id int64) (*Group, error)
 	GetByIDLite(ctx context.Context, id int64) (*Group, error)
+	// GetByIDsLite batch-loads multiple groups in a single query (IN clause).
+	// Returned map is keyed by group_id; missing IDs are simply absent from the
+	// map (no error). Use this whenever a caller would otherwise iterate over
+	// group IDs calling GetByIDLite per entry.
+	GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*Group, error)
 	Update(ctx context.Context, group *Group) error
 	Delete(ctx context.Context, id int64) error
 	DeleteCascade(ctx context.Context, id int64) ([]int64, error)

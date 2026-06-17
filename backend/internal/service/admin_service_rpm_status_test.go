@@ -37,6 +37,16 @@ func (s *rpmStatusGroupRepoStub) GetByIDLite(_ context.Context, id int64) (*Grou
 	return s.groups[id], nil
 }
 
+func (s *rpmStatusGroupRepoStub) GetByIDsLite(_ context.Context, ids []int64) (map[int64]*Group, error) {
+	out := make(map[int64]*Group, len(ids))
+	for _, id := range ids {
+		if g, ok := s.groups[id]; ok {
+			out[id] = g
+		}
+	}
+	return out, nil
+}
+
 type rpmStatusRateRepoStub struct {
 	UserGroupRateRepository
 	overrides map[int64]*int
@@ -44,6 +54,16 @@ type rpmStatusRateRepoStub struct {
 
 func (s *rpmStatusRateRepoStub) GetRPMOverrideByUserAndGroup(_ context.Context, _, groupID int64) (*int, error) {
 	return s.overrides[groupID], nil
+}
+
+func (s *rpmStatusRateRepoStub) GetRPMOverridesByUserAndGroups(_ context.Context, _ int64, groupIDs []int64) (map[int64]int, error) {
+	out := make(map[int64]int, len(groupIDs))
+	for _, gid := range groupIDs {
+		if v, ok := s.overrides[gid]; ok && v != nil {
+			out[gid] = *v
+		}
+	}
+	return out, nil
 }
 
 type rpmStatusCacheStub struct {

@@ -222,10 +222,28 @@ func (s *NotificationEmailService) SupportedLocales() []string {
 }
 
 func (s *NotificationEmailService) ListTemplates(ctx context.Context) ([]NotificationEmailTemplate, error) {
+	// 一次性批量加载所有 event x locale 的自定义模板覆盖，避免对每个组合发起独立的
+	// settingRepo.GetValue 查询（N+1）。GetMultiple 只返回实际存在的 key，缺失的项
+	// 自然退化到内置模板，保持与 GetTemplate 单点路径相同的语义。
+	storageKeys := make([]string, 0, len(notificationEmailEventOrder)*len(notificationEmailLocales))
+	for _, evKey := range notificationEmailEventOrder {
+		for _, lang := range notificationEmailLocales {
+			storageKeys = append(storageKeys, notifTemplateStorageKey(evKey, lang))
+		}
+	}
+	overrides := map[string]string{}
+	if s != nil && s.settingRepo != nil && len(storageKeys) > 0 {
+		loaded, readErr := s.settingRepo.GetMultiple(ctx, storageKeys)
+		if readErr != nil {
+			return nil, readErr
+		}
+		overrides = loaded
+	}
+
 	allTemplates := make([]NotificationEmailTemplate, 0, len(notificationEmailEventOrder)*len(notificationEmailLocales))
 	for _, evKey := range notificationEmailEventOrder {
 		for _, lang := range notificationEmailLocales {
-			tpl, readErr := s.GetTemplate(ctx, evKey, lang)
+			tpl, readErr := s.buildTemplateFromOverrides(evKey, lang, overrides)
 			if readErr != nil {
 				return nil, readErr
 			}
@@ -233,6 +251,48 @@ func (s *NotificationEmailService) ListTemplates(ctx context.Context) ([]Notific
 		}
 	}
 	return allTemplates, nil
+}
+
+// buildTemplateFromOverrides resolves a single template entry from a pre-loaded
+// map of custom-override JSON blobs keyed by setting key. Behaves the same as
+// GetTemplate's storage-lookup branch but reads from the batched map.
+func (s *NotificationEmailService) buildTemplateFromOverrides(event, locale string, overrides map[string]string) (NotificationEmailTemplate, error) {
+	evDef, normalizedEvent, lookupErr := s.lookupEventDef(event)
+	if lookupErr != nil {
+		return NotificationEmailTemplate{}, lookupErr
+	}
+	normalizedLocale := normalizeNotifLocale(locale)
+	stock, exists := notificationEmailOfficialTemplates[normalizedEvent][normalizedLocale]
+	if !exists {
+		return NotificationEmailTemplate{}, fmt.Errorf("no built-in template for event=%s locale=%s", normalizedEvent, normalizedLocale)
+	}
+
+	tpl := NotificationEmailTemplate{
+		Event:        normalizedEvent,
+		Locale:       normalizedLocale,
+		Subject:      stock.Subject,
+		HTML:         stock.HTML,
+		Placeholders: append([]string(nil), evDef.Placeholders...),
+	}
+
+	rawJSON, found := overrides[notifTemplateStorageKey(normalizedEvent, normalizedLocale)]
+	if !found || strings.TrimSpace(rawJSON) == "" {
+		return tpl, nil
+	}
+
+	var custom notificationEmailStoredTemplate
+	if unmarshalErr := json.Unmarshal([]byte(rawJSON), &custom); unmarshalErr != nil {
+		return NotificationEmailTemplate{}, fmt.Errorf("corrupted custom email template JSON: %w", unmarshalErr)
+	}
+	if valErr := validateNotifTemplateFields(normalizedEvent, custom.Subject, custom.HTML); valErr != nil {
+		return NotificationEmailTemplate{}, valErr
+	}
+	tpl.Subject = custom.Subject
+	tpl.HTML = custom.HTML
+	tpl.IsCustom = true
+	updatedCopy := custom.UpdatedAt
+	tpl.UpdatedAt = &updatedCopy
+	return tpl, nil
 }
 
 func (s *NotificationEmailService) GetTemplate(ctx context.Context, event, locale string) (NotificationEmailTemplate, error) {

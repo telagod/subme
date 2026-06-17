@@ -325,17 +325,38 @@ func (s *PaymentService) checkDailyLimit(ctx context.Context, tx *dbent.Tx, user
 		return nil
 	}
 	ts := psStartOfDayUTC(time.Now())
-	orders, err := tx.PaymentOrder.Query().Where(paymentorder.UserIDEQ(userID), paymentorder.StatusIn(OrderStatusPaid, OrderStatusRecharging, OrderStatusCompleted), paymentorder.PaidAtGTE(ts)).All(ctx)
+
+	// 用 SQL SUM 按 order_type 聚合，避免把整日订单全部拉回内存再循环累加。
+	// 余额充值用 pay_amount，其他订单用 amount —— 与历史循环逻辑保持一致。
+	type aggRow struct {
+		OrderType   string  `json:"order_type"`
+		SumAmount   float64 `json:"sum_amount"`
+		SumPayAmt   float64 `json:"sum_pay_amount"`
+	}
+	var rows []aggRow
+	err := tx.PaymentOrder.Query().
+		Where(
+			paymentorder.UserIDEQ(userID),
+			paymentorder.StatusIn(OrderStatusPaid, OrderStatusRecharging, OrderStatusCompleted),
+			paymentorder.PaidAtGTE(ts),
+		).
+		GroupBy(paymentorder.FieldOrderType).
+		Aggregate(
+			dbent.As(dbent.Sum(paymentorder.FieldAmount), "sum_amount"),
+			dbent.As(dbent.Sum(paymentorder.FieldPayAmount), "sum_pay_amount"),
+		).
+		Scan(ctx, &rows)
 	if err != nil {
 		return fmt.Errorf("query daily usage: %w", err)
 	}
+
 	var used float64
-	for _, o := range orders {
-		if o.OrderType == payment.OrderTypeBalance {
-			used += o.PayAmount
+	for _, r := range rows {
+		if r.OrderType == payment.OrderTypeBalance {
+			used += r.SumPayAmt
 			continue
 		}
-		used += o.Amount
+		used += r.SumAmount
 	}
 	if used+amount > limit {
 		return infraerrors.TooManyRequests("DAILY_LIMIT_EXCEEDED", "daily_limit_exceeded").

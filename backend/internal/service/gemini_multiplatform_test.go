@@ -224,6 +224,16 @@ func (m *mockGroupRepoForGemini) GetByIDLite(ctx context.Context, id int64) (*Gr
 	return nil, errors.New("group not found")
 }
 
+func (m *mockGroupRepoForGemini) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*Group, error) {
+	out := make(map[int64]*Group, len(ids))
+	for _, id := range ids {
+		if g, ok := m.groups[id]; ok {
+			out[id] = g
+		}
+	}
+	return out, nil
+}
+
 // Stub methods to implement GroupRepository interface
 func (m *mockGroupRepoForGemini) Create(ctx context.Context, group *Group) error { return nil }
 func (m *mockGroupRepoForGemini) Update(ctx context.Context, group *Group) error { return nil }

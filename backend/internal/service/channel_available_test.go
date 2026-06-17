@@ -36,6 +36,9 @@ func (s *stubGroupRepoForAvailable) GetByID(ctx context.Context, id int64) (*Gro
 func (s *stubGroupRepoForAvailable) GetByIDLite(ctx context.Context, id int64) (*Group, error) {
 	return nil, nil
 }
+func (s *stubGroupRepoForAvailable) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*Group, error) {
+	return map[int64]*Group{}, nil
+}
 func (s *stubGroupRepoForAvailable) Update(ctx context.Context, group *Group) error { return nil }
 func (s *stubGroupRepoForAvailable) Delete(ctx context.Context, id int64) error     { return nil }
 func (s *stubGroupRepoForAvailable) DeleteCascade(ctx context.Context, id int64) ([]int64, error) {

@@ -1572,6 +1572,10 @@ func (stubGroupRepo) GetByIDLite(ctx context.Context, id int64) (*service.Group,
 	return nil, service.ErrGroupNotFound
 }
 
+func (stubGroupRepo) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*service.Group, error) {
+	return map[int64]*service.Group{}, nil
+}
+
 func (stubGroupRepo) Update(ctx context.Context, group *service.Group) error {
 	return errors.New("not implemented")
 }
@@ -2008,6 +2012,18 @@ func (r *stubUserSubscriptionRepo) ListActiveByUserID(ctx context.Context, userI
 		return nil, nil
 	}
 	return append([]service.UserSubscription(nil), r.activeByUser[userID]...), nil
+}
+func (r *stubUserSubscriptionRepo) ListActiveByUserIDs(ctx context.Context, userIDs []int64) (map[int64][]service.UserSubscription, error) {
+	out := make(map[int64][]service.UserSubscription, len(userIDs))
+	if r.activeByUser == nil {
+		return out, nil
+	}
+	for _, uid := range userIDs {
+		if subs, ok := r.activeByUser[uid]; ok && len(subs) > 0 {
+			out[uid] = append([]service.UserSubscription(nil), subs...)
+		}
+	}
+	return out, nil
 }
 func (stubUserSubscriptionRepo) ListByGroupID(ctx context.Context, groupID int64, params pagination.PaginationParams) ([]service.UserSubscription, *pagination.PaginationResult, error) {
 	return nil, nil, errors.New("not implemented")

@@ -271,6 +271,16 @@ func (m *mockGroupRepoForGateway) GetByIDLite(ctx context.Context, id int64) (*G
 	return nil, ErrGroupNotFound
 }
 
+func (m *mockGroupRepoForGateway) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*Group, error) {
+	out := make(map[int64]*Group, len(ids))
+	for _, id := range ids {
+		if g, ok := m.groups[id]; ok {
+			out[id] = g
+		}
+	}
+	return out, nil
+}
+
 func (m *mockGroupRepoForGateway) Create(ctx context.Context, group *Group) error { return nil }
 func (m *mockGroupRepoForGateway) Update(ctx context.Context, group *Group) error { return nil }
 func (m *mockGroupRepoForGateway) Delete(ctx context.Context, id int64) error     { return nil }

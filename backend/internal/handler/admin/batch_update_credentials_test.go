@@ -94,10 +94,11 @@ func TestBatchUpdateCredentials_PartialFailure(t *testing.T) {
 }
 
 func TestBatchUpdateCredentials_FirstAccountNotFound(t *testing.T) {
-	// GetAccount 在 stubAdminService 中总是成功的，需要创建一个 GetAccount 会失败的 stub
+	// handler 现在用 GetAccountsByIDs 批量预拉取以消除 N+1。
+	// 当返回的批中缺少请求 ID 时，第一阶段视为账号不存在 → 404。
 	svc := &getAccountFailingService{
 		stubAdminService: newStubAdminService(),
-		failOnAccountID:  1,
+		missingAccountID: 1,
 	}
 	router, _ := setupAccountHandlerWithService(svc)
 
@@ -115,17 +116,23 @@ func TestBatchUpdateCredentials_FirstAccountNotFound(t *testing.T) {
 	require.Equal(t, http.StatusNotFound, w.Code, "第一阶段验证失败应返回 404")
 }
 
-// getAccountFailingService 模拟 GetAccount 在特定 ID 时返回 not found。
+// getAccountFailingService 模拟批量预取中缺少某个 ID 的场景。
+// missingAccountID 表示该 ID 在批返回中被剔除，handler 应当因找不到而返回 404。
 type getAccountFailingService struct {
 	*stubAdminService
-	failOnAccountID int64
+	missingAccountID int64
 }
 
-func (f *getAccountFailingService) GetAccount(ctx context.Context, id int64) (*service.Account, error) {
-	if id == f.failOnAccountID {
-		return nil, errors.New("not found")
+func (f *getAccountFailingService) GetAccountsByIDs(ctx context.Context, ids []int64) ([]*service.Account, error) {
+	out := make([]*service.Account, 0, len(ids))
+	for _, id := range ids {
+		if id == f.missingAccountID {
+			continue
+		}
+		account := service.Account{ID: id, Name: "account", Status: service.StatusActive}
+		out = append(out, &account)
 	}
-	return f.stubAdminService.GetAccount(ctx, id)
+	return out, nil
 }
 
 func TestBatchUpdateCredentials_InterceptWarmupRequests_NonBool(t *testing.T) {

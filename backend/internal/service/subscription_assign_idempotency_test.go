@@ -20,6 +20,9 @@ func (groupRepoNoop) GetByID(context.Context, int64) (*Group, error) {
 func (groupRepoNoop) GetByIDLite(context.Context, int64) (*Group, error) {
 	panic("unexpected GetByIDLite call")
 }
+func (groupRepoNoop) GetByIDsLite(context.Context, []int64) (map[int64]*Group, error) {
+	panic("unexpected GetByIDsLite call")
+}
 func (groupRepoNoop) Update(context.Context, *Group) error { panic("unexpected Update call") }
 func (groupRepoNoop) Delete(context.Context, int64) error  { panic("unexpected Delete call") }
 func (groupRepoNoop) DeleteCascade(context.Context, int64) ([]int64, error) {
@@ -88,6 +91,9 @@ func (userSubRepoNoop) ListByUserID(context.Context, int64) ([]UserSubscription,
 }
 func (userSubRepoNoop) ListActiveByUserID(context.Context, int64) ([]UserSubscription, error) {
 	panic("unexpected ListActiveByUserID call")
+}
+func (userSubRepoNoop) ListActiveByUserIDs(context.Context, []int64) (map[int64][]UserSubscription, error) {
+	panic("unexpected ListActiveByUserIDs call")
 }
 func (userSubRepoNoop) ListByGroupID(context.Context, int64, pagination.PaginationParams) ([]UserSubscription, *pagination.PaginationResult, error) {
 	panic("unexpected ListByGroupID call")

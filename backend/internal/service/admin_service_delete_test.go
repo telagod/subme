@@ -195,6 +195,10 @@ func (s *groupRepoStub) GetByIDLite(ctx context.Context, id int64) (*Group, erro
 	panic("unexpected GetByIDLite call")
 }
 
+func (s *groupRepoStub) GetByIDsLite(ctx context.Context, ids []int64) (map[int64]*Group, error) {
+	panic("unexpected GetByIDsLite call")
+}
+
 func (s *groupRepoStub) Update(ctx context.Context, group *Group) error {
 	panic("unexpected Update call")
 }

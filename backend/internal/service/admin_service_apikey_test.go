@@ -219,6 +219,9 @@ func (s *groupRepoStubForGroupUpdate) Create(context.Context, *Group) error { pa
 func (s *groupRepoStubForGroupUpdate) GetByIDLite(context.Context, int64) (*Group, error) {
 	panic("unexpected")
 }
+func (s *groupRepoStubForGroupUpdate) GetByIDsLite(context.Context, []int64) (map[int64]*Group, error) {
+	panic("unexpected")
+}
 func (s *groupRepoStubForGroupUpdate) Update(context.Context, *Group) error { panic("unexpected") }
 func (s *groupRepoStubForGroupUpdate) Delete(context.Context, int64) error  { panic("unexpected") }
 func (s *groupRepoStubForGroupUpdate) DeleteCascade(context.Context, int64) ([]int64, error) {

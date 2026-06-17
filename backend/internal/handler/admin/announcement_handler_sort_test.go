@@ -66,6 +66,10 @@ type announcementUserSubRepoCapture struct {
 	service.UserSubscriptionRepository
 }
 
+func (announcementUserSubRepoCapture) ListActiveByUserIDs(_ context.Context, userIDs []int64) (map[int64][]service.UserSubscription, error) {
+	return map[int64][]service.UserSubscription{}, nil
+}
+
 func newAnnouncementSortTestRouter(announcementRepo *announcementRepoCapture, userRepo *announcementUserRepoCapture) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	svc := service.NewAnnouncementService(

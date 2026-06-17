@@ -33,11 +33,21 @@ type UserGroupRateRepository interface {
 	// GetByUserID 获取用户所有专属分组 rate_multiplier（仅返回非 NULL 的条目）
 	GetByUserID(ctx context.Context, userID int64) (map[int64]float64, error)
 
+	// GetByUserIDs 批量获取多个用户的专属分组 rate_multiplier（仅返回非 NULL 的条目）。
+	// 用于消除 ListUsers 等批量列表路径上 GetByUserID 的 N+1。返回 map 以 user_id 为
+	// 外层键、group_id 为内层键。请求中存在的所有 user_id 都会有对应条目（可能为空 map）。
+	GetByUserIDs(ctx context.Context, userIDs []int64) (map[int64]map[int64]float64, error)
+
 	// GetByUserAndGroup 获取用户在特定分组的专属 rate_multiplier（NULL 返回 nil）
 	GetByUserAndGroup(ctx context.Context, userID, groupID int64) (*float64, error)
 
 	// GetRPMOverrideByUserAndGroup 获取用户在特定分组的 rpm_override（NULL 返回 nil）
 	GetRPMOverrideByUserAndGroup(ctx context.Context, userID, groupID int64) (*int, error)
+
+	// GetRPMOverridesByUserAndGroups 批量获取某用户在多个分组的 rpm_override（NULL 不返回）。
+	// 用于消除调用方在 group 循环里逐次调用 GetRPMOverrideByUserAndGroup 形成的 N+1。
+	// 返回 map 以 group_id 为键；缺失的组没有 override 设置（视作 nil）。
+	GetRPMOverridesByUserAndGroups(ctx context.Context, userID int64, groupIDs []int64) (map[int64]int, error)
 
 	// GetByGroupID 获取指定分组下所有用户的专属配置（rate 与 rpm_override 任一非 NULL 即返回）
 	GetByGroupID(ctx context.Context, groupID int64) ([]UserGroupRateEntry, error)
