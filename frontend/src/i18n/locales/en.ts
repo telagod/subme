@@ -1886,6 +1886,13 @@ export default {
       allGroups: 'All Groups',
       searchGroups: 'Search groups...',
       fuzzySearch: 'Fuzzy search',
+      apiKeyGroupFilter: 'API Key group',
+      apiKeyGroupAll: 'All API Key groups',
+      apiKeyGroupSearch: 'Search API Key groups...',
+      apiKeyGroupExclusive: 'Exclusive',
+      apiKeyGroupPublic: 'Public',
+      apiKeyGroupSubscription: 'Subscription',
+      apiKeyGroupDisabled: 'Disabled',
       admin: 'Admin',
       user: 'User',
       disabled: 'Disabled',
@@ -3205,6 +3212,7 @@ export default {
       },
       columns: {
         name: 'Name',
+        id: 'Account ID',
         platformType: 'Platform/Type',
         platform: 'Platform',
         type: 'Type',
@@ -4163,6 +4171,20 @@ export default {
         claude: 'Claude',
         passiveSampled: 'Passive',
         activeQuery: 'Query'
+      },
+      openaiQuotaReset: {
+        count: 'Credits',
+        reset: 'Reset',
+        countTooltipLoad: 'Click to load the available reset-credit count',
+        countTooltipRefresh: 'Click to refresh the available reset-credit count',
+        resetTooltipReady: 'Consume 1 reset credit to immediately restore the window',
+        resetTooltipNeedQuery: 'Click Credits first to load the available count',
+        resetTooltipNoCredits: 'No reset credits available',
+        noCreditsAvailable: 'No reset credits available',
+        resetConfirmTitle: 'Consume reset credit?',
+        resetConfirm:
+          'This will permanently consume 1 of {count} reset credit(s) and immediately reset the current rate-limit window upstream. Continue?',
+        resetSuccess: 'Reset {windows} window(s)'
       },
       tier: {
         free: 'Free',

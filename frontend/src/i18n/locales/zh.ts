@@ -1915,6 +1915,13 @@ export default {
       allGroups: '全部分组',
       searchGroups: '搜索分组...',
       fuzzySearch: '模糊搜索',
+      apiKeyGroupFilter: 'API Key 所在分组',
+      apiKeyGroupAll: '全部 API Key 分组',
+      apiKeyGroupSearch: '搜索 API Key 分组...',
+      apiKeyGroupExclusive: '专用',
+      apiKeyGroupPublic: '公开',
+      apiKeyGroupSubscription: '订阅',
+      apiKeyGroupDisabled: '已禁用',
       statusFilter: '状态筛选',
       allStatuses: '全部状态',
       admin: '管理员',
@@ -3256,6 +3263,7 @@ export default {
       groupCountTotal: '共 {count} 个分组',
       columns: {
         name: '名称',
+        id: '账号ID',
         platformType: '平台/类型',
         platform: '平台',
         type: '类型',
@@ -3459,6 +3467,19 @@ export default {
         claude: 'Claude',
         passiveSampled: '被动采样',
         activeQuery: '查询'
+      },
+      openaiQuotaReset: {
+        count: '次数',
+        reset: '重置',
+        countTooltipLoad: '点击查询剩余重置次数',
+        countTooltipRefresh: '点击刷新剩余重置次数',
+        resetTooltipReady: '消耗 1 次重置次数以立即恢复当前窗口',
+        resetTooltipNeedQuery: '先点击「次数」加载剩余重置次数',
+        resetTooltipNoCredits: '没有可用的重置次数',
+        noCreditsAvailable: '没有可用的重置次数',
+        resetConfirmTitle: '确认消耗重置次数？',
+        resetConfirm: '将永久消耗 {count} 次中的 1 次重置额度，并立即在上游重置当前限流窗口。是否继续？',
+        resetSuccess: '已重置 {windows} 个窗口'
       },
       tier: {
         free: 'Free',

@@ -145,6 +145,9 @@
           <template #cell-select="{ row }">
             <Checkbox :checked="isSelected(row.id)" @update:checked="() => toggleSel(row.id)" />
           </template>
+          <template #cell-id="{ value }">
+            <span class="font-mono text-xs text-muted-foreground">#{{ value }}</span>
+          </template>
           <template #cell-name="{ row, value }">
             <div class="flex flex-col gap-0 min-w-0">
               <div class="flex items-center gap-1 min-w-0">
@@ -464,6 +467,7 @@ type AccountSortState = {
   sort_order: AccountSortOrder
 }
 const ACCOUNT_SORTABLE_KEYS = new Set([
+  'id',
   'name',
   'status',
   'schedulable',
@@ -1107,6 +1111,7 @@ const allColumns = computed(() => {
   const c = [
     { key: 'select', label: '', sortable: false, class: 'w-9' },
     { key: 'name', label: t('admin.accounts.columns.name'), sortable: true, class: 'min-w-[160px]' },
+    { key: 'id', label: t('admin.accounts.columns.id'), sortable: true },
     { key: 'capacity', label: t('admin.accounts.columns.capacity'), sortable: false, class: 'min-w-[80px]' },
     { key: 'status', label: t('admin.accounts.columns.status'), sortable: true, class: 'w-[90px]' },
     { key: 'schedulable', label: '⚙', sortable: true, class: 'w-10' },
