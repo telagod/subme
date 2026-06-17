@@ -431,6 +431,38 @@ func TestPrepareBedrockRequestBodyWithTokens_ContextManagementRequiresSupportedB
 	})
 }
 
+func TestPrepareBedrockRequestBodyWithTokens_StripsUnsupportedTopLevelFields(t *testing.T) {
+	modelID := "us.anthropic.claude-opus-4-6-v1"
+
+	t.Run("removes top-level provider field", func(t *testing.T) {
+		input := `{"messages":[{"role":"user","content":"hi"}],"max_tokens":100,"provider":{"order":["anthropic"]}}`
+		result, err := PrepareBedrockRequestBodyWithTokens([]byte(input), modelID, nil, false)
+		require.NoError(t, err)
+
+		assert.False(t, gjson.GetBytes(result, "provider").Exists())
+		assert.Equal(t, int64(100), gjson.GetBytes(result, "max_tokens").Int())
+	})
+
+	t.Run("removes top-level metadata field", func(t *testing.T) {
+		input := `{"messages":[{"role":"user","content":"hi"}],"max_tokens":100,"metadata":{"user_id":"abc"}}`
+		result, err := PrepareBedrockRequestBodyWithTokens([]byte(input), modelID, nil, false)
+		require.NoError(t, err)
+
+		assert.False(t, gjson.GetBytes(result, "metadata").Exists())
+		assert.Equal(t, int64(100), gjson.GetBytes(result, "max_tokens").Int())
+	})
+
+	t.Run("deletes body anthropic_beta when resolved tokens empty", func(t *testing.T) {
+		// 模拟客户端在 body 内塞 anthropic_beta，resolver 过滤后返空：
+		// 必须清掉残留，否则未经白名单的 token 直达 Bedrock。
+		input := `{"messages":[{"role":"user","content":"hi"}],"max_tokens":100,"anthropic_beta":["output-128k-2025-02-19"]}`
+		result, err := PrepareBedrockRequestBodyWithTokens([]byte(input), modelID, nil, false)
+		require.NoError(t, err)
+
+		assert.False(t, gjson.GetBytes(result, "anthropic_beta").Exists())
+	})
+}
+
 func bedrockAnthropicBetaNames(body []byte) []string {
 	arr := gjson.GetBytes(body, "anthropic_beta").Array()
 	names := make([]string, len(arr))
