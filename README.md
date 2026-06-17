@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Go](https://img.shields.io/badge/Go-1.25.7-00ADD8.svg)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.26.4-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
@@ -38,7 +38,7 @@ subme is an AI API gateway platform designed to distribute and manage API quotas
 
 | Component | Technology |
 |-----------|------------|
-| Backend | Go 1.25.7, Gin, Ent |
+| Backend | Go 1.26.4, Gin, Ent |
 | Frontend | Vue 3.4+, Vite 5+, TailwindCSS |
 | Database | PostgreSQL 15+ |
 | Cache/Queue | Redis 7+ |
@@ -298,7 +298,7 @@ Build and run from source code for development or customization.
 
 #### Prerequisites
 
-- Go 1.21+
+- Go 1.26+
 - Node.js 18+
 - PostgreSQL 15+
 - Redis 7+
@@ -310,23 +310,30 @@ Build and run from source code for development or customization.
 git clone https://github.com/telagod/subme.git
 cd sub2api
 
-# 2. Install pnpm (if not already installed)
+# 2. Generate Ent and Wire code (required before first build)
+#    Skipping this step yields "undefined: <Symbol>" build errors for ent/wire output.
+cd backend
+go generate ./ent
+go generate ./cmd/server
+cd ..
+
+# 3. Install pnpm (if not already installed)
 npm install -g pnpm
 
-# 3. Build frontend
+# 4. Build frontend
 cd frontend
 pnpm install
 pnpm run build
 # Output will be in ../backend/internal/web/dist/
 
-# 4. Build backend with embedded frontend
+# 5. Build backend with embedded frontend
 cd ../backend
 go build -tags embed -o sub2api ./cmd/server
 
-# 5. Create configuration file
+# 6. Create configuration file
 cp ../deploy/config.example.yaml ./config.yaml
 
-# 6. Edit configuration
+# 7. Edit configuration
 nano config.yaml
 ```
 
@@ -448,6 +455,21 @@ cd backend
 go generate ./ent
 go generate ./cmd/server
 ```
+
+---
+
+## Operations and Monitoring
+
+Production operators should review [docs/observability.md](docs/observability.md)
+for the full observability runbook: health checks, Prometheus scrape targets,
+alert thresholds (latency, error rate, queue depth, account scheduling block),
+and incident response procedures.
+
+Related operator-facing docs:
+
+- [docs/PAYMENT.md](docs/PAYMENT.md) — payment provider integration
+- [docs/PAYMENT_CN.md](docs/PAYMENT_CN.md) — 支付集成中文文档
+- [docs/ADMIN_PAYMENT_INTEGRATION_API.md](docs/ADMIN_PAYMENT_INTEGRATION_API.md) — admin payment integration API
 
 ---
 
