@@ -189,7 +189,16 @@ func (s *OpenRouterCatalogService) SyncModels(ctx context.Context) (int, error) 
 		if strings.TrimSpace(m.ID) == "" {
 			continue
 		}
+		// OpenRouter slug 形如 "anthropic/claude-sonnet-4"——slug 第一段就是
+		// provider tag。SyncModels 拉的是聚合代表价，没有单一 provider 明细，
+		// 取 slug 前缀作为 Repr.Tag 既稳定又对前端展示「最低价供应商」友好。
+		// SyncModelEndpoints 后续会用真实 providers 列表覆盖。
+		reprTag := ""
+		if idx := strings.Index(m.ID, "/"); idx > 0 {
+			reprTag = m.ID[:idx]
+		}
 		repr := CatalogProviderPrice{
+			Tag:        reprTag,
 			Input:      m.Pricing.f(m.Pricing.Prompt),
 			Output:     m.Pricing.f(m.Pricing.Completion),
 			CacheRead:  m.Pricing.f(m.Pricing.InputCacheRead),
