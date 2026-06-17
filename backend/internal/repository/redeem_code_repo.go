@@ -386,6 +386,90 @@ func (r *redeemCodeRepository) ListByUserPaginated(ctx context.Context, userID i
 	return redeemCodeEntitiesToService(codes), paginationResultFromTotal(int64(total), params), nil
 }
 
+// AggregateStats returns global redeem-code statistics in a constant number
+// of round-trips. We resolve the dynamic "expired by ExpiresAt" set by treating
+// any unused row whose ExpiresAt has elapsed as expired, mirroring
+// ListWithFilters() semantics so the dashboard numbers agree with the list view.
+func (r *redeemCodeRepository) AggregateStats(ctx context.Context) (service.RedeemCodeStats, error) {
+	stats := service.RedeemCodeStats{ByType: map[string]int{}}
+
+	now := time.Now()
+	base := r.client.RedeemCode.Query()
+
+	total, err := base.Clone().Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.TotalCodes = total
+
+	usedCount, err := base.Clone().Where(redeemcode.StatusEQ(service.StatusUsed)).Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.UsedCodes = usedCount
+
+	expiredByStatus, err := base.Clone().Where(redeemcode.StatusEQ(service.StatusExpired)).Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	expiredByElapsed, err := base.Clone().Where(
+		redeemcode.StatusEQ(service.StatusUnused),
+		redeemcode.ExpiresAtNotNil(),
+		redeemcode.ExpiresAtLTE(now),
+	).Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.ExpiredCodes = expiredByStatus + expiredByElapsed
+
+	unusedActive, err := base.Clone().Where(
+		redeemcode.StatusEQ(service.StatusUnused),
+		redeemcode.Or(
+			redeemcode.ExpiresAtIsNil(),
+			redeemcode.ExpiresAtGT(now),
+		),
+	).Count(ctx)
+	if err != nil {
+		return stats, err
+	}
+	stats.UnusedCodes = unusedActive
+
+	// Sum face value across redeemed codes — represents what has actually
+	// been distributed (vs theoretical total of all generated codes).
+	var sumRows []struct {
+		Sum float64 `json:"sum"`
+	}
+	if err := base.Clone().
+		Where(redeemcode.StatusEQ(service.StatusUsed)).
+		Aggregate(dbent.As(dbent.Sum(redeemcode.FieldValue), "sum")).
+		Scan(ctx, &sumRows); err != nil {
+		return stats, err
+	}
+	if len(sumRows) > 0 {
+		stats.TotalValueDistributed = sumRows[0].Sum
+	}
+
+	// By type breakdown via GROUP BY (count per type).
+	var typeRows []struct {
+		Type  string `json:"type"`
+		Count int    `json:"count"`
+	}
+	if err := base.Clone().
+		GroupBy(redeemcode.FieldType).
+		Aggregate(dbent.As(dbent.Count(), "count")).
+		Scan(ctx, &typeRows); err != nil {
+		return stats, err
+	}
+	for _, row := range typeRows {
+		if row.Type == "" {
+			continue
+		}
+		stats.ByType[row.Type] = row.Count
+	}
+
+	return stats, nil
+}
+
 // SumPositiveBalanceByUser returns total recharged amount (sum of value > 0 where type is balance/admin_balance).
 func (r *redeemCodeRepository) SumPositiveBalanceByUser(ctx context.Context, userID int64) (float64, error) {
 	var result []struct {

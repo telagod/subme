@@ -155,8 +155,11 @@ watch(
           const allFocusable = Array.from(
             dialogRef.value.querySelectorAll<HTMLElement>(focusableSelector)
           )
+          // Skip elements marked with [data-dialog-close]. Note: the attribute
+          // exists with value "" when set declaratively, so dataset lookup
+          // returns "" (not undefined) — use hasAttribute() to detect presence.
           const firstNonClose = allFocusable.find(
-            (el) => el.dataset.dialogClose === undefined
+            (el) => !el.hasAttribute('data-dialog-close')
           )
           ;(firstNonClose ?? allFocusable[0])?.focus()
         }

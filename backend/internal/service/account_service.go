@@ -413,24 +413,31 @@ func (s *AccountService) GetCredential(ctx context.Context, id int64, key string
 	return account.GetCredential(key), nil
 }
 
-// TestCredentials 测试账号凭证是否有效（需要实现具体平台的测试逻辑）
+// ErrCredentialProbeNotImplemented signals that the per-platform credential
+// probe (Anthropic / OpenAI / Gemini) has not been wired yet. Returning this
+// instead of nil prevents silent "looks valid" responses that would let
+// invalid keys pass validation.
+var ErrCredentialProbeNotImplemented = infraerrors.ServiceUnavailable(
+	"ACCOUNT_CREDENTIAL_PROBE_UNAVAILABLE",
+	"credential probe is not implemented for this platform yet",
+)
+
+// TestCredentials 测试账号凭证是否有效。
+//
+// Deferred: 真正的探活需要为每个平台接入最小的"list models / whoami"调用，
+// 这要求注入对应的上游 client（Anthropic、OpenAI、Gemini），属于跨层改动。
+// 在该工作落地之前，此方法显式返回 ErrCredentialProbeNotImplemented，避免
+// 之前"全部返回 nil"造成的无声放行（safer to fail closed）。调用方应当把
+// 该错误 surface 给操作员，提示需要手动验证账号。
 func (s *AccountService) TestCredentials(ctx context.Context, id int64) error {
 	account, err := s.accountRepo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("get account: %w", err)
 	}
 
-	// 根据平台执行不同的测试逻辑
 	switch account.Platform {
-	case PlatformAnthropic:
-		// TODO: 测试Anthropic API凭证
-		return nil
-	case PlatformOpenAI:
-		// TODO: 测试OpenAI API凭证
-		return nil
-	case PlatformGemini:
-		// TODO: 测试Gemini API凭证
-		return nil
+	case PlatformAnthropic, PlatformOpenAI, PlatformGemini:
+		return ErrCredentialProbeNotImplemented
 	default:
 		return fmt.Errorf("unsupported platform: %s", account.Platform)
 	}

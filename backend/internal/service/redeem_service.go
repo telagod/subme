@@ -66,6 +66,20 @@ type RedeemCodeRepository interface {
 	ListByUserPaginated(ctx context.Context, userID int64, params pagination.PaginationParams, codeType string) ([]RedeemCode, *pagination.PaginationResult, error)
 	// SumPositiveBalanceByUser returns the total recharged amount (sum of positive balance values) for a user.
 	SumPositiveBalanceByUser(ctx context.Context, userID int64) (float64, error)
+	// AggregateStats returns global counts and totals across all redeem codes.
+	// Uses SQL COUNT/SUM aggregates so cost stays O(1) regardless of table size.
+	AggregateStats(ctx context.Context) (RedeemCodeStats, error)
+}
+
+// RedeemCodeStats is the global redeem-code dashboard summary returned by
+// RedeemService.GetStats and exposed at GET /api/v1/admin/redeem-codes/stats.
+type RedeemCodeStats struct {
+	TotalCodes            int                `json:"total_codes"`
+	UnusedCodes           int                `json:"unused_codes"`
+	UsedCodes             int                `json:"used_codes"`
+	ExpiredCodes          int                `json:"expired_codes"`
+	TotalValueDistributed float64            `json:"total_value_distributed"`
+	ByType                map[string]int     `json:"by_type"`
 }
 
 // GenerateCodesRequest 生成兑换码请求
@@ -615,20 +629,10 @@ func (s *RedeemService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-// GetStats 获取兑换码统计信息
-func (s *RedeemService) GetStats(ctx context.Context) (map[string]any, error) {
-	// TODO: 实现统计逻辑
-	// 统计未使用、已使用的兑换码数量
-	// 统计总面值等
-
-	stats := map[string]any{
-		"total_codes":  0,
-		"unused_codes": 0,
-		"used_codes":   0,
-		"total_value":  0.0,
-	}
-
-	return stats, nil
+// GetStats 获取兑换码统计信息。
+// 使用仓库层 AggregateStats（COUNT/SUM），避免按页扫描带来的 O(N) 成本。
+func (s *RedeemService) GetStats(ctx context.Context) (RedeemCodeStats, error) {
+	return s.redeemRepo.AggregateStats(ctx)
 }
 
 // GetUserHistory 获取用户的兑换历史

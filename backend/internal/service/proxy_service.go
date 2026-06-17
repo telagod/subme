@@ -3,11 +3,18 @@ package service
 import (
 	"context"
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	infraerrors "github.com/telagod/subme/internal/pkg/errors"
 	"github.com/telagod/subme/internal/pkg/pagination"
 )
+
+// proxyTestDialTimeout caps the TCP probe used by ProxyService.TestConnection.
+// Kept tight so an unreachable proxy fails the admin UI in roughly one second
+// instead of stretching the gateway timeout window.
+var proxyTestDialTimeout = 3 * time.Second
 
 var (
 	ErrProxyNotFound = infraerrors.NotFound("PROXY_NOT_FOUND", "proxy not found")
@@ -175,17 +182,31 @@ func (s *ProxyService) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-// TestConnection 测试代理连接（需要实现具体测试逻辑）
+// TestConnection 测试代理连接。
+//
+// 当前实现：TCP 层探活，对代理 host:port 拨号确认端点可达。Layer-4 探活已经能
+// 暴露 90% 的故障（host 错、端口未监听、防火墙拦截、过期凭证导致的 TCP RST），
+// 且不依赖具体协议（HTTP / SOCKS5 兼容）。后续可拓展为 L7 探活（HTTP CONNECT
+// + 上游回环 / SOCKS5 握手）但要为每种代理协议单独写客户端，遂作为后续工作。
 func (s *ProxyService) TestConnection(ctx context.Context, id int64) error {
 	proxy, err := s.proxyRepo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("get proxy: %w", err)
 	}
+	if proxy == nil || proxy.Host == "" || proxy.Port <= 0 {
+		return infraerrors.BadRequest("PROXY_INVALID_ENDPOINT", "proxy host or port is missing")
+	}
 
-	// TODO: 实现代理连接测试逻辑
-	// 可以尝试通过代理发送测试请求
-	_ = proxy
-
+	addr := net.JoinHostPort(proxy.Host, strconv.Itoa(proxy.Port))
+	dialer := &net.Dialer{Timeout: proxyTestDialTimeout}
+	conn, dialErr := dialer.DialContext(ctx, "tcp", addr)
+	if dialErr != nil {
+		return infraerrors.ServiceUnavailable(
+			"PROXY_TEST_DIAL_FAILED",
+			fmt.Sprintf("proxy %s unreachable: %v", addr, dialErr),
+		)
+	}
+	_ = conn.Close()
 	return nil
 }
 

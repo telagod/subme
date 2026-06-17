@@ -4,6 +4,12 @@ import { nextTick } from 'vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (k: string) => k })
+}))
+
+import BaseDialog from '@/components/common/BaseDialog.vue'
+
 describe('portal/stateful component interactivity', () => {
   it('Tabs emits update + switches on trigger interaction', async () => {
     const onUpdate = vi.fn()
@@ -45,5 +51,43 @@ describe('portal/stateful component interactivity', () => {
     await flushPromises()
     await nextTick()
     expect(document.body.innerHTML).toContain('DialogBody')
+  })
+
+  it('BaseDialog focuses body content, not the close-X button, on open', async () => {
+    // Isolate from any prior teleport residue in document.body.
+    document.body.innerHTML = ''
+
+    const wrapper = mount(
+      {
+        components: { BaseDialog },
+        template: `
+          <BaseDialog :show="true" title="t">
+            <input data-test="body-input" />
+          </BaseDialog>
+        `,
+      },
+      {
+        attachTo: document.body,
+        global: {
+          stubs: {
+            Icon: { template: '<span />' },
+          },
+        },
+      }
+    )
+
+    await flushPromises()
+    await nextTick()
+    await nextTick()
+
+    const input = document.querySelector<HTMLInputElement>('[data-test="body-input"]')
+    const closeBtn = document.querySelector<HTMLElement>('[data-dialog-close]')
+
+    expect(input).not.toBeNull()
+    expect(closeBtn).not.toBeNull()
+    expect(document.activeElement).toBe(input)
+    expect(document.activeElement).not.toBe(closeBtn)
+
+    wrapper.unmount()
   })
 })

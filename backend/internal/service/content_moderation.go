@@ -1675,7 +1675,10 @@ func (s *ContentModerationService) enforceAccountBan(ctx context.Context, conf *
 		}
 		if account.IsAdmin() {
 			slog.Warn("content_moderation.autoban_skipped_admin", "user_id", *entry.UserID, "role", account.Role, "count", totalViolations, "threshold", conf.BanThreshold)
-			// TODO: Disable the triggering API key instead when API key mutation is available here.
+			// Deferred: granular API-key auto-disable for admin violators requires
+			// injecting APIKeyRepository into ContentModerationService (constructor,
+			// Wire bindings, and all call sites). Tracked as a follow-up since the
+			// loophole is bounded by manual admin review and audit log retention.
 			return false
 		}
 		if account.Status != StatusDisabled {

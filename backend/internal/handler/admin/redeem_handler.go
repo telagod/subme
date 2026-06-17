@@ -255,19 +255,44 @@ func (h *RedeemHandler) Expire(c *gin.Context) {
 // GetStats handles getting redeem code statistics
 // GET /api/v1/admin/redeem-codes/stats
 func (h *RedeemHandler) GetStats(c *gin.Context) {
-	// Return mock data for now
+	if h.redeemService == nil {
+		// Backwards-compatible zero envelope for routers wired without the
+		// optional redeemService (e.g. constrained test harnesses). Real
+		// deployments always inject it via wire.
+		response.Success(c, emptyRedeemStats())
+		return
+	}
+	stats, err := h.redeemService.GetStats(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	// Preserve the legacy "active_codes" alias the frontend already reads
+	// while exposing the new structured shape. Keeping both lets us roll the
+	// UI rename out separately without breaking the dashboard.
 	response.Success(c, gin.H{
+		"total_codes":             stats.TotalCodes,
+		"unused_codes":            stats.UnusedCodes,
+		"active_codes":            stats.UnusedCodes,
+		"used_codes":              stats.UsedCodes,
+		"expired_codes":           stats.ExpiredCodes,
+		"total_value_distributed": stats.TotalValueDistributed,
+		"by_type":                 stats.ByType,
+	})
+}
+
+// emptyRedeemStats returns the legacy zero envelope shape so callers always
+// see a complete object (no missing fields => no UI undefined-access).
+func emptyRedeemStats() gin.H {
+	return gin.H{
 		"total_codes":             0,
+		"unused_codes":            0,
 		"active_codes":            0,
 		"used_codes":              0,
 		"expired_codes":           0,
 		"total_value_distributed": 0.0,
-		"by_type": gin.H{
-			"balance":     0,
-			"concurrency": 0,
-			"trial":       0,
-		},
-	})
+		"by_type":                 gin.H{},
+	}
 }
 
 // Export handles exporting redeem codes to CSV

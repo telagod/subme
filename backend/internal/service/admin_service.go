@@ -2990,7 +2990,12 @@ func (s *adminServiceImpl) RefreshAccountCredentials(ctx context.Context, id int
 	if err != nil {
 		return nil, err
 	}
-	// TODO: Implement refresh logic
+	// Deferred: per-platform credential refresh (re-issue OAuth token, re-fetch
+	// upstream metadata) requires platform-specific client hooks (Anthropic /
+	// OpenAI / Gemini). Currently the endpoint is unused by handlers; the stub
+	// returns the persisted account so admin UI can probe the contract without
+	// triggering false negatives. Implementation will land alongside the
+	// upstream credential probe work that also covers TestCredentials.
 	return account, nil
 }
 
