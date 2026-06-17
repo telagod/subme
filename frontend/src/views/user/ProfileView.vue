@@ -15,22 +15,21 @@
         :wechat-mp-enabled="wechatOAuthMPEnabled"
       />
 
-      <div
-        v-if="contactInfo"
-        class="card p-6"
-      >
-        <div class="flex items-center gap-4">
-          <div class="rounded-md border border-border bg-secondary p-3 text-primary-200 ">
-            <Icon name="chat" size="lg" />
+      <Card v-if="contactInfo">
+        <CardContent class="p-6">
+          <div class="flex items-center gap-4">
+            <div class="rounded-md border border-border bg-secondary p-3 text-primary">
+              <Icon name="chat" size="lg" />
+            </div>
+            <div>
+              <h3 class="font-semibold text-foreground">
+                {{ t('common.contactSupport') }}
+              </h3>
+              <p class="text-sm font-medium text-foreground/85">{{ contactInfo }}</p>
+            </div>
           </div>
-          <div>
-            <h3 class="font-semibold text-foreground">
-              {{ t('common.contactSupport') }}
-            </h3>
-            <p class="text-sm font-medium text-foreground/85">{{ contactInfo }}</p>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <ProfilePasswordForm />
 
@@ -53,6 +52,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@/components/icons'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import { Card, CardContent } from '@/components/ui/card'
 import ProfileBalanceNotifyCard from '@/components/user/profile/ProfileBalanceNotifyCard.vue'
 import ProfileInfoCard from '@/components/user/profile/ProfileInfoCard.vue'
 import ProfilePasswordForm from '@/components/user/profile/ProfilePasswordForm.vue'

@@ -8,17 +8,16 @@
     <div class="space-y-4">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex-1">
-          <input
+          <Input
             v-model="search"
             type="text"
-            class="input"
             :placeholder="t('admin.announcements.searchUsers')"
             @input="handleSearch"
           />
         </div>
-        <button @click="load" :disabled="loading" class="btn btn-secondary" :title="t('common.refresh')">
+        <Button variant="outline" size="icon" @click="load" :disabled="loading" :title="t('common.refresh')">
           <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-        </button>
+        </Button>
       </div>
 
       <DataTable
@@ -39,9 +38,14 @@
         </template>
 
         <template #cell-eligible="{ value }">
-          <span :class="['badge', value ? 'badge-success' : 'badge-gray']">
+          <Badge
+            variant="outline"
+            :class="value
+              ? 'border-transparent bg-emerald-500/15 text-emerald-500'
+              : 'border-transparent bg-accent text-muted-foreground'"
+          >
             {{ value ? t('admin.announcements.eligible') : t('common.no') }}
-          </span>
+          </Badge>
         </template>
 
         <template #cell-read_at="{ value }">
@@ -63,7 +67,7 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button type="button" class="btn btn-secondary" @click="handleClose">{{ t('common.close') }}</button>
+        <Button type="button" variant="outline" @click="handleClose">{{ t('common.close') }}</Button>
       </div>
     </template>
   </BaseDialog>
@@ -83,6 +87,9 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const appStore = useAppStore()

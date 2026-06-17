@@ -18,6 +18,8 @@ import type { ChartState } from '../types'
 import { formatHistoryLabel, sumNumbers } from '../utils/opsFormatters'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale, Filler)
 
@@ -152,33 +154,31 @@ const options = computed(() => {
 </script>
 
 <template>
-  <div class="od-chart-card">
-    <div class="od-chart-head">
-      <h3 class="od-chart-title">
-        <svg class="od-chart-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <Card class="rounded-xl p-5 flex flex-col h-full">
+    <div class="flex items-center justify-between mb-3.5 flex-shrink-0">
+      <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">
+        <svg class="text-primary flex-shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
         </svg>
         {{ t('admin.ops.errorTrend') }}
         <HelpTooltip :content="t('admin.ops.tooltips.errorTrend')" />
       </h3>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="!hasRequestErrors" @click="emit('openRequestErrors')">
+      <div class="flex items-center gap-1.5">
+        <Button type="button" variant="outline" size="sm" class="h-auto px-2 py-0.5 text-[11px]" :disabled="!hasRequestErrors" @click="emit('openRequestErrors')">
           {{ t('admin.ops.errorDetails.requestErrors') }}
-        </button>
-        <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="!hasUpstreamErrors" @click="emit('openUpstreamErrors')">
+        </Button>
+        <Button type="button" variant="outline" size="sm" class="h-auto px-2 py-0.5 text-[11px]" :disabled="!hasUpstreamErrors" @click="emit('openUpstreamErrors')">
           {{ t('admin.ops.errorDetails.upstreamErrors') }}
-        </button>
+        </Button>
       </div>
     </div>
 
-    <div style="flex:1;min-height:0;">
+    <div class="flex-1 min-h-0">
       <Line v-if="state === 'ready' && chartData" :data="chartData" :options="options" />
-      <div v-else style="display:flex;height:100%;align-items:center;justify-content:center;">
-        <div v-if="state === 'loading'" style="font-size:13px;color:var(--ink-2,#5C6470);" class="animate-pulse">{{ t('common.loading') }}</div>
+      <div v-else class="flex h-full items-center justify-center">
+        <div v-if="state === 'loading'" class="text-[13px] text-muted-foreground animate-pulse">{{ t('common.loading') }}</div>
         <EmptyState v-else :title="t('common.noData')" :description="t('admin.ops.charts.emptyError')" />
       </div>
     </div>
-  </div>
+  </Card>
 </template>
-
-<style src="../ops-quench.css"></style>

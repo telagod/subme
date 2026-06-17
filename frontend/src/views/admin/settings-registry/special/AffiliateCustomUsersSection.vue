@@ -1,244 +1,251 @@
 <template>
-  <div class="acu-body">
+  <div class="flex flex-col gap-3 px-5 py-4">
     <!-- Disabled state: affiliate feature not enabled -->
-    <div v-if="!affiliateEnabled" class="acu-disabled">
+    <div
+      v-if="!affiliateEnabled"
+      class="rounded-lg border border-dashed border-border px-4 py-3 text-xs text-muted-foreground"
+    >
       {{ t('admin.settings.features.affiliate.customUsers.disabledHint') }}
     </div>
 
     <template v-else>
     <!-- toolbar -->
-    <div class="acu-toolbar">
-      <input
+    <div class="flex flex-wrap items-center gap-2">
+      <Input
         v-model="state.search"
         type="text"
-        class="acu-search"
+        class="h-9 min-w-[160px] flex-1"
         :placeholder="t('admin.settings.features.affiliate.customUsers.searchPlaceholder')"
         @input="onSearchInput"
       />
-      <button
+      <Button
         v-if="state.selected.length > 0"
         type="button"
-        class="acu-btn acu-btn--secondary"
+        variant="outline"
+        size="sm"
         @click="openBatchModal"
       >
         {{ t('admin.settings.features.affiliate.customUsers.batchButton', { count: state.selected.length }) }}
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
-        class="acu-btn acu-btn--primary"
+        size="sm"
         @click="openAddModal"
       >
         + {{ t('admin.settings.features.affiliate.customUsers.addButton') }}
-      </button>
+      </Button>
     </div>
 
     <!-- table -->
-    <div class="acu-table-wrap">
-      <table class="acu-table">
-        <thead>
-          <tr>
-            <th class="acu-th acu-th--chk">
+    <div class="overflow-hidden rounded-lg border border-border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead class="w-9">
               <input
                 type="checkbox"
-                class="acu-checkbox"
+                class="cursor-pointer accent-primary"
                 :checked="state.entries.length > 0 && state.selected.length === state.entries.length"
                 @change="toggleSelectAll"
               />
-            </th>
-            <th class="acu-th">{{ t('admin.settings.features.affiliate.customUsers.col.email') }}</th>
-            <th class="acu-th">{{ t('admin.settings.features.affiliate.customUsers.col.username') }}</th>
-            <th class="acu-th">{{ t('admin.settings.features.affiliate.customUsers.col.code') }}</th>
-            <th class="acu-th">{{ t('admin.settings.features.affiliate.customUsers.col.rate') }}</th>
-            <th class="acu-th">{{ t('admin.settings.features.affiliate.customUsers.col.actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="state.loading">
-            <td colspan="6" class="acu-td acu-td--center">{{ t('common.loading') }}</td>
-          </tr>
-          <tr v-else-if="state.entries.length === 0">
-            <td colspan="6" class="acu-td acu-td--center acu-td--muted">
+            </TableHead>
+            <TableHead>{{ t('admin.settings.features.affiliate.customUsers.col.email') }}</TableHead>
+            <TableHead>{{ t('admin.settings.features.affiliate.customUsers.col.username') }}</TableHead>
+            <TableHead>{{ t('admin.settings.features.affiliate.customUsers.col.code') }}</TableHead>
+            <TableHead>{{ t('admin.settings.features.affiliate.customUsers.col.rate') }}</TableHead>
+            <TableHead>{{ t('admin.settings.features.affiliate.customUsers.col.actions') }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-if="state.loading">
+            <TableCell colspan="6" class="py-6 text-center text-muted-foreground">{{ t('common.loading') }}</TableCell>
+          </TableRow>
+          <TableRow v-else-if="state.entries.length === 0">
+            <TableCell colspan="6" class="py-6 text-center text-muted-foreground">
               {{ t('admin.settings.features.affiliate.customUsers.empty') }}
-            </td>
-          </tr>
-          <tr v-for="entry in state.entries" :key="entry.user_id" class="acu-row">
-            <td class="acu-td acu-td--chk">
-              <input
-                type="checkbox"
-                class="acu-checkbox"
+            </TableCell>
+          </TableRow>
+          <TableRow v-for="entry in state.entries" :key="entry.user_id">
+            <TableCell class="w-9">
+              <Checkbox
                 :checked="state.selected.includes(entry.user_id)"
-                @change="toggleSelect(entry.user_id)"
+                @update:checked="toggleSelect(entry.user_id)"
               />
-            </td>
-            <td class="acu-td">{{ entry.email }}</td>
-            <td class="acu-td acu-td--muted">{{ entry.username }}</td>
-            <td class="acu-td acu-td--mono">
+            </TableCell>
+            <TableCell>{{ entry.email }}</TableCell>
+            <TableCell class="text-muted-foreground">{{ entry.username }}</TableCell>
+            <TableCell class="font-mono text-xs">
               {{ entry.aff_code }}
-              <span v-if="entry.aff_code_custom" class="acu-badge">
+              <Badge v-if="entry.aff_code_custom" variant="secondary" class="ml-1 align-middle">
                 {{ t('admin.settings.features.affiliate.customUsers.customBadge') }}
-              </span>
-            </td>
-            <td class="acu-td">
+              </Badge>
+            </TableCell>
+            <TableCell>
               <span v-if="entry.aff_rebate_rate_percent != null">{{ entry.aff_rebate_rate_percent }}%</span>
-              <span v-else class="acu-td--muted">{{ t('admin.settings.features.affiliate.customUsers.useGlobal') }}</span>
-            </td>
-            <td class="acu-td">
-              <div class="acu-actions">
-                <button type="button" class="acu-link" @click="openEditModal(entry)">
+              <span v-else class="text-muted-foreground">{{ t('admin.settings.features.affiliate.customUsers.useGlobal') }}</span>
+            </TableCell>
+            <TableCell>
+              <div class="flex items-center gap-2.5">
+                <Button type="button" variant="link" size="sm" class="h-auto p-0" @click="openEditModal(entry)">
                   {{ t('common.edit') }}
-                </button>
-                <button type="button" class="acu-link acu-link--danger" @click="askReset(entry)">
+                </Button>
+                <Button type="button" variant="link" size="sm" class="h-auto p-0 text-destructive hover:text-destructive/80" @click="askReset(entry)">
                   {{ t('common.delete') }}
-                </button>
+                </Button>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
 
     <!-- pagination -->
-    <div v-if="state.total > state.pageSize" class="acu-pagination">
-      <span class="acu-pagination__total">
+    <div v-if="state.total > state.pageSize" class="flex flex-wrap items-center justify-between gap-2">
+      <span class="text-xs text-muted-foreground">
         {{ t('admin.settings.features.affiliate.customUsers.totalLabel', { total: state.total }) }}
       </span>
-      <div class="acu-pagination__nav">
-        <button
+      <div class="flex items-center gap-2">
+        <Button
           type="button"
-          class="acu-btn acu-btn--secondary acu-btn--sm"
+          variant="outline"
+          size="sm"
           :disabled="state.page <= 1"
           @click="changePage(state.page - 1)"
         >
           {{ t('pagination.previous') }}
-        </button>
-        <span class="acu-pagination__page">
+        </Button>
+        <span class="min-w-[48px] text-center text-xs text-muted-foreground">
           {{ state.page }} / {{ Math.max(1, Math.ceil(state.total / state.pageSize)) }}
         </span>
-        <button
+        <Button
           type="button"
-          class="acu-btn acu-btn--secondary acu-btn--sm"
+          variant="outline"
+          size="sm"
           :disabled="state.page >= Math.ceil(state.total / state.pageSize)"
           @click="changePage(state.page + 1)"
         >
           {{ t('pagination.next') }}
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- add/edit modal -->
     <div
       v-if="modal.open"
-      class="acu-overlay"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
       @click.self="closeModal"
     >
-      <div class="acu-modal">
-        <h3 class="acu-modal__title">
+      <div class="flex w-full max-w-[440px] flex-col gap-4 rounded-xl border border-border bg-popover p-6 shadow-2xl">
+        <h3 class="m-0 text-[15px] font-semibold text-foreground">
           {{ modal.mode === 'add'
             ? t('admin.settings.features.affiliate.modal.addTitle')
             : t('admin.settings.features.affiliate.modal.editTitle') }}
         </h3>
 
-        <div class="acu-modal__body">
+        <div class="flex flex-col gap-3.5">
           <!-- user picker (add mode) -->
-          <div v-if="modal.mode === 'add'" class="acu-field">
-            <label class="acu-label">{{ t('admin.settings.features.affiliate.modal.userLabel') }}</label>
+          <div v-if="modal.mode === 'add'" class="flex flex-col gap-1.5">
+            <Label>{{ t('admin.settings.features.affiliate.modal.userLabel') }}</Label>
             <!-- selected chip -->
-            <div v-if="modal.selectedUser" class="acu-user-chip">
-              <div class="acu-user-chip__info">
-                <span class="acu-user-chip__email">{{ modal.selectedUser.email }}</span>
-                <span class="acu-user-chip__name">({{ modal.selectedUser.username }})</span>
+            <div v-if="modal.selectedUser" class="flex items-center justify-between rounded-lg border border-input bg-accent px-3 py-2">
+              <div class="flex items-baseline gap-1">
+                <span class="text-sm font-medium text-foreground">{{ modal.selectedUser.email }}</span>
+                <span class="text-xs text-muted-foreground">({{ modal.selectedUser.username }})</span>
               </div>
-              <button
+              <Button
                 type="button"
-                class="acu-user-chip__clear"
+                variant="ghost"
+                size="icon"
+                class="h-6 w-6 text-muted-foreground hover:text-destructive"
                 :title="t('admin.settings.features.affiliate.modal.changeUser')"
                 @click="clearSelectedUser"
-              >×</button>
+              >×</Button>
             </div>
             <!-- search input + dropdown -->
             <template v-else>
-              <input
+              <Input
                 v-model="modal.userQuery"
                 type="text"
-                class="acu-input"
+                class="h-9"
                 :placeholder="t('admin.settings.features.affiliate.modal.userPlaceholder')"
                 @input="onUserSearchInput"
               />
-              <div v-if="modal.userResults.length > 0" class="acu-user-dropdown">
-                <button
+              <div v-if="modal.userResults.length > 0" class="mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-popover">
+                <Button
                   v-for="u in modal.userResults"
                   :key="u.id"
                   type="button"
-                  class="acu-user-option"
+                  variant="ghost"
+                  class="block h-auto w-full justify-start px-3 py-2 text-sm text-foreground"
                   @click="selectUser(u)"
                 >
                   {{ u.email }}
-                  <span class="acu-user-option__name">({{ u.username }})</span>
-                </button>
+                  <span class="text-xs text-muted-foreground">({{ u.username }})</span>
+                </Button>
               </div>
             </template>
           </div>
 
           <!-- display user (edit mode) -->
-          <div v-else class="acu-field">
-            <label class="acu-label">{{ t('admin.settings.features.affiliate.modal.userLabel') }}</label>
-            <input
+          <div v-else class="flex flex-col gap-1.5">
+            <Label>{{ t('admin.settings.features.affiliate.modal.userLabel') }}</Label>
+            <Input
               type="text"
-              class="acu-input"
+              class="h-9"
               :value="modal.editingEntry?.email ?? ''"
               disabled
             />
           </div>
 
           <!-- invite code -->
-          <div class="acu-field">
-            <label class="acu-label">{{ t('admin.settings.features.affiliate.modal.codeLabel') }}</label>
-            <input
+          <div class="flex flex-col gap-1.5">
+            <Label>{{ t('admin.settings.features.affiliate.modal.codeLabel') }}</Label>
+            <Input
               v-model="modal.code"
               type="text"
-              class="acu-input acu-input--mono"
+              class="h-9 font-mono"
               :placeholder="t('admin.settings.features.affiliate.modal.codePlaceholder')"
               maxlength="32"
             />
-            <p class="acu-hint">{{ t('admin.settings.features.affiliate.modal.codeHint') }}</p>
+            <p class="m-0 text-[11px] leading-normal text-muted-foreground">{{ t('admin.settings.features.affiliate.modal.codeHint') }}</p>
           </div>
 
           <!-- rebate rate -->
-          <div class="acu-field">
-            <label class="acu-label">{{ t('admin.settings.features.affiliate.modal.rateLabel') }}</label>
-            <div class="acu-rate-wrap">
-              <input
+          <div class="flex flex-col gap-1.5">
+            <Label>{{ t('admin.settings.features.affiliate.modal.rateLabel') }}</Label>
+            <div class="relative">
+              <Input
                 v-model="modal.rate"
                 type="number"
                 step="0.01"
                 min="0"
                 max="100"
-                class="acu-input acu-input--rate"
+                class="h-9 pr-8"
                 :placeholder="t('admin.settings.features.affiliate.modal.ratePlaceholder')"
               />
-              <span class="acu-rate-suffix">%</span>
+              <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
             </div>
-            <p class="acu-hint">{{ t('admin.settings.features.affiliate.modal.rateHint') }}</p>
+            <p class="m-0 text-[11px] leading-normal text-muted-foreground">{{ t('admin.settings.features.affiliate.modal.rateHint') }}</p>
           </div>
         </div>
 
-        <div class="acu-modal__footer">
-          <p v-if="!modalCanSubmit" class="acu-modal__error">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-1">
+          <p v-if="!modalCanSubmit" class="m-0 text-[11.5px] text-destructive">
             {{ t('admin.settings.features.affiliate.modal.errorEmpty') }}
           </p>
           <span v-else />
-          <div class="acu-modal__btns">
-            <button type="button" class="acu-btn acu-btn--secondary" @click="closeModal">
+          <div class="flex gap-2">
+            <Button type="button" variant="outline" size="sm" @click="closeModal">
               {{ t('common.cancel') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              class="acu-btn acu-btn--primary"
+              size="sm"
               :disabled="modal.saving || !modalCanSubmit"
               @click="submitModal"
             >
               {{ modal.saving ? t('common.saving') : t('common.save') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -247,41 +254,41 @@
     <!-- batch rate modal -->
     <div
       v-if="batchModal.open"
-      class="acu-overlay"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
       @click.self="batchModal.open = false"
     >
-      <div class="acu-modal">
-        <h3 class="acu-modal__title">
+      <div class="flex w-full max-w-[440px] flex-col gap-4 rounded-xl border border-border bg-popover p-6 shadow-2xl">
+        <h3 class="m-0 text-[15px] font-semibold text-foreground">
           {{ t('admin.settings.features.affiliate.batchModal.title', { count: state.selected.length }) }}
         </h3>
-        <p class="acu-modal__hint">
+        <p class="m-0 text-xs leading-relaxed text-muted-foreground">
           {{ t('admin.settings.features.affiliate.batchModal.hint') }}
         </p>
-        <div class="acu-rate-wrap">
-          <input
+        <div class="relative">
+          <Input
             v-model="batchModal.rate"
             type="number"
             step="0.01"
             min="0"
             max="100"
-            class="acu-input acu-input--rate"
+            class="h-9 pr-8"
             :placeholder="t('admin.settings.features.affiliate.batchModal.placeholder')"
           />
-          <span class="acu-rate-suffix">%</span>
+          <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
         </div>
-        <p class="acu-hint">{{ t('admin.settings.features.affiliate.batchModal.clearHint') }}</p>
-        <div class="acu-modal__footer acu-modal__footer--right">
-          <button type="button" class="acu-btn acu-btn--secondary" @click="batchModal.open = false">
+        <p class="m-0 text-[11px] leading-normal text-muted-foreground">{{ t('admin.settings.features.affiliate.batchModal.clearHint') }}</p>
+        <div class="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-1">
+          <Button type="button" variant="outline" size="sm" @click="batchModal.open = false">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="acu-btn acu-btn--primary"
+            size="sm"
             :disabled="batchModal.saving"
             @click="submitBatchModal"
           >
             {{ batchModal.saving ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -304,6 +311,12 @@
 import { reactive, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { affiliatesAPI, type AffiliateAdminEntry, type SimpleUser } from '@/api/admin/affiliates'
 import { useAppStore } from '@/stores'
 import { extractApiErrorMessage } from '@/utils/apiError'
@@ -655,338 +668,3 @@ function cancelConfirm() {
   confirmDialog.pending = null
 }
 </script>
-
-<style scoped>
-/* ── Layout ──────────────────────────────────────────────────────────────── */
-.acu-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* ── Disabled state ──────────────────────────────────────────────────────── */
-.acu-disabled {
-  padding: 12px 16px;
-  font-size: 12.5px;
-  color: var(--ink-2, #5C6470);
-  border: 1px dashed var(--line-1, #2F3540);
-  border-radius: 8px;
-}
-
-/* ── Toolbar ─────────────────────────────────────────────────────────────── */
-.acu-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.acu-search {
-  flex: 1;
-  min-width: 160px;
-  padding: 7px 11px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s;
-  box-sizing: border-box;
-}
-.acu-search:focus {
-  border-color: var(--azure, #5CA8FF);
-  box-shadow: 0 0 0 3px rgba(92,168,255,.14);
-}
-.acu-search::placeholder { color: var(--ink-2, #5C6470); }
-
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
-.acu-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 7px 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  user-select: none;
-  border: 1px solid transparent;
-  transition: background .15s, box-shadow .15s, opacity .15s;
-  white-space: nowrap;
-}
-.acu-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.acu-btn:disabled { opacity: .55; cursor: not-allowed; }
-
-.acu-btn--primary {
-  border-color: var(--azure, #5CA8FF);
-  background: linear-gradient(180deg, rgba(92,168,255,.18) 0%, rgba(92,168,255,.08) 100%);
-  color: var(--azure, #5CA8FF);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 6px rgba(92,168,255,.12);
-}
-.acu-btn--primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(92,168,255,.28) 0%, rgba(92,168,255,.14) 100%);
-}
-
-.acu-btn--secondary {
-  border-color: var(--line-1, #2F3540);
-  background: transparent;
-  color: var(--ink-1, #97A0AF);
-}
-.acu-btn--secondary:hover:not(:disabled) {
-  background: rgba(255,255,255,.04);
-  color: var(--ink-0, #E8EBF0);
-}
-
-.acu-btn--sm { padding: 5px 11px; font-size: 12px; }
-
-/* ── Table ───────────────────────────────────────────────────────────────── */
-.acu-table-wrap {
-  overflow: hidden;
-  border-radius: 10px;
-  border: 1px solid var(--line-1, #2F3540);
-}
-
-.acu-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
-}
-
-.acu-th {
-  padding: 8px 12px;
-  text-align: left;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--ink-2, #5C6470);
-  background: var(--bg-1, #13161B);
-  border-bottom: 1px solid var(--line-1, #2F3540);
-}
-.acu-th--chk { width: 36px; }
-
-.acu-row { transition: background .1s; }
-.acu-row:hover { background: rgba(255,255,255,.025); }
-
-.acu-td {
-  padding: 8px 12px;
-  font-size: 13px;
-  color: var(--ink-0, #E8EBF0);
-  border-bottom: 1px solid var(--line-0, #20242C);
-}
-.acu-row:last-child .acu-td { border-bottom: none; }
-
-.acu-td--chk { width: 36px; }
-.acu-td--center { text-align: center; padding: 24px 12px; }
-.acu-td--muted { color: var(--ink-2, #5C6470); }
-.acu-td--mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; }
-
-.acu-checkbox { accent-color: var(--azure, #5CA8FF); cursor: pointer; }
-
-.acu-badge {
-  display: inline-block;
-  margin-left: 4px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: rgba(92,168,255,.15);
-  border: 1px solid rgba(92,168,255,.3);
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--azure, #5CA8FF);
-  vertical-align: middle;
-}
-
-.acu-actions { display: flex; align-items: center; gap: 10px; }
-
-.acu-link {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 12.5px;
-  font-family: inherit;
-  cursor: pointer;
-  color: var(--azure, #5CA8FF);
-  transition: opacity .12s;
-}
-.acu-link:hover { opacity: .75; }
-.acu-link:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.acu-link--danger { color: var(--bad, #F25C69); }
-
-/* ── Pagination ──────────────────────────────────────────────────────────── */
-.acu-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.acu-pagination__total { font-size: 12px; color: var(--ink-2, #5C6470); }
-.acu-pagination__nav { display: flex; align-items: center; gap: 8px; }
-.acu-pagination__page { font-size: 12px; color: var(--ink-2, #5C6470); min-width: 48px; text-align: center; }
-
-/* ── Overlay / modal ─────────────────────────────────────────────────────── */
-.acu-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,.55);
-  padding: 16px;
-}
-
-.acu-modal {
-  width: 100%;
-  max-width: 440px;
-  border-radius: 12px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-0, #20242C);
-  box-shadow: 0 20px 60px rgba(0,0,0,.55);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.acu-modal__title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink-0, #E8EBF0);
-  margin: 0;
-}
-
-.acu-modal__hint {
-  font-size: 12.5px;
-  color: var(--ink-2, #5C6470);
-  margin: 0;
-  line-height: 1.55;
-}
-
-.acu-modal__body {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.acu-modal__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding-top: 4px;
-  border-top: 1px solid var(--line-0, #20242C);
-}
-.acu-modal__footer--right { justify-content: flex-end; }
-
-.acu-modal__btns { display: flex; gap: 8px; }
-
-.acu-modal__error {
-  font-size: 11.5px;
-  color: var(--bad, #F25C69);
-  margin: 0;
-}
-
-/* ── Form elements ───────────────────────────────────────────────────────── */
-.acu-field { display: flex; flex-direction: column; gap: 5px; }
-
-.acu-label {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-1, #97A0AF);
-}
-
-.acu-input {
-  width: 100%;
-  padding: 7px 11px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s;
-  box-sizing: border-box;
-}
-.acu-input:focus { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.14); }
-.acu-input:disabled { opacity: .5; cursor: not-allowed; }
-.acu-input--mono { font-family: var(--font-mono, ui-monospace, monospace); }
-.acu-input--rate { padding-right: 32px; }
-
-.acu-rate-wrap { position: relative; }
-.acu-rate-suffix {
-  position: absolute;
-  right: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 13px;
-  color: var(--ink-2, #5C6470);
-  pointer-events: none;
-}
-
-.acu-hint {
-  font-size: 11px;
-  color: var(--ink-2, #5C6470);
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* ── User picker ─────────────────────────────────────────────────────────── */
-.acu-user-chip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 11px;
-  border-radius: 8px;
-  border: 1px solid rgba(92,168,255,.3);
-  background: rgba(92,168,255,.08);
-}
-
-.acu-user-chip__info { display: flex; align-items: baseline; gap: 4px; }
-.acu-user-chip__email { font-size: 13px; font-weight: 500; color: var(--ink-0, #E8EBF0); }
-.acu-user-chip__name { font-size: 11.5px; color: var(--ink-2, #5C6470); }
-
-.acu-user-chip__clear {
-  background: none;
-  border: none;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  padding: 0 2px;
-  transition: color .12s;
-}
-.acu-user-chip__clear:hover { color: var(--bad, #F25C69); }
-
-.acu-user-dropdown {
-  margin-top: 4px;
-  max-height: 160px;
-  overflow-y: auto;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-1, #13161B);
-}
-
-.acu-user-option {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 7px 11px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--ink-0, #E8EBF0);
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: background .1s;
-}
-.acu-user-option:hover { background: rgba(255,255,255,.05); }
-.acu-user-option__name { font-size: 11.5px; color: var(--ink-2, #5C6470); }
-</style>

@@ -1,39 +1,41 @@
 <template>
   <div class="min-h-screen bg-background px-4 py-10">
     <div class="mx-auto max-w-2xl">
-      <div class="card p-6">
-        <h1 class="text-lg font-semibold text-foreground">
-          {{ callbackTitleText }}
-        </h1>
-        <p class="mt-2 text-sm text-muted-foreground">
-          {{ errorMessage || callbackProcessingText }}
-        </p>
-
-        <div
-          v-if="!errorMessage"
-          class="mt-6 flex items-center justify-center py-10"
-        >
-          <div
-            class="h-8 w-8 animate-spin rounded-full border-4 border-primary-300 border-t-transparent"
-          ></div>
-        </div>
-
-        <div
-          v-else
-          class="mt-6 rounded-md border border-border bg-muted p-4"
-        >
-          <p class="text-sm text-foreground/85">
-            {{ errorMessage }}
+      <Card>
+        <CardContent class="p-6">
+          <h1 class="text-lg font-semibold text-foreground">
+            {{ callbackTitleText }}
+          </h1>
+          <p class="mt-2 text-sm text-muted-foreground">
+            {{ errorMessage || callbackProcessingText }}
           </p>
-          <button
-            class="btn btn-primary mt-4"
-            type="button"
-            @click="goBackToPayment"
+
+          <div
+            v-if="!errorMessage"
+            class="mt-6 flex items-center justify-center py-10"
           >
-            {{ backToPaymentText }}
-          </button>
-        </div>
-      </div>
+            <div
+              class="h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-transparent"
+            ></div>
+          </div>
+
+          <div
+            v-else
+            class="mt-6 rounded-md border border-border bg-muted p-4"
+          >
+            <p class="text-sm text-foreground/85">
+              {{ errorMessage }}
+            </p>
+            <Button
+              class="mt-4"
+              type="button"
+              @click="goBackToPayment"
+            >
+              {{ backToPaymentText }}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>
@@ -43,6 +45,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const route = useRoute()

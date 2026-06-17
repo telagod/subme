@@ -3,7 +3,7 @@
     <div v-if="props.loading && !props.stats" class="flex gap-2">
       <div class="h-3 w-20 animate-pulse rounded bg-muted"></div>
     </div>
-    <div v-else-if="props.error && !props.stats" class="text-[10px] text-red-400">!</div>
+    <div v-else-if="props.error && !props.stats" class="text-[10px] text-destructive">!</div>
     <div v-else-if="props.stats" class="flex items-center gap-1 text-[10px] tabular-nums">
       <span class="text-foreground/85 font-medium">{{ formatRequests }}r</span>
       <span class="text-muted-foreground/50">·</span>

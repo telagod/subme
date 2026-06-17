@@ -7,10 +7,12 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-        <button
+        <Button
           v-if="hasFilters"
           type="button"
-          class="btn btn-secondary btn-sm sm:btn-md gap-1.5"
+          variant="outline"
+          size="sm"
+          class="gap-1.5"
           :class="expanded && 'bg-accent'"
           @click="toggle"
         >
@@ -18,7 +20,7 @@
           <span class="hidden sm:inline">{{ t('common.filters') }}</span>
           <span
             v-if="activeCount > 0"
-            class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-400 px-1 text-[10px] font-bold text-background"
+            class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
           >
             {{ activeCount }}
           </span>
@@ -28,7 +30,7 @@
             class="hidden sm:inline-block transition-transform duration-150"
             :class="expanded && 'rotate-180'"
           />
-        </button>
+        </Button>
 
         <slot name="actions" />
       </div>
@@ -44,16 +46,18 @@
       leave-to-class="opacity-0 -translate-y-1 max-h-0"
     >
       <div v-show="expanded" class="overflow-hidden">
-        <div class="filter-panel rounded-lg border border-border bg-card/50 px-3 py-2.5">
+        <div class="filter-panel flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card/50 px-3 py-2.5">
           <slot name="filters" />
-          <button
+          <Button
             v-if="activeCount > 0"
             type="button"
-            class="shrink-0 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            variant="ghost"
+            size="sm"
+            class="shrink-0 h-auto px-1 py-0 text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
             @click="$emit('clear')"
           >
             {{ t('common.clearFilters') }}
-          </button>
+          </Button>
         </div>
       </div>
     </Transition>
@@ -64,6 +68,7 @@
 import { ref, computed, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const slots = useSlots()
@@ -97,13 +102,6 @@ const toggle = () => {
 </script>
 
 <style scoped>
-.filter-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 /* Mobile: selects go full-width */
 @media (max-width: 639px) {
   .filter-panel :deep(.w-36),

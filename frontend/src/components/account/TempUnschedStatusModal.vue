@@ -106,12 +106,11 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="handleClose">
+        <Button type="button" variant="secondary" @click="handleClose">
           {{ t('common.close') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-primary"
           :disabled="!isActive || resetting"
           @click="handleReset"
         >
@@ -136,7 +135,7 @@
             ></path>
           </svg>
           {{ t('admin.accounts.recoverState') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -150,6 +149,7 @@ import { adminAPI } from '@/api/admin'
 import type { Account, TempUnschedulableStatus } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import { formatDateTime } from '@/utils/format'
+import { Button } from '@/components/ui/button'
 
 const props = defineProps<{
   show: boolean

@@ -1,46 +1,57 @@
 <template>
-  <div class="q-vtabs" role="tablist" :aria-label="ariaLabel">
+  <div class="flex flex-wrap items-center gap-1.5 mb-3.5" role="tablist" :aria-label="ariaLabel">
     <!-- 固定「全部」页签 -->
-    <button
-      class="q-vtab"
-      :class="{ 'q-vtab-on': activeId === '__all__' }"
+    <Button
+      variant="ghost"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-lg border text-xs font-medium cursor-pointer transition-colors"
+      :class="activeId === '__all__'
+        ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary'
+        : 'bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground hover:bg-card'"
       role="tab"
       :aria-selected="activeId === '__all__'"
       @click="applyAll"
     >
       {{ t('datatable.savedViews.all') }}
-      <span v-if="totalCount != null" class="q-vtab-n">{{ totalCount.toLocaleString() }}</span>
-    </button>
+      <span v-if="totalCount != null" class="font-mono text-[10.5px] opacity-75">{{ totalCount.toLocaleString() }}</span>
+    </Button>
 
     <!-- 用户保存的视图页签 -->
-    <button
+    <div
       v-for="view in savedViews"
       :key="view.id"
-      class="q-vtab"
-      :class="{ 'q-vtab-on': activeId === view.id }"
-      role="tab"
-      :aria-selected="activeId === view.id"
-      @click="applyView(view)"
+      class="group relative inline-flex"
     >
-      {{ view.name }}
-      <span
-        class="q-vtab-del"
-        role="button"
+      <Button
+        variant="ghost"
+        class="inline-flex items-center gap-1.5 pl-3 pr-6 py-1.5 h-auto rounded-lg border text-xs font-medium cursor-pointer transition-colors"
+        :class="activeId === view.id
+          ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary'
+          : 'bg-card border-border text-muted-foreground hover:border-border/80 hover:text-foreground hover:bg-card'"
+        role="tab"
+        :aria-selected="activeId === view.id"
+        @click="applyView(view)"
+      >
+        {{ view.name }}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        class="absolute right-1 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded text-[9px] opacity-0 group-hover:opacity-100 transition-colors text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100"
         :aria-label="t('datatable.savedViews.delete', { name: view.name })"
-        tabindex="0"
         @click.stop="deleteView(view.id)"
         @keydown.enter.stop="deleteView(view.id)"
-      >✕</span>
-    </button>
+      >✕</Button>
+    </div>
 
     <!-- 保存当前视图按钮 -->
-    <button
-      class="q-vtab q-vtab-add"
+    <Button
+      variant="outline"
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 h-auto rounded-lg border-dashed text-xs font-medium cursor-pointer text-muted-foreground transition-colors hover:border-border/80 hover:text-foreground hover:bg-card"
       :aria-label="t('datatable.savedViews.save')"
       @click="saveCurrentView"
     >
       + {{ t('datatable.savedViews.save') }}
-    </button>
+    </Button>
   </div>
 </template>
 
@@ -48,6 +59,7 @@
 import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SavedView, TableQueryState } from './types'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 
@@ -137,97 +149,3 @@ function saveCurrentView() {
 
 
 </script>
-
-<style scoped>
-/* ── 淬钢 QUENCH · SavedViewTabs 样式 ── */
-.q-vtabs {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-  align-items: center;
-}
-
-.q-vtab {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 13px;
-  border-radius: 9px;
-  border: 1px solid var(--line-0, #20242C);
-  background: var(--bg-1, #101216);
-  color: var(--ink-1, #97A0AF);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
-  transition: border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
-  line-height: 1.4;
-}
-
-.q-vtab:hover {
-  border-color: var(--line-1, #2F3540);
-  color: var(--ink-0, #E8EBF0);
-}
-
-.q-vtab-on {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.12));
-  border-color: rgba(92, 168, 255, 0.4);
-  color: var(--azure-hi, #8CC4FF) !important;
-  box-shadow: 0 0 12px rgba(92, 168, 255, 0.12);
-}
-
-.q-vtab-add {
-  border-style: dashed;
-}
-
-.q-vtab-n {
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-size: 10.5px;
-  opacity: 0.75;
-}
-
-/* 删除小按钮 */
-.q-vtab-del {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  font-size: 9px;
-  opacity: 0;
-  color: var(--ink-2, #5C6470);
-  transition: opacity 0.15s, color 0.15s, background 0.15s;
-  cursor: pointer;
-  margin-left: -2px;
-}
-
-.q-vtab:hover .q-vtab-del {
-  opacity: 1;
-}
-
-.q-vtab-del:hover {
-  background: var(--bad-dim, rgba(242, 92, 105, 0.12));
-  color: var(--bad, #F25C69);
-}
-
-/* 键盘焦点：页签按钮 */
-.q-vtab:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 14px rgba(92, 168, 255, 0.2);
-}
-
-/* 删除小按钮焦点 */
-.q-vtab-del:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65);
-  border-radius: 3px;
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .q-vtab { transition: none; }
-  .q-vtab-del { transition: none; }
-}
-</style>

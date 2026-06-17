@@ -23,76 +23,80 @@
         tabindex="-1"
       >
         <!-- 加载态 -->
-        <div v-if="loading" class="ud-loading-cover">
+        <div v-if="loading" class="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground text-[12.5px]">
           <div class="ud-spinner"></div>
         </div>
 
         <!-- 错误态 -->
-        <div v-else-if="loadError" class="ud-error-cover">
+        <div v-else-if="loadError" class="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground text-[12.5px]">
           <p>{{ loadError }}</p>
-          <button class="ud-btn-ghost" @click="loadUser">{{ t('admin.userDetailDrawer.retryBtn') }}</button>
+          <Button variant="outline" size="sm" @click="loadUser">{{ t('admin.userDetailDrawer.retryBtn') }}</Button>
         </div>
 
         <template v-else-if="user">
           <!-- ── 头部 ── -->
-          <div class="ud-head">
-            <div class="ud-avatar" :title="user.email">
+          <div class="flex items-center gap-3 px-[22px] py-5 pb-4 border-b border-border flex-shrink-0">
+            <div
+              class="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-[17px] font-bold text-primary flex-shrink-0"
+              :title="user.email"
+            >
               {{ user.email.charAt(0).toUpperCase() }}
             </div>
-            <div class="ud-head-info">
-              <div class="ud-email">{{ user.email }}</div>
-              <div class="ud-head-meta">
-                <span class="ud-reg-time">{{ t('admin.userDetailDrawer.registered') }} {{ fmtDate(user.created_at) }}</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-foreground truncate">{{ user.email }}</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-[11px] text-muted-foreground">{{ t('admin.userDetailDrawer.registered') }} {{ fmtDate(user.created_at) }}</span>
               </div>
             </div>
-            <div class="ud-head-badges">
-              <span class="ud-badge" :class="user.role === 'admin' ? 'ud-badge-azure' : 'ud-badge-gray'">
+            <div class="flex gap-1.5 flex-shrink-0">
+              <Badge :variant="user.role === 'admin' ? 'default' : 'secondary'">
                 {{ user.role === 'admin' ? t('admin.userDetailDrawer.roleAdmin') : t('admin.userDetailDrawer.roleUser') }}
-              </span>
-              <span class="ud-badge" :class="user.status === 'active' ? 'ud-badge-ok' : 'ud-badge-bad'">
+              </Badge>
+              <Badge :variant="user.status === 'active' ? 'secondary' : 'destructive'" :class="user.status === 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' : ''">
                 {{ user.status === 'active' ? t('admin.userDetailDrawer.statusActive') : t('admin.userDetailDrawer.statusDisabled') }}
-              </span>
+              </Badge>
             </div>
-            <button class="ud-close" @click="handleClose" :aria-label="t('admin.userDetailDrawer.ariaClose')">
+            <Button variant="ghost" size="icon" class="flex-shrink-0 w-8 h-8" @click="handleClose" :aria-label="t('admin.userDetailDrawer.ariaClose')">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-            </button>
+            </Button>
           </div>
 
           <!-- ── KPI 三格 ── -->
-          <div class="ud-kpi-strip">
-            <div class="ud-kpi-item">
-              <span class="ud-kpi-label">{{ t('admin.userDetailDrawer.kpiBalance') }}</span>
-              <span class="ud-kpi-val q-money">${{ fmtBal(user.balance) }}</span>
+          <div class="flex items-stretch px-[22px] py-3 border-b border-border gap-0 flex-shrink-0 bg-muted/40">
+            <div class="flex flex-1 flex-col gap-0.5 px-3.5 first:pl-0 last:pr-0">
+              <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userDetailDrawer.kpiBalance') }}</span>
+              <span class="text-[15px] font-bold text-foreground">${{ fmtBal(user.balance) }}</span>
             </div>
-            <div class="ud-kpi-divider"></div>
-            <div class="ud-kpi-item">
-              <span class="ud-kpi-label">{{ t('admin.userDetailDrawer.kpiMonthCost') }}</span>
-              <span class="ud-kpi-val q-money" v-if="!monthStatsLoading">${{ fmtBal(monthStats.total_cost) }}</span>
-              <span class="ud-kpi-val ud-muted" v-else>…</span>
+            <div class="w-px bg-border my-0.5"></div>
+            <div class="flex flex-1 flex-col gap-0.5 px-3.5">
+              <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userDetailDrawer.kpiMonthCost') }}</span>
+              <span class="text-[15px] font-bold text-foreground" v-if="!monthStatsLoading">${{ fmtBal(monthStats.total_cost) }}</span>
+              <span class="text-[15px] font-bold text-muted-foreground" v-else>…</span>
             </div>
-            <div class="ud-kpi-divider"></div>
-            <div class="ud-kpi-item">
-              <span class="ud-kpi-label">{{ t('admin.userDetailDrawer.kpiSubscription') }}</span>
-              <span class="ud-kpi-val" v-if="activeSub">
-                <span class="ud-badge ud-badge-ok">{{ t('admin.userDetailDrawer.subscriptionActive') }}</span>
+            <div class="w-px bg-border my-0.5"></div>
+            <div class="flex flex-1 flex-col gap-0.5 px-3.5 last:pr-0">
+              <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userDetailDrawer.kpiSubscription') }}</span>
+              <span class="text-[15px] font-bold text-foreground" v-if="activeSub">
+                <Badge variant="secondary" class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">{{ t('admin.userDetailDrawer.subscriptionActive') }}</Badge>
               </span>
-              <span class="ud-kpi-val ud-muted" v-else>{{ t('admin.userDetailDrawer.subscriptionNone') }}</span>
+              <span class="text-[15px] font-bold text-muted-foreground" v-else>{{ t('admin.userDetailDrawer.subscriptionNone') }}</span>
             </div>
           </div>
 
           <!-- ── 页签条 ── -->
-          <div class="ud-tabs" role="tablist">
-            <button
+          <div class="flex px-[22px] border-b border-border gap-0 flex-shrink-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
+            <Button
               v-for="tab in tabs"
               :key="tab.key"
-              class="ud-tab"
-              :class="{ 'ud-tab-active': activeTab === tab.key }"
+              variant="ghost"
+              class="px-3.5 py-2.5 text-[12.5px] font-medium text-muted-foreground whitespace-nowrap border-b-2 border-transparent rounded-none transition-colors duration-150 -mb-px h-auto hover:bg-transparent hover:text-foreground"
+              :class="{ 'text-primary border-b-primary border-b-2': activeTab === tab.key }"
               role="tab"
               :aria-selected="activeTab === tab.key"
               @click="activeTab = tab.key"
-            >{{ tab.label }}</button>
+            >{{ tab.label }}</Button>
           </div>
 
           <!-- ── 页签内容 ── -->
@@ -106,21 +110,22 @@
           </div>
 
           <!-- ── 底部操作栏 ── -->
-          <div class="ud-footer">
-            <button class="ud-foot-btn ud-foot-btn-primary" @click="showBalanceAdj = true">
+          <div class="flex items-center gap-2.5 px-[22px] py-3.5 border-t border-border flex-shrink-0">
+            <Button variant="outline" size="sm" @click="showBalanceAdj = true" class="gap-1.5">
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
                 <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
               {{ t('admin.userDetailDrawer.adjustBalance') }}
-            </button>
-            <button
-              class="ud-foot-btn"
-              :class="user.status === 'active' ? 'ud-foot-btn-danger' : 'ud-foot-btn-ok'"
+            </Button>
+            <Button
+              :variant="user.status === 'active' ? 'destructive' : 'secondary'"
+              size="sm"
               :disabled="user.role === 'admin' && isCurrentAdmin"
               @click="toggleStatus"
+              :class="user.status !== 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20' : ''"
             >
               {{ statusToggleLabel }}
-            </button>
+            </Button>
           </div>
         </template>
       </div>
@@ -155,6 +160,9 @@ import OrdersTab from './tabs/OrdersTab.vue'
 import UsageTab from './tabs/UsageTab.vue'
 import RiskTab from './tabs/RiskTab.vue'
 import BalanceAdjustPopover from './BalanceAdjustPopover.vue'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 // ── Props / Emits ──────────────────────────────────────────────────────
 const props = defineProps<{
@@ -312,13 +320,13 @@ watch(
 .ud-drawer {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 9991;
   width: 560px;
-  background: var(--bg-1);
-  border-left: 1px solid var(--line-1);
-  box-shadow: -24px 0 64px rgba(0,0,0,.45), var(--edge-hi);
+  background: hsl(var(--background));
+  border-left: 1px solid hsl(var(--border));
+  box-shadow: -24px 0 64px rgba(0,0,0,.45);
   display: flex; flex-direction: column;
   font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
   font-size: 13px;
-  color: var(--ink-0);
+  color: hsl(var(--foreground));
   outline: none;
   overflow: hidden;
 }
@@ -336,160 +344,24 @@ watch(
 .ud-slide-enter-from { transform: translateX(100%); }
 .ud-slide-leave-to  { transform: translateX(100%); }
 
-/* ── 头部 ── */
-.ud-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 22px 16px;
-  border-bottom: 1px solid var(--line-0);
-  flex-shrink: 0;
-}
-.ud-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--azure-dim);
-  border: 1px solid rgba(92,168,255,.35);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 17px; font-weight: 700; color: var(--azure);
-  flex-shrink: 0;
-}
-.ud-head-info { flex: 1; min-width: 0; }
-.ud-email {
-  font-size: 14px; font-weight: 600; color: var(--ink-0);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ud-head-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
-.ud-reg-time { font-size: 11px; color: var(--ink-2); }
-.ud-head-badges { display: flex; gap: 5px; flex-shrink: 0; }
-.ud-close {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink-2); padding: 5px;
-  border-radius: 7px; display: flex; align-items: center;
-  transition: background 0.12s;
-  flex-shrink: 0;
-}
-.ud-close:hover { background: var(--bg-2); color: var(--ink-0); }
-
-/* Badges */
-.ud-badge {
-  font-size: 10.5px; font-weight: 600; padding: 2px 8px;
-  border-radius: 5px; letter-spacing: 0.04em; border: 1px solid transparent;
-}
-.ud-badge-azure { background: var(--azure-dim); color: var(--azure); border-color: rgba(92,168,255,.3); }
-.ud-badge-gray  { background: var(--bg-2); color: var(--ink-2); border-color: var(--line-1); }
-.ud-badge-ok    { background: var(--ok-dim); color: var(--ok); border-color: rgba(70,201,140,.3); }
-.ud-badge-bad   { background: var(--bad-dim); color: var(--bad); border-color: rgba(242,92,105,.3); }
-
-/* ── KPI 条 ── */
-.ud-kpi-strip {
-  display: flex;
-  align-items: stretch;
-  padding: 12px 22px;
-  border-bottom: 1px solid var(--line-0);
-  gap: 0;
-  flex-shrink: 0;
-  background: var(--metal,linear-gradient(180deg,#13161C,#0E1014));
-}
-.ud-kpi-item {
-  flex: 1; display: flex; flex-direction: column; gap: 3px;
-  padding: 0 14px;
-}
-.ud-kpi-item:first-child { padding-left: 0; }
-.ud-kpi-item:last-child { padding-right: 0; }
-.ud-kpi-label { font-size: 10.5px; color: var(--ink-2); }
-.ud-kpi-val { font-size: 15px; font-weight: 700; color: var(--ink-0); }
-.ud-kpi-divider { width: 1px; background: var(--line-0); margin: 2px 0; }
-
-/* ── 页签 ── */
-.ud-tabs {
-  display: flex;
-  padding: 0 22px;
-  border-bottom: 1px solid var(--line-0);
-  gap: 0;
-  flex-shrink: 0;
-  overflow-x: auto;
-}
-.ud-tabs::-webkit-scrollbar { display: none; }
-.ud-tab {
-  padding: 10px 14px;
-  font-size: 12.5px; font-weight: 500;
-  color: var(--ink-2); background: none; border: none;
-  cursor: pointer; white-space: nowrap;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
-  margin-bottom: -1px;
-  font-family: inherit;
-}
-.ud-tab:hover { color: var(--ink-0); }
-.ud-tab-active { color: var(--azure); border-bottom-color: var(--azure); }
-
 /* ── 内容区 ── */
 .ud-body {
   flex: 1;
   overflow-y: auto;
   padding: 20px 22px;
   scrollbar-width: thin;
-  scrollbar-color: var(--line-1) transparent;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 .ud-body::-webkit-scrollbar { width: 5px; }
 .ud-body::-webkit-scrollbar-track { background: transparent; }
-.ud-body::-webkit-scrollbar-thumb { background: var(--line-1); border-radius: 3px; }
+.ud-body::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
 
-/* ── 底部操作栏 ── */
-.ud-footer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 22px;
-  border-top: 1px solid var(--line-0);
-  flex-shrink: 0;
-}
-.ud-foot-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; font-size: 12.5px;
-  font-weight: 600; cursor: pointer; border: 1px solid transparent;
-  font-family: inherit; transition: all 0.13s;
-}
-.ud-foot-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-/* 调余额：金属凸面主按钮（对齐 QUENCH 主动作规范） */
-.ud-foot-btn-primary {
-  background: var(--metal-raised,linear-gradient(180deg,#272D37,#14171D));
-  border-color: rgba(255,255,255,.12); color: var(--ink-0,#E8EBF0);
-  box-shadow: var(--edge-hi,inset 0 1px 0 rgba(255,255,255,.07)), 0 2px 8px rgba(0,0,0,.3);
-}
-.ud-foot-btn-primary:hover {
-  border-color: rgba(92,168,255,.5);
-  box-shadow: var(--edge-hi,inset 0 1px 0 rgba(255,255,255,.07)), 0 0 14px rgba(92,168,255,.18);
-}
-.ud-foot-btn-danger {
-  background: var(--bad-dim); border-color: rgba(242,92,105,.4); color: var(--bad);
-}
-.ud-foot-btn-danger:not(:disabled):hover {
-  background: rgba(242,92,105,.2);
-}
-.ud-foot-btn-ok {
-  background: var(--ok-dim); border-color: rgba(70,201,140,.4); color: var(--ok);
-}
-.ud-foot-btn-ok:not(:disabled):hover { background: rgba(70,201,140,.2); }
-
-/* ── 覆盖态 ── */
-.ud-loading-cover, .ud-error-cover {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px;
-  color: var(--ink-2); font-size: 12.5px;
-}
+/* ── 加载 spinner ── */
 .ud-spinner {
   width: 28px; height: 28px; border-radius: 50%;
-  border: 2px solid var(--line-1);
-  border-top-color: var(--azure);
+  border: 2px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
   animation: ud-spin 0.7s linear infinite;
 }
 @keyframes ud-spin { to { transform: rotate(360deg); } }
-.ud-btn-ghost {
-  padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line-1);
-  background: transparent; color: var(--ink-1); cursor: pointer;
-  font-size: 12.5px; font-family: inherit; transition: background 0.12s;
-}
-.ud-btn-ghost:hover { background: var(--bg-2); }
-.ud-muted { color: var(--ink-2); }
 </style>

@@ -339,6 +339,8 @@ export default {
     inactive: '禁用',
     more: '更多',
     close: '关闭',
+    lightMode: '切换亮色',
+    darkMode: '切换暗色',
     enabled: '已启用',
     disabled: '已禁用',
     total: '总计',
@@ -4728,7 +4730,8 @@ export default {
       failedToUpdate: '更新公告失败',
       failedToDelete: '删除公告失败',
       failedToLoadReadStatus: '加载已读情况失败',
-      deleteConfirm: '确定要删除该公告吗？此操作无法撤销。'
+      deleteConfirm: '确定要删除该公告吗？此操作无法撤销。',
+      emptyDescription: '暂无公告，点击上方按钮创建第一条'
     },
 
     // Promo Codes
@@ -7409,6 +7412,7 @@ export default {
       tabPayment: '支付',
       tabEmail: '邮件',
       tabBackup: '备份',
+      noSearchResults: '没有匹配的设置项',
     },
   },
 
@@ -7495,7 +7499,8 @@ export default {
     total: '条公告',
     emptyDescription: '暂时没有任何系统公告',
     readStatus: '您已阅读此公告',
-    markReadHint: '点击"已读"标记此公告'
+    markReadHint: '点击"已读"标记此公告',
+    readLater: '稍后再看'
   },
 
   // User Subscriptions Page

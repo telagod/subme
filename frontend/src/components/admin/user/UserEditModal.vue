@@ -7,56 +7,55 @@
   >
     <form v-if="user" id="edit-user-form" @submit.prevent="handleUpdateUser" class="space-y-5">
       <div>
-        <label class="input-label">{{ t('admin.users.email') }}</label>
-        <input v-model="form.email" type="email" class="input" />
+        <Label class="mb-2 block">{{ t('admin.users.email') }}</Label>
+        <Input v-model="form.email" type="email" />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.users.password') }}</label>
+        <Label class="mb-2 block">{{ t('admin.users.password') }}</Label>
         <div class="flex gap-2">
           <div class="relative flex-1">
-            <input v-model="form.password" type="text" class="input pr-10" :placeholder="t('admin.users.enterNewPassword')" />
-            <button v-if="form.password" type="button" @click="copyPassword" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-colors hover:bg-accent" :class="passwordCopied ? 'text-emerald-400' : 'text-muted-foreground'">
+            <Input v-model="form.password" type="text" class="pr-10" :placeholder="t('admin.users.enterNewPassword')" />
+            <Button v-if="form.password" type="button" variant="ghost" size="icon" @click="copyPassword" class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7" :class="passwordCopied ? 'text-emerald-500' : 'text-muted-foreground'">
               <svg v-if="passwordCopied" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
               <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>
-            </button>
+            </Button>
           </div>
-          <button type="button" @click="generatePassword" class="btn btn-secondary px-3">
+          <Button type="button" variant="secondary" size="icon" @click="generatePassword">
             <Icon name="refresh" size="md" />
-          </button>
+          </Button>
         </div>
       </div>
       <div>
-        <label class="input-label">{{ t('admin.users.username') }}</label>
-        <input v-model="form.username" type="text" class="input" />
+        <Label class="mb-2 block">{{ t('admin.users.username') }}</Label>
+        <Input v-model="form.username" type="text" />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.users.notes') }}</label>
-        <textarea v-model="form.notes" rows="3" class="input"></textarea>
+        <Label class="mb-2 block">{{ t('admin.users.notes') }}</Label>
+        <Textarea v-model="form.notes" rows="3" />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.users.columns.concurrency') }}</label>
-        <input v-model.number="form.concurrency" type="number" class="input" />
+        <Label class="mb-2 block">{{ t('admin.users.columns.concurrency') }}</Label>
+        <Input v-model.number="form.concurrency" type="number" />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.users.form.rpmLimit') }}</label>
-        <input
+        <Label class="mb-2 block">{{ t('admin.users.form.rpmLimit') }}</Label>
+        <Input
           v-model.number="form.rpm_limit"
           type="number"
           min="0"
           step="1"
-          class="input"
           :placeholder="t('admin.users.form.rpmLimitPlaceholder')"
         />
-        <p class="input-hint">{{ t('admin.users.form.rpmLimitHint') }}</p>
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.users.form.rpmLimitHint') }}</p>
       </div>
       <UserAttributeForm v-model="form.customAttributes" :user-id="user?.id" />
     </form>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button @click="$emit('close')" type="button" class="btn btn-secondary">{{ t('common.cancel') }}</button>
-        <button type="submit" form="edit-user-form" :disabled="submitting" class="btn btn-primary">
+        <Button @click="$emit('close')" type="button" variant="secondary">{{ t('common.cancel') }}</Button>
+        <Button type="submit" form="edit-user-form" :disabled="submitting">
           {{ submitting ? t('admin.users.updating') : t('common.update') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -72,6 +71,10 @@ import type { AdminUser, UserAttributeValuesMap } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import UserAttributeForm from '@/components/user/UserAttributeForm.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 
 const props = defineProps<{ show: boolean, user: AdminUser | null }>()
 const emit = defineEmits(['close', 'success'])

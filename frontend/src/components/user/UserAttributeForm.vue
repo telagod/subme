@@ -1,24 +1,23 @@
 <template>
   <div v-if="attributes.length > 0" class="space-y-4">
     <div v-for="attr in attributes" :key="attr.id">
-      <label class="input-label">
+      <Label class="mb-1 block">
         {{ attr.name }}
-        <span v-if="attr.required" class="text-red-400">*</span>
-      </label>
+        <span v-if="attr.required" class="text-destructive">*</span>
+      </Label>
 
       <!-- Text Input -->
-      <input
+      <Input
         v-if="attr.type === 'text' || attr.type === 'email' || attr.type === 'url'"
         v-model="localValues[attr.id]"
         :type="attr.type === 'text' ? 'text' : attr.type"
         :required="attr.required"
         :placeholder="attr.placeholder"
-        class="input"
         @input="emitChange"
       />
 
       <!-- Number Input -->
-      <input
+      <Input
         v-else-if="attr.type === 'number'"
         v-model.number="localValues[attr.id]"
         type="number"
@@ -26,28 +25,25 @@
         :placeholder="attr.placeholder"
         :min="attr.validation?.min"
         :max="attr.validation?.max"
-        class="input"
         @input="emitChange"
       />
 
       <!-- Date Input -->
-      <input
+      <Input
         v-else-if="attr.type === 'date'"
         v-model="localValues[attr.id]"
         type="date"
         :required="attr.required"
-        class="input"
         @input="emitChange"
       />
 
       <!-- Textarea -->
-      <textarea
+      <Textarea
         v-else-if="attr.type === 'textarea'"
         v-model="localValues[attr.id]"
         :required="attr.required"
         :placeholder="attr.placeholder"
         rows="3"
-        class="input"
         @input="emitChange"
       />
 
@@ -66,19 +62,16 @@
           :key="opt.value"
           class="flex items-center gap-2"
         >
-          <input
-            type="checkbox"
-            :value="opt.value"
+          <Checkbox
             :checked="isOptionSelected(attr.id, opt.value)"
-            @change="toggleMultiSelectOption(attr.id, opt.value)"
-            class="h-4 w-4 rounded border-border text-primary-600"
+            @update:checked="() => toggleMultiSelectOption(attr.id, opt.value)"
           />
           <span class="text-sm text-foreground/85">{{ opt.label }}</span>
         </label>
       </div>
 
       <!-- Description -->
-      <p v-if="attr.description" class="input-hint">{{ attr.description }}</p>
+      <p v-if="attr.description" class="mt-1 text-xs text-muted-foreground">{{ attr.description }}</p>
     </div>
   </div>
 
@@ -96,6 +89,10 @@ import { ref, watch, onMounted } from 'vue'
 import { adminAPI } from '@/api/admin'
 import type { UserAttributeDefinition, UserAttributeValuesMap } from '@/types'
 import Select from '@/components/common/Select.vue'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface Props {
   userId?: number

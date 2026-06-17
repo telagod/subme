@@ -7,12 +7,12 @@
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <button @click="handleCancel" type="button" class="btn btn-secondary">
+        <Button @click="handleCancel" type="button" variant="outline">
           {{ cancelText }}
-        </button>
-        <button @click="handleConfirm" type="button" :class="danger ? 'btn btn-danger' : 'btn btn-primary'">
+        </Button>
+        <Button @click="handleConfirm" type="button" :variant="danger ? 'destructive' : 'default'">
           {{ confirmText }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -22,6 +22,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from './BaseDialog.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 

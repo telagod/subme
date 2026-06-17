@@ -3,7 +3,7 @@
   <Transition name="q-drawer-mask">
     <div
       v-if="modelValue"
-      class="q-drawer-mask"
+      class="fixed inset-0 z-[49] bg-black/55 backdrop-blur-sm"
       aria-hidden="true"
       @click="handleClose"
     />
@@ -13,45 +13,53 @@
   <Transition name="q-drawer">
     <aside
       v-if="modelValue"
-      class="q-drawer"
+      class="fixed bottom-0 right-0 top-0 z-50 flex w-[480px] max-w-full flex-col border-l border-border bg-card text-foreground shadow-xl"
       role="dialog"
       :aria-label="title"
       aria-modal="true"
     >
       <!-- 头部 -->
-      <div class="q-drawer-header">
-        <span class="q-drawer-title">{{ title }}</span>
-        <button class="q-drawer-close" :aria-label="'关闭'" @click="handleClose">
+      <div class="flex flex-shrink-0 items-center border-b border-border px-[22px] py-[18px]">
+        <span class="flex-1 text-sm font-semibold tracking-[0.01em] text-foreground">{{ title }}</span>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7 rounded-[7px]"
+          :aria-label="'关闭'"
+          @click="handleClose"
+        >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-        </button>
+        </Button>
       </div>
 
       <!-- 表单区 -->
-      <div class="q-drawer-body">
-        <form id="resource-form" class="q-drawer-form" @submit.prevent="handleSubmit">
+      <div class="flex-1 overflow-y-auto p-[22px]">
+        <form id="resource-form" class="flex flex-col gap-[18px]" @submit.prevent="handleSubmit">
           <template v-for="field in visibleFields" :key="field.key">
-            <div class="q-field">
-              <label class="q-field-label">
+            <div class="flex flex-col gap-[7px]">
+              <Label class="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                 {{ field.label }}
-                <span v-if="field.required" class="q-field-req" aria-hidden="true">*</span>
-              </label>
+                <span v-if="field.required" class="ml-[2px] text-destructive" aria-hidden="true">*</span>
+              </Label>
 
               <!-- text / password -->
               <template v-if="field.type === 'text' || field.type === 'password'">
-                <div class="q-input-wrap">
-                  <input
-                    v-model="formData[field.key]"
+                <div class="relative">
+                  <Input
+                    v-model="formData[field.key] as string"
                     :type="passwordVisible[field.key] ? 'text' : field.type"
                     :required="field.required"
                     :placeholder="field.placeholder ?? ''"
-                    class="q-input"
+                    :class="field.type === 'password' ? 'pr-10' : ''"
                   />
-                  <button
+                  <Button
                     v-if="field.type === 'password'"
                     type="button"
-                    class="q-pw-toggle"
+                    variant="ghost"
+                    size="icon"
+                    class="absolute right-[2px] top-1/2 h-7 w-7 -translate-y-1/2 rounded text-muted-foreground hover:text-foreground"
                     :aria-label="passwordVisible[field.key] ? '隐藏' : '显示'"
                     @click="passwordVisible[field.key] = !passwordVisible[field.key]"
                   >
@@ -63,43 +71,47 @@
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
-                  </button>
+                  </Button>
                 </div>
               </template>
 
               <!-- number -->
               <template v-else-if="field.type === 'number'">
-                <input
-                  v-model.number="formData[field.key]"
+                <Input
+                  :model-value="formData[field.key] as number | string | null"
                   type="number"
                   :required="field.required"
                   :placeholder="field.placeholder ?? ''"
-                  class="q-input"
+                  @update:model-value="formData[field.key] = $event === '' || $event == null ? null : Number($event)"
                 />
               </template>
 
               <!-- select -->
               <template v-else-if="field.type === 'select'">
-                <select v-model="formData[field.key]" :required="field.required" class="q-select">
-                  <option v-if="field.placeholder" value="" disabled>{{ field.placeholder }}</option>
-                  <option
-                    v-for="opt in (field.options ?? [])"
-                    :key="String(opt.value)"
-                    :value="opt.value"
-                  >{{ opt.label }}</option>
-                </select>
+                <Select
+                  :model-value="String(formData[field.key] ?? '')"
+                  :required="field.required"
+                  @update:model-value="formData[field.key] = $event"
+                >
+                  <SelectTrigger class="w-full">
+                    <SelectValue :placeholder="field.placeholder ?? ''" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="opt in (field.options ?? [])"
+                      :key="String(opt.value)"
+                      :value="String(opt.value)"
+                    >{{ opt.label }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </template>
 
               <!-- switch -->
               <template v-else-if="field.type === 'switch'">
-                <label class="q-switch">
-                  <input
-                    v-model="formData[field.key]"
-                    type="checkbox"
-                    class="q-switch-input"
-                  />
-                  <span class="q-switch-track"></span>
-                </label>
+                <Switch
+                  :checked="!!formData[field.key]"
+                  @update:checked="formData[field.key] = $event"
+                />
               </template>
             </div>
           </template>
@@ -107,17 +119,16 @@
       </div>
 
       <!-- 底部操作 -->
-      <div class="q-drawer-footer">
-        <button type="button" class="q-btn q-btn-ghost" @click="handleClose">取消</button>
-        <button
+      <div class="flex flex-shrink-0 items-center justify-end gap-[10px] border-t border-border px-[22px] py-4">
+        <Button type="button" variant="outline" @click="handleClose">取消</Button>
+        <Button
           type="submit"
           form="resource-form"
-          class="q-btn q-btn-primary"
           :disabled="submitting"
         >
           <svg
             v-if="submitting"
-            class="q-spin"
+            class="animate-spin"
             width="14" height="14" viewBox="0 0 24 24" fill="none"
             aria-hidden="true"
           >
@@ -125,7 +136,7 @@
             <path d="M12 2a10 10 0 010 20" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
           </svg>
           {{ submitting ? '保存中…' : (isEdit ? '保存' : '创建') }}
-        </button>
+        </Button>
       </div>
     </aside>
   </Transition>
@@ -134,6 +145,11 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
 import type { FieldDef } from './types'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // ── Props ──────────────────────────────────────────────────────────────
 const props = defineProps<{
@@ -197,295 +213,6 @@ function handleSubmit() {
 </script>
 
 <style scoped>
-/* ── 淬钢 QUENCH · ResourceFormDrawer ── */
-
-/* 遮罩 */
-.q-drawer-mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 49;
-  backdrop-filter: blur(1px);
-}
-
-/* 抽屉面板 */
-.q-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 480px;
-  max-width: 100vw;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  background: var(--metal-base, linear-gradient(180deg, #1A1E26 0%, #13161C 100%));
-  border-left: 1px solid var(--line-1, #2F3540);
-  box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.04),
-    -20px 0 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(92, 168, 255, 0.04);
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
-  font-size: 13px;
-  color: var(--ink-0, #E8EBF0);
-}
-
-/* 头部 */
-.q-drawer-header {
-  display: flex;
-  align-items: center;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--line-0, #20242C);
-  flex-shrink: 0;
-}
-
-.q-drawer-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink-0, #E8EBF0);
-  flex: 1;
-  letter-spacing: 0.01em;
-}
-
-.q-drawer-close {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: transparent;
-  border-radius: 7px;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.q-drawer-close:hover {
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-}
-
-/* 表单区 */
-.q-drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 22px;
-}
-
-.q-drawer-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* 字段 */
-.q-field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.q-field-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-2, #5C6470);
-}
-
-.q-field-req {
-  color: var(--bad, #F25C69);
-  margin-left: 2px;
-}
-
-/* input */
-.q-input-wrap {
-  position: relative;
-}
-
-.q-input {
-  width: 100%;
-  background: var(--bg-2, #171A20);
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 13px;
-  color: var(--ink-0, #E8EBF0);
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-.q-input-wrap .q-input {
-  padding-right: 38px;
-}
-
-.q-input:focus {
-  border-color: rgba(92, 168, 255, 0.55);
-  box-shadow: 0 0 0 2px rgba(92, 168, 255, 0.15);
-}
-
-.q-input::placeholder {
-  color: var(--ink-2, #5C6470);
-}
-
-/* select */
-.q-select {
-  width: 100%;
-  background: var(--bg-2, #171A20);
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 13px;
-  color: var(--ink-0, #E8EBF0);
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  font-family: inherit;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5L5 6.5L8 3.5' stroke='%235C6470' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
-}
-
-.q-select:focus {
-  border-color: rgba(92, 168, 255, 0.55);
-  box-shadow: 0 0 0 2px rgba(92, 168, 255, 0.15);
-}
-
-/* password toggle */
-.q-pw-toggle {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  padding: 2px;
-  border-radius: 4px;
-  transition: color 0.15s;
-}
-
-.q-pw-toggle:hover {
-  color: var(--ink-0, #E8EBF0);
-}
-
-/* switch */
-.q-switch {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.q-switch-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.q-switch-track {
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: var(--bg-3, #1F232B);
-  border: 1px solid var(--line-1, #2F3540);
-  position: relative;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.q-switch-track::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--ink-2, #5C6470);
-  transition: transform 0.2s, background 0.2s;
-}
-
-.q-switch-input:checked + .q-switch-track {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.25));
-  border-color: rgba(92, 168, 255, 0.5);
-}
-
-.q-switch-input:checked + .q-switch-track::after {
-  transform: translateX(16px);
-  background: var(--azure, #5CA8FF);
-}
-
-/* 底部 */
-.q-drawer-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 22px;
-  border-top: 1px solid var(--line-0, #20242C);
-  flex-shrink: 0;
-}
-
-/* 按钮 */
-.q-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-  border: 1px solid transparent;
-}
-
-.q-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.q-btn-ghost {
-  background: transparent;
-  border-color: var(--line-1, #2F3540);
-  color: var(--ink-1, #97A0AF);
-}
-
-.q-btn-ghost:hover:not(:disabled) {
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-}
-
-.q-btn-primary {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.18));
-  border-color: rgba(92, 168, 255, 0.45);
-  color: var(--azure-hi, #8CC4FF);
-}
-
-.q-btn-primary:hover:not(:disabled) {
-  background: rgba(92, 168, 255, 0.28);
-  border-color: rgba(92, 168, 255, 0.65);
-  box-shadow: 0 0 16px rgba(92, 168, 255, 0.2);
-}
-
-/* 旋转动画 */
-.q-spin {
-  animation: q-spin 0.8s linear infinite;
-}
-
-@keyframes q-spin {
-  to { transform: rotate(360deg); }
-}
-
 /* 入场过渡 */
 .q-drawer-enter-active,
 .q-drawer-leave-active {

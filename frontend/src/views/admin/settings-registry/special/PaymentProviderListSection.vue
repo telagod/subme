@@ -1,21 +1,24 @@
 <template>
-  <div class="ppl-body">
+  <div class="flex flex-col gap-4 p-5">
     <!-- payment_enabled_types badge toggles -->
-    <div class="ppl-type-section">
-      <label class="ppl-label">{{ t('admin.settings.payment.enabledPaymentTypes') }}</label>
-      <div class="ppl-badges">
-        <button
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-foreground">{{ t('admin.settings.payment.enabledPaymentTypes') }}</label>
+      <div class="flex flex-wrap gap-2">
+        <Button
           v-for="pt in allPaymentTypes"
           :key="pt.value"
           type="button"
-          class="ppl-badge"
-          :class="{ active: isEnabled(pt.value) }"
+          :variant="isEnabled(pt.value) ? 'default' : 'outline'"
+          size="sm"
+          :class="isEnabled(pt.value)
+            ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary/20 hover:bg-primary/20'
+            : 'border-border bg-background text-muted-foreground hover:border-primary/35 hover:text-foreground hover:bg-muted'"
           @click="toggleType(pt.value)"
         >
           {{ pt.label }}
-        </button>
+        </Button>
       </div>
-      <p class="ppl-hint">{{ t('admin.settings.payment.enabledPaymentTypesHint') }}</p>
+      <p class="text-xs text-muted-foreground leading-relaxed m-0">{{ t('admin.settings.payment.enabledPaymentTypesHint') }}</p>
     </div>
 
     <!-- Existing PaymentProviderList (reused as-is) -->
@@ -57,6 +60,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import PaymentProviderList from '@/components/payment/PaymentProviderList.vue'
 import adminAPI from '@/api/admin'
 import type { ProviderInstance } from '@/types/payment'
@@ -231,35 +235,3 @@ onMounted(() => {
   if (paymentEnabled.value) load()
 })
 </script>
-
-<style scoped>
-.ppl-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
-
-/* type section */
-.ppl-type-section { display: flex; flex-direction: column; gap: 8px; }
-.ppl-label { font-size: 13px; font-weight: 500; color: var(--ink-0, #E8EBF0); }
-.ppl-badges { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* badge toggle buttons */
-.ppl-badge {
-  padding: 5px 12px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-1, #101216);
-  color: var(--ink-1, #97A0AF);
-  font-size: 12.5px; font-weight: 500; font-family: inherit;
-  cursor: pointer; transition: border-color .15s, color .15s, background .15s, box-shadow .15s;
-}
-.ppl-badge:hover:not(.active) {
-  border-color: rgba(92,168,255,.35); color: var(--ink-0, #E8EBF0); background: var(--bg-2, #171A20);
-}
-.ppl-badge.active {
-  border-color: var(--azure, #5CA8FF);
-  background: rgba(92,168,255,.12);
-  color: var(--azure, #5CA8FF);
-  box-shadow: 0 0 0 1px rgba(92,168,255,.2);
-}
-.ppl-badge:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-/* hint */
-.ppl-hint { font-size: 11.5px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 0; }
-</style>

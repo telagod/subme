@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="disabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" :disabled="disabled" variant="secondary" class="w-full" @click="startLogin">
       <svg
         class="icon mr-2"
         viewBox="0 0 16 16"
@@ -27,7 +27,7 @@
         </g>
       </svg>
       {{ t('auth.linuxdo.signIn') }}
-    </button>
+    </Button>
 
     <div v-if="showDivider" class="flex items-center gap-3">
       <div class="h-px flex-1 bg-border"></div>
@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import { resolveAffiliateReferralCode, storeOAuthAffiliateCode } from '@/utils/oauthAffiliate'
 
 const props = withDefaults(defineProps<{

@@ -1,26 +1,26 @@
 <template>
-  <div class="wse-body">
+  <div class="flex flex-col gap-[18px] px-5 py-4">
     <!-- Global Enable Toggle -->
-    <div class="wse-row-switch">
+    <div class="flex items-center justify-between gap-4">
       <div>
-        <label class="wse-label">{{ t('admin.settings.webSearchEmulation.enabled') }}</label>
-        <p class="wse-hint-inline">{{ t('admin.settings.webSearchEmulation.enabledHint') }}</p>
+        <Label class="block text-foreground">{{ t('admin.settings.webSearchEmulation.enabled') }}</Label>
+        <p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">{{ t('admin.settings.webSearchEmulation.enabledHint') }}</p>
       </div>
-      <Toggle v-model="config.enabled" />
+      <Switch v-model="config.enabled" />
     </div>
 
     <!-- Providers List -->
-    <div v-if="config.enabled" class="wse-providers">
-      <div class="wse-providers-header">
-        <label class="wse-label">{{ t('admin.settings.webSearchEmulation.providers') }}</label>
-        <button type="button" class="wse-btn-secondary" @click="addProvider">
+    <div v-if="config.enabled" class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <Label class="block text-foreground">{{ t('admin.settings.webSearchEmulation.providers') }}</Label>
+        <Button type="button" variant="outline" size="sm" @click="addProvider">
           {{ t('admin.settings.webSearchEmulation.addProvider') }}
-        </button>
+        </Button>
       </div>
 
       <div
         v-if="config.providers.length === 0"
-        class="wse-empty"
+        class="rounded-lg border border-dashed border-border px-4 py-3.5 text-center text-sm text-muted-foreground"
       >
         {{ t('admin.settings.webSearchEmulation.noProviders') }}
       </div>
@@ -28,60 +28,61 @@
       <div
         v-for="(provider, pIdx) in config.providers"
         :key="pIdx"
-        class="wse-provider-card"
+        class="overflow-hidden rounded-[10px] border border-border"
       >
         <!-- Collapsible header -->
-        <div class="wse-provider-header" @click="toggleExpand(pIdx)">
-          <div class="wse-provider-header-left">
+        <div class="flex cursor-pointer select-none items-center justify-between px-3.5 py-2.5" @click="toggleExpand(pIdx)">
+          <div class="flex items-center gap-2.5">
             <svg
-              class="wse-chevron"
-              :class="{ 'wse-chevron--open': expandedProviders[pIdx] }"
+              class="h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform duration-150"
+              :class="{ 'rotate-90': expandedProviders[pIdx] }"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <Select
-              v-model="provider.type"
-              :options="[
-                { value: 'brave', label: 'Brave Search' },
-                { value: 'tavily', label: 'Tavily' },
-              ]"
-              class="w-36"
-              @click.stop
-            />
-            <span class="wse-quota-summary">
+            <Select :modelValue="provider.type" @update:modelValue="provider.type = $event as any" @click.stop>
+              <SelectTrigger class="w-36" @click.stop>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="brave">Brave Search</SelectItem>
+                <SelectItem value="tavily">Tavily</SelectItem>
+              </SelectContent>
+            </Select>
+            <span class="text-xs tabular-nums text-muted-foreground">
               {{ provider.quota_used ?? 0 }} /
               {{ provider.quota_limit != null && provider.quota_limit > 0 ? provider.quota_limit : '∞' }}
             </span>
             <span
               v-if="!expandedProviders[pIdx] && provider.api_key_configured"
-              class="wse-key-configured"
+              class="text-xs text-emerald-500"
             >
               {{ t('admin.settings.webSearchEmulation.apiKeyConfigured') }}
             </span>
           </div>
-          <button
+          <Button
             type="button"
-            class="wse-remove-btn"
+            variant="ghost"
+            size="sm"
+            class="h-auto px-1.5 py-0.5 text-xs text-destructive hover:bg-transparent hover:text-destructive/80"
             @click.stop="removeProvider(pIdx)"
           >
             {{ t('admin.settings.webSearchEmulation.removeProvider') }}
-          </button>
+          </Button>
         </div>
 
         <!-- Expanded Content -->
-        <div v-if="expandedProviders[pIdx]" class="wse-provider-body">
+        <div v-if="expandedProviders[pIdx]" class="flex flex-col gap-3 border-t border-border p-3.5">
           <!-- API Key -->
           <div>
-            <label class="wse-field-label">{{ t('admin.settings.webSearchEmulation.apiKey') }}</label>
-            <div class="wse-input-wrap">
-              <input
+            <Label class="mb-1 block text-xs text-muted-foreground">{{ t('admin.settings.webSearchEmulation.apiKey') }}</Label>
+            <div class="relative mt-1">
+              <Input
                 v-model="provider.api_key"
                 :type="apiKeyVisible[pIdx] ? 'text' : 'password'"
-                class="wse-input"
-                :class="provider.api_key || provider.api_key_configured ? 'wse-input--with-actions' : ''"
+                :class="provider.api_key || provider.api_key_configured ? 'pr-16' : ''"
                 :placeholder="
                   provider.api_key_configured
                     ? '••••••••'
@@ -90,178 +91,181 @@
               />
               <div
                 v-if="provider.api_key || provider.api_key_configured"
-                class="wse-input-actions"
+                class="absolute inset-y-0 right-0 flex items-center gap-0.5 pr-1"
               >
-                <button
+                <Button
                   type="button"
-                  class="wse-icon-btn"
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 text-muted-foreground hover:text-foreground"
                   :title="apiKeyVisible[pIdx]
                     ? t('admin.settings.webSearchEmulation.hideApiKey')
                     : t('admin.settings.webSearchEmulation.showApiKey')"
                   @click="apiKeyVisible[pIdx] = !apiKeyVisible[pIdx]"
                 >
-                  <svg v-if="!apiKeyVisible[pIdx]" class="wse-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg v-if="!apiKeyVisible[pIdx]" class="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                  <svg v-else class="wse-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg v-else class="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                   </svg>
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  class="wse-icon-btn"
-                  :class="{ 'wse-icon-btn--disabled': !provider.api_key }"
+                  variant="ghost"
+                  size="icon"
+                  class="h-7 w-7 text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
                   :title="t('admin.settings.webSearchEmulation.copyApiKey')"
                   :disabled="!provider.api_key"
                   @click="copyApiKey(pIdx)"
                 >
-                  <svg class="wse-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="h-[15px] w-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
           <!-- Quota + Subscription -->
-          <div class="wse-grid-2">
+          <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="wse-field-label">{{ t('admin.settings.webSearchEmulation.quotaLimit') }}</label>
-              <input
-                v-model="provider.quota_limit"
+              <Label class="mb-1 block text-xs text-muted-foreground">{{ t('admin.settings.webSearchEmulation.quotaLimit') }}</Label>
+              <Input
+                v-model.number="provider.quota_limit"
                 type="number"
                 min="1"
-                class="wse-input wse-input--mono"
+                class="font-mono tabular-nums"
                 placeholder="∞"
               />
-              <p class="wse-field-hint">{{ t('admin.settings.webSearchEmulation.quotaLimitHint') }}</p>
+              <p class="mt-1 text-[11px] leading-snug text-muted-foreground">{{ t('admin.settings.webSearchEmulation.quotaLimitHint') }}</p>
             </div>
             <div>
-              <label class="wse-field-label">{{ t('admin.settings.webSearchEmulation.subscribedAt') }}</label>
-              <input
+              <Label class="mb-1 block text-xs text-muted-foreground">{{ t('admin.settings.webSearchEmulation.subscribedAt') }}</Label>
+              <Input
                 :value="formatSubscribedAt(provider.subscribed_at)"
                 type="date"
-                class="wse-input"
                 @input="provider.subscribed_at = parseSubscribedAt(($event.target as HTMLInputElement).value)"
               />
-              <p class="wse-field-hint">{{ t('admin.settings.webSearchEmulation.subscribedAtHint') }}</p>
+              <p class="mt-1 text-[11px] leading-snug text-muted-foreground">{{ t('admin.settings.webSearchEmulation.subscribedAtHint') }}</p>
             </div>
           </div>
 
           <!-- Quota Usage Bar -->
-          <div class="wse-usage-row">
-            <span class="wse-field-label wse-no-margin">{{ t('admin.settings.webSearchEmulation.quotaUsage') }}:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-muted-foreground">{{ t('admin.settings.webSearchEmulation.quotaUsage') }}:</span>
             <div
               v-if="provider.quota_limit != null && provider.quota_limit > 0"
-              class="wse-quota-bar"
+              class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
             >
               <div
-                class="wse-quota-fill"
+                class="h-full rounded-full transition-[width] duration-300"
                 :class="
                   quotaPercentage(provider) > 90
-                    ? 'wse-quota-fill--danger'
+                    ? 'bg-destructive'
                     : quotaPercentage(provider) > 70
-                      ? 'wse-quota-fill--warn'
-                      : 'wse-quota-fill--ok'
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500'
                 "
                 :style="{ width: Math.min(quotaPercentage(provider), 100) + '%' }"
               />
             </div>
-            <div v-else class="wse-quota-bar-spacer" />
-            <span class="wse-field-label wse-no-margin">
+            <div v-else class="flex-1" />
+            <span class="text-xs text-muted-foreground">
               {{ provider.quota_used ?? 0 }} /
               {{ provider.quota_limit != null && provider.quota_limit > 0 ? provider.quota_limit : '∞' }}
             </span>
-            <button
+            <Button
               v-if="(provider.quota_used ?? 0) > 0"
               type="button"
-              class="wse-reset-btn"
+              variant="ghost"
+              size="sm"
+              class="h-auto whitespace-nowrap px-1 py-0.5 text-xs text-primary hover:bg-transparent hover:text-primary/80"
               @click="resetUsage(pIdx)"
             >
               {{ t('admin.settings.webSearchEmulation.resetUsage') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Proxy + Test -->
-          <div class="wse-proxy-test-row">
-            <div class="wse-proxy-wrap">
-              <label class="wse-field-label">{{ t('admin.settings.webSearchEmulation.proxy') }}</label>
+          <div class="flex items-end gap-3">
+            <div class="flex-1">
+              <Label class="mb-1 block text-xs text-muted-foreground">{{ t('admin.settings.webSearchEmulation.proxy') }}</Label>
               <ProxySelector v-model="provider.proxy_id" :proxies="proxies" />
             </div>
-            <button type="button" class="wse-btn-secondary wse-btn-test" @click="openTestDialog">
+            <Button type="button" variant="outline" size="sm" class="flex-shrink-0 whitespace-nowrap" @click="openTestDialog">
               {{ t('admin.settings.webSearchEmulation.test') }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Save Button -->
-    <div class="wse-footer">
-      <button
+    <div class="flex justify-end border-t border-border pt-1">
+      <Button
         type="button"
-        class="wse-btn-save"
         :disabled="saving"
         @click="save"
       >
-        <svg v-if="saving" class="wse-spin" fill="none" viewBox="0 0 24 24">
+        <svg v-if="saving" class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
         {{ saving ? t('common.saving') : t('common.save') }}
-      </button>
+      </Button>
     </div>
 
     <!-- Test Dialog -->
     <div
       v-if="testDialogOpen"
-      class="wse-dialog-overlay"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/55"
       @click.self="testDialogOpen = false"
     >
-      <div class="wse-dialog">
-        <h3 class="wse-dialog-title">{{ t('admin.settings.webSearchEmulation.testResultTitle') }}</h3>
-        <div class="wse-dialog-search">
-          <input
+      <Card class="mx-4 w-full max-w-[520px] p-6">
+        <h3 class="m-0 mb-4 text-[15px] font-semibold text-foreground">{{ t('admin.settings.webSearchEmulation.testResultTitle') }}</h3>
+        <div class="flex items-center gap-2">
+          <Input
             v-model="testQuery"
             type="text"
-            class="wse-input wse-input--flex"
+            class="flex-1"
             :placeholder="t('admin.settings.webSearchEmulation.testDefaultQuery')"
             @keyup.enter="runTest"
           />
-          <button
+          <Button
             type="button"
-            class="wse-btn-primary"
             :disabled="testLoading"
+            class="whitespace-nowrap"
             @click="runTest"
           >
             {{ testLoading
               ? t('admin.settings.webSearchEmulation.testing')
               : t('admin.settings.webSearchEmulation.test') }}
-          </button>
+          </Button>
         </div>
-        <div v-if="testResult" class="wse-test-results">
-          <p class="wse-test-provider">
+        <div v-if="testResult" class="mt-4 max-h-80 overflow-y-auto rounded-lg bg-muted p-3.5">
+          <p class="m-0 mb-2 text-sm font-medium text-foreground">
             {{ t('admin.settings.webSearchEmulation.testResultProvider') }}: {{ testResult.provider }}
           </p>
-          <div v-if="testResult.results.length === 0" class="wse-test-empty">
+          <div v-if="testResult.results.length === 0" class="text-sm text-muted-foreground">
             {{ t('admin.settings.webSearchEmulation.testNoResults') }}
           </div>
           <div
             v-for="(r, rIdx) in testResult.results"
             :key="rIdx"
-            class="wse-test-result-item"
+            class="mt-2.5 border-t border-border pt-2.5 first:mt-0 first:border-t-0 first:pt-0"
           >
-            <a :href="r.url" target="_blank" class="wse-test-result-link">{{ r.title }}</a>
-            <p class="wse-test-result-snippet">{{ r.snippet }}</p>
+            <a :href="r.url" target="_blank" class="text-sm font-medium text-primary no-underline hover:underline">{{ r.title }}</a>
+            <p class="mt-1 text-xs leading-snug text-muted-foreground">{{ r.snippet }}</p>
           </div>
         </div>
-        <div class="wse-dialog-footer">
-          <button type="button" class="wse-btn-secondary" @click="testDialogOpen = false">
+        <div class="mt-4 flex justify-end">
+          <Button type="button" variant="outline" size="sm" @click="testDialogOpen = false">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   </div>
 </template>
@@ -269,9 +273,13 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Toggle from '@/components/common/Toggle.vue'
-import Select from '@/components/common/Select.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import adminAPI from '@/api/admin'
 import { useAppStore } from '@/stores'
 import { extractApiErrorMessage } from '@/utils/apiError'
@@ -464,491 +472,3 @@ async function runTest() {
   }
 }
 </script>
-
-<style scoped>
-.wse-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* Row: switch */
-.wse-row-switch {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.wse-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-0, #E8EBF0);
-  display: block;
-}
-
-.wse-hint-inline {
-  font-size: 11.5px;
-  color: var(--ink-2, #5C6470);
-  margin: 2px 0 0;
-  line-height: 1.45;
-}
-
-/* Providers list */
-.wse-providers {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.wse-providers-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.wse-empty {
-  border: 1px dashed var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 14px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ink-2, #5C6470);
-}
-
-.wse-provider-card {
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.wse-provider-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.wse-provider-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wse-chevron {
-  width: 16px;
-  height: 16px;
-  color: var(--ink-2, #5C6470);
-  transition: transform 0.15s;
-  flex-shrink: 0;
-}
-
-.wse-chevron--open {
-  transform: rotate(90deg);
-}
-
-.wse-quota-summary {
-  font-size: 12px;
-  color: var(--ink-2, #5C6470);
-  font-variant-numeric: tabular-nums;
-}
-
-.wse-key-configured {
-  font-size: 12px;
-  color: #34d399;
-}
-
-.wse-remove-btn {
-  font-size: 12px;
-  color: #f87171;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: color 0.12s;
-}
-
-.wse-remove-btn:hover {
-  color: #fca5a5;
-}
-
-/* Provider body */
-.wse-provider-body {
-  padding: 14px;
-  border-top: 1px solid var(--line-1, #2F3540);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Input wrap with inline actions */
-.wse-input-wrap {
-  position: relative;
-  margin-top: 4px;
-}
-
-.wse-input {
-  width: 100%;
-  padding: 7px 11px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0);
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  box-sizing: border-box;
-}
-
-.wse-input:focus,
-.wse-input:focus-visible {
-  border-color: var(--azure, #5CA8FF);
-  box-shadow: 0 0 0 3px rgba(92, 168, 255, 0.14);
-}
-
-.wse-input--with-actions {
-  padding-right: 64px;
-}
-
-.wse-input--mono {
-  font-variant-numeric: tabular-nums;
-  font-family: 'JetBrains Mono', 'Fira Mono', monospace;
-}
-
-.wse-input--flex {
-  flex: 1;
-}
-
-.wse-input-actions {
-  position: absolute;
-  inset-y: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  padding-right: 4px;
-  gap: 2px;
-}
-
-.wse-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  transition: color 0.12s;
-  padding: 0;
-}
-
-.wse-icon-btn:hover {
-  color: var(--ink-0, #E8EBF0);
-}
-
-.wse-icon-btn--disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.wse-icon {
-  width: 15px;
-  height: 15px;
-}
-
-/* Quota + Subscription grid */
-.wse-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.wse-field-label {
-  font-size: 11.5px;
-  color: var(--ink-2, #5C6470);
-  display: block;
-  margin-bottom: 4px;
-}
-
-.wse-no-margin {
-  margin: 0;
-}
-
-.wse-field-hint {
-  font-size: 11px;
-  color: var(--ink-2, #5C6470);
-  margin: 3px 0 0;
-  line-height: 1.4;
-}
-
-/* Usage bar */
-.wse-usage-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.wse-quota-bar {
-  flex: 1;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--bg-2, #171A20);
-  overflow: hidden;
-}
-
-.wse-quota-bar-spacer {
-  flex: 1;
-}
-
-.wse-quota-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s;
-}
-
-.wse-quota-fill--ok {
-  background: #22c55e;
-}
-
-.wse-quota-fill--warn {
-  background: #eab308;
-}
-
-.wse-quota-fill--danger {
-  background: #ef4444;
-}
-
-.wse-reset-btn {
-  font-size: 11.5px;
-  color: var(--azure, #5CA8FF);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-  white-space: nowrap;
-  transition: color 0.12s;
-}
-
-.wse-reset-btn:hover {
-  color: #93c5fd;
-}
-
-/* Proxy + Test row */
-.wse-proxy-test-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.wse-proxy-wrap {
-  flex: 1;
-}
-
-.wse-btn-test {
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Buttons */
-.wse-btn-secondary {
-  padding: 6px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: transparent;
-  color: var(--ink-1, #97A0AF);
-  font-size: 12.5px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-
-.wse-btn-secondary:hover {
-  border-color: var(--azure, #5CA8FF);
-  color: var(--azure, #5CA8FF);
-  background: rgba(92, 168, 255, 0.07);
-}
-
-.wse-btn-secondary:focus-visible {
-  outline: 2px solid var(--azure, #5CA8FF);
-  outline-offset: 2px;
-}
-
-.wse-btn-primary {
-  padding: 7px 16px;
-  border-radius: 8px;
-  border: none;
-  background: var(--azure, #5CA8FF);
-  color: #0C0E12;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity 0.15s;
-  white-space: nowrap;
-}
-
-.wse-btn-primary:hover:not(:disabled) {
-  opacity: 0.88;
-}
-
-.wse-btn-primary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Save button — metal convex QUENCH style */
-.wse-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 4px;
-  border-top: 1px solid var(--line-0, #20242C);
-}
-
-.wse-btn-save {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 22px;
-  border-radius: 9px;
-  border: 1px solid rgba(92, 168, 255, 0.35);
-  background: linear-gradient(180deg, rgba(92,168,255,0.18) 0%, rgba(92,168,255,0.09) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 8px rgba(0,0,0,0.3);
-  color: var(--azure, #5CA8FF);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: opacity 0.15s, box-shadow 0.15s;
-}
-
-.wse-btn-save:hover:not(:disabled) {
-  opacity: 0.88;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.09), 0 2px 12px rgba(92,168,255,0.2);
-}
-
-.wse-btn-save:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.wse-btn-save:focus-visible {
-  outline: 2px solid var(--azure, #5CA8FF);
-  outline-offset: 2px;
-}
-
-.wse-spin {
-  width: 14px;
-  height: 14px;
-  animation: wse-spin 1s linear infinite;
-}
-
-@keyframes wse-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Dialog */
-.wse-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
-}
-
-.wse-dialog {
-  background: var(--metal, #15181E);
-  border: 1px solid var(--line-0, #20242C);
-  border-radius: 12px;
-  padding: 24px;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.wse-dialog-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink-0, #E8EBF0);
-  margin: 0 0 16px;
-}
-
-.wse-dialog-search {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.wse-test-results {
-  margin-top: 16px;
-  max-height: 320px;
-  overflow-y: auto;
-  border-radius: 8px;
-  background: var(--bg-2, #171A20);
-  padding: 14px;
-}
-
-.wse-test-provider {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-0, #E8EBF0);
-  margin: 0 0 8px;
-}
-
-.wse-test-empty {
-  font-size: 13px;
-  color: var(--ink-2, #5C6470);
-}
-
-.wse-test-result-item {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line-1, #2F3540);
-}
-
-.wse-test-result-item:first-child {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-}
-
-.wse-test-result-link {
-  font-size: 13px;
-  font-weight: 500;
-  color: #60a5fa;
-  text-decoration: none;
-}
-
-.wse-test-result-link:hover {
-  text-decoration: underline;
-}
-
-.wse-test-result-snippet {
-  font-size: 12px;
-  color: var(--ink-2, #5C6470);
-  margin: 4px 0 0;
-  line-height: 1.4;
-}
-
-.wse-dialog-footer {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wse-spin { animation: none; }
-  .wse-chevron { transition: none; }
-}
-</style>

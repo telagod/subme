@@ -17,98 +17,104 @@
       </p>
       <div v-if="loading" class="py-10 text-center text-muted-foreground">{{ t('common.loading') }}</div>
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead>
-            <tr class="border-b border-border text-foreground/85">
-              <th class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.platform') }}</th>
-              <th class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.daily') }}</th>
-              <th class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.weekly') }}</th>
-              <th class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.monthly') }}</th>
-              <th class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.usage') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in quotas" :key="row.platform" class="border-b border-border">
-              <td class="px-3 py-2 font-mono text-foreground">{{ row.platform }}</td>
-              <td class="px-3 py-2">
+        <Table>
+          <TableHeader>
+            <TableRow class="border-b border-border text-foreground/85">
+              <TableHead class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.platform') }}</TableHead>
+              <TableHead class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.daily') }}</TableHead>
+              <TableHead class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.weekly') }}</TableHead>
+              <TableHead class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.monthly') }}</TableHead>
+              <TableHead class="px-3 py-2 text-left font-medium">{{ t('admin.users.platformQuota.columns.usage') }}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="row in quotas" :key="row.platform" class="border-b border-border">
+              <TableCell class="px-3 py-2 font-mono text-foreground">{{ row.platform }}</TableCell>
+              <TableCell class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.daily_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
+                    class="w-24"
                     :placeholder="t('admin.users.platformQuota.placeholder')"
                   />
-                  <button
+                  <Button
                     type="button"
-                    class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
+                    variant="ghost"
+                    size="icon"
+                    class="h-6 w-6 text-muted-foreground hover:text-amber-400 disabled:opacity-50"
                     :disabled="!!resetting[`${row.platform}.daily`]"
                     :title="t('admin.users.platformQuota.reset.button')"
                     @click="onReset(row.platform, 'daily')"
-                  >↻</button>
+                  >↻</Button>
                 </div>
-              </td>
-              <td class="px-3 py-2">
+              </TableCell>
+              <TableCell class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.weekly_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
+                    class="w-24"
                     :placeholder="t('admin.users.platformQuota.placeholder')"
                   />
-                  <button
+                  <Button
                     type="button"
-                    class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
+                    variant="ghost"
+                    size="icon"
+                    class="h-6 w-6 text-muted-foreground hover:text-amber-400 disabled:opacity-50"
                     :disabled="!!resetting[`${row.platform}.weekly`]"
                     :title="t('admin.users.platformQuota.reset.button')"
                     @click="onReset(row.platform, 'weekly')"
-                  >↻</button>
+                  >↻</Button>
                 </div>
-              </td>
-              <td class="px-3 py-2">
+              </TableCell>
+              <TableCell class="px-3 py-2">
                 <div class="flex items-center gap-1">
-                  <input
+                  <Input
                     v-model.number="row.monthly_limit_usd"
                     type="number"
                     min="0"
                     step="0.01"
-                    class="input w-24"
+                    class="w-24"
                     :placeholder="t('admin.users.platformQuota.placeholder')"
                   />
-                  <button
+                  <Button
                     type="button"
-                    class="text-xs text-muted-foreground hover:text-amber-400 disabled:opacity-50"
+                    variant="ghost"
+                    size="icon"
+                    class="h-6 w-6 text-muted-foreground hover:text-amber-400 disabled:opacity-50"
                     :disabled="!!resetting[`${row.platform}.monthly`]"
                     :title="t('admin.users.platformQuota.reset.button')"
                     @click="onReset(row.platform, 'monthly')"
-                  >↻</button>
+                  >↻</Button>
                 </div>
-              </td>
-              <td class="px-3 py-2 text-xs text-muted-foreground">
+              </TableCell>
+              <TableCell class="px-3 py-2 text-xs text-muted-foreground">
                 {{ formatUsage(row.daily_usage_usd) }} / {{ formatUsage(row.weekly_usage_usd) }} / {{ formatUsage(row.monthly_usage_usd) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
         <p class="mt-3 text-xs text-muted-foreground">{{ t('admin.users.platformQuota.hint') }}</p>
         <div class="mt-3">
-          <button type="button" class="btn btn-secondary text-sm" @click="onClearAll">
+          <Button type="button" variant="outline" size="sm" @click="onClearAll">
             {{ t('admin.users.platformQuota.clearAll') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button type="button" class="btn btn-secondary" @click="$emit('close')">
+        <Button type="button" variant="outline" @click="$emit('close')">
           {{ t('admin.users.platformQuota.cancel') }}
-        </button>
-        <button type="button" class="btn btn-primary" :disabled="submitting || loading" @click="onSave">
+        </Button>
+        <Button type="button" :disabled="submitting || loading" @click="onSave">
           {{ submitting ? t('admin.users.platformQuota.saving') : t('admin.users.platformQuota.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -121,6 +127,9 @@ import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser, PlatformQuotaItem, PlatformQuotaPlatform, PlatformQuotaWindow } from '@/types'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 
 const props = defineProps<{ show: boolean; user: AdminUser | null }>()
 const emit = defineEmits(['close', 'success'])

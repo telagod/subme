@@ -1,47 +1,54 @@
 <template>
-  <header class="quench-topbar">
+  <header
+    class="sticky top-0 z-20 flex h-[54px] shrink-0 items-center gap-4 border-b border-border bg-background/80 px-[22px] backdrop-blur-[8px]"
+  >
     <!-- Breadcrumb -->
-    <div class="quench-topbar__crumb">
-      <span v-if="currentGroup" class="quench-topbar__crumb-group">
+    <div class="flex min-w-0 items-center text-[12.5px]">
+      <span v-if="currentGroup" class="text-muted-foreground">
         {{ t(currentGroup.labelKey) }}
       </span>
-      <span v-if="currentGroup && currentItem" class="quench-topbar__crumb-sep">›</span>
-      <span v-if="currentItem" class="quench-topbar__crumb-page">
+      <span v-if="currentGroup && currentItem" class="mx-[7px] text-muted-foreground/50">›</span>
+      <span v-if="currentItem" class="font-semibold text-foreground">
         {{ t(currentItem.labelKey) }}
       </span>
     </div>
 
     <!-- ⌘K pill -->
-    <button
-      class="quench-topbar__cmdk"
+    <Button
+      variant="outline"
+      class="ml-auto flex min-w-[220px] cursor-pointer items-center gap-2 rounded-[9px] bg-muted px-[11px] py-1.5 text-xs text-muted-foreground transition-colors hover:border-ring/40 hover:shadow-[0_0_14px_hsl(var(--ring)/0.12)]"
       data-tour="cmdk"
       @click="emit('openCommandPalette')"
       :title="t('nav.quench.openCommandPalette')"
     >
-      <Search class="quench-topbar__cmdk-icon" />
-      <span class="quench-topbar__cmdk-text">{{ t('nav.quench.searchPlaceholder') }}</span>
-      <kbd class="quench-topbar__cmdk-kbd">⌘K</kbd>
-    </button>
+      <Search class="h-[13px] w-[13px] shrink-0" />
+      <span class="flex-1 text-left">{{ t('nav.quench.searchPlaceholder') }}</span>
+      <kbd
+        class="ml-auto rounded border border-border bg-background px-1.5 py-[2px] font-mono text-[10px] text-muted-foreground"
+      >⌘K</kbd>
+    </Button>
 
     <!-- Right section: theme + locale + user -->
-    <div class="quench-topbar__right">
+    <div class="flex shrink-0 items-center gap-2">
       <!-- Theme Toggle -->
-      <button
-        class="quench-topbar__icon-btn"
+      <Button
+        variant="ghost"
+        size="icon"
         @click="toggleTheme"
         :title="isDark ? t('nav.lightMode') : t('nav.darkMode')"
       >
-        <Sun v-if="isDark" class="quench-topbar__btn-icon" />
-        <Moon v-else class="quench-topbar__btn-icon" />
-      </button>
+        <Sun v-if="isDark" class="h-[15px] w-[15px]" />
+        <Moon v-else class="h-[15px] w-[15px]" />
+      </Button>
 
       <!-- Locale Switcher -->
       <LocaleSwitcher />
 
       <!-- User avatar + dropdown -->
-      <div class="quench-topbar__user" ref="dropdownRef">
-        <button
-          class="quench-topbar__avatar"
+      <div class="relative" ref="dropdownRef">
+        <Button
+          variant="ghost"
+          class="h-[30px] w-[30px] shrink-0 overflow-hidden rounded-full bg-muted p-0 text-[12px] font-bold text-foreground"
           @click="toggleDropdown"
           :title="displayName"
         >
@@ -52,32 +59,41 @@
             class="h-full w-full object-cover"
           />
           <span v-else>{{ userInitials }}</span>
-        </button>
+        </Button>
 
-        <transition name="quench-dropdown">
-          <div v-if="dropdownOpen" class="quench-topbar__dropdown">
-            <div class="quench-topbar__dropdown-header">
-              <div class="quench-topbar__dropdown-name">{{ displayName }}</div>
-              <div class="quench-topbar__dropdown-email">{{ user?.email }}</div>
+        <transition
+          enter-active-class="transition-[opacity,transform] duration-150 ease-out"
+          enter-from-class="opacity-0 scale-95 -translate-y-1"
+          leave-active-class="transition-[opacity,transform] duration-150 ease-in"
+          leave-to-class="opacity-0 scale-95 -translate-y-1"
+        >
+          <div
+            v-if="dropdownOpen"
+            class="absolute right-0 top-[calc(100%+6px)] z-50 w-[200px] overflow-hidden rounded-[10px] border border-border bg-popover shadow-[0_16px_48px_hsl(0_0%_0%/0.35)]"
+          >
+            <div class="border-b border-border px-[14px] pb-2.5 pt-3">
+              <div class="truncate text-[13px] font-semibold text-foreground">{{ displayName }}</div>
+              <div class="mt-0.5 truncate text-[11px] text-muted-foreground">{{ user?.email }}</div>
             </div>
-            <div class="quench-topbar__dropdown-body">
+            <div class="p-[6px_4px]">
               <router-link
                 to="/profile"
-                class="quench-topbar__dropdown-item"
+                class="flex w-full cursor-pointer items-center gap-[9px] rounded-[7px] border-none bg-transparent px-2.5 py-[7px] text-[12.5px] text-muted-foreground no-underline transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-inset focus-visible:ring-ring"
                 @click="closeDropdown"
               >
-                <UserIcon class="quench-topbar__dropdown-item-icon" />
+                <UserIcon class="h-[14px] w-[14px] shrink-0 opacity-85" />
                 {{ t('nav.profile') }}
               </router-link>
             </div>
-            <div class="quench-topbar__dropdown-footer">
-              <button
-                class="quench-topbar__dropdown-item quench-topbar__dropdown-item--danger"
+            <div class="border-t border-border p-[6px_4px]">
+              <Button
+                variant="ghost"
+                class="flex w-full items-center justify-start gap-[9px] rounded-[7px] px-2.5 py-[7px] text-[12.5px] text-destructive hover:bg-destructive/10 hover:text-destructive"
                 @click="handleLogout"
               >
-                <LogOut class="quench-topbar__dropdown-item-icon" />
+                <LogOut class="h-[14px] w-[14px] shrink-0 opacity-85" />
                 {{ t('nav.logout') }}
-              </button>
+              </Button>
             </div>
           </div>
         </transition>
@@ -91,9 +107,11 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Search, Sun, Moon, User as UserIcon, LogOut } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import { resolveNavItem } from './nav'
+import { useTheme } from '@/composables/useTheme'
 
 const emit = defineEmits<{
   openCommandPalette: []
@@ -124,19 +142,7 @@ const displayName = computed(() => {
   return user.value.username || user.value.email?.split('@')[0] || ''
 })
 
-// Theme
-const isDark = computed(() => {
-  return document.documentElement.getAttribute('data-theme') !== 'light'
-})
-
-function toggleTheme() {
-  const html = document.documentElement
-  const current = html.getAttribute('data-theme')
-  html.setAttribute('data-theme', current === 'light' ? 'dark' : 'light')
-  try {
-    localStorage.setItem('theme', current === 'light' ? 'dark' : 'light')
-  } catch {}
-}
+const { isDark, toggle: toggleTheme } = useTheme()
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value
@@ -168,262 +174,3 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
-
-<style scoped>
-.quench-topbar {
-  height: 54px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 0 22px;
-  border-bottom: 1px solid #20242c;
-  background: rgba(13, 14, 18, 0.72);
-  backdrop-filter: blur(8px);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-/* Breadcrumb */
-.quench-topbar__crumb {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  font-size: 12.5px;
-  min-width: 0;
-}
-
-.quench-topbar__crumb-group {
-  color: #5c6470;
-}
-
-.quench-topbar__crumb-sep {
-  color: #5c6470;
-  margin: 0 7px;
-  opacity: 0.5;
-}
-
-.quench-topbar__crumb-page {
-  color: #e8ebf0;
-  font-weight: 600;
-}
-
-/* ⌘K pill */
-.quench-topbar__cmdk {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 220px;
-  background: #171a20;
-  border: 1px solid #20242c;
-  border-radius: 9px;
-  padding: 6px 11px;
-  color: #5c6470;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: inherit;
-  transition: border-color 0.15s, box-shadow 0.2s;
-}
-
-.quench-topbar__cmdk:hover {
-  border-color: rgba(92, 168, 255, 0.4);
-  box-shadow: 0 0 14px rgba(92, 168, 255, 0.12);
-}
-
-.quench-topbar__cmdk-icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
-.quench-topbar__cmdk-text {
-  flex: 1;
-  text-align: left;
-}
-
-.quench-topbar__cmdk-kbd {
-  margin-left: auto;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  font-size: 10px;
-  color: #97a0af;
-  background: #1f232b;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #2f3540;
-}
-
-/* Right */
-.quench-topbar__right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.quench-topbar__icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #97a0af;
-  transition: background 0.15s, color 0.15s;
-}
-
-.quench-topbar__icon-btn:hover {
-  background: #171a20;
-  color: #e8ebf0;
-}
-
-.quench-topbar__btn-icon {
-  width: 15px;
-  height: 15px;
-}
-
-/* User avatar */
-.quench-topbar__user {
-  position: relative;
-}
-
-.quench-topbar__avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: linear-gradient(160deg, #d7dee8, #79808e);
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 12px;
-  color: #14171d;
-  cursor: pointer;
-  border: none;
-  overflow: hidden;
-}
-
-/* Dropdown */
-.quench-topbar__dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 6px);
-  width: 200px;
-  background: #101216;
-  border: 1px solid #20242c;
-  border-radius: 10px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-  z-index: 50;
-  overflow: hidden;
-}
-
-.quench-topbar__dropdown-header {
-  padding: 12px 14px 10px;
-  border-bottom: 1px solid #20242c;
-}
-
-.quench-topbar__dropdown-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #e8ebf0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.quench-topbar__dropdown-email {
-  font-size: 11px;
-  color: #5c6470;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 2px;
-}
-
-.quench-topbar__dropdown-body {
-  padding: 6px 4px;
-}
-
-.quench-topbar__dropdown-footer {
-  padding: 6px 4px;
-  border-top: 1px solid #20242c;
-}
-
-.quench-topbar__dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
-  border-radius: 7px;
-  font-size: 12.5px;
-  color: #97a0af;
-  cursor: pointer;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  width: 100%;
-  font-family: inherit;
-  transition: background 0.12s, color 0.12s;
-}
-
-.quench-topbar__dropdown-item:hover {
-  background: #171a20;
-  color: #e8ebf0;
-}
-
-.quench-topbar__dropdown-item--danger {
-  color: #f25c69;
-}
-
-.quench-topbar__dropdown-item--danger:hover {
-  background: rgba(242, 92, 105, 0.1);
-  color: #f25c69;
-}
-
-.quench-topbar__dropdown-item-icon {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-
-/* Transition */
-.quench-dropdown-enter-active,
-.quench-dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.quench-dropdown-enter-from,
-.quench-dropdown-leave-to {
-  opacity: 0;
-  transform: scale(0.96) translateY(-4px);
-}
-
-/* 键盘焦点：topbar 所有交互按钮 */
-.quench-topbar__cmdk:focus-visible,
-.quench-topbar__icon-btn:focus-visible,
-.quench-topbar__avatar:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 16px rgba(92, 168, 255, 0.25);
-}
-
-.quench-topbar__dropdown-item:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 1.5px rgba(92, 168, 255, 0.5);
-  border-radius: 7px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .quench-topbar__cmdk,
-  .quench-topbar__icon-btn,
-  .quench-topbar__dropdown-item { transition: none; }
-  .quench-dropdown-enter-active,
-  .quench-dropdown-leave-active { transition: none; }
-  .quench-dropdown-enter-from,
-  .quench-dropdown-leave-to { transform: none; }
-}
-</style>

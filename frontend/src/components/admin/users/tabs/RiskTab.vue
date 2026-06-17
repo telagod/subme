@@ -1,28 +1,33 @@
 <template>
-  <div class="ud-tab-content">
-    <div v-if="loading" class="ud-loading">{{ t('admin.userTabs.loading') }}</div>
-    <div v-else-if="error" class="ud-error">{{ error }}</div>
-    <div v-else-if="!items.length" class="ud-empty">{{ t('admin.userTabs.noRiskLogs') }}</div>
-    <div v-else class="ud-list">
-      <div v-for="log in items" :key="log.id" class="ud-log-card" :class="{ 'ud-log-flagged': log.flagged }">
-        <div class="ud-log-header">
-          <div class="ud-log-time ud-muted ud-xs">{{ fmt(log.created_at) }}</div>
-          <div class="ud-log-badges">
-            <span v-if="log.flagged" class="ud-badge ud-badge-bad">{{ t('admin.userTabs.riskFlagged') }}</span>
-            <span v-if="log.auto_banned" class="ud-badge ud-badge-bad">{{ t('admin.userTabs.riskAutoBanned') }}</span>
-            <span v-if="!log.flagged" class="ud-badge ud-badge-ok">{{ t('admin.userTabs.riskPassed') }}</span>
+  <div class="flex flex-col gap-2.5">
+    <div v-if="loading" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.loading') }}</div>
+    <div v-else-if="error" class="text-[12.5px] text-destructive">{{ error }}</div>
+    <div v-else-if="!items.length" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.noRiskLogs') }}</div>
+    <div v-else class="flex flex-col gap-2">
+      <div
+        v-for="log in items"
+        :key="log.id"
+        class="flex flex-col gap-1.5 rounded-xl border border-border bg-card px-3.5 py-[11px]"
+        :class="{ 'border-destructive/35 bg-destructive/[0.04]': log.flagged }"
+      >
+        <div class="flex items-center justify-between">
+          <div class="text-[11.5px] text-muted-foreground">{{ fmt(log.created_at) }}</div>
+          <div class="flex gap-1.5">
+            <Badge v-if="log.flagged" variant="destructive" class="rounded-md px-1.5 py-0.5 text-[10.5px]">{{ t('admin.userTabs.riskFlagged') }}</Badge>
+            <Badge v-if="log.auto_banned" variant="destructive" class="rounded-md px-1.5 py-0.5 text-[10.5px]">{{ t('admin.userTabs.riskAutoBanned') }}</Badge>
+            <Badge v-if="!log.flagged" variant="secondary" class="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10.5px] text-emerald-500">{{ t('admin.userTabs.riskPassed') }}</Badge>
           </div>
         </div>
-        <div class="ud-log-meta">
-          <span class="ud-meta-item">{{ t('admin.userTabs.riskMode') }}{{ log.mode }}</span>
-          <span class="ud-meta-item" v-if="log.highest_category">{{ t('admin.userTabs.riskCategory') }}{{ log.highest_category }}</span>
-          <span class="ud-meta-item" v-if="log.highest_score">{{ t('admin.userTabs.riskScore') }}{{ (log.highest_score * 100).toFixed(1) }}%</span>
-          <span class="ud-meta-item">{{ t('admin.userTabs.riskModel') }}{{ log.model || '-' }}</span>
+        <div class="flex flex-wrap gap-3">
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.riskMode') }}{{ log.mode }}</span>
+          <span class="text-[11.5px] text-muted-foreground" v-if="log.highest_category">{{ t('admin.userTabs.riskCategory') }}{{ log.highest_category }}</span>
+          <span class="text-[11.5px] text-muted-foreground" v-if="log.highest_score">{{ t('admin.userTabs.riskScore') }}{{ (log.highest_score * 100).toFixed(1) }}%</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.riskModel') }}{{ log.model || '-' }}</span>
         </div>
-        <div v-if="log.input_excerpt" class="ud-log-excerpt">{{ log.input_excerpt }}</div>
+        <div v-if="log.input_excerpt" class="max-h-12 overflow-hidden break-all whitespace-pre-wrap font-mono text-[11px] leading-[1.5] text-muted-foreground">{{ log.input_excerpt }}</div>
       </div>
     </div>
-    <div v-if="total > items.length" class="ud-more">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
+    <div v-if="total > items.length" class="text-center text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
   </div>
 </template>
 
@@ -33,6 +38,7 @@ import { adminAPI } from '@/api/admin'
 import type { AdminUser } from '@/types'
 import type { ContentModerationLog } from '@/api/admin/riskControl'
 import { formatDateTime } from '@/utils/format'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const props = defineProps<{ user: AdminUser; active: boolean }>()
@@ -60,36 +66,3 @@ async function load() {
 watch(() => props.active, (v) => { if (v) load() })
 onMounted(() => { if (props.active) load() })
 </script>
-
-<style scoped>
-.ud-tab-content { display: flex; flex-direction: column; gap: 10px; }
-.ud-loading, .ud-empty { color: var(--ink-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
-.ud-error { color: var(--bad); font-size: 12.5px; }
-.ud-list { display: flex; flex-direction: column; gap: 8px; }
-.ud-log-card {
-  padding: 11px 14px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-0);
-  border-radius: 10px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.ud-log-flagged { border-color: rgba(242,92,105,.35); background: rgba(242,92,105,.04); }
-.ud-log-header { display: flex; align-items: center; justify-content: space-between; }
-.ud-log-badges { display: flex; gap: 6px; }
-.ud-log-meta { display: flex; gap: 12px; flex-wrap: wrap; }
-.ud-log-excerpt {
-  font-size: 11px; color: var(--ink-2); font-family: 'IBM Plex Mono', monospace;
-  white-space: pre-wrap; word-break: break-all; max-height: 48px; overflow: hidden;
-  line-height: 1.5;
-}
-.ud-badge {
-  font-size: 10.5px; font-weight: 600; padding: 2px 7px;
-  border-radius: 5px; letter-spacing: 0.04em;
-}
-.ud-badge-ok { background: var(--ok-dim); color: var(--ok); border: 1px solid rgba(70,201,140,.3); }
-.ud-badge-bad { background: var(--bad-dim); color: var(--bad); border: 1px solid rgba(242,92,105,.3); }
-.ud-meta-item { font-size: 11.5px; color: var(--ink-2); }
-.ud-muted { color: var(--ink-2); }
-.ud-xs { font-size: 11.5px; }
-.ud-more { font-size: 11.5px; color: var(--ink-2); text-align: center; }
-</style>

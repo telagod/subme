@@ -29,60 +29,64 @@
             <!-- Refresh split button: click = refresh, dropdown = auto-refresh settings -->
             <div class="relative" ref="autoRefreshDropdownRef">
               <div class="flex">
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   @click="handleManualRefresh"
                   :disabled="loading"
-                  class="btn btn-secondary rounded-r-none border-r-0 px-2"
-                  :class="autoRefreshEnabled && 'border-primary-400/50'"
+                  class="rounded-r-none border-r-0"
+                  :class="autoRefreshEnabled && 'border-primary/50'"
                 >
                   <Icon name="refresh" size="sm" :class="[loading || autoRefreshEnabled ? 'animate-spin' : '']" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
                   @click="showAutoRefreshDropdown = !showAutoRefreshDropdown; showAccountToolsDropdown = false"
-                  class="btn btn-secondary rounded-l-none border-l-border/30 px-1.5"
-                  :class="autoRefreshEnabled && 'border-primary-400/50'"
+                  class="rounded-l-none border-l-border/30 px-1.5"
+                  :class="autoRefreshEnabled && 'border-primary/50'"
                 >
                   <Icon name="chevronDown" size="xs" />
-                </button>
+                </Button>
               </div>
-              <div v-if="showAutoRefreshDropdown" class="absolute right-0 z-50 mt-1 w-48 rounded-md border border-border bg-card py-1">
-                <button @click="setAutoRefreshEnabled(!autoRefreshEnabled)" class="flex w-full items-center justify-between px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent">
+              <div v-if="showAutoRefreshDropdown" class="absolute right-0 z-50 mt-1 w-48 rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md">
+                <Button variant="ghost" @click="setAutoRefreshEnabled(!autoRefreshEnabled)" class="flex h-auto w-full items-center justify-between rounded-none px-3 py-1.5 text-sm font-normal text-foreground/85">
                   <span>{{ t('admin.accounts.enableAutoRefresh') }}</span>
-                  <Icon v-if="autoRefreshEnabled" name="check" size="sm" class="text-primary-200" />
-                </button>
+                  <Icon v-if="autoRefreshEnabled" name="check" size="sm" class="text-foreground" />
+                </Button>
                 <div class="my-0.5 border-t border-border"></div>
-                <button v-for="sec in autoRefreshIntervals" :key="sec" @click="setAutoRefreshInterval(sec)" class="flex w-full items-center justify-between px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent">
+                <Button v-for="sec in autoRefreshIntervals" :key="sec" variant="ghost" @click="setAutoRefreshInterval(sec)" class="flex h-auto w-full items-center justify-between rounded-none px-3 py-1.5 text-sm font-normal text-foreground/85">
                   <span>{{ autoRefreshIntervalLabel(sec) }}</span>
-                  <Icon v-if="autoRefreshIntervalSeconds === sec" name="check" size="sm" class="text-primary-200" />
-                </button>
+                  <Icon v-if="autoRefreshIntervalSeconds === sec" name="check" size="sm" class="text-foreground" />
+                </Button>
               </div>
             </div>
 
             <!-- Kebab menu: data ops + tools (no column settings) -->
             <div class="relative" ref="accountToolsDropdownRef">
-              <button @click="showAccountToolsDropdown = !showAccountToolsDropdown; showAutoRefreshDropdown = false" class="btn btn-secondary px-2">
+              <Button variant="outline" size="icon" @click="showAccountToolsDropdown = !showAccountToolsDropdown; showAutoRefreshDropdown = false">
                 <Icon name="more" size="sm" />
-              </button>
-              <div v-if="showAccountToolsDropdown" class="absolute right-0 z-50 mt-1 w-52 rounded-md border border-border bg-card py-1">
-                <button class="dropdown-item" @click="openSyncFromCrs"><Icon name="sync" size="sm" class="text-muted-foreground" /><span>{{ t('admin.accounts.syncFromCrs') }}</span></button>
-                <button class="dropdown-item" @click="openImportData"><Icon name="upload" size="sm" class="text-muted-foreground" /><span>{{ t('admin.accounts.dataImport') }}</span></button>
-                <button class="dropdown-item" @click="openExportDataDialogFromMenu"><Icon name="download" size="sm" class="text-muted-foreground" /><span>{{ selIds.length ? t('admin.accounts.dataExportSelected') : t('admin.accounts.dataExport') }}</span></button>
+              </Button>
+              <div v-if="showAccountToolsDropdown" class="absolute right-0 z-50 mt-1 w-52 rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md">
+                <Button variant="ghost" class="flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85" @click="openSyncFromCrs"><Icon name="sync" size="sm" class="text-muted-foreground" /><span>{{ t('admin.accounts.syncFromCrs') }}</span></Button>
+                <Button variant="ghost" class="flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85" @click="openImportData"><Icon name="upload" size="sm" class="text-muted-foreground" /><span>{{ t('admin.accounts.dataImport') }}</span></Button>
+                <Button variant="ghost" class="flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85" @click="openExportDataDialogFromMenu"><Icon name="download" size="sm" class="text-muted-foreground" /><span>{{ selIds.length ? t('admin.accounts.dataExportSelected') : t('admin.accounts.dataExport') }}</span></Button>
                 <div class="my-0.5 border-t border-border"></div>
-                <button class="dropdown-item" @click="openErrorPassthrough"><Icon name="shield" size="sm" class="text-muted-foreground" /><span>{{ t('admin.errorPassthrough.title') }}</span></button>
-                <button class="dropdown-item" @click="openTLSFingerprintProfiles"><Icon name="lock" size="sm" class="text-muted-foreground" /><span>{{ t('admin.tlsFingerprintProfiles.title') }}</span></button>
+                <Button variant="ghost" class="flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85" @click="openErrorPassthrough"><Icon name="shield" size="sm" class="text-muted-foreground" /><span>{{ t('admin.errorPassthrough.title') }}</span></Button>
+                <Button variant="ghost" class="flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85" @click="openTLSFingerprintProfiles"><Icon name="lock" size="sm" class="text-muted-foreground" /><span>{{ t('admin.tlsFingerprintProfiles.title') }}</span></Button>
                 <div class="my-0.5 border-t border-border"></div>
                 <div class="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{{ t('admin.accounts.viewColumns') }}</div>
-                <button v-for="col in toggleableColumns" :key="col.key" @click="toggleColumn(col.key)" class="flex w-full items-center justify-between px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent">
+                <Button v-for="col in toggleableColumns" :key="col.key" variant="ghost" @click="toggleColumn(col.key)" class="flex h-auto w-full items-center justify-between rounded-none px-3 py-1.5 text-sm font-normal text-foreground/85">
                   <span class="truncate">{{ col.label }}</span>
-                  <Icon v-if="isColumnVisible(col.key)" name="check" size="xs" class="text-primary-200" />
-                </button>
+                  <Icon v-if="isColumnVisible(col.key)" name="check" size="xs" class="text-foreground" />
+                </Button>
               </div>
             </div>
 
-            <button @click="showCreate = true" class="btn btn-primary">
+            <Button @click="showCreate = true">
               <Icon name="plus" size="sm" class="mr-1" />
               <span class="hidden sm:inline">{{ t('admin.accounts.createAccount') }}</span>
-            </button>
+            </Button>
           </template>
         </CollapsibleFilters>
         <div
@@ -90,12 +94,14 @@
           class="mt-2 flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-400"
         >
           <span>{{ t('admin.accounts.listPendingSyncHint') }}</span>
-          <button
-            class="btn btn-secondary px-2 py-1 text-xs"
+          <Button
+            variant="outline"
+            size="sm"
+            class="h-auto px-2 py-1 text-xs"
             @click="syncPendingListChanges"
           >
             {{ t('admin.accounts.listPendingSyncAction') }}
-          </button>
+          </Button>
         </div>
       </template>
       <template #table>
@@ -126,19 +132,18 @@
           :sort-storage-key="ACCOUNT_SORT_STORAGE_KEY"
           :estimate-row-height="44"
           :overscan="5"
-          :row-class="(row: any) => isSelected(row.id) ? 'bg-primary-900/10' : ''"
+          :row-class="(row: any) => isSelected(row.id) ? 'bg-accent' : ''"
         >
           <template #header-select>
-            <input
-              type="checkbox"
-              class="h-4 w-4 cursor-pointer rounded border-border text-primary-600 focus:ring-ring"
+            <Checkbox
+              class="cursor-pointer"
               :checked="allVisibleSelected"
               @click.stop
-              @change="toggleSelectAllVisible($event)"
+              @update:checked="(v) => toggleSelectAllVisible({ target: { checked: v } } as unknown as Event)"
             />
           </template>
           <template #cell-select="{ row }">
-            <input type="checkbox" :checked="isSelected(row.id)" @change="toggleSel(row.id)" class="rounded border-border text-primary-600 focus:ring-ring" />
+            <Checkbox :checked="isSelected(row.id)" @update:checked="() => toggleSel(row.id)" />
           </template>
           <template #cell-name="{ row, value }">
             <div class="flex flex-col gap-0 min-w-0">
@@ -186,9 +191,12 @@
             </div>
           </template>
           <template #cell-schedulable="{ row }">
-            <button @click="handleToggleSchedulable(row)" :disabled="togglingSchedulable === row.id" class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" :class="[row.schedulable ? 'bg-primary-400 hover:bg-primary-300' : 'bg-muted hover:bg-accent']" :title="row.schedulable ? t('admin.accounts.schedulableEnabled') : t('admin.accounts.schedulableDisabled')">
-              <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="[row.schedulable ? 'translate-x-4' : 'translate-x-0']" />
-            </button>
+            <Switch
+              :checked="row.schedulable"
+              :disabled="togglingSchedulable === row.id"
+              :title="row.schedulable ? t('admin.accounts.schedulableEnabled') : t('admin.accounts.schedulableDisabled')"
+              @update:checked="() => handleToggleSchedulable(row)"
+            />
           </template>
           <template #cell-today_stats="{ row }">
             <AccountTodayStatsCell
@@ -226,8 +234,8 @@
                 <span :class="proxyExpiryBadge(row.proxy)">{{ proxyExpiryText(row.proxy) }}</span>
               </div>
               <div v-if="row.proxy_fallback_origin_id" class="flex items-center gap-1">
-                <span class="badge badge-warning text-[10px]" :title="t('admin.accounts.fallbackActiveTip', { origin: row.proxy_fallback_origin_name })">{{ t('admin.accounts.fallbackActive') }}</span>
-                <button class="text-[10px] px-1 py-0.5 rounded border border-border text-muted-foreground hover:bg-accent hover:text-foreground" @click="onRevertFallback(row)">{{ t('admin.accounts.revertProxy') }}</button>
+                <span class="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-amber-400" :title="t('admin.accounts.fallbackActiveTip', { origin: row.proxy_fallback_origin_name })">{{ t('admin.accounts.fallbackActive') }}</span>
+                <Button variant="outline" size="sm" class="h-auto rounded px-1 py-0.5 text-[10px] font-normal text-muted-foreground" @click="onRevertFallback(row)">{{ t('admin.accounts.revertProxy') }}</Button>
               </div>
             </div>
           </template>
@@ -266,15 +274,15 @@
           </template>
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
-              <button @click="handleEdit(row)" :title="t('common.edit')" class="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-primary-200">
+              <Button variant="ghost" size="icon" @click="handleEdit(row)" :title="t('common.edit')" class="h-7 w-7 text-muted-foreground hover:text-foreground">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-              </button>
-              <button @click="handleDelete(row)" :title="t('common.delete')" class="rounded-md p-1 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400">
+              </Button>
+              <Button variant="ghost" size="icon" @click="handleDelete(row)" :title="t('common.delete')" class="h-7 w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-              </button>
-              <button @click="openMenu(row, $event)" :title="t('common.more')" class="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+              </Button>
+              <Button variant="ghost" size="icon" @click="openMenu(row, $event)" :title="t('common.more')" class="h-7 w-7 text-muted-foreground hover:text-foreground">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
-              </button>
+              </Button>
             </div>
           </template>
         </DataTable>
@@ -306,7 +314,7 @@
     <ConfirmDialog :show="showDeleteDialog" :title="t('admin.accounts.deleteAccount')" :message="t('admin.accounts.deleteConfirm', { name: deletingAcc?.name })" :confirm-text="t('common.delete')" :cancel-text="t('common.cancel')" :danger="true" @confirm="confirmDelete" @cancel="showDeleteDialog = false" />
     <ConfirmDialog :show="showExportDataDialog" :title="t('admin.accounts.dataExport')" :message="t('admin.accounts.dataExportConfirmMessage')" :confirm-text="t('admin.accounts.dataExportConfirm')" :cancel-text="t('common.cancel')" @confirm="handleExportData" @cancel="showExportDataDialog = false">
       <label class="flex items-center gap-2 text-sm text-foreground/85">
-        <input type="checkbox" class="h-4 w-4 rounded border-border text-primary-600 focus:ring-ring" v-model="includeProxyOnExport" />
+        <Checkbox v-model="includeProxyOnExport" />
         <span>{{ t('admin.accounts.dataExportIncludeProxies') }}</span>
       </label>
     </ConfirmDialog>
@@ -355,6 +363,9 @@ import AccountGroupsCell from '@/components/account/AccountGroupsCell.vue'
 import AccountCapacityCell from '@/components/account/AccountCapacityCell.vue'
 import PlatformTypeBadge from '@/components/common/PlatformTypeBadge.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 const ErrorPassthroughRulesModal = defineAsyncComponent(() => import('@/components/admin/ErrorPassthroughRulesModal.vue'))
 const TLSFingerprintProfilesModal = defineAsyncComponent(() => import('@/components/admin/TLSFingerprintProfilesModal.vue'))
 import { buildOpenAIUsageRefreshKey } from '@/utils/accountUsageRefresh'
@@ -1085,8 +1096,8 @@ function getAntigravityTierClass(row: any): string {
   const tier = getAntigravityTierFromRow(row)
   switch (tier) {
     case 'free-tier': return 'bg-muted text-muted-foreground'
-    case 'g1-pro-tier': return 'bg-blue-900/40 text-sky-400'
-    case 'g1-ultra-tier': return 'bg-purple-900/40 text-purple-300'
+    case 'g1-pro-tier': return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+    case 'g1-ultra-tier': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
     default: return ''
   }
 }
@@ -1717,13 +1728,3 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
-
-<style scoped>
-.account-tools-menu-item {
-  @apply flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground/85 transition-colors hover:bg-accent;
-}
-
-.account-tools-menu-icon {
-  @apply inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md;
-}
-</style>

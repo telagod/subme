@@ -53,13 +53,15 @@
               </div>
 
               <!-- Close button -->
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="removeToast(toast.id)"
-                class="-m-1 flex-shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                class="-m-1 h-6 w-6 flex-shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
                 aria-label="Close notification"
               >
                 <Icon name="x" size="sm" />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -79,6 +81,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/stores/app'
 
 const appStore = useAppStore()
@@ -103,7 +106,7 @@ const getIconColor = (type: string): string => {
   const colors: Record<string, string> = {
     success: 'text-emerald-400',
     error: 'text-red-400',
-    warning: 'text-yellow-500',
+    warning: 'text-amber-500',
     info: 'text-blue-500'
   }
   return colors[type] || colors.info
@@ -111,9 +114,9 @@ const getIconColor = (type: string): string => {
 
 const getBorderColor = (type: string): string => {
   const colors: Record<string, string> = {
-    success: 'border-green-500',
+    success: 'border-emerald-500',
     error: 'border-red-500',
-    warning: 'border-yellow-500',
+    warning: 'border-amber-500',
     info: 'border-blue-500'
   }
   return colors[type] || colors.info
@@ -121,9 +124,9 @@ const getBorderColor = (type: string): string => {
 
 const getProgressBarColor = (type: string): string => {
   const colors: Record<string, string> = {
-    success: 'bg-green-500',
+    success: 'bg-emerald-500',
     error: 'bg-red-500',
-    warning: 'bg-yellow-500',
+    warning: 'bg-amber-500',
     info: 'bg-blue-500'
   }
   return colors[type] || colors.info

@@ -10,24 +10,25 @@
                 size="md"
                 class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               />
-              <input
+              <Input
                 v-model="searchQuery"
                 type="text"
                 :placeholder="t('availableChannels.searchPlaceholder')"
-                class="input pl-10"
+                class="pl-10"
               />
             </div>
           </div>
 
           <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               @click="loadChannels"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh', 'Refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -54,6 +55,8 @@ import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import AvailableChannelsTable from '@/components/channels/AvailableChannelsTable.vue'
 import userChannelsAPI, { type UserAvailableChannel } from '@/api/channels'
 import userGroupsAPI from '@/api/groups'

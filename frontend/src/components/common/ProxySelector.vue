@@ -1,48 +1,51 @@
 <template>
   <div class="relative" ref="containerRef">
-    <button
+    <Button
       type="button"
+      variant="outline"
       @click="toggle"
       :disabled="disabled"
       :class="[
-        'select-trigger',
-        isOpen && 'select-trigger-open',
-        disabled && 'select-trigger-disabled'
+        'flex w-full items-center justify-between gap-2 px-4 py-2.5 text-sm bg-card text-foreground transition-all duration-200 hover:border-ring cursor-pointer',
+        isOpen && 'border-ring ring-2 ring-ring/30',
+        disabled && 'cursor-not-allowed bg-muted opacity-60'
       ]"
     >
-      <span class="select-value">
+      <span class="flex-1 truncate text-left">
         {{ selectedLabel }}
       </span>
-      <span class="select-icon">
+      <span class="flex-shrink-0 text-muted-foreground">
         <Icon
           name="chevronDown"
           size="md"
           :class="['transition-transform duration-200', isOpen && 'rotate-180']"
         />
       </span>
-    </button>
+    </Button>
 
     <Transition name="select-dropdown">
-      <div v-if="isOpen" class="select-dropdown">
+      <div v-if="isOpen" class="absolute z-[100] mt-2 w-full bg-card rounded-lg border border-border overflow-hidden">
         <!-- Search and Batch Test Header -->
-        <div class="select-header">
-          <div class="select-search">
+        <div class="flex items-center gap-2 px-3 py-2 border-b border-border">
+          <div class="flex flex-1 items-center gap-2">
             <Icon name="search" size="sm" class="text-muted-foreground" />
-            <input
+            <Input
               ref="searchInputRef"
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.proxies.searchProxies')"
-              class="select-search-input"
+              class="h-auto flex-1 border-0 bg-transparent p-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
               @click.stop
             />
           </div>
-          <button
+          <Button
             v-if="proxies.length > 0"
             type="button"
+            variant="ghost"
+            size="icon"
             @click.stop="handleBatchTest"
             :disabled="batchTesting"
-            class="batch-test-btn"
+            class="flex-shrink-0 h-7 w-7 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
             :title="t('admin.proxies.batchTest')"
           >
             <svg v-if="batchTesting" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -61,18 +64,21 @@
               ></path>
             </svg>
             <Icon v-else name="play" size="sm" />
-          </button>
+          </Button>
         </div>
 
         <!-- Options list -->
-        <div class="select-options">
+        <div class="max-h-60 overflow-y-auto py-1">
           <!-- No Proxy option -->
           <div
             @click="selectOption(null)"
-            :class="['select-option', modelValue === null && 'select-option-selected']"
+            :class="[
+              'flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-foreground/85 cursor-pointer transition-colors duration-150 hover:bg-accent',
+              modelValue === null && 'bg-accent text-foreground'
+            ]"
           >
-            <span class="select-option-label">{{ t('admin.accounts.noProxy') }}</span>
-            <Icon v-if="modelValue === null" name="check" size="sm" class="text-primary-500" />
+            <span class="truncate">{{ t('admin.accounts.noProxy') }}</span>
+            <Icon v-if="modelValue === null" name="check" size="sm" class="text-primary" />
           </div>
 
           <!-- Proxy options -->
@@ -80,23 +86,28 @@
             v-for="proxy in filteredProxies"
             :key="proxy.id"
             @click="selectOption(proxy.id)"
-            :class="['select-option', modelValue === proxy.id && 'select-option-selected']"
+            :class="[
+              'flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-foreground/85 cursor-pointer transition-colors duration-150 hover:bg-accent',
+              modelValue === proxy.id && 'bg-accent text-foreground'
+            ]"
           >
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <span class="truncate font-medium">{{ proxy.name }}</span>
                 <!-- Account count badge -->
-                <span
+                <Badge
                   v-if="proxy.account_count !== undefined"
-                  class="inline-flex flex-shrink-0 items-center rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+                  variant="secondary"
+                  class="flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-normal"
                 >
                   {{ proxy.account_count }}
-                </span>
+                </Badge>
                 <!-- Test result badges -->
                 <template v-if="testResults[proxy.id]">
-                  <span
+                  <Badge
                     v-if="testResults[proxy.id].success"
-                    class="inline-flex flex-shrink-0 items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-400"
+                    variant="outline"
+                    class="flex-shrink-0 gap-1 rounded border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-400"
                   >
                     <span v-if="testResults[proxy.id].country">{{
                       testResults[proxy.id].country
@@ -104,13 +115,14 @@
                     <span v-if="testResults[proxy.id].latency_ms"
                       >{{ testResults[proxy.id].latency_ms }}ms</span
                     >
-                  </span>
-                  <span
+                  </Badge>
+                  <Badge
                     v-else
-                    class="inline-flex flex-shrink-0 items-center rounded border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-xs text-red-400"
+                    variant="outline"
+                    class="flex-shrink-0 rounded border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-xs text-destructive"
                   >
                     {{ t('admin.proxies.testFailed') }}
-                  </span>
+                  </Badge>
                 </template>
               </div>
               <div class="truncate text-xs text-muted-foreground">
@@ -119,11 +131,13 @@
             </div>
 
             <!-- Individual test button -->
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               @click.stop="handleTestProxy(proxy)"
               :disabled="testingProxyIds.has(proxy.id)"
-              class="test-btn"
+              class="flex-shrink-0 h-6 w-6 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-50"
               :title="t('admin.proxies.testConnection')"
             >
               <svg
@@ -147,18 +161,18 @@
                 ></path>
               </svg>
               <Icon v-else name="play" size="xs" />
-            </button>
+            </Button>
 
             <Icon
               v-if="modelValue === proxy.id"
               name="check"
               size="sm"
-              class="flex-shrink-0 text-primary-500"
+              class="flex-shrink-0 text-primary"
             />
           </div>
 
           <!-- Empty state -->
-          <div v-if="filteredProxies.length === 0 && searchQuery" class="select-empty">
+          <div v-if="filteredProxies.length === 0 && searchQuery" class="px-4 py-8 text-center text-sm text-muted-foreground">
             {{ t('common.noOptionsFound') }}
           </div>
         </div>
@@ -172,6 +186,9 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
 import Icon from '@/components/icons/Icon.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { Proxy } from '@/types'
 
 const { t } = useI18n()
@@ -319,98 +336,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.select-trigger {
-  @apply flex w-full items-center justify-between gap-2;
-  @apply rounded-md px-4 py-2.5 text-sm;
-  @apply bg-card;
-  @apply border border-border;
-  @apply text-foreground;
-  @apply transition-all duration-200;
-  @apply focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30;
-  @apply hover:border-ring;
-  @apply cursor-pointer;
-}
-
-.select-trigger-open {
-  @apply border-ring ring-2 ring-ring/30;
-}
-
-.select-trigger-disabled {
-  @apply cursor-not-allowed bg-muted opacity-60;
-}
-
-.select-value {
-  @apply flex-1 truncate text-left;
-}
-
-.select-icon {
-  @apply flex-shrink-0 text-muted-foreground;
-}
-
-.select-dropdown {
-  @apply absolute z-[100] mt-2 w-full;
-  @apply bg-card;
-  @apply rounded-lg;
-  @apply border border-border;
-  @apply overflow-hidden;
-}
-
-.select-header {
-  @apply flex items-center gap-2 px-3 py-2;
-  @apply border-b border-border;
-}
-
-.select-search {
-  @apply flex flex-1 items-center gap-2;
-}
-
-.select-search-input {
-  @apply flex-1 bg-transparent text-sm;
-  @apply text-foreground;
-  @apply placeholder:text-muted-foreground;
-  @apply focus:outline-none;
-}
-
-.batch-test-btn {
-  @apply flex-shrink-0 rounded-md p-1.5;
-  @apply text-muted-foreground hover:text-emerald-400;
-  @apply hover:bg-emerald-500/10;
-  @apply transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.select-options {
-  @apply max-h-60 overflow-y-auto py-1;
-}
-
-.select-option {
-  @apply flex items-center justify-between gap-2;
-  @apply px-4 py-2.5 text-sm;
-  @apply text-foreground/85;
-  @apply cursor-pointer transition-colors duration-150;
-  @apply hover:bg-accent;
-}
-
-.select-option-selected {
-  @apply bg-accent;
-  @apply text-primary-200;
-}
-
-.select-option-label {
-  @apply truncate;
-}
-
-.select-empty {
-  @apply px-4 py-8 text-center text-sm;
-  @apply text-muted-foreground;
-}
-
-.test-btn {
-  @apply flex-shrink-0 rounded p-1;
-  @apply text-muted-foreground hover:text-emerald-400;
-  @apply hover:bg-emerald-500/10;
-  @apply transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-}
-
 /* Dropdown animation */
 .select-dropdown-enter-active,
 .select-dropdown-leave-active {

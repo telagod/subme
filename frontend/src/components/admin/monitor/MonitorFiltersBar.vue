@@ -29,26 +29,28 @@
       />
     </template>
     <template #actions>
-      <button
+      <Button
+        variant="outline"
+        size="sm"
         @click="$emit('reload')"
         :disabled="loading"
-        class="btn btn-secondary"
         :title="t('common.refresh')"
       >
         <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
         @click="$emit('manage-templates')"
-        class="btn btn-secondary"
         :title="t('admin.channelMonitor.template.manageButton')"
       >
         <Icon name="cog" size="md" class="mr-2" />
         {{ t('admin.channelMonitor.template.manageButton') }}
-      </button>
-      <button @click="$emit('create')" class="btn btn-primary">
+      </Button>
+      <Button size="sm" @click="$emit('create')">
         <Icon name="plus" size="md" class="mr-2" />
         {{ t('admin.channelMonitor.createButton') }}
-      </button>
+      </Button>
     </template>
   </CollapsibleFilters>
 </template>
@@ -61,6 +63,7 @@ import Select from '@/components/common/Select.vue'
 import CollapsibleFilters from '@/components/common/CollapsibleFilters.vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import {
   PROVIDER_OPENAI,
   PROVIDER_ANTHROPIC,

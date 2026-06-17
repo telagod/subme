@@ -3,40 +3,46 @@
     <Transition name="cmdk-overlay">
       <div
         v-if="modelValue"
-        class="cmdk-overlay"
+        class="fixed inset-0 z-[9999] flex items-start justify-center bg-black/65 backdrop-blur-sm pt-[120px]"
         @click.self="close"
       >
-        <div class="cmdk-panel" role="dialog" aria-modal="true" :aria-label="t('nav.quench.commandPalette')">
+        <div
+          class="cmdk-panel w-full max-w-[540px] overflow-hidden rounded-[14px] border border-border bg-card shadow-2xl ring-1 ring-primary/[0.08]"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="t('nav.quench.commandPalette')"
+        >
           <!-- Search input -->
-          <div class="cmdk-input-wrap">
-            <Search class="cmdk-search-icon" />
-            <input
+          <div class="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
+            <Search class="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Input
               ref="inputRef"
               v-model="query"
-              class="cmdk-input"
+              class="flex-1 border-0 bg-transparent p-0 text-sm font-[inherit] text-foreground shadow-none outline-none ring-0 focus-visible:ring-0 placeholder:text-muted-foreground"
               :placeholder="t('nav.quench.commandPalettePlaceholder')"
               @keydown="handleKeydown"
             />
-            <kbd class="cmdk-esc-kbd">Esc</kbd>
+            <kbd class="shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">Esc</kbd>
           </div>
 
           <!-- Results -->
-          <div class="cmdk-results" ref="listRef">
+          <div class="cmdk-results max-h-[340px] overflow-y-auto p-1.5" ref="listRef">
             <template v-if="filteredItems.length > 0">
-              <button
+              <Button
                 v-for="(item, idx) in filteredItems"
                 :key="item.key"
-                class="cmdk-item"
-                :class="{ 'cmdk-item--active': idx === activeIndex }"
+                variant="ghost"
+                class="cmdk-item flex h-auto w-full cursor-pointer items-center justify-start gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-[inherit] text-muted-foreground transition-[background,color] duration-100"
+                :class="{ 'cmdk-item--active bg-primary/10 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/.25),0_0_12px_hsl(var(--primary)/.1)]': idx === activeIndex }"
                 @click="selectItem(item)"
                 @mouseenter="activeIndex = idx"
               >
-                <component :is="item.icon" class="cmdk-item-icon" />
-                <span class="cmdk-item-label">{{ t(item.labelKey) }}</span>
-                <span class="cmdk-item-group">{{ t(item.groupLabelKey) }}</span>
-              </button>
+                <component :is="item.icon" class="h-[15px] w-[15px] shrink-0 opacity-80" />
+                <span class="flex-1 font-medium">{{ t(item.labelKey) }}</span>
+                <span class="font-mono text-[10.5px] tracking-[0.06em] text-muted-foreground">{{ t(item.groupLabelKey) }}</span>
+              </Button>
             </template>
-            <div v-else class="cmdk-empty">
+            <div v-else class="px-6 py-6 text-center text-[13px] text-muted-foreground">
               {{ t('nav.quench.noResults') }}
             </div>
           </div>
@@ -52,6 +58,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMagicKeys } from '@vueuse/core'
 import { Search } from 'lucide-vue-next'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { flatNavItems } from './nav'
 
 const props = defineProps<{
@@ -149,76 +157,10 @@ function scrollActiveIntoView() {
 </script>
 
 <style scoped>
-.cmdk-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 9999;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 120px;
-}
-
-.cmdk-panel {
-  width: 100%;
-  max-width: 540px;
-  background: #101216;
-  border: 1px solid #2f3540;
-  border-radius: 14px;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(92, 168, 255, 0.08);
-  overflow: hidden;
-}
-
-/* Input row */
-.cmdk-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid #20242c;
-}
-
-.cmdk-search-icon {
-  width: 16px;
-  height: 16px;
-  color: #5c6470;
-  flex-shrink: 0;
-}
-
-.cmdk-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #e8ebf0;
-  font-size: 14px;
-  font-family: inherit;
-}
-
-.cmdk-input::placeholder {
-  color: #5c6470;
-}
-
-.cmdk-esc-kbd {
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  font-size: 10px;
-  color: #5c6470;
-  background: #1f232b;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #2f3540;
-  flex-shrink: 0;
-}
-
-/* Results */
+/* Scrollbar styling — cannot be expressed as Tailwind utilities */
 .cmdk-results {
-  max-height: 340px;
-  overflow-y: auto;
-  padding: 6px;
   scrollbar-width: thin;
-  scrollbar-color: #2f3540 transparent;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .cmdk-results::-webkit-scrollbar {
@@ -226,68 +168,11 @@ function scrollActiveIntoView() {
 }
 
 .cmdk-results::-webkit-scrollbar-thumb {
-  background: #2f3540;
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 
-.cmdk-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: #97a0af;
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.1s, color 0.1s;
-}
-
-.cmdk-item:hover,
-.cmdk-item--active {
-  background: rgba(92, 168, 255, 0.1);
-  color: #e8ebf0;
-  box-shadow: inset 0 0 0 1px rgba(92, 168, 255, 0.18);
-}
-
-/* Shadow-glow-focus style from design tokens for focused item */
-.cmdk-item--active {
-  box-shadow:
-    inset 0 0 0 1px rgba(92, 168, 255, 0.25),
-    0 0 12px rgba(92, 168, 255, 0.1);
-}
-
-.cmdk-item-icon {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  opacity: 0.8;
-}
-
-.cmdk-item-label {
-  flex: 1;
-  font-weight: 500;
-}
-
-.cmdk-item-group {
-  font-size: 10.5px;
-  color: #5c6470;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  letter-spacing: 0.06em;
-}
-
-.cmdk-empty {
-  padding: 24px;
-  text-align: center;
-  color: #5c6470;
-  font-size: 13px;
-}
-
-/* Transition */
+/* Overlay enter/leave transitions */
 .cmdk-overlay-enter-active,
 .cmdk-overlay-leave-active {
   transition: opacity 0.18s ease;
@@ -320,17 +205,8 @@ function scrollActiveIntoView() {
   .cmdk-overlay-leave-to .cmdk-panel {
     transform: none;
   }
-  .cmdk-item { transition: none; }
+  .cmdk-item {
+    transition: none;
+  }
 }
-
-/* 键盘焦点：item 获得 focus-visible 时用 azure glow */
-.cmdk-item:focus-visible {
-  outline: none;
-  box-shadow:
-    inset 0 0 0 1px rgba(92, 168, 255, 0.5),
-    0 0 0 2px rgba(92, 168, 255, 0.35);
-}
-
-/* ⌘K 输入框容器的 focus 环已靠输入框自身 outline:none 消除，
-   由 cmdk-panel border + box-shadow 承担视觉焦点 */
 </style>

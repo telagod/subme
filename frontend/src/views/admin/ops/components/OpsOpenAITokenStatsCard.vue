@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Select from '@/components/common/Select.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { opsAPI, type OpsOpenAITokenStatsResponse, type OpsOpenAITokenStatsTimeRange } from '@/api/admin/ops'
 import { formatNumber } from '@/utils/format'
 
@@ -123,7 +125,7 @@ watch(
     refreshToken: props.refreshToken
   }),
   (next, prev) => {
-    // 避免“筛选变化 -> 重置页码 -> 触发两次请求”：
+    // 避免"筛选变化 -> 重置页码 -> 触发两次请求"：
     // 先只重置页码，等待下一次 watch（仅 page 变化）再发起请求。
     const filtersChanged = !prev ||
       next.timeRange !== prev.timeRange ||
@@ -154,66 +156,92 @@ function onNextPage() {
 </script>
 
 <template>
-  <section class="od-card od-card-pad-sm">
-    <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-      <h3 class="od-chart-title">{{ t('admin.ops.openaiTokenStats.title') }}</h3>
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
-        <div style="width:136px;"><Select v-model="timeRange" :options="timeRangeOptions" /></div>
-        <div style="width:136px;"><Select v-model="viewMode" :options="viewModeOptions" /></div>
-        <div v-if="viewMode === 'topn'" style="width:100px;"><Select v-model="topN" :options="topNOptions" /></div>
+  <Card class="p-4">
+    <div class="mb-[14px] flex flex-wrap items-center justify-between gap-[10px]">
+      <h3 class="flex items-center gap-2 text-sm font-bold text-foreground">{{ t('admin.ops.openaiTokenStats.title') }}</h3>
+      <div class="flex flex-wrap items-center gap-[6px]">
+        <Select v-model="timeRange" style="width:136px;">
+          <SelectTrigger class="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in timeRangeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="viewMode" style="width:136px;">
+          <SelectTrigger class="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in viewModeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-if="viewMode === 'topn'" :model-value="String(topN)" @update:model-value="(v) => topN = Number(v)" style="width:100px;">
+          <SelectTrigger class="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt in topNOptions" :key="opt.value" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
         <template v-else>
-          <div style="width:80px;"><Select v-model="pageSize" :options="pageSizeOptions" /></div>
-          <button class="od-btn" style="padding:4px 10px;font-size:11px;" :disabled="loading || page <= 1" @click="onPrevPage">{{ t('admin.ops.openaiTokenStats.prevPage') }}</button>
-          <button class="od-btn" style="padding:4px 10px;font-size:11px;" :disabled="loading || page >= totalPages" @click="onNextPage">{{ t('admin.ops.openaiTokenStats.nextPage') }}</button>
-          <span style="font-size:11px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.pageInfo', { page, total: totalPages }) }}</span>
+          <Select :model-value="String(pageSize)" @update:model-value="(v) => pageSize = Number(v)" style="width:80px;">
+            <SelectTrigger class="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in pageSizeOptions" :key="opt.value" :value="String(opt.value)">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" class="px-[10px] text-[11px]" :disabled="loading || page <= 1" @click="onPrevPage">{{ t('admin.ops.openaiTokenStats.prevPage') }}</Button>
+          <Button variant="outline" size="sm" class="px-[10px] text-[11px]" :disabled="loading || page >= totalPages" @click="onNextPage">{{ t('admin.ops.openaiTokenStats.nextPage') }}</Button>
+          <span class="text-xs text-muted-foreground">{{ t('admin.ops.openaiTokenStats.pageInfo', { page, total: totalPages }) }}</span>
         </template>
       </div>
     </div>
 
-    <div v-if="errorMessage" style="margin-bottom:12px;border-radius:8px;border:1px solid var(--ops-bad-border);background:var(--ops-bad-dim);padding:8px 12px;font-size:11.5px;color:var(--ops-bad);">
+    <div v-if="errorMessage" class="mb-3 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-[11.5px] text-destructive">
       {{ errorMessage }}
     </div>
 
-    <div v-if="loading" style="padding:28px 0;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">
+    <div v-if="loading" class="py-7 text-center text-[13px] text-muted-foreground">
       {{ t('admin.ops.loadingText') }}
     </div>
 
     <EmptyState v-else-if="items.length === 0" :title="t('common.noData')" :description="t('admin.ops.openaiTokenStats.empty')" />
 
     <div v-else>
-      <div class="od-table-card">
+      <div class="overflow-hidden rounded-xl border border-border bg-card">
         <div style="max-height:420px;overflow:auto;">
           <table style="min-width:100%;text-align:left;font-size:12px;border-collapse:collapse;">
-            <thead class="od-table-head-row" style="position:sticky;top:0;z-index:10;">
+            <thead class="sticky top-0 z-10 border-b border-border bg-muted">
               <tr>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.model') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.requestCount') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.avgTokensPerSec') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.avgFirstTokenMs') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.totalOutputTokens') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.avgDurationMs') }}</th>
-                <th style="padding:7px 10px;font-weight:600;color:var(--ink-2,#5C6470);">{{ t('admin.ops.openaiTokenStats.table.requestsWithFirstToken') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.model') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.requestCount') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.avgTokensPerSec') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.avgFirstTokenMs') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.totalOutputTokens') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.avgDurationMs') }}</th>
+                <th class="px-[10px] py-[7px] font-semibold text-muted-foreground">{{ t('admin.ops.openaiTokenStats.table.requestsWithFirstToken') }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in items" :key="row.model" class="od-tr-border">
-                <td style="padding:7px 10px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ row.model }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatInt(row.request_count) }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatRate(row.avg_tokens_per_sec) }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatRate(row.avg_first_token_ms) }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatInt(row.total_output_tokens) }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatInt(row.avg_duration_ms) }}</td>
-                <td style="padding:7px 10px;color:var(--ink-1,#97A0AF);">{{ formatInt(row.requests_with_first_token) }}</td>
+              <tr v-for="row in items" :key="row.model" class="border-b border-border last:border-b-0">
+                <td class="px-[10px] py-[7px] font-medium text-foreground">{{ row.model }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatInt(row.request_count) }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatRate(row.avg_tokens_per_sec) }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatRate(row.avg_first_token_ms) }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatInt(row.total_output_tokens) }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatInt(row.avg_duration_ms) }}</td>
+                <td class="px-[10px] py-[7px] text-muted-foreground">{{ formatInt(row.requests_with_first_token) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <div v-if="viewMode === 'topn'" style="margin-top:10px;font-size:11px;color:var(--ink-2,#5C6470);">
+      <div v-if="viewMode === 'topn'" class="mt-[10px] text-[11px] text-muted-foreground">
         {{ t('admin.ops.openaiTokenStats.totalModels', { total }) }}
       </div>
     </div>
-  </section>
+  </Card>
 </template>
-
-<style src="../ops-quench.css"></style>

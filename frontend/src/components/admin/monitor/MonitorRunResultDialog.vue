@@ -28,9 +28,9 @@
     </div>
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-primary">
+        <Button @click="$emit('close')">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -40,6 +40,7 @@
 import { useI18n } from 'vue-i18n'
 import type { CheckResult } from '@/api/admin/channelMonitor'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
 import { useChannelMonitorFormat } from '@/composables/useChannelMonitorFormat'
 
 defineProps<{

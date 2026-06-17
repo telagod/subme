@@ -10,41 +10,41 @@
       >
         <div class="py-1">
           <template v-if="account">
-            <button @click="$emit('test', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="play" size="sm" class="text-primary-200" :stroke-width="2" />
+            <Button variant="ghost" @click="$emit('test', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="play" size="sm" class="text-muted-foreground" :stroke-width="2" />
               {{ t('admin.accounts.testConnection') }}
-            </button>
-            <button @click="$emit('stats', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="chart" size="sm" class="text-primary-200" />
+            </Button>
+            <Button variant="ghost" @click="$emit('stats', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="chart" size="sm" class="text-muted-foreground" />
               {{ t('admin.accounts.viewStats') }}
-            </button>
-            <button @click="$emit('schedule', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="clock" size="sm" class="text-primary-200" />
+            </Button>
+            <Button variant="ghost" @click="$emit('schedule', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="clock" size="sm" class="text-muted-foreground" />
               {{ t('admin.scheduledTests.schedule') }}
-            </button>
+            </Button>
             <template v-if="account.type === 'oauth' || account.type === 'setup-token'">
-              <button @click="$emit('reauth', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-                <Icon name="link" size="sm" class="text-primary-200" />
+              <Button variant="ghost" @click="$emit('reauth', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+                <Icon name="link" size="sm" class="text-muted-foreground" />
                 {{ t('admin.accounts.reAuthorize') }}
-              </button>
-              <button @click="$emit('refresh-token', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-                <Icon name="refresh" size="sm" class="text-primary-200" />
+              </Button>
+              <Button variant="ghost" @click="$emit('refresh-token', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+                <Icon name="refresh" size="sm" class="text-muted-foreground" />
                 {{ t('admin.accounts.refreshToken') }}
-              </button>
+              </Button>
             </template>
-            <button v-if="supportsPrivacy" @click="$emit('set-privacy', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="shield" size="sm" class="text-primary-200" />
+            <Button v-if="supportsPrivacy" variant="ghost" @click="$emit('set-privacy', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="shield" size="sm" class="text-muted-foreground" />
               {{ t('admin.accounts.setPrivacy') }}
-            </button>
+            </Button>
             <div v-if="hasRecoverableState" class="my-1 border-t border-border"></div>
-            <button v-if="hasRecoverableState" @click="$emit('recover-state', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="sync" size="sm" class="text-primary-200" />
+            <Button v-if="hasRecoverableState" variant="ghost" @click="$emit('recover-state', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="sync" size="sm" class="text-muted-foreground" />
               {{ t('admin.accounts.recoverState') }}
-            </button>
-            <button v-if="hasQuotaLimit" @click="$emit('reset-quota', account); $emit('close')" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent">
-              <Icon name="refresh" size="sm" class="text-primary-200" />
+            </Button>
+            <Button v-if="hasQuotaLimit" variant="ghost" @click="$emit('reset-quota', account); $emit('close')" class="flex w-full items-center justify-start gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent h-auto rounded-none">
+              <Icon name="refresh" size="sm" class="text-muted-foreground" />
               {{ t('admin.accounts.resetQuota') }}
-            </button>
+            </Button>
           </template>
         </div>
       </div>
@@ -56,6 +56,7 @@
 import { computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 import type { Account } from '@/types'
 
 const props = defineProps<{ show: boolean; account: Account | null; position: { top: number; left: number } | null }>()

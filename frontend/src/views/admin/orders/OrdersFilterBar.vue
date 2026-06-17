@@ -1,11 +1,14 @@
 <template>
-  <div class="oq-filter">
+  <div class="flex flex-wrap items-center gap-2 mb-4">
     <!-- 搜索框 -->
-    <div class="oq-search" :class="{ 'oq-search-focus': focused }">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      <input
+    <div
+      class="flex items-center gap-1.5 bg-background border border-input rounded-lg px-2.5 py-1.5 min-w-[220px] text-muted-foreground transition-colors"
+      :class="focused ? 'border-ring ring-1 ring-ring' : ''"
+    >
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true" class="shrink-0"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.2"/><path d="M9 9L11.5 11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <Input
         :value="search"
-        class="oq-search-input"
+        class="flex-1 border-0 bg-transparent p-0 text-[12.5px] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 h-auto placeholder:text-muted-foreground"
         placeholder="搜索订单号 / 用户…"
         @focus="focused = true"
         @blur="focused = false"
@@ -14,46 +17,96 @@
     </div>
 
     <!-- 状态 -->
-    <div class="oq-chip-wrap">
-      <button class="oq-chip" :class="{ 'oq-chip-on': status }" @click.stop="showStatus = !showStatus; showPayType = false; showOrderType = false">
-        状态 <b>{{ statusLabel }}</b>
+    <div class="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        class="flex items-center gap-1 text-xs font-normal"
+        :class="status ? 'border-ring/50 text-primary' : 'text-muted-foreground'"
+        @click.stop="showStatus = !showStatus; showPayType = false; showOrderType = false"
+      >
+        状态 <b class="text-foreground font-semibold">{{ statusLabel }}</b>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      </button>
-      <div v-if="showStatus" class="oq-menu" @click.stop>
-        <button v-for="opt in statusOptions" :key="opt.value" class="oq-menu-item" :class="{ on: status === opt.value }" @click="$emit('update:status', opt.value); showStatus = false">{{ opt.label }}</button>
+      </Button>
+      <div v-if="showStatus" class="absolute top-[calc(100%+4px)] left-0 min-w-[140px] bg-popover border border-border rounded-lg p-1 z-[100] shadow-lg" @click.stop>
+        <Button
+          v-for="opt in statusOptions"
+          :key="opt.value"
+          variant="ghost"
+          size="sm"
+          class="w-full justify-start text-xs font-normal"
+          :class="status === opt.value ? 'text-primary font-semibold' : 'text-muted-foreground'"
+          @click="$emit('update:status', opt.value); showStatus = false"
+        >{{ opt.label }}</Button>
       </div>
     </div>
 
     <!-- 支付方式 -->
-    <div class="oq-chip-wrap">
-      <button class="oq-chip" :class="{ 'oq-chip-on': payType }" @click.stop="showPayType = !showPayType; showStatus = false; showOrderType = false">
-        支付 <b>{{ payTypeLabel }}</b>
+    <div class="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        class="flex items-center gap-1 text-xs font-normal"
+        :class="payType ? 'border-ring/50 text-primary' : 'text-muted-foreground'"
+        @click.stop="showPayType = !showPayType; showStatus = false; showOrderType = false"
+      >
+        支付 <b class="text-foreground font-semibold">{{ payTypeLabel }}</b>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      </button>
-      <div v-if="showPayType" class="oq-menu" @click.stop>
-        <button v-for="opt in payTypeOptions" :key="opt.value" class="oq-menu-item" :class="{ on: payType === opt.value }" @click="$emit('update:payType', opt.value); showPayType = false">{{ opt.label }}</button>
+      </Button>
+      <div v-if="showPayType" class="absolute top-[calc(100%+4px)] left-0 min-w-[140px] bg-popover border border-border rounded-lg p-1 z-[100] shadow-lg" @click.stop>
+        <Button
+          v-for="opt in payTypeOptions"
+          :key="opt.value"
+          variant="ghost"
+          size="sm"
+          class="w-full justify-start text-xs font-normal"
+          :class="payType === opt.value ? 'text-primary font-semibold' : 'text-muted-foreground'"
+          @click="$emit('update:payType', opt.value); showPayType = false"
+        >{{ opt.label }}</Button>
       </div>
     </div>
 
     <!-- 订单类型 -->
-    <div class="oq-chip-wrap">
-      <button class="oq-chip" :class="{ 'oq-chip-on': orderType }" @click.stop="showOrderType = !showOrderType; showStatus = false; showPayType = false">
-        类型 <b>{{ orderTypeLabel }}</b>
+    <div class="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        class="flex items-center gap-1 text-xs font-normal"
+        :class="orderType ? 'border-ring/50 text-primary' : 'text-muted-foreground'"
+        @click.stop="showOrderType = !showOrderType; showStatus = false; showPayType = false"
+      >
+        类型 <b class="text-foreground font-semibold">{{ orderTypeLabel }}</b>
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-      </button>
-      <div v-if="showOrderType" class="oq-menu" @click.stop>
-        <button v-for="opt in orderTypeOptions" :key="opt.value" class="oq-menu-item" :class="{ on: orderType === opt.value }" @click="$emit('update:orderType', opt.value); showOrderType = false">{{ opt.label }}</button>
+      </Button>
+      <div v-if="showOrderType" class="absolute top-[calc(100%+4px)] left-0 min-w-[140px] bg-popover border border-border rounded-lg p-1 z-[100] shadow-lg" @click.stop>
+        <Button
+          v-for="opt in orderTypeOptions"
+          :key="opt.value"
+          variant="ghost"
+          size="sm"
+          class="w-full justify-start text-xs font-normal"
+          :class="orderType === opt.value ? 'text-primary font-semibold' : 'text-muted-foreground'"
+          @click="$emit('update:orderType', opt.value); showOrderType = false"
+        >{{ opt.label }}</Button>
       </div>
     </div>
 
     <!-- 清空 -->
-    <button v-if="hasFilters" class="oq-clear-all" @click="$emit('clear')">清空筛选</button>
+    <Button
+      v-if="hasFilters"
+      variant="outline"
+      size="sm"
+      class="text-xs font-normal border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+      @click="$emit('clear')"
+    >清空筛选</Button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 

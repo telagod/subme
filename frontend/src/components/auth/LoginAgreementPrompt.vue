@@ -4,12 +4,11 @@
     class="px-0.5"
   >
     <div class="flex items-start gap-2">
-      <input
+      <Checkbox
         id="login-agreement-consent"
-        type="checkbox"
-        :checked="accepted"
-        class="agreement-cb mt-[2px] h-4 w-4 flex-shrink-0 rounded border-border bg-card"
-        @change="handleCheckboxChange"
+        :model-value="accepted"
+        class="mt-[2px] flex-shrink-0"
+        @update:model-value="handleCheckboxChange($event === true)"
       />
       <div class="min-w-0 flex-1">
         <p class="text-[13px] leading-5 text-foreground/85">
@@ -24,7 +23,7 @@
               :to="documentRoute(doc)"
               target="_blank"
               rel="noopener noreferrer"
-              class="font-medium text-primary-600 underline-offset-4 transition hover:text-primary-300 hover:underline "
+              class="font-medium text-primary underline-offset-4 transition hover:text-primary/80 hover:underline"
             >
               {{ doc.title }}
             </RouterLink>
@@ -40,20 +39,22 @@
     class="rounded-md border border-border bg-card p-3 text-sm text-foreground"
   >
     <div class="flex items-start gap-3">
-      <Icon name="shield" size="sm" class="mt-0.5 flex-shrink-0 text-primary-200" />
+      <Icon name="shield" size="sm" class="mt-0.5 flex-shrink-0 text-primary" />
       <div class="min-w-0 flex-1">
         <p class="font-medium">继续登录前需要先同意最新条款。</p>
         <p class="mt-1 text-muted-foreground">
           未同意前，账号密码输入和快捷登录会保持禁用。
         </p>
       </div>
-      <button
+      <Button
         type="button"
-        class="flex-shrink-0 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-foreground  transition hover:bg-secondary"
+        variant="default"
+        size="sm"
+        class="flex-shrink-0"
         @click="emit('open')"
       >
         查看条款
-      </button>
+      </Button>
     </div>
   </div>
 
@@ -66,7 +67,7 @@
         <div class="w-full max-w-[600px] overflow-hidden rounded-lg border border-border bg-card ">
           <div class="border-b border-border bg-card px-6 py-6">
             <div class="flex items-start gap-4">
-              <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
+              <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary">
                 <Icon name="shield" size="md" />
               </span>
               <div class="min-w-0 flex-1">
@@ -74,12 +75,13 @@
                   <h2 class="text-xl font-bold tracking-normal text-foreground">
                     条款更新通知
                   </h2>
-                  <span
+                  <Badge
                     v-if="updatedAt"
-                    class="rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground"
+                    variant="secondary"
+                    class="rounded-full"
                   >
                     {{ updatedAt }}
-                  </span>
+                  </Badge>
                 </div>
                 <p class="mt-2 text-sm leading-6 text-muted-foreground">
                   我们的服务条款已于 {{ updatedAt || '近期' }} 更新。在继续使用服务之前，请仔细阅读并同意以下条款。
@@ -99,9 +101,9 @@
                 :to="documentRoute(doc)"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="group flex min-h-[72px] w-full items-center gap-3 rounded-md border border-border bg-muted px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-border hover:bg-accent hover:"
+                class="group flex min-h-[72px] w-full items-center gap-3 rounded-md border border-border bg-muted px-4 py-3 text-left transition hover:-translate-y-0.5 hover:border-border hover:bg-accent"
               >
-                <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary-200  transition">
+                <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary transition">
                   <Icon :name="documentIcon(index, doc.title)" size="sm" />
                 </span>
                 <span class="min-w-0 flex-1">
@@ -116,20 +118,22 @@
 
           <div class="border-t border-border bg-muted px-6 py-4">
             <div class="grid grid-cols-2 gap-3">
-              <button
+              <Button
                 type="button"
-                class="rounded-md border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground/85 transition hover:bg-accent"
+                variant="outline"
+                class="w-full py-3 font-semibold"
                 @click="emit('reject')"
               >
                 拒绝
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                class="rounded-md bg-foreground px-4 py-3 text-sm font-semibold text-foreground  transition hover:bg-secondary"
+                variant="default"
+                class="w-full py-3 font-semibold"
                 @click="emit('accept')"
               >
                 同意并继续
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -141,6 +145,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import type { LoginAgreementDocument } from '@/types'
 
 const props = withDefaults(defineProps<{
@@ -174,8 +181,7 @@ function documentRoute(doc: LoginAgreementDocument) {
   }
 }
 
-function handleCheckboxChange(event: Event): void {
-  const checked = (event.target as HTMLInputElement).checked
+function handleCheckboxChange(checked: boolean): void {
   if (checked) {
     emit('accept')
   } else {
@@ -198,16 +204,6 @@ function documentIcon(index: number, title: string): 'document' | 'shield' | 'gl
 </script>
 
 <style scoped>
-/* Checkbox — QUENCH azure accent + glow-focus */
-.agreement-cb {
-  accent-color: var(--azure);
-}
-.agreement-cb:focus-visible {
-  outline: 1.5px solid var(--azure);
-  outline-offset: 2px;
-  box-shadow: var(--glow-focus);
-}
-
 .agreement-fade-enter-active,
 .agreement-fade-leave-active {
   transition: opacity 0.18s ease;

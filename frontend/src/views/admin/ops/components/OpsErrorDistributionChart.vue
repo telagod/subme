@@ -7,6 +7,7 @@ import type { OpsErrorDistributionResponse } from '@/api/admin/ops'
 import type { ChartState } from '../types'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import { Button } from '@/components/ui/button'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -108,44 +109,42 @@ const options = computed(() => ({
 </script>
 
 <template>
-  <div class="od-chart-card">
-    <div class="od-chart-head">
-      <h3 class="od-chart-title">
-        <svg class="od-chart-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <div class="bg-card border border-border rounded-xl p-5 flex flex-col h-full">
+    <div class="flex items-center justify-between mb-3.5 shrink-0">
+      <h3 class="flex items-center gap-2 text-[13px] font-bold text-foreground">
+        <svg class="text-primary shrink-0" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         {{ t('admin.ops.errorDistribution') }}
         <HelpTooltip :content="t('admin.ops.tooltips.errorDistribution')" />
       </h3>
-      <button type="button" class="od-btn" style="padding:3px 8px;font-size:11px;" :disabled="state !== 'ready'" :title="t('admin.ops.errorTrend')" @click="emit('openDetails')">
+      <Button type="button" variant="outline" size="sm" class="px-2 py-0.5 text-[11px] h-auto" :disabled="state !== 'ready'" :title="t('admin.ops.errorTrend')" @click="emit('openDetails')">
         {{ t('admin.ops.requestDetails.details') }}
-      </button>
+      </Button>
     </div>
 
-    <div style="position:relative;flex:1;min-height:0;">
-      <div v-if="state === 'ready' && chartData" style="display:flex;flex-direction:column;height:100%;">
-        <div style="flex:1;">
+    <div class="relative flex-1 min-h-0">
+      <div v-if="state === 'ready' && chartData" class="flex flex-col h-full">
+        <div class="flex-1">
           <Doughnut :data="chartData" :options="{ ...options, cutout: '65%' }" />
         </div>
-        <div style="margin-top:12px;display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <div v-if="topReason" style="font-size:11.5px;font-weight:700;color:var(--ink-0,#E8EBF0);">
+        <div class="mt-3 flex flex-col items-center gap-1.5">
+          <div v-if="topReason" class="text-[11.5px] font-bold text-foreground">
             {{ t('admin.ops.top') }}: <span :style="{ color: topReason.color }">{{ topReason.label }}</span>
           </div>
-          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;">
-            <div v-for="item in categories" :key="item.label" style="display:flex;align-items:center;gap:5px;font-size:11px;">
-              <span style="width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;" :style="{ backgroundColor: item.color }"></span>
-              <span style="color:var(--ink-2,#5C6470);">{{ item.count }}</span>
+          <div class="flex flex-wrap justify-center gap-2">
+            <div v-for="item in categories" :key="item.label" class="flex items-center gap-[5px] text-[11px]">
+              <span class="w-[7px] h-[7px] rounded-full inline-block shrink-0" :style="{ backgroundColor: item.color }"></span>
+              <span class="text-muted-foreground">{{ item.count }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else style="display:flex;height:100%;align-items:center;justify-content:center;">
-        <div v-if="state === 'loading'" style="font-size:13px;color:var(--ink-2,#5C6470);" class="animate-pulse">{{ t('common.loading') }}</div>
+      <div v-else class="flex h-full items-center justify-center">
+        <div v-if="state === 'loading'" class="text-[13px] text-muted-foreground animate-pulse">{{ t('common.loading') }}</div>
         <EmptyState v-else :title="t('common.noData')" :description="t('admin.ops.charts.emptyError')" />
       </div>
     </div>
   </div>
 </template>
-
-<style src="../ops-quench.css"></style>

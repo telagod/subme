@@ -58,23 +58,21 @@
             <template v-for="attr in filterableAttributes" :key="attr.id">
               <div class="w-36">
                 <!-- Text/Email/URL/Textarea/Date type: styled input -->
-                <input
+                <Input
                   v-if="['text', 'textarea', 'email', 'url', 'date'].includes(attr.type || 'text')"
-                  :value="activeAttributeFilters[attr.id] ?? ''"
-                  @input="(e) => updateAttributeFilter(attr.id, (e.target as HTMLInputElement).value)"
+                  :model-value="activeAttributeFilters[attr.id] ?? ''"
+                  @update:model-value="(val) => updateAttributeFilter(attr.id, String(val ?? ''))"
                   @keyup.enter="applyFilter"
                   :placeholder="attr.name"
-                  class="input w-full"
                 />
                 <!-- Number type: number input -->
-                <input
+                <Input
                   v-else-if="attr.type === 'number'"
-                  :value="activeAttributeFilters[attr.id] ?? ''"
+                  :model-value="activeAttributeFilters[attr.id] ?? ''"
                   type="number"
-                  @input="(e) => updateAttributeFilter(attr.id, (e.target as HTMLInputElement).value)"
+                  @update:model-value="(val) => updateAttributeFilter(attr.id, String(val ?? ''))"
                   @keyup.enter="applyFilter"
                   :placeholder="attr.name"
-                  class="input w-full"
                 />
                 <!-- Select/Multi-select type -->
                 <Select
@@ -87,13 +85,12 @@
                   @update:model-value="(val) => { updateAttributeFilter(attr.id, String(val ?? '')); applyFilter() }"
                 />
                 <!-- Fallback -->
-                <input
+                <Input
                   v-else
-                  :value="activeAttributeFilters[attr.id] ?? ''"
-                  @input="(e) => updateAttributeFilter(attr.id, (e.target as HTMLInputElement).value)"
+                  :model-value="activeAttributeFilters[attr.id] ?? ''"
+                  @update:model-value="(val) => updateAttributeFilter(attr.id, String(val ?? ''))"
                   @keyup.enter="applyFilter"
                   :placeholder="attr.name"
-                  class="input w-full"
                 />
               </div>
             </template>
@@ -101,38 +98,43 @@
 
           <template #actions>
             <!-- Refresh Button -->
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               @click="loadUsers"
               :disabled="loading"
-              class="btn btn-secondary px-2 md:px-3"
+              class="px-2 md:px-3"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
+            </Button>
             <!-- Column Settings Dropdown -->
             <div class="relative" ref="columnDropdownRef">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 @click="showColumnDropdown = !showColumnDropdown"
-                class="btn btn-secondary px-2 md:px-3"
+                class="px-2 md:px-3"
                 :title="t('admin.users.columnSettings')"
               >
                 <svg class="h-4 w-4 md:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125z" />
                 </svg>
                 <span class="hidden md:inline">{{ t('admin.users.columnSettings') }}</span>
-              </button>
+              </Button>
               <!-- Dropdown menu -->
               <div
                 v-if="showColumnDropdown"
                 class="absolute right-0 top-full z-50 mt-1 max-h-80 w-48 overflow-y-auto rounded-md border border-border bg-card py-1 "
               >
-                <button
+                <Button
                   v-for="col in toggleableColumns"
                   :key="col.key"
+                  variant="ghost"
                   :disabled="isForcedVisibleColumn(col.key)"
                   @click="toggleColumn(col.key)"
                   :class="[
-                    'flex w-full items-center justify-between px-4 py-2 text-left text-sm',
+                    'h-auto w-full justify-between rounded-none px-4 py-2 text-left text-sm font-normal',
                     isForcedVisibleColumn(col.key)
                       ? 'cursor-not-allowed text-muted-foreground'
                       : 'text-foreground/85 hover:bg-accent'
@@ -144,26 +146,28 @@
                     v-if="isColumnVisible(col.key)"
                     name="check"
                     size="sm"
-                    :class="isForcedVisibleColumn(col.key) ? 'text-muted-foreground' : 'text-primary-200'"
+                    :class="isForcedVisibleColumn(col.key) ? 'text-muted-foreground' : 'text-primary'"
                     :stroke-width="2"
                   />
-                </button>
+                </Button>
               </div>
             </div>
             <!-- Attributes Config Button -->
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               @click="showAttributesModal = true"
-              class="btn btn-secondary px-2 md:px-3"
+              class="px-2 md:px-3"
               :title="t('admin.users.attributes.configButton')"
             >
               <Icon name="cog" size="sm" class="md:mr-1.5" />
               <span class="hidden md:inline">{{ t('admin.users.attributes.configButton') }}</span>
-            </button>
+            </Button>
             <!-- Create User Button -->
-            <button @click="showCreateModal = true" class="btn btn-primary">
+            <Button size="sm" @click="showCreateModal = true">
               <Icon name="plus" size="md" class="mr-2" />
               {{ t('admin.users.createUser') }}
-            </button>
+            </Button>
           </template>
         </CollapsibleFilters>
       </template>
@@ -186,7 +190,7 @@
               <div
                 class="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-secondary "
               >
-                <span class="text-sm font-medium text-primary-200">
+                <span class="text-sm font-medium text-primary">
                   {{ value.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -228,9 +232,9 @@
           </template>
 
           <template #cell-role="{ value }">
-            <span :class="['badge', value === 'admin' ? 'badge-purple' : 'badge-gray']">
+            <Badge :variant="value === 'admin' ? 'default' : 'secondary'">
               {{ t('admin.users.roles.' + value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-groups="{ row }">
@@ -241,8 +245,8 @@
                 class="group/ex relative inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-xs"
                 @click.stop="toggleExpandedGroup(row.id)"
               >
-                <Icon name="shield" size="xs" class="h-3.5 w-3.5 text-primary-200" />
-                <span class="font-medium text-primary-200">{{ getUserGroups(row).exclusive.length }}</span>
+                <Icon name="shield" size="xs" class="h-3.5 w-3.5 text-primary" />
+                <span class="font-medium text-primary">{{ getUserGroups(row).exclusive.length }}</span>
                 <span class="text-muted-foreground">{{ t('admin.users.exclusiveLabel') }}</span>
                 <!-- Hover tooltip（操作菜单未打开时显示） -->
                 <div
@@ -326,37 +330,40 @@
           <template #cell-balance="{ value, row }">
             <div class="flex items-center gap-2">
               <div class="group relative">
-                <button
-                  class="font-medium text-foreground underline decoration-dashed decoration-border underline-offset-4 transition-colors hover:text-primary-200"
+                <Button
+                  variant="link"
+                  class="h-auto p-0 font-medium text-foreground underline decoration-dashed decoration-border underline-offset-4 transition-colors hover:text-primary"
                   @click="handleBalanceHistory(row)"
                 >
                   ${{ value.toFixed(2) }}
-                </button>
+                </Button>
                 <!-- Instant tooltip -->
                 <div class="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-secondary border border-border px-2 py-1 text-xs text-foreground opacity-0  transition-opacity duration-75 group-hover:opacity-100">
                   {{ t('admin.users.balanceHistoryTip') }}
                   <div class="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-border"></div>
                 </div>
               </div>
-              <button
+              <Button
+                variant="ghost"
                 @click.stop="handleDeposit(row)"
-                class="rounded px-2 py-0.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/10"
+                class="h-auto rounded px-2 py-0.5 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
                 :title="t('admin.users.deposit')"
               >
                 {{ t('admin.users.deposit') }}
-              </button>
+              </Button>
             </div>
           </template>
 
           <template #cell-balance_platform_quota="{ row }">
-            <button
+            <Button
               type="button"
-              class="block text-left underline decoration-dashed decoration-border underline-offset-4 transition-colors hover:decoration-primary-200"
+              variant="ghost"
+              class="block h-auto p-0 text-left font-normal underline decoration-dashed decoration-border underline-offset-4 transition-colors hover:bg-transparent hover:decoration-primary"
               :title="t('admin.users.platformQuota.cellColumnTooltip')"
               @click="handlePlatformQuota(row)"
             >
               <UserPlatformQuotaCell :quotas="platformQuotaStats[row.id]" />
-            </button>
+            </Button>
           </template>
 
           <!-- 用量列自定义表头：列名 + 单个排序图标按钮，点击展开"今日/近30天"菜单。
@@ -370,11 +377,12 @@
             <div class="flex items-center gap-1.5">
               <span>{{ column.label }}</span>
               <div class="usage-sort-trigger relative">
-                <button
+                <Button
                   type="button"
-                  class="flex items-center gap-1 rounded px-1 py-0.5 transition-colors hover:bg-accent"
+                  variant="ghost"
+                  class="h-auto items-center gap-1 rounded px-1 py-0.5 font-normal transition-colors hover:bg-accent"
                   :class="usageSort && usageSort.key === usageKey
-                    ? 'text-primary-200'
+                    ? 'text-primary'
                     : 'text-muted-foreground'"
                   :title="t('admin.users.sortBy')"
                   @click.stop="toggleUsageSortMenu(usageKey)"
@@ -399,19 +407,20 @@
                   <svg v-else class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 3l-4 5h8l-4-5zM10 17l4-5H6l4 5z" />
                   </svg>
-                </button>
+                </Button>
                 <!-- 弹出菜单：今日 / 近30天，点击进行三态循环切换。 -->
                 <div
                   v-if="openUsageSortMenu === usageKey"
                   class="absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded-md border border-border bg-card py-1 "
                 >
-                  <button
+                  <Button
                     v-for="metric in (['today', 'total'] as const)"
                     :key="metric"
                     type="button"
-                    class="flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left text-xs normal-case tracking-normal hover:bg-accent"
+                    variant="ghost"
+                    class="h-auto w-full justify-between gap-3 rounded-none px-3 py-1.5 text-left text-xs font-normal normal-case tracking-normal hover:bg-accent"
                     :class="isUsageSortActive(usageKey, metric)
-                      ? 'font-medium text-primary-200'
+                      ? 'font-medium text-primary'
                       : 'text-foreground/85'"
                     @click.stop="toggleUsageSort(usageKey, metric)"
                   >
@@ -429,7 +438,7 @@
                         clip-rule="evenodd"
                       />
                     </svg>
-                  </button>
+                  </Button>
                   <div class="mt-1 border-t border-border px-3 py-1 text-[10px] normal-case tracking-normal text-muted-foreground">
                     {{ t('admin.users.sortCurrentPageOnly') }}
                   </div>
@@ -474,7 +483,7 @@
               <span
                 :class="[
                   'inline-block h-2 w-2 rounded-full',
-                  value === 'active' ? 'bg-emerald-400' : 'bg-red-400'
+                  value === 'active' ? 'bg-emerald-400' : 'bg-destructive'
                 ]"
               ></span>
               <span class="text-sm text-foreground/85">
@@ -502,20 +511,22 @@
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
               <!-- Edit Button -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleEdit(row)"
-                class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-primary-200"
+                class="h-auto flex-col items-center gap-0.5 rounded-md p-1.5 font-normal text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
               >
                 <Icon name="edit" size="sm" />
                 <span class="text-xs">{{ t('common.edit') }}</span>
-              </button>
+              </Button>
 
               <!-- Toggle Status Button (not for admin) -->
-              <button
+              <Button
                 v-if="row.role !== 'admin'"
+                variant="ghost"
                 @click="handleToggleStatus(row)"
                 :class="[
-                  'flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors',
+                  'h-auto flex-col items-center gap-0.5 rounded-md p-1.5 font-normal text-muted-foreground transition-colors',
                   row.status === 'active'
                     ? 'hover:bg-amber-500/10 hover:text-amber-400'
                     : 'hover:bg-emerald-500/10 hover:text-emerald-400'
@@ -524,17 +535,18 @@
                 <Icon v-if="row.status === 'active'" name="ban" size="sm" />
                 <Icon v-else name="checkCircle" size="sm" />
                 <span class="text-xs">{{ row.status === 'active' ? t('admin.users.disable') : t('admin.users.enable') }}</span>
-              </button>
+              </Button>
 
               <!-- More Actions Menu Trigger -->
-              <button
+              <Button
+                variant="ghost"
                 @click="openActionMenu(row, $event)"
-                class="action-menu-trigger flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                class="action-menu-trigger h-auto flex-col items-center gap-0.5 rounded-md p-1.5 font-normal text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 :class="{ 'bg-accent text-foreground': activeMenuId === row.id }"
               >
                 <Icon name="more" size="sm" />
                 <span class="text-xs">{{ t('common.more') }}</span>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -573,74 +585,81 @@
           <template v-for="user in users" :key="user.id">
             <template v-if="user.id === activeMenuId">
               <!-- View API Keys -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleViewApiKeys(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <Icon name="key" size="sm" class="text-muted-foreground" :stroke-width="2" />
                 {{ t('admin.users.apiKeys') }}
-              </button>
+              </Button>
 
               <!-- Allowed Groups -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleAllowedGroups(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <Icon name="users" size="sm" class="text-muted-foreground" :stroke-width="2" />
                 {{ t('admin.users.groups') }}
-              </button>
+              </Button>
 
               <div class="my-1 border-t border-border"></div>
 
               <!-- Deposit -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleDeposit(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <Icon name="plus" size="sm" class="text-emerald-400" :stroke-width="2" />
                 {{ t('admin.users.deposit') }}
-              </button>
+              </Button>
 
               <!-- Withdraw -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleWithdraw(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <svg class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                 </svg>
                 {{ t('admin.users.withdraw') }}
-              </button>
+              </Button>
 
               <!-- Platform Quotas -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handlePlatformQuota(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <Icon name="chartBar" size="sm" class="text-muted-foreground" :stroke-width="2" />
                 {{ t('admin.users.platformQuota.menuItem') }}
-              </button>
+              </Button>
 
               <!-- Balance History -->
-              <button
+              <Button
+                variant="ghost"
                 @click="handleBalanceHistory(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-foreground/85 hover:bg-accent"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-foreground/85 hover:bg-accent"
               >
                 <Icon name="dollar" size="sm" class="text-muted-foreground" :stroke-width="2" />
                 {{ t('admin.users.balanceHistory') }}
-              </button>
+              </Button>
 
               <div class="my-1 border-t border-border"></div>
 
               <!-- Delete (not for admin) -->
-              <button
+              <Button
                 v-if="user.role !== 'admin'"
+                variant="ghost"
                 @click="handleDelete(user); closeActionMenu()"
-                class="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"
+                class="h-auto w-full justify-start gap-2 rounded-none px-4 py-2 text-sm font-normal text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="trash" size="sm" :stroke-width="2" />
                 {{ t('common.delete') }}
-              </button>
+              </Button>
             </template>
           </template>
         </div>
@@ -672,6 +691,9 @@ import { useAppStore } from '@/stores/app'
 import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { formatDateTime } from '@/utils/format'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 import { adminAPI } from '@/api/admin'

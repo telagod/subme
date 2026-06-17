@@ -30,14 +30,14 @@
       </div>
 
       <!-- Error state -->
-      <div v-else-if="error" class="text-xs text-red-400">
+      <div v-else-if="error" class="text-xs text-destructive">
         {{ error }}
       </div>
 
       <!-- Usage data -->
       <div v-else-if="usageInfo" class="space-y-0.5">
         <!-- API error (degraded response) -->
-        <div v-if="usageInfo.error" class="text-xs text-amber-400 truncate max-w-[200px]" :title="usageInfo.error">
+        <div v-if="usageInfo.error" class="text-xs text-amber-500 truncate max-w-[200px]" :title="usageInfo.error">
           {{ usageInfo.error }}
         </div>
         <!-- 5h Window -->
@@ -78,9 +78,11 @@
           >
             {{ t('admin.accounts.usageWindow.passiveSampled') }}
           </span>
-          <button
+          <Button
             type="button"
-            class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-primary-200 hover:bg-accent transition-colors"
+            variant="ghost"
+            size="sm"
+            class="h-auto gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-primary-200"
             :disabled="activeQueryLoading"
             @click="loadActiveUsage"
           >
@@ -99,7 +101,7 @@
               />
             </svg>
             {{ t('admin.accounts.usageWindow.activeQuery') }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -129,9 +131,11 @@
           color="emerald"
         />
         <div class="flex items-center gap-1.5 mt-0.5">
-          <button
+          <Button
             type="button"
-            class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-primary-200 hover:bg-accent transition-colors"
+            variant="ghost"
+            size="sm"
+            class="h-auto gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-medium text-primary-200"
             :disabled="activeQueryLoading"
             @click="loadActiveUsage"
           >
@@ -150,7 +154,7 @@
               />
             </svg>
             {{ t('admin.accounts.usageWindow.activeQuery') }}
-          </button>
+          </Button>
         </div>
       </div>
       <div v-else-if="loading" class="space-y-1.5">
@@ -172,21 +176,22 @@
     <template v-else-if="account.platform === 'antigravity' && account.type === 'oauth'">
       <!-- 账户类型徽章 -->
       <div v-if="antigravityTierLabel" class="mb-1 flex items-center gap-1">
-        <span
+        <Badge
+          variant="outline"
           :class="[
-            'inline-block rounded px-1.5 py-0.5 text-[10px] font-medium',
+            'rounded border-transparent px-1.5 py-0.5 text-[10px] font-medium',
             antigravityTierClass
           ]"
         >
           {{ antigravityTierLabel }}
-        </span>
+        </Badge>
         <!-- 不合格账户警告图标 -->
         <span
           v-if="hasIneligibleTiers"
           class="group relative cursor-help"
         >
           <svg
-            class="h-3.5 w-3.5 text-red-400"
+            class="h-3.5 w-3.5 text-destructive"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -206,14 +211,15 @@
 
       <!-- Forbidden state (403) -->
       <div v-if="isForbidden" class="space-y-1">
-        <span
+        <Badge
+          variant="outline"
           :class="[
-            'inline-block rounded px-1.5 py-0.5 text-[10px] font-medium',
+            'rounded border-transparent px-1.5 py-0.5 text-[10px] font-medium',
             forbiddenBadgeClass
           ]"
         >
           {{ forbiddenLabel }}
-        </span>
+        </Badge>
         <div v-if="validationURL" class="flex items-center gap-1">
           <a
             :href="validationURL"
@@ -224,29 +230,31 @@
           >
             {{ t('admin.accounts.openVerification') }}
           </a>
-          <button
+          <Button
             type="button"
-            class="text-[10px] text-muted-foreground hover:text-foreground"
+            variant="link"
+            size="sm"
+            class="h-auto p-0 text-[10px] font-normal text-muted-foreground no-underline hover:text-foreground hover:no-underline"
             :title="t('admin.accounts.copyLink')"
             @click="copyValidationURL"
           >
             {{ linkCopied ? t('admin.accounts.linkCopied') : t('admin.accounts.copyLink') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Needs reauth (401) -->
       <div v-else-if="needsReauth" class="space-y-1">
-        <span class="inline-block rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+        <Badge variant="outline" class="rounded border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
           {{ t('admin.accounts.needsReauth') }}
-        </span>
+        </Badge>
       </div>
 
       <!-- Degraded error (non-403, non-401) -->
       <div v-else-if="usageInfo?.error" class="space-y-1">
-        <span class="inline-block rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+        <Badge variant="outline" class="rounded border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-500">
           {{ usageErrorLabel }}
-        </span>
+        </Badge>
       </div>
 
       <!-- Loading state -->
@@ -259,7 +267,7 @@
       </div>
 
       <!-- Error state -->
-      <div v-else-if="error" class="text-xs text-red-400">
+      <div v-else-if="error" class="text-xs text-destructive">
         {{ error }}
       </div>
 
@@ -315,14 +323,15 @@
     <template v-else-if="account.platform === 'gemini'">
       <!-- Auth Type + Tier Badge (first line) -->
       <div v-if="geminiAuthTypeLabel" class="mb-1 flex items-center gap-1">
-        <span
+        <Badge
+          variant="outline"
           :class="[
-            'inline-block rounded px-1.5 py-0.5 text-[10px] font-medium',
+            'rounded border-transparent px-1.5 py-0.5 text-[10px] font-medium',
             geminiTierClass
           ]"
         >
           {{ geminiAuthTypeLabel }}
-        </span>
+        </Badge>
         <!-- Help icon -->
         <span
           class="group relative cursor-help"
@@ -363,22 +372,23 @@
           class="mb-0.5 flex items-center"
         >
           <div class="flex items-center gap-1.5 text-[9px] text-muted-foreground">
-            <span class="rounded border border-border bg-secondary px-1.5 py-0.5">
+            <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground">
               {{ formatKeyRequests }} req
-            </span>
-            <span class="rounded border border-border bg-secondary px-1.5 py-0.5">
+            </Badge>
+            <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground">
               {{ formatKeyTokens }}
-            </span>
-            <span class="rounded border border-border bg-secondary px-1.5 py-0.5" :title="t('usage.accountBilled')">
+            </Badge>
+            <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground" :title="t('usage.accountBilled')">
               A ${{ formatKeyCost }}
-            </span>
-            <span
+            </Badge>
+            <Badge
               v-if="todayStats.user_cost != null"
-              class="rounded border border-border bg-secondary px-1.5 py-0.5"
+              variant="outline"
+              class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground"
               :title="t('usage.userBilled')"
             >
               U ${{ formatKeyUserCost }}
-            </span>
+            </Badge>
           </div>
         </div>
         <div
@@ -396,7 +406,7 @@
             <div class="h-3 w-[32px] animate-pulse rounded bg-muted"></div>
           </div>
         </div>
-        <div v-else-if="error" class="text-xs text-red-400">
+        <div v-else-if="error" class="text-xs text-destructive">
           {{ error }}
         </div>
         <!-- Gemini: show daily usage bars when available -->
@@ -439,22 +449,23 @@
         class="mb-0.5 flex items-center"
       >
         <div class="flex items-center gap-1.5 text-[9px] text-muted-foreground">
-          <span class="rounded border border-border bg-secondary px-1.5 py-0.5">
+          <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground">
             {{ formatKeyRequests }} req
-          </span>
-          <span class="rounded border border-border bg-secondary px-1.5 py-0.5">
+          </Badge>
+          <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground">
             {{ formatKeyTokens }}
-          </span>
-          <span class="rounded border border-border bg-secondary px-1.5 py-0.5" :title="t('usage.accountBilled')">
+          </Badge>
+          <Badge variant="outline" class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground" :title="t('usage.accountBilled')">
             A ${{ formatKeyCost }}
-          </span>
-          <span
+          </Badge>
+          <Badge
             v-if="todayStats.user_cost != null"
-            class="rounded border border-border bg-secondary px-1.5 py-0.5"
+            variant="outline"
+            class="rounded border-border bg-secondary px-1.5 py-0.5 text-[9px] font-normal text-muted-foreground"
             :title="t('usage.userBilled')"
           >
             U ${{ formatKeyUserCost }}
-          </span>
+          </Badge>
         </div>
       </div>
       <!-- Loading skeleton for today stats -->
@@ -503,6 +514,8 @@ import type { Account, AccountUsageInfo, GeminiCredentials, WindowStats } from '
 import { buildOpenAIUsageRefreshKey } from '@/utils/accountUsageRefresh'
 import { enqueueUsageRequest } from '@/utils/usageLoadQueue'
 import { formatCompactNumber } from '@/utils/format'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import UsageProgressBar from './UsageProgressBar.vue'
 import AccountQuotaInfo from './AccountQuotaInfo.vue'
 
@@ -806,18 +819,18 @@ const geminiTierClass = computed(() => {
   const level = geminiUserLevel.value
 
   if (channel === 'client' || channel === 'ai studio') {
-    return 'bg-blue-900/40 text-sky-400'
+    return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
   }
 
   if (channel === 'google one') {
-    if (level === 'ultra') return 'bg-purple-900/40 text-purple-300'
-    if (level === 'pro') return 'bg-blue-900/40 text-sky-400'
+    if (level === 'ultra') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    if (level === 'pro') return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     return 'bg-accent text-muted-foreground'
   }
 
   if (channel === 'gcp') {
-    if (level === 'enterprise') return 'bg-purple-900/40 text-purple-300'
-    return 'bg-blue-900/40 text-sky-400'
+    if (level === 'enterprise') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+    return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
   }
 
   return ''
@@ -954,9 +967,9 @@ const antigravityTierClass = computed(() => {
     case 'free-tier':
       return 'bg-accent text-muted-foreground'
     case 'g1-pro-tier':
-      return 'bg-blue-900/40 text-sky-400'
+      return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     case 'g1-ultra-tier':
-      return 'bg-purple-900/40 text-purple-300'
+      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
     default:
       return ''
   }
@@ -1002,9 +1015,9 @@ const forbiddenLabel = computed(() => {
 
 const forbiddenBadgeClass = computed(() => {
   if (forbiddenType.value === 'validation') {
-    return 'bg-yellow-900/40 text-yellow-300'
+    return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
   }
-  return 'bg-red-900/40 text-red-400'
+  return 'bg-red-500/10 text-red-600 dark:text-red-400'
 })
 
 const linkCopied = ref(false)
@@ -1179,6 +1192,8 @@ watch(openAIUsageRefreshKey, (nextKey, prevKey) => {
   if (!prevKey || nextKey === prevKey) return
   if (props.account.platform !== 'openai' || props.account.type !== 'oauth') return
 
+  // refresh-key 变化意味着底层用量数据已更新，作废缓存后再自动拉取（否则命中 5min 缓存不会重拉）
+  _usageCache.delete(props.account.id)
   requestAutoLoad()
 })
 

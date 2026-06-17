@@ -16,14 +16,14 @@
         <div class="flex flex-col items-center py-4">
           <div class="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-transparent"></div>
           <p class="mt-4 text-sm text-muted-foreground">{{ t('payment.qr.payInNewWindowHint') }}</p>
-          <button v-if="payUrl" class="btn btn-secondary mt-3 text-sm" @click="reopenPopup">
+          <Button v-if="payUrl" variant="secondary" class="mt-3 text-sm" @click="reopenPopup">
             {{ t('payment.qr.openPayWindow') }}
-          </button>
+          </Button>
         </div>
       </template>
       <!-- Countdown -->
       <div v-if="expired" class="text-center">
-        <p class="text-lg font-medium text-red-400">{{ t('payment.qr.expired') }}</p>
+        <p class="text-lg font-medium text-destructive">{{ t('payment.qr.expired') }}</p>
       </div>
       <div v-else class="text-center">
         <p class="text-sm text-muted-foreground">{{ qrUrl ? t('payment.qr.expiresIn') : '' }}</p>
@@ -37,34 +37,36 @@
         <Icon name="check" size="lg" class="text-emerald-400" />
       </div>
       <p class="text-lg font-bold text-foreground">{{ t('payment.result.success') }}</p>
-      <div v-if="paidOrder" class="w-full rounded-md bg-card p-4">
-        <div class="space-y-2 text-sm">
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">{{ t('payment.orders.orderId') }}</span>
-            <span class="font-medium text-foreground">#{{ paidOrder.id }}</span>
+      <Card v-if="paidOrder" class="w-full">
+        <CardContent class="p-4">
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">{{ t('payment.orders.orderId') }}</span>
+              <span class="font-medium text-foreground">#{{ paidOrder.id }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">{{ t('payment.orders.amount') }}</span>
+              <span class="font-medium text-foreground">{{ paidOrder.order_type === 'balance' ? '$' : '¥' }}{{ paidOrder.amount.toFixed(2) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-muted-foreground">{{ t('payment.orders.payAmount') }}</span>
+              <span class="font-medium text-foreground">¥{{ paidOrder.pay_amount.toFixed(2) }}</span>
+            </div>
           </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">{{ t('payment.orders.amount') }}</span>
-            <span class="font-medium text-foreground">{{ paidOrder.order_type === 'balance' ? '$' : '¥' }}{{ paidOrder.amount.toFixed(2) }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">{{ t('payment.orders.payAmount') }}</span>
-            <span class="font-medium text-foreground">¥{{ paidOrder.pay_amount.toFixed(2) }}</span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button v-if="!success && !expired" class="btn btn-secondary" :disabled="cancelling" @click="handleCancel">
+        <Button v-if="!success && !expired" variant="secondary" :disabled="cancelling" @click="handleCancel">
           {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
-        </button>
-        <button v-if="success" class="btn btn-primary" @click="handleDone">
+        </Button>
+        <Button v-if="success" @click="handleDone">
           {{ t('common.confirm') }}
-        </button>
-        <button v-if="expired" class="btn btn-primary" @click="handleClose">
+        </Button>
+        <Button v-if="expired" @click="handleClose">
           {{ t('payment.result.backToRecharge') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -75,6 +77,8 @@ import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { usePaymentStore } from '@/stores/payment'
 import { useAppStore } from '@/stores'
 import { paymentAPI } from '@/api/payment'

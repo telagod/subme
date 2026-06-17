@@ -4,9 +4,10 @@
       {{ t('payment.paymentMethod') }}
     </label>
     <div class="grid grid-cols-2 gap-3 sm:flex">
-      <button
+      <Button
         v-for="method in sortedMethods"
         :key="method.type"
+        variant="ghost"
         type="button"
         :disabled="!method.available"
         :class="[
@@ -31,7 +32,7 @@
             </span>
           </span>
         </span>
-      </button>
+      </Button>
     </div>
   </div>
 </template>
@@ -39,6 +40,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import { METHOD_ORDER } from './providerConfig'
 import alipayIcon from '@/assets/icons/alipay.svg'
 import wxpayIcon from '@/assets/icons/wxpay.svg'

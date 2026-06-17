@@ -1,9 +1,11 @@
 <template>
   <div class="relative" ref="dropdownRef">
-    <button
+    <Button
+      variant="outline"
+      size="sm"
       @click="showDropdown = !showDropdown"
-      class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground/85  transition-colors hover:bg-accent"
       :title="t('common.autoRefresh.title')"
+      class="gap-1.5 text-xs font-medium text-foreground/85"
     >
       <svg
         class="h-3.5 w-3.5"
@@ -18,34 +20,36 @@
           : t('common.autoRefresh.title')
         }}
       </span>
-    </button>
+    </Button>
 
     <div
       v-if="showDropdown"
       class="absolute right-0 z-20 mt-1 w-44 rounded-md border border-border bg-card "
     >
       <div class="p-1.5">
-        <button
+        <Button
+          variant="ghost"
           @click="$emit('update:enabled', !enabled)"
-          class="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent"
+          class="w-full justify-between px-3 py-1.5 text-sm text-foreground/85 h-auto"
         >
           <span>{{ t('common.autoRefresh.enable') }}</span>
-          <svg v-if="enabled" class="h-4 w-4 text-primary-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <svg v-if="enabled" class="h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
           </svg>
-        </button>
+        </Button>
         <div class="my-1 border-t border-border"></div>
-        <button
+        <Button
           v-for="sec in intervals"
           :key="sec"
+          variant="ghost"
           @click="$emit('update:interval', sec)"
-          class="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-sm text-foreground/85 hover:bg-accent"
+          class="w-full justify-between px-3 py-1.5 text-sm text-foreground/85 h-auto"
         >
           <span>{{ t('common.autoRefresh.seconds', { n: sec }) }}</span>
-          <svg v-if="intervalSeconds === sec" class="h-4 w-4 text-primary-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <svg v-if="intervalSeconds === sec" class="h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
   </div>
@@ -54,6 +58,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 
 defineProps<{
   enabled: boolean

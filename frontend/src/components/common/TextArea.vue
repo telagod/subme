@@ -1,11 +1,11 @@
 <template>
   <div class="w-full">
-    <label v-if="label" :for="id" class="input-label mb-1.5 block">
+    <Label v-if="label" :for="id" class="mb-1.5 block">
       {{ label }}
-      <span v-if="required" class="text-red-400">*</span>
-    </label>
+      <span v-if="required" class="text-destructive">*</span>
+    </Label>
     <div class="relative">
-      <textarea
+      <Textarea
         :id="id"
         ref="textAreaRef"
         :value="modelValue"
@@ -15,21 +15,21 @@
         :readonly="readonly"
         :rows="rows"
         :class="[
-          'input w-full min-h-[80px] transition-all duration-200 resize-y',
-          error ? 'input-error ring-2 ring-red-500/20' : '',
+          'w-full min-h-[80px] transition-all duration-200 resize-y',
+          error ? 'border-destructive focus-visible:ring-destructive' : '',
           disabled ? 'cursor-not-allowed bg-muted opacity-60' : ''
         ]"
         @input="onInput"
         @change="$emit('change', ($event.target as HTMLTextAreaElement).value)"
         @blur="$emit('blur', $event)"
         @focus="$emit('focus', $event)"
-      ></textarea>
+      />
     </div>
     <!-- Hint / Error Text -->
-    <p v-if="error" class="input-error-text mt-1.5">
+    <p v-if="error" class="mt-1.5 text-sm text-destructive">
       {{ error }}
     </p>
-    <p v-else-if="hint" class="input-hint mt-1.5">
+    <p v-else-if="hint" class="mt-1.5 text-sm text-muted-foreground">
       {{ hint }}
     </p>
   </div>
@@ -37,6 +37,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 interface Props {
   modelValue: string | null | undefined

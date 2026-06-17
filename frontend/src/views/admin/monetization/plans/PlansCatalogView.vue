@@ -1,53 +1,53 @@
 <template>
   <AppLayout>
-    <div class="pc-root">
+    <div class="flex flex-col gap-0 px-7 pb-16 pt-6 text-foreground">
       <!-- Header -->
-      <div class="pc-head">
+      <div class="mb-[18px] flex items-start justify-between gap-3">
         <div>
-          <h1 class="pc-title">{{ t('admin.plansCatalog.title') }}</h1>
-          <p class="pc-desc">{{ t('admin.plansCatalog.desc') }}</p>
+          <h1 class="m-0 mb-1 text-xl font-bold tracking-tight text-foreground">{{ t('admin.plansCatalog.title') }}</h1>
+          <p class="m-0 text-xs text-muted-foreground">{{ t('admin.plansCatalog.desc') }}</p>
         </div>
-        <div class="pc-head-acts">
-          <button type="button" class="pc-btn" @click="loadAll" :disabled="loading" :title="t('common.refresh')">
+        <div class="flex shrink-0 gap-2">
+          <Button type="button" variant="outline" size="sm" @click="loadAll" :disabled="loading" :title="t('common.refresh')">
             <Icon name="refresh" size="sm" :class="loading ? 'animate-spin' : ''" />
-          </button>
-          <button type="button" class="pc-btn pc-btn-metal" @click="openCreate">
+          </Button>
+          <Button type="button" size="sm" @click="openCreate">
             <Icon name="plus" size="sm" />
             {{ t('payment.admin.createPlan') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Stats bar -->
-      <div class="pc-stats">
-        <div class="pc-stat">
-          <span class="pc-stat-val">{{ plans.length }}</span>
-          <span class="pc-stat-lbl">{{ t('admin.plansCatalog.statTotal') }}</span>
+      <div class="mb-5 flex items-center gap-5 rounded-xl border border-border bg-card px-[18px] py-3 shadow-sm">
+        <div class="flex items-baseline gap-[7px]">
+          <span class="font-mono text-[22px] font-bold tabular-nums text-foreground">{{ plans.length }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.plansCatalog.statTotal') }}</span>
         </div>
-        <div class="pc-stat-div" />
-        <div class="pc-stat">
-          <span class="pc-stat-val pc-stat-ok">{{ activePlans }}</span>
-          <span class="pc-stat-lbl">{{ t('admin.plansCatalog.statOnSale') }}</span>
+        <div class="h-6 w-px bg-border" />
+        <div class="flex items-baseline gap-[7px]">
+          <span class="font-mono text-[22px] font-bold tabular-nums text-emerald-500">{{ activePlans }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.plansCatalog.statOnSale') }}</span>
         </div>
-        <div class="pc-stat-div" />
-        <div class="pc-stat">
-          <span class="pc-stat-val pc-stat-dim">{{ plans.length - activePlans }}</span>
-          <span class="pc-stat-lbl">{{ t('admin.plansCatalog.statOffSale') }}</span>
+        <div class="h-6 w-px bg-border" />
+        <div class="flex items-baseline gap-[7px]">
+          <span class="font-mono text-[22px] font-bold tabular-nums text-muted-foreground">{{ plans.length - activePlans }}</span>
+          <span class="text-[11.5px] text-muted-foreground">{{ t('admin.plansCatalog.statOffSale') }}</span>
         </div>
       </div>
 
       <!-- Loading skeleton -->
-      <div v-if="loading" class="pc-grid">
-        <div v-for="i in 4" :key="i" class="pc-card-skeleton">
-          <div class="pcs-line pcs-line-wide" />
-          <div class="pcs-line pcs-line-price" />
-          <div class="pcs-line pcs-line-med" />
-          <div class="pcs-line pcs-line-short" />
+      <div v-if="loading" class="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] gap-[18px]">
+        <div v-for="i in 4" :key="i" class="flex min-h-[220px] animate-pulse flex-col gap-3 rounded-xl border border-border bg-card p-5">
+          <div class="h-4 w-[70%] rounded-md bg-muted" />
+          <div class="mt-1 h-7 w-[40%] rounded-md bg-muted" />
+          <div class="h-3 w-[55%] rounded-md bg-muted" />
+          <div class="h-3 w-[35%] rounded-md bg-muted" />
         </div>
       </div>
 
       <!-- Card grid -->
-      <div v-else-if="plans.length" class="pc-grid">
+      <div v-else-if="plans.length" class="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] gap-[18px]">
         <PlanCard
           v-for="(plan, idx) in plans"
           :key="plan.id"
@@ -65,9 +65,9 @@
       </div>
 
       <!-- Empty state -->
-      <div v-else class="pc-empty">
-        <Icon name="cube" size="xl" class="pc-empty-icon" />
-        <p class="pc-empty-text">{{ t('admin.plansCatalog.emptyText') }}</p>
+      <div v-else class="flex flex-col items-center justify-center gap-3 px-6 py-20 text-muted-foreground">
+        <Icon name="cube" size="xl" class="h-10 w-10 text-muted-foreground" />
+        <p class="m-0 text-[13px]">{{ t('admin.plansCatalog.emptyText') }}</p>
       </div>
     </div>
 
@@ -92,7 +92,6 @@
 </template>
 
 <script setup lang="ts">
-import './plans-catalog.css'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
@@ -106,6 +105,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
 import PlanEditDialog from '@/views/admin/orders/PlanEditDialog.vue'
 import PlanCard from './PlanCard.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const appStore = useAppStore()

@@ -1,14 +1,13 @@
 <template>
   <div class="space-y-4">
-    <button type="button" :disabled="disabled" class="btn btn-secondary w-full" @click="startLogin">
+    <Button type="button" variant="outline" :disabled="disabled" class="w-full" @click="startLogin">
       <svg
-        class="icon mr-2"
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
         width="20"
         height="20"
         aria-hidden="true"
-        style="flex-shrink: 0"
+        class="mr-2 shrink-0"
       >
         <circle cx="12" cy="12" r="12" fill="#1677FF" />
         <text
@@ -22,7 +21,7 @@
         >钉</text>
       </svg>
       {{ t('auth.dingtalk.signIn') }}
-    </button>
+    </Button>
 
     <div v-if="showDivider" class="flex items-center gap-3">
       <div class="h-px flex-1 bg-border"></div>
@@ -38,6 +37,7 @@
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { resolveAffiliateReferralCode, storeOAuthAffiliateCode } from '@/utils/oauthAffiliate'
+import { Button } from '@/components/ui/button'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean

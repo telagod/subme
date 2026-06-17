@@ -1,52 +1,51 @@
 <template>
-  <div class="oidc-body">
+  <div class="flex flex-col gap-4 px-5 py-4">
     <!-- enable toggle -->
-    <div class="oidc-row-between">
+    <div class="flex items-center justify-between gap-4">
       <div>
-        <label class="oidc-label">{{ t('admin.settings.oidc.enable') }}</label>
-        <p class="oidc-hint">{{ t('admin.settings.oidc.enableHint') }}</p>
+        <Label class="text-[13px] font-medium text-foreground">{{ t('admin.settings.oidc.enable') }}</Label>
+        <p class="mt-0.5 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.oidc.enableHint') }}</p>
       </div>
       <Toggle :model-value="!!local.oidc_connect_enabled" @update:model-value="set('oidc_connect_enabled', $event)" />
     </div>
 
     <!-- expanded fields — only when enabled -->
-    <div v-if="local.oidc_connect_enabled" class="oidc-expanded">
+    <div v-if="local.oidc_connect_enabled" class="flex flex-col gap-5 border-t border-border pt-4">
       <!-- Row 1: Provider Name / Client ID / Client Secret -->
-      <div class="oidc-grid-3">
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.providerName') }}</label>
-          <input
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.providerName') }}</Label>
+          <Input
             :value="local.oidc_connect_provider_name"
             type="text"
-            class="input"
             :placeholder="t('admin.settings.oidc.providerNamePlaceholder')"
             @input="set('oidc_connect_provider_name', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.clientId') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.clientId') }}</Label>
+          <Input
             :value="local.oidc_connect_client_id"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.clientIdPlaceholder')"
             @input="set('oidc_connect_client_id', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.clientSecret') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.clientSecret') }}</Label>
+          <Input
             :value="local.oidc_connect_client_secret"
             type="password"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="local.oidc_connect_client_secret_configured
               ? t('admin.settings.oidc.clientSecretConfiguredPlaceholder')
               : t('admin.settings.oidc.clientSecretPlaceholder')"
             @input="set('oidc_connect_client_secret', ($event.target as HTMLInputElement).value)"
           />
-          <p class="oidc-field-hint">
+          <p class="m-0 text-[11px] leading-relaxed text-muted-foreground">
             {{ local.oidc_connect_client_secret_configured
               ? t('admin.settings.oidc.clientSecretConfiguredHint')
               : t('admin.settings.oidc.clientSecretHint') }}
@@ -55,68 +54,68 @@
       </div>
 
       <!-- Row 2: Issuer / Discovery / Authorize / Token / Userinfo / JWKS -->
-      <div class="oidc-grid-2">
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.issuerUrl') }}</label>
-          <input
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.issuerUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_issuer_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.issuerUrlPlaceholder')"
             @input="set('oidc_connect_issuer_url', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.discoveryUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.discoveryUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_discovery_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.discoveryUrlPlaceholder')"
             @input="set('oidc_connect_discovery_url', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.authorizeUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.authorizeUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_authorize_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.authorizeUrlPlaceholder')"
             @input="set('oidc_connect_authorize_url', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.tokenUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.tokenUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_token_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.tokenUrlPlaceholder')"
             @input="set('oidc_connect_token_url', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.userinfoUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.userinfoUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_userinfo_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.userinfoUrlPlaceholder')"
             @input="set('oidc_connect_userinfo_url', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.jwksUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.jwksUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_jwks_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.jwksUrlPlaceholder')"
             @input="set('oidc_connect_jwks_url', ($event.target as HTMLInputElement).value)"
           />
@@ -124,86 +123,89 @@
       </div>
 
       <!-- Row 3: Scopes / Redirect URL / Frontend Redirect URL -->
-      <div class="oidc-grid-2">
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.scopes') }}</label>
-          <input
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.scopes') }}</Label>
+          <Input
             :value="local.oidc_connect_scopes"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.scopesPlaceholder')"
             @input="set('oidc_connect_scopes', ($event.target as HTMLInputElement).value)"
           />
-          <p class="oidc-field-hint">{{ t('admin.settings.oidc.scopesHint') }}</p>
+          <p class="m-0 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.oidc.scopesHint') }}</p>
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.redirectUrl') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.redirectUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_redirect_url"
             type="url"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.redirectUrlPlaceholder')"
             @input="set('oidc_connect_redirect_url', ($event.target as HTMLInputElement).value)"
           />
           <!-- Quick-set / copy suggestion -->
-          <div class="oidc-redirect-actions">
-            <button type="button" class="btn btn-secondary btn-sm w-fit" @click="quickSetRedirectUrl">
+          <div class="mt-1.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2.5">
+            <Button type="button" variant="outline" size="sm" class="w-fit" @click="quickSetRedirectUrl">
               {{ t('admin.settings.oidc.quickSetCopy') }}
-            </button>
-            <code v-if="redirectUrlSuggestion" class="oidc-suggestion">
+            </Button>
+            <code v-if="redirectUrlSuggestion" class="break-all rounded px-2 py-0.5 font-mono text-[11px] text-muted-foreground select-all bg-muted">
               {{ redirectUrlSuggestion }}
             </code>
           </div>
-          <p class="oidc-field-hint">{{ t('admin.settings.oidc.redirectUrlHint') }}</p>
+          <p class="m-0 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.oidc.redirectUrlHint') }}</p>
         </div>
 
-        <div class="oidc-field oidc-col-span-2">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.frontendRedirectUrl') }}</label>
-          <input
+        <div class="col-span-1 flex flex-col gap-1 md:col-span-2">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.frontendRedirectUrl') }}</Label>
+          <Input
             :value="local.oidc_connect_frontend_redirect_url"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.frontendRedirectUrlPlaceholder')"
             @input="set('oidc_connect_frontend_redirect_url', ($event.target as HTMLInputElement).value)"
           />
-          <p class="oidc-field-hint">{{ t('admin.settings.oidc.frontendRedirectUrlHint') }}</p>
+          <p class="m-0 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.oidc.frontendRedirectUrlHint') }}</p>
         </div>
       </div>
 
       <!-- Row 4: Token Auth Method / Clock Skew / Signing Algs -->
-      <div class="oidc-grid-3">
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.tokenAuthMethod') }}</label>
-          <select
-            :value="local.oidc_connect_token_auth_method"
-            class="input font-mono text-sm"
-            @change="set('oidc_connect_token_auth_method', ($event.target as HTMLSelectElement).value)"
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.tokenAuthMethod') }}</Label>
+          <Select
+            :model-value="local.oidc_connect_token_auth_method"
+            @update:model-value="set('oidc_connect_token_auth_method', $event)"
           >
-            <option value="client_secret_post">client_secret_post</option>
-            <option value="client_secret_basic">client_secret_basic</option>
-            <option value="none">none</option>
-          </select>
+            <SelectTrigger class="font-mono text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="client_secret_post">client_secret_post</SelectItem>
+              <SelectItem value="client_secret_basic">client_secret_basic</SelectItem>
+              <SelectItem value="none">none</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.clockSkewSeconds') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.clockSkewSeconds') }}</Label>
+          <Input
             :value="local.oidc_connect_clock_skew_seconds"
             type="number"
             min="0"
             max="600"
-            class="input"
             @input="set('oidc_connect_clock_skew_seconds', Number(($event.target as HTMLInputElement).value))"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.allowedSigningAlgs') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.allowedSigningAlgs') }}</Label>
+          <Input
             :value="local.oidc_connect_allowed_signing_algs"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.allowedSigningAlgsPlaceholder')"
             @input="set('oidc_connect_allowed_signing_algs', ($event.target as HTMLInputElement).value)"
           />
@@ -211,9 +213,9 @@
       </div>
 
       <!-- Row 5: PKCE / Validate ID Token / Require Email Verified (toggle cards) -->
-      <div class="oidc-grid-3">
-        <div class="oidc-toggle-card">
-          <label class="oidc-label">{{ t('admin.settings.oidc.usePkce') }}</label>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3">
+          <Label class="text-[13px] font-medium text-foreground">{{ t('admin.settings.oidc.usePkce') }}</Label>
           <Toggle
             :model-value="!!local.oidc_connect_use_pkce"
             data-testid="oidc-connect-use-pkce"
@@ -221,8 +223,8 @@
           />
         </div>
 
-        <div class="oidc-toggle-card">
-          <label class="oidc-label">{{ t('admin.settings.oidc.validateIdToken') }}</label>
+        <div class="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3">
+          <Label class="text-[13px] font-medium text-foreground">{{ t('admin.settings.oidc.validateIdToken') }}</Label>
           <Toggle
             :model-value="!!local.oidc_connect_validate_id_token"
             data-testid="oidc-connect-validate-id-token"
@@ -230,8 +232,8 @@
           />
         </div>
 
-        <div class="oidc-toggle-card">
-          <label class="oidc-label">{{ t('admin.settings.oidc.requireEmailVerified') }}</label>
+        <div class="flex items-center justify-between gap-3 rounded-lg border border-border px-4 py-3">
+          <Label class="text-[13px] font-medium text-foreground">{{ t('admin.settings.oidc.requireEmailVerified') }}</Label>
           <Toggle
             :model-value="!!local.oidc_connect_require_email_verified"
             @update:model-value="set('oidc_connect_require_email_verified', $event)"
@@ -240,35 +242,35 @@
       </div>
 
       <!-- Row 6: Userinfo path overrides -->
-      <div class="oidc-grid-3">
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.userinfoEmailPath') }}</label>
-          <input
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.userinfoEmailPath') }}</Label>
+          <Input
             :value="local.oidc_connect_userinfo_email_path"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.userinfoEmailPathPlaceholder')"
             @input="set('oidc_connect_userinfo_email_path', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.userinfoIdPath') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.userinfoIdPath') }}</Label>
+          <Input
             :value="local.oidc_connect_userinfo_id_path"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.userinfoIdPathPlaceholder')"
             @input="set('oidc_connect_userinfo_id_path', ($event.target as HTMLInputElement).value)"
           />
         </div>
 
-        <div class="oidc-field">
-          <label class="oidc-field-label">{{ t('admin.settings.oidc.userinfoUsernamePath') }}</label>
-          <input
+        <div class="flex flex-col gap-1">
+          <Label class="text-xs font-medium text-muted-foreground">{{ t('admin.settings.oidc.userinfoUsernamePath') }}</Label>
+          <Input
             :value="local.oidc_connect_userinfo_username_path"
             type="text"
-            class="input font-mono text-sm"
+            class="font-mono text-sm"
             :placeholder="t('admin.settings.oidc.userinfoUsernamePathPlaceholder')"
             @input="set('oidc_connect_userinfo_username_path', ($event.target as HTMLInputElement).value)"
           />
@@ -283,6 +285,10 @@ import { reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Toggle from '@/components/common/Toggle.vue'
 import { useClipboard } from '@/composables/useClipboard'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { t } = useI18n()
 const { copyToClipboard } = useClipboard()
@@ -389,50 +395,3 @@ async function quickSetRedirectUrl() {
   await copyToClipboard(url, t('admin.settings.oidc.redirectUrlSetAndCopied'))
 }
 </script>
-
-<style scoped>
-.oidc-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
-
-.oidc-row-between {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-}
-
-.oidc-label { font-size: 13px; font-weight: 500; color: var(--ink-0, #E8EBF0); }
-.oidc-hint  { font-size: 11.5px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 2px 0 0; }
-
-.oidc-expanded { display: flex; flex-direction: column; gap: 20px; border-top: 1px solid var(--line-1, #2F3540); padding-top: 16px; }
-
-.oidc-field { display: flex; flex-direction: column; gap: 4px; }
-.oidc-field-label { font-size: 12px; font-weight: 500; color: var(--ink-1, #97A0AF); }
-.oidc-field-hint  { font-size: 11px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 0; }
-
-/* grid layouts matching SettingsView.vue lg:grid-cols-2 / 3 */
-.oidc-grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.oidc-grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-@media (min-width: 768px) {
-  .oidc-grid-2 { grid-template-columns: 1fr 1fr; }
-  .oidc-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-}
-.oidc-col-span-2 { grid-column: 1 / -1; }
-
-/* redirect URL quick-set */
-.oidc-redirect-actions {
-  display: flex; flex-direction: column; gap: 6px; margin-top: 6px;
-}
-@media (min-width: 480px) {
-  .oidc-redirect-actions { flex-direction: row; align-items: center; gap: 10px; }
-}
-.oidc-suggestion {
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-size: 11px; padding: 2px 8px; border-radius: 4px;
-  background: var(--bg-2, #171A20); color: var(--ink-2, #5C6470);
-  word-break: break-all; user-select: all;
-}
-
-/* toggle card (PKCE / validate id_token / require email) */
-.oidc-toggle-card {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 16px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-}
-</style>

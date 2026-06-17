@@ -69,14 +69,25 @@ describe('DateRangePicker', () => {
       }
     })
 
-    await wrapper.find('.date-picker-trigger').trigger('click')
-    const presetButton = wrapper.findAll('.date-picker-preset').find((node) =>
-      node.text().includes('Last 24 Hours')
-    )
+    // Post shadcn-vue migration the picker renders native <button>s, not the
+    // legacy .date-picker-* classes. The first button is the trigger; the
+    // preset buttons + Apply only exist once the dropdown is open.
+    const triggerButton = wrapper.findAll('button')[0]
+    await triggerButton.trigger('click')
+
+    // Both the trigger and the dropdown preset can read "Last 24 Hours"
+    // (it is the active preset / displayValue), so exclude the trigger when
+    // locating the preset button.
+    const presetButton = wrapper
+      .findAll('button')
+      .find((node) => node.element !== triggerButton.element && node.text().includes('Last 24 Hours'))
     expect(presetButton).toBeDefined()
 
     await presetButton!.trigger('click')
-    await wrapper.find('.date-picker-apply').trigger('click')
+
+    const applyButton = wrapper.findAll('button').find((node) => node.text().includes('Apply'))
+    expect(applyButton).toBeDefined()
+    await applyButton!.trigger('click')
 
     const nowAfterClick = new Date()
     const yesterdayAfterClick = new Date(nowAfterClick.getTime() - 24 * 60 * 60 * 1000)

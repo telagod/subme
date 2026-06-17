@@ -1,43 +1,44 @@
 <template>
   <AppLayout>
-    <div class="pd-root">
+    <div class="flex flex-col gap-3.5">
       <!-- 页头 -->
-      <div class="pd-head rise">
+      <div class="rise flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 class="pd-title">{{ t('admin.pricingDesk.title') }}</h1>
-          <p class="pd-desc">{{ t('admin.pricingDesk.desc') }}</p>
+          <h1 class="m-0 text-[21px] font-bold tracking-[.01em] text-foreground">{{ t('admin.pricingDesk.title') }}</h1>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.pricingDesk.desc') }}</p>
         </div>
-        <div class="pd-actions">
+        <div class="flex items-center gap-2">
           <!-- 刷新 -->
-          <button
-            class="pd-btn"
+          <Button
+            variant="outline"
+            size="sm"
             :disabled="loading"
             @click="fetchAll"
           >
-            <RefreshCwIcon class="pd-btn-ico" :class="loading ? 'pd-spinning' : ''" />
+            <RefreshCwIcon class="h-3.5 w-3.5 flex-shrink-0" :class="loading ? 'pd-spinning' : ''" />
             {{ t('admin.pricingDesk.refresh') }}
-          </button>
+          </Button>
 
           <!-- 价格模拟器 -->
-          <button
-            class="pd-btn pd-btn-primary"
+          <Button
+            size="sm"
             @click="simulatorVisible = true"
           >
-            <CalculatorIcon class="pd-btn-ico pd-ico-azure" />
+            <CalculatorIcon class="h-3.5 w-3.5 flex-shrink-0 text-primary-foreground" />
             {{ t('admin.pricingDesk.simulatorBtn') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- 同步成功 toast -->
       <Transition name="pd-toast">
-        <div v-if="syncToast" class="pd-toast rise">
+        <div v-if="syncToast" class="rise rounded-[10px] border border-emerald-500/50 bg-emerald-500/10 px-3.5 py-2.5 text-[12.5px] font-semibold text-emerald-500">
           {{ t('admin.pricingDesk.syncSuccess', { n: syncToast }) }}
         </div>
       </Transition>
 
       <!-- 错误提示 -->
-      <div v-if="error" class="pd-error rise">
+      <div v-if="error" class="rise rounded-[10px] border border-destructive/50 bg-destructive/10 px-3.5 py-2.5 text-[12.5px] text-destructive">
         {{ t('admin.pricingDesk.loadFailed') }}{{ error }}
       </div>
 
@@ -83,6 +84,7 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RefreshCwIcon, CalculatorIcon } from 'lucide-vue-next'
 import AppLayout from '@/components/layout/AppLayout.vue'
+import { Button } from '@/components/ui/button'
 import MatrixTable from './MatrixTable.vue'
 import PriceSimulator from './PriceSimulator.vue'
 import ProviderVerifyDrawer from './ProviderVerifyDrawer.vue'
@@ -155,56 +157,13 @@ function handleOverrideSaved(modelId: string) {
 </script>
 
 <style scoped>
-.pd-root { display: flex; flex-direction: column; gap: 14px; }
-
 .rise { opacity: 0; transform: translateY(8px); animation: rise .45s cubic-bezier(.22,.68,0,1.2) forwards; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .rise { animation: none; opacity: 1; transform: none; } .pd-spinning { animation: none; } }
 
-/* ── 页头 ── */
-.pd-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.pd-title { font-size: 21px; font-weight: 700; letter-spacing: .01em; color: var(--ink-0); margin: 0; }
-.pd-desc { font-size: 12px; color: var(--ink-2); margin: 4px 0 0; }
-
-.pd-actions { display: flex; align-items: center; gap: 8px; }
-
-.pd-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 15px; border-radius: 10px;
-  font-size: 12.5px; font-weight: 600;
-  background: var(--bg-2);
-  border: 1px solid var(--line-1); color: var(--ink-1);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06));
-  cursor: pointer; transition: border-color .18s, box-shadow .18s, color .18s;
-}
-.pd-btn:hover:not(:disabled) { border-color: var(--line-0); color: var(--ink-0); }
-.pd-btn:disabled { opacity: .5; cursor: default; }
-.pd-btn:focus-visible { outline: none; box-shadow: var(--glow-focus); }
-
-.pd-btn-primary {
-  background: var(--metal-raised, linear-gradient(180deg,#272D37,#14171D));
-  color: var(--ink-0);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06)), 0 2px 8px rgba(0,0,0,.3);
-}
-.pd-btn-primary:hover:not(:disabled) { border-color: rgba(92,168,255,.45); box-shadow: var(--edge-hi), 0 0 12px rgba(92,168,255,.18); }
-
-.pd-btn-ico { width: 14px; height: 14px; flex-shrink: 0; }
-.pd-ico-azure { color: var(--azure); }
 .pd-spinning { animation: pd-spin 1s linear infinite; }
 @keyframes pd-spin { to { transform: rotate(360deg); } }
 
-/* ── 错误条 ── */
-.pd-error {
-  padding: 10px 14px; border-radius: 10px; font-size: 12.5px;
-  background: var(--bad-dim); border: 1px solid var(--bad); color: var(--bad);
-}
-
-/* ── 同步成功 toast ── */
-.pd-toast {
-  padding: 9px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600;
-  background: var(--ok-dim, rgba(52,199,89,.12)); border: 1px solid var(--ok, #34c759);
-  color: var(--ok, #34c759);
-}
 .pd-toast-enter-active { transition: opacity .22s, transform .22s; }
 .pd-toast-leave-active { transition: opacity .35s; }
 .pd-toast-enter-from { opacity: 0; transform: translateY(-6px); }

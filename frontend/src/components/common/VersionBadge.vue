@@ -2,9 +2,10 @@
   <div class="relative">
     <!-- Admin: Full version badge with dropdown -->
     <template v-if="isAdmin">
-      <button
+      <Button
+        variant="ghost"
         @click="toggleDropdown"
-        class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors"
+        class="flex items-center gap-1.5 h-auto rounded-md px-2 py-1 text-xs transition-colors"
         :class="[
           hasUpdate
             ? 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/30'
@@ -24,7 +25,7 @@
           ></span>
           <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
         </span>
-      </button>
+      </Button>
 
       <!-- Dropdown -->
       <transition name="dropdown">
@@ -40,9 +41,11 @@
             <span class="text-sm font-medium text-foreground/85">{{
               t('version.currentVersion')
             }}</span>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               @click="refreshVersion(true)"
-              class="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              class="h-7 w-7 text-muted-foreground"
               :disabled="loading"
               :title="t('version.refresh')"
             >
@@ -52,13 +55,13 @@
                 :stroke-width="2"
                 :class="{ 'animate-spin': loading }"
               />
-            </button>
+            </Button>
           </div>
 
           <div class="p-4">
             <!-- Loading state -->
             <div v-if="loading" class="flex items-center justify-center py-6">
-              <svg class="h-6 w-6 animate-spin text-primary-200" fill="none" viewBox="0 0 24 24">
+              <svg class="h-6 w-6 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
                 <circle
                   class="opacity-25"
                   cx="12"
@@ -116,36 +119,37 @@
               <!-- Priority 1: Update error (must check before hasUpdate) -->
               <div v-if="updateError" class="space-y-2">
                 <div
-                  class="flex items-center gap-3 rounded-md border border-red-500/30 bg-red-500/10 p-3"
+                  class="flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/10 p-3"
                 >
                   <div
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10 border border-red-500/30"
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-destructive/10 border border-destructive/30"
                   >
                     <Icon
                       name="x"
                       size="sm"
                       :stroke-width="2"
-                      class="text-red-400"
+                      class="text-destructive"
                     />
                   </div>
                   <div class="min-w-0 flex-1">
-                    <p class="text-sm font-medium text-red-400">
+                    <p class="text-sm font-medium text-destructive">
                       {{ t('version.updateFailed') }}
                     </p>
-                    <p class="truncate text-xs text-red-400/70">
+                    <p class="truncate text-xs text-destructive/70">
                       {{ updateError }}
                     </p>
                   </div>
                 </div>
 
                 <!-- Retry button -->
-                <button
+                <Button
+                  variant="outline"
                   @click="handleUpdate"
                   :disabled="updating"
-                  class="flex w-full items-center justify-center gap-2 rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="w-full border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
                 >
                   {{ t('version.retry') }}
-                </button>
+                </Button>
               </div>
 
               <!-- Priority 2: Update success - need restart -->
@@ -177,10 +181,11 @@
                 </div>
 
                 <!-- Restart button with countdown -->
-                <button
+                <Button
+                  variant="outline"
                   @click="handleRestart"
                   :disabled="restarting"
-                  class="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="w-full border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-400"
                 >
                   <svg
                     v-if="restarting"
@@ -223,7 +228,7 @@
                     >
                   </template>
                   <span v-else>{{ t('version.restartNow') }}</span>
-                </button>
+                </Button>
               </div>
 
               <!-- Priority 3: Update available for source build - show git pull hint -->
@@ -268,7 +273,7 @@
                   class="flex items-center gap-2 rounded-md border border-border bg-secondary p-2"
                 >
                   <svg
-                    class="h-3.5 w-3.5 flex-shrink-0 text-primary-200"
+                    class="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -313,10 +318,10 @@
                 </div>
 
                 <!-- Update button -->
-                <button
+                <Button
                   @click="handleUpdate"
                   :disabled="updating"
-                  class="flex w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-foreground transition-colors hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  class="w-full"
                 >
                   <svg v-if="updating" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle
@@ -335,7 +340,7 @@
                   </svg>
                   <Icon v-else name="download" size="sm" :stroke-width="2" />
                   {{ updating ? t('version.updating') : t('version.updateNow') }}
-                </button>
+                </Button>
 
                 <!-- View release link -->
                 <a
@@ -386,6 +391,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, useAppStore } from '@/stores'
 import { performUpdate, restartService } from '@/api/admin/system'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 
@@ -546,10 +552,4 @@ onBeforeUnmount(() => {
   transform: scale(0.95) translateY(-4px);
 }
 
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 </style>

@@ -1,123 +1,131 @@
 <template>
   <BaseDialog :show="show" :title="title" width="full" :close-on-click-outside="true" @close="close">
-    <div v-if="loading" style="display:flex;align-items:center;justify-content:center;padding:56px 0;flex-direction:column;gap:10px;" role="status" :aria-label="t('admin.ops.errorDetail.loading')">
-      <div style="width:28px;height:28px;border-radius:50%;border-bottom:2px solid var(--ops-azure,#5CA8FF);" class="animate-spin" aria-hidden="true"></div>
-      <div style="font-size:13px;color:var(--ink-2,#5C6470);" aria-hidden="true">{{ t('admin.ops.errorDetail.loading') }}</div>
+    <div v-if="loading" class="flex flex-col items-center justify-center gap-2.5 py-14" role="status" :aria-label="t('admin.ops.errorDetail.loading')">
+      <div class="h-7 w-7 animate-spin rounded-full border-2 border-transparent border-b-primary" aria-hidden="true"></div>
+      <div class="text-[13px] text-muted-foreground" aria-hidden="true">{{ t('admin.ops.errorDetail.loading') }}</div>
     </div>
 
-    <div v-else-if="!detail" style="padding:36px 0;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">{{ emptyText }}</div>
+    <div v-else-if="!detail" class="py-9 text-center text-[13px] text-muted-foreground">{{ emptyText }}</div>
 
-    <div v-else style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+    <div v-else class="flex flex-col gap-4 p-5">
       <!-- Summary grid -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.requestId') }}</div>
-          <div class="od-sys-val od-mono" style="word-break:break-all;">{{ requestId || '—' }}</div>
+      <div class="grid grid-cols-4 gap-2.5">
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.requestId') }}</div>
+          <div class="mt-0.5 text-base font-black font-mono tabular-nums" style="word-break:break-all;">{{ requestId || '—' }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.time') }}</div>
-          <div class="od-sys-val">{{ formatDateTime(detail.created_at) }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.time') }}</div>
+          <div class="mt-0.5 text-base font-black">{{ formatDateTime(detail.created_at) }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ isUpstreamError(detail) ? t('admin.ops.errorDetail.account') : t('admin.ops.errorDetail.user') }}</div>
-          <div class="od-sys-val">
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ isUpstreamError(detail) ? t('admin.ops.errorDetail.account') : t('admin.ops.errorDetail.user') }}</div>
+          <div class="mt-0.5 text-base font-black">
             <template v-if="isUpstreamError(detail)">{{ detail.account_name || (detail.account_id != null ? String(detail.account_id) : '—') }}</template>
             <template v-else>{{ detail.user_email || (detail.user_id != null ? String(detail.user_id) : '—') }}</template>
           </div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.platform') }}</div>
-          <div class="od-sys-val">{{ detail.platform || '—' }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.platform') }}</div>
+          <div class="mt-0.5 text-base font-black">{{ detail.platform || '—' }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.group') }}</div>
-          <div class="od-sys-val">{{ detail.group_name || (detail.group_id != null ? String(detail.group_id) : '—') }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.group') }}</div>
+          <div class="mt-0.5 text-base font-black">{{ detail.group_name || (detail.group_id != null ? String(detail.group_id) : '—') }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.model') }}</div>
-          <div class="od-sys-val">
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.model') }}</div>
+          <div class="mt-0.5 text-base font-black">
             <template v-if="hasModelMapping(detail)">
-              <span class="od-mono">{{ detail.requested_model }}</span>
-              <span style="margin:0 4px;color:var(--ink-2,#5C6470);">→</span>
-              <span class="od-mono" style="color:var(--ops-azure,#5CA8FF);">{{ detail.upstream_model }}</span>
+              <span class="font-mono tabular-nums">{{ detail.requested_model }}</span>
+              <span class="mx-1 text-muted-foreground">→</span>
+              <span class="font-mono tabular-nums text-primary">{{ detail.upstream_model }}</span>
             </template>
             <template v-else>{{ displayModel(detail) || '—' }}</template>
           </div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.inboundEndpoint') }}</div>
-          <div class="od-sys-val od-mono" style="word-break:break-all;">{{ detail.inbound_endpoint || '—' }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.inboundEndpoint') }}</div>
+          <div class="mt-0.5 text-base font-black font-mono tabular-nums" style="word-break:break-all;">{{ detail.inbound_endpoint || '—' }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.upstreamEndpoint') }}</div>
-          <div class="od-sys-val od-mono" style="word-break:break-all;">{{ detail.upstream_endpoint || '—' }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.upstreamEndpoint') }}</div>
+          <div class="mt-0.5 text-base font-black font-mono tabular-nums" style="word-break:break-all;">{{ detail.upstream_endpoint || '—' }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.status') }}</div>
-          <div style="margin-top:4px;">
-            <span :class="['od-badge', statusClass]">{{ detail.status_code }}</span>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.status') }}</div>
+          <div class="mt-1">
+            <Badge :class="statusBadgeClass">{{ detail.status_code }}</Badge>
           </div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.requestType') }}</div>
-          <div class="od-sys-val">{{ formatRequestTypeLabel(detail.request_type) }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.requestType') }}</div>
+          <div class="mt-0.5 text-base font-black">{{ formatRequestTypeLabel(detail.request_type) }}</div>
         </div>
-        <div class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.message') }}</div>
-          <div class="od-sys-val" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" :title="detail.message">{{ detail.message || '—' }}</div>
+        <div class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.message') }}</div>
+          <div class="mt-0.5 text-base font-black overflow-hidden text-ellipsis whitespace-nowrap" :title="detail.message">{{ detail.message || '—' }}</div>
         </div>
-        <div v-if="detail.api_key_prefix" class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.apiKeyPrefix') }}</div>
-          <div class="od-sys-val od-mono">{{ detail.api_key_prefix }}</div>
+        <div v-if="detail.api_key_prefix" class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.apiKeyPrefix') }}</div>
+          <div class="mt-0.5 text-base font-black font-mono tabular-nums">{{ detail.api_key_prefix }}</div>
         </div>
-        <div v-if="detail.attempted_key_prefix" class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.attemptedKeyPrefix') }}</div>
-          <div class="od-sys-val od-mono">{{ detail.attempted_key_prefix }}</div>
+        <div v-if="detail.attempted_key_prefix" class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.attemptedKeyPrefix') }}</div>
+          <div class="mt-0.5 text-base font-black font-mono tabular-nums">{{ detail.attempted_key_prefix }}</div>
         </div>
-        <div v-if="detail.deleted_key_owner_email" class="od-sys-card">
-          <div class="od-sys-label">{{ t('admin.ops.errorDetail.deletedKeyOwner') }}</div>
-          <div class="od-sys-val">
+        <div v-if="detail.deleted_key_owner_email" class="rounded-[10px] border border-border bg-card p-3">
+          <div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorDetail.deletedKeyOwner') }}</div>
+          <div class="mt-0.5 text-base font-black">
             {{ detail.deleted_key_owner_email }}
-            <span v-if="detail.deleted_key_name" style="margin-left:4px;font-size:11px;color:var(--ink-2,#5C6470);">({{ detail.deleted_key_name }})</span>
-            <span class="od-badge od-badge-bad" style="margin-left:6px;font-size:10px;">{{ t('admin.ops.errorDetail.keyDeletedBadge') }}</span>
+            <span v-if="detail.deleted_key_name" class="ml-1 text-[11px] text-muted-foreground">({{ detail.deleted_key_name }})</span>
+            <Badge variant="destructive" class="ml-1.5 text-[10px]">{{ t('admin.ops.errorDetail.keyDeletedBadge') }}</Badge>
           </div>
         </div>
       </div>
 
       <!-- Response Body -->
-      <div class="od-card" style="padding:16px;">
-        <h3 style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-0,#E8EBF0);">{{ t('admin.ops.errorDetail.responseBody') }}</h3>
-        <pre style="margin-top:12px;max-height:480px;overflow:auto;border-radius:6px;border:1px solid var(--line-0,#20242C);background:var(--bg-3,#0E1014);padding:14px;font-size:11.5px;color:var(--ink-1,#97A0AF);"><code>{{ prettyJSON(primaryResponseBody || '') }}</code></pre>
+      <div class="rounded-xl border border-border bg-card p-4">
+        <h3 class="text-[11.5px] font-bold uppercase tracking-[.05em] text-foreground">{{ t('admin.ops.errorDetail.responseBody') }}</h3>
+        <pre class="mt-3 max-h-[480px] overflow-auto rounded-md border border-border bg-muted p-3.5 text-[11.5px] text-muted-foreground"><code>{{ prettyJSON(primaryResponseBody || '') }}</code></pre>
       </div>
 
       <!-- Upstream errors -->
-      <div v-if="showUpstreamList" class="od-card" style="padding:16px;">
-        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
-          <h3 style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-0,#E8EBF0);">{{ t('admin.ops.errorDetails.upstreamErrors') }}</h3>
-          <div v-if="correlatedUpstreamLoading" style="font-size:11px;color:var(--ink-2,#5C6470);">{{ t('common.loading') }}</div>
+      <div v-if="showUpstreamList" class="rounded-xl border border-border bg-card p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-[11.5px] font-bold uppercase tracking-[.05em] text-foreground">{{ t('admin.ops.errorDetails.upstreamErrors') }}</h3>
+          <div v-if="correlatedUpstreamLoading" class="text-[11px] text-muted-foreground">{{ t('common.loading') }}</div>
         </div>
-        <div v-if="!correlatedUpstreamLoading && !correlatedUpstreamErrors.length" style="margin-top:10px;font-size:13px;color:var(--ink-2,#5C6470);">{{ t('common.noData') }}</div>
-        <div v-else style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
-          <div v-for="(ev, idx) in correlatedUpstreamErrors" :key="ev.id" class="od-card" style="padding:14px;">
-            <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
-              <div style="font-size:12px;font-weight:700;color:var(--ink-0,#E8EBF0);">
+        <div v-if="!correlatedUpstreamLoading && !correlatedUpstreamErrors.length" class="mt-2.5 text-[13px] text-muted-foreground">{{ t('common.noData') }}</div>
+        <div v-else class="mt-3 flex flex-col gap-2.5">
+          <div v-for="(ev, idx) in correlatedUpstreamErrors" :key="ev.id" class="rounded-xl border border-border bg-card p-3.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-[12px] font-bold text-foreground">
                 #{{ idx + 1 }}
-                <span v-if="ev.type" class="od-badge od-badge-dim od-mono" style="margin-left:6px;font-size:10px;">{{ ev.type }}</span>
+                <Badge v-if="ev.type" variant="outline" class="ml-1.5 text-[10px] font-mono tabular-nums">{{ ev.type }}</Badge>
               </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div class="od-mono" style="font-size:11.5px;color:var(--ink-2,#5C6470);">{{ ev.status_code ?? '—' }}</div>
-                <button type="button" class="od-btn" style="padding:2px 8px;font-size:10px;display:inline-flex;align-items:center;gap:4px;" :disabled="!getUpstreamResponsePreview(ev)" :title="getUpstreamResponsePreview(ev) ? '' : t('common.noData')" @click="toggleUpstreamDetail(ev.id)">
+              <div class="flex items-center gap-2">
+                <div class="font-mono tabular-nums text-[11.5px] text-muted-foreground">{{ ev.status_code ?? '—' }}</div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px]"
+                  :disabled="!getUpstreamResponsePreview(ev)"
+                  :title="getUpstreamResponsePreview(ev) ? '' : t('common.noData')"
+                  @click="toggleUpstreamDetail(ev.id)"
+                >
                   <Icon :name="expandedUpstreamDetailIds.has(ev.id) ? 'chevronDown' : 'chevronRight'" size="xs" :stroke-width="2" />
                   {{ expandedUpstreamDetailIds.has(ev.id) ? t('admin.ops.errorDetail.responsePreview.collapse') : t('admin.ops.errorDetail.responsePreview.expand') }}
-                </button>
+                </Button>
               </div>
             </div>
-            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11.5px;color:var(--ink-1,#97A0AF);">
-              <div><span style="color:var(--ink-2,#5C6470);">{{ t('admin.ops.errorDetail.upstreamEvent.status') }}:</span><span class="od-mono" style="margin-left:4px;">{{ ev.status_code ?? '—' }}</span></div>
-              <div><span style="color:var(--ink-2,#5C6470);">{{ t('admin.ops.errorDetail.upstreamEvent.requestId') }}:</span><span class="od-mono" style="margin-left:4px;">{{ ev.request_id || ev.client_request_id || '—' }}</span></div>
+            <div class="mt-2.5 grid grid-cols-2 gap-1.5 text-[11.5px] text-muted-foreground">
+              <div><span class="text-muted-foreground">{{ t('admin.ops.errorDetail.upstreamEvent.status') }}:</span><span class="ml-1 font-mono tabular-nums">{{ ev.status_code ?? '—' }}</span></div>
+              <div><span class="text-muted-foreground">{{ t('admin.ops.errorDetail.upstreamEvent.requestId') }}:</span><span class="ml-1 font-mono tabular-nums">{{ ev.request_id || ev.client_request_id || '—' }}</span></div>
             </div>
-            <div v-if="ev.message" style="margin-top:8px;word-break:break-word;font-size:13px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ ev.message }}</div>
-            <pre v-if="expandedUpstreamDetailIds.has(ev.id)" style="margin-top:10px;max-height:200px;overflow:auto;border-radius:6px;border:1px solid var(--line-0,#20242C);background:var(--bg-2,#171A20);padding:10px;font-size:11px;color:var(--ink-1,#97A0AF);"><code>{{ prettyJSON(getUpstreamResponsePreview(ev)) }}</code></pre>
+            <div v-if="ev.message" class="mt-2 break-words text-[13px] font-medium text-foreground">{{ ev.message }}</div>
+            <pre v-if="expandedUpstreamDetailIds.has(ev.id)" class="mt-2.5 max-h-[200px] overflow-auto rounded-md border border-border bg-muted p-2.5 text-[11px] text-muted-foreground"><code>{{ prettyJSON(getUpstreamResponsePreview(ev)) }}</code></pre>
           </div>
         </div>
       </div>
@@ -125,13 +133,13 @@
   </BaseDialog>
 </template>
 
-<style src="../ops-quench.css"></style>
-
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/stores'
 import { opsAPI, type OpsErrorDetail } from '@/api/admin/ops'
 import { formatDateTime } from '@/utils/format'
@@ -290,12 +298,12 @@ watch(
   { immediate: true }
 )
 
-const statusClass = computed(() => {
+const statusBadgeClass = computed(() => {
   const code = detail.value?.status_code ?? 0
-  if (code >= 500) return 'od-badge-bad'
-  if (code === 429) return 'od-badge-warn'
-  if (code >= 400) return 'od-badge-warn'
-  return 'od-badge-dim'
+  if (code >= 500) return 'bg-destructive/10 border border-destructive/40 text-destructive'
+  if (code === 429) return 'bg-amber-500/10 border border-amber-500/40 text-amber-500'
+  if (code >= 400) return 'bg-amber-500/10 border border-amber-500/40 text-amber-500'
+  return 'bg-muted border-border text-muted-foreground'
 })
 
 </script>

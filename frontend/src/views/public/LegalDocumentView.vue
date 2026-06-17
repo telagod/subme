@@ -10,23 +10,20 @@
             {{ siteName }}
           </span>
         </RouterLink>
-        <RouterLink
-          to="/login"
-          class="inline-flex flex-shrink-0 items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-foreground  transition hover:bg-secondary"
-        >
-          登录
-        </RouterLink>
+        <Button as-child class="flex-shrink-0">
+          <RouterLink to="/login">登录</RouterLink>
+        </Button>
       </div>
     </header>
 
     <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:py-10">
       <div v-if="loading" class="flex min-h-[320px] items-center justify-center">
-        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-200"></div>
+        <div class="h-8 w-8 animate-spin rounded-full border-b-2 border-muted-foreground"></div>
       </div>
 
       <section
         v-else-if="loadError"
-        class="rounded-lg border border-red-500/30 bg-red-500/10 p-6 text-red-400"
+        class="rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-destructive"
       >
         <h1 class="text-lg font-semibold">文档加载失败</h1>
         <p class="mt-2 text-sm">请稍后刷新页面重试。</p>
@@ -37,7 +34,7 @@
         class="rounded-lg border border-border bg-card p-6"
       >
         <div class="flex items-start gap-3">
-          <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
+          <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground ">
             <Icon name="document" size="sm" />
           </span>
           <div>
@@ -52,11 +49,11 @@
       <article v-else>
         <div class="mb-8 border-b border-border pb-6">
           <div class="flex items-start gap-4">
-            <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
+            <span class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground ">
               <Icon :name="documentIcon" size="md" />
             </span>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-primary-200">登录条款</p>
+              <p class="text-sm font-medium text-muted-foreground">登录条款</p>
               <h1 class="mt-2 break-words text-2xl font-bold tracking-normal text-foreground sm:text-3xl">
                 {{ currentDocument.title }}
               </h1>
@@ -89,6 +86,7 @@ import { useRoute } from 'vue-router'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import { getPublicSettings } from '@/api/auth'
 import { sanitizeUrl } from '@/utils/url'
 import type { LoginAgreementDocument, PublicSettings } from '@/types'
@@ -188,7 +186,7 @@ onMounted(async () => {
 }
 
 .legal-document-content :deep(a) {
-  @apply text-primary-200 underline underline-offset-4 hover:text-foreground;
+  @apply text-primary underline underline-offset-4 hover:text-foreground;
 }
 
 .legal-document-content :deep(ul) {

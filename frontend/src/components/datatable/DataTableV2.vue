@@ -1,39 +1,41 @@
 <template>
-  <div class="q-table-wrap" :style="cssVars">
+  <div class="w-full text-foreground" :style="cssVars">
     <!-- ── 骨架态 ── -->
     <template v-if="loading">
-      <table class="q-dt">
-        <thead>
-          <tr>
-            <th v-if="selectable" class="q-th q-th-cb"></th>
-            <th
+      <Table>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
+            <TableHead v-if="selectable" class="w-[34px] px-[10px]"></TableHead>
+            <TableHead
               v-for="col in columns"
               :key="col.key"
-              class="q-th"
-              :class="[`q-align-${col.align ?? 'left'}`]"
+              :class="[`text-${col.align ?? 'left'}`]"
               :style="col.width ? { width: col.width } : {}"
             >
               {{ col.title }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="i in 5" :key="i" class="q-tr-skeleton">
-            <td v-if="selectable" class="q-td q-td-cb">
-              <div class="q-skel q-skel-cb"></div>
-            </td>
-            <td v-for="col in columns" :key="col.key" class="q-td">
-              <div class="q-skel" :style="{ width: col.align === 'right' ? '60%' : '75%', marginLeft: col.align === 'right' ? 'auto' : undefined }"></div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="i in 5" :key="i" class="hover:bg-transparent">
+            <TableCell v-if="selectable" class="w-[34px] px-[10px]">
+              <div class="h-3.5 w-3.5 rounded-sm bg-muted animate-pulse"></div>
+            </TableCell>
+            <TableCell v-for="col in columns" :key="col.key">
+              <div
+                class="h-3 rounded bg-muted animate-pulse"
+                :style="{ width: col.align === 'right' ? '60%' : '75%', marginLeft: col.align === 'right' ? 'auto' : undefined }"
+              ></div>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </template>
 
     <!-- ── 空态 ── -->
     <template v-else-if="!rows || rows.length === 0">
       <slot name="empty">
-        <div class="q-empty">
+        <div class="flex flex-col items-center gap-3 px-6 py-16 text-muted-foreground text-sm">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
             <rect x="6" y="8" width="28" height="24" rx="4" stroke="currentColor" stroke-width="1.5"/>
             <line x1="12" y1="16" x2="28" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -46,28 +48,24 @@
 
     <!-- ── 正文表格 ── -->
     <template v-else>
-      <table class="q-dt">
-        <thead>
-          <tr>
+      <Table>
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
             <!-- 全选 checkbox -->
-            <th v-if="selectable" class="q-th q-th-cb">
-              <input
-                type="checkbox"
-                class="q-cbox"
-                :checked="isAllSelected"
-                :indeterminate="isIndeterminate"
+            <TableHead v-if="selectable" class="w-[34px] px-[10px]">
+              <Checkbox
+                :checked="isIndeterminate ? 'indeterminate' : isAllSelected"
                 aria-label="全选"
-                @change="onToggleAll"
+                @update:checked="(v) => onToggleAll(v === true)"
               />
-            </th>
+            </TableHead>
             <!-- 列头 -->
-            <th
+            <TableHead
               v-for="col in columns"
               :key="col.key"
-              class="q-th"
               :class="[
-                `q-align-${col.align ?? 'left'}`,
-                col.sortable ? 'q-th-sort' : ''
+                `text-${col.align ?? 'left'}`,
+                col.sortable ? 'cursor-pointer select-none hover:text-foreground transition-colors' : ''
               ]"
               :style="col.width ? { width: col.width } : {}"
               :tabindex="col.sortable ? 0 : undefined"
@@ -77,87 +75,97 @@
               @keydown.enter="col.sortable && onSort(col.key)"
               @keydown.space.prevent="col.sortable && onSort(col.key)"
             >
-              <span class="q-th-inner">
+              <span class="inline-flex items-center gap-1.5">
                 {{ col.title }}
-                <span v-if="col.sortable" class="q-sort-icon" aria-hidden="true">
+                <span v-if="col.sortable" class="dt-sort-icon inline-flex items-center text-primary" aria-hidden="true">
                   <svg v-if="currentSort === col.key && currentOrder === 'asc'" width="10" height="10" viewBox="0 0 10 10"><path d="M5 2 L8 7 L2 7 Z" fill="currentColor"/></svg>
                   <svg v-else-if="currentSort === col.key && currentOrder === 'desc'" width="10" height="10" viewBox="0 0 10 10"><path d="M5 8 L8 3 L2 3 Z" fill="currentColor"/></svg>
                   <svg v-else width="10" height="10" viewBox="0 0 10 10" opacity=".35"><path d="M5 2 L7 5 L3 5 Z" fill="currentColor"/><path d="M5 8 L7 5 L3 5 Z" fill="currentColor"/></svg>
                 </span>
               </span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow
             v-for="(row, idx) in rows"
             :key="resolveRowKey(row, idx)"
-            class="q-tr"
-            :class="{ 'q-tr-sel': isSelected(row) }"
+            :class="[
+              'cursor-pointer',
+              isSelected(row) ? 'bg-primary/10 hover:bg-primary/10' : ''
+            ]"
             tabindex="0"
             @click="onRowClick(row, idx)"
             @keydown.enter="onRowClick(row, idx)"
           >
             <!-- 行选 checkbox -->
-            <td v-if="selectable" class="q-td q-td-cb" @click.stop>
-              <input
-                type="checkbox"
-                class="q-cbox"
+            <TableCell v-if="selectable" class="w-[34px] px-[10px]" @click.stop>
+              <Checkbox
                 :checked="isSelected(row)"
                 :aria-label="`选择行 ${idx + 1}`"
-                @change="onToggleRow(row)"
+                @update:checked="() => onToggleRow(row)"
               />
-            </td>
+            </TableCell>
             <!-- 单元格 -->
-            <td
+            <TableCell
               v-for="col in columns"
               :key="col.key"
-              class="q-td"
-              :class="[`q-align-${col.align ?? 'left'}`, col.cellClass ?? '']"
+              :class="[`text-${col.align ?? 'left'}`, col.cellClass ?? '']"
             >
               <!-- 具名插槽优先，fallback 默认渲染 -->
               <slot :name="`cell-${col.key}`" :row="row" :value="getCellValue(row, col.key)" :index="idx">
                 <span :class="col.cellClass ?? ''">{{ getCellValue(row, col.key) }}</span>
               </slot>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </template>
 
     <!-- ── 底部分页栏 ── -->
-    <div v-if="!loading" class="q-tfoot">
-      <span class="q-tfoot-info">
-        共 <b class="q-mono">{{ total.toLocaleString() }}</b> 条
+    <div v-if="!loading" class="flex items-center gap-3.5 border-t border-border px-4 py-2.5 text-muted-foreground text-xs">
+      <span>
+        共 <b class="font-mono tabular-nums text-foreground">{{ total.toLocaleString() }}</b> 条
         <template v-if="selectable && selectedRows.length > 0">
-          · 已选 <b class="q-mono q-azure">{{ selectedRows.length }}</b>
+          · 已选 <b class="font-mono tabular-nums text-primary">{{ selectedRows.length }}</b>
         </template>
       </span>
       <!-- 页码 -->
-      <nav class="q-pages" aria-label="分页">
-        <button
-          class="q-pg"
+      <nav class="ml-auto flex items-center gap-1" aria-label="分页">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-[26px] w-[26px] rounded-[7px] font-mono text-[11px] text-muted-foreground"
           :disabled="currentPage <= 1"
           aria-label="上一页"
           @click="onPageChange(currentPage - 1)"
-        >‹</button>
-        <button
+        >‹</Button>
+        <Button
           v-for="p in pageNumbers"
           :key="p"
-          class="q-pg"
-          :class="{ 'q-pg-on': p === currentPage, 'q-pg-ellipsis': p === -1 }"
+          variant="ghost"
+          size="icon"
+          class="h-[26px] min-w-[26px] w-auto px-1 rounded-[7px] font-mono text-[11px]"
+          :class="[
+            p === currentPage
+              ? 'bg-primary/12 text-primary font-semibold hover:bg-primary/12'
+              : 'text-muted-foreground',
+            p === -1 ? 'cursor-default pointer-events-none' : ''
+          ]"
           :disabled="p === -1"
           :aria-current="p === currentPage ? 'page' : undefined"
           @click="p !== -1 && onPageChange(p)"
         >
           {{ p === -1 ? '…' : p }}
-        </button>
-        <button
-          class="q-pg"
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-[26px] w-[26px] rounded-[7px] font-mono text-[11px] text-muted-foreground"
           :disabled="currentPage >= totalPages"
           aria-label="下一页"
           @click="onPageChange(currentPage + 1)"
-        >›</button>
+        >›</Button>
       </nav>
     </div>
   </div>
@@ -166,6 +174,16 @@
 <script setup lang="ts" generic="T extends Record<string, unknown>">
 import { computed, shallowRef } from 'vue'
 import type { ColumnDef, SortOrder } from './types'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // ── Props ──────────────────────────────────────────────────────────────
 const props = withDefaults(defineProps<{
@@ -213,7 +231,7 @@ const totalPages = computed(() => Math.max(1, Math.ceil(props.total / props.page
 
 // ── CSS 变量（密度控行高） ─────────────────────────────────────────────
 const cssVars = computed(() => ({
-  '--q-row-h': props.density === 'comfortable' ? '44px' : '32px'
+  '--dt-row-h': props.density === 'comfortable' ? '44px' : '32px'
 }))
 
 // ── 工具 ───────────────────────────────────────────────────────────────
@@ -263,8 +281,7 @@ function onToggleRow(row: T) {
   emit('update:selected', [...selectedRows.value])
 }
 
-function onToggleAll(e: Event) {
-  const checked = (e.target as HTMLInputElement).checked
+function onToggleAll(checked: boolean) {
   selectedRows.value = checked ? [...props.rows] : []
   emit('update:selected', [...selectedRows.value])
 }
@@ -309,257 +326,23 @@ const pageNumbers = computed<number[]>(() => {
 </script>
 
 <style scoped>
-/* ── 淬钢 QUENCH · DataTableV2 样式 ── */
-.q-table-wrap {
-  --q-row-h: 32px; /* compact default，被 density prop 覆盖 */
-  width: 100%;
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
-  font-size: 12.5px;
-  color: var(--ink-0, #E8EBF0);
+/* ── DataTableV2 scoped 样式（行高受 density prop 控制） ── */
+
+/* 单元格行高 — 由 cssVars 注入 --dt-row-h */
+:deep(td) {
+  height: var(--dt-row-h);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-/* 表格结构 */
-.q-dt {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* 表头 */
-.q-th {
-  text-align: left;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-2, #5C6470);
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--line-0, #20242C);
-  background: transparent;
-  position: sticky;
-  top: 0;
-  white-space: nowrap;
-  user-select: none;
-  z-index: 1;
-}
-
-.q-th-cb {
-  width: 34px;
-  padding: 9px 10px;
-}
-
-.q-th-sort {
-  cursor: pointer;
-  transition: color 0.15s;
-}
-
-.q-th-sort:hover {
-  color: var(--ink-0, #E8EBF0);
-}
-
-.q-th-sort:focus-visible {
-  outline: none;
-  box-shadow: var(--glow-focus, 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 20px rgba(92, 168, 255, 0.28));
-  border-radius: 4px;
-}
-
-.q-th-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.q-sort-icon {
-  display: inline-flex;
-  align-items: center;
-  color: var(--azure, #5CA8FF);
-  flex-shrink: 0;
-}
-
-/* 行 */
-.q-tr {
-  cursor: pointer;
-  transition: background 0.12s;
-  position: relative;
-}
-
-.q-tr:hover {
-  background: var(--bg-2, #171A20);
-}
-
-/* 首列淬火蓝左缘线（行 hover 时） */
-.q-tr:hover .q-td:first-child,
-.q-tr:hover .q-td-cb + .q-td {
-  box-shadow: inset 2px 0 0 var(--azure, #5CA8FF);
-}
-
-/* selectable 时：首列是 cb，第二列出左缘线 */
-.q-tr:hover .q-td:nth-child(2) {
-  box-shadow: none; /* 重置，由下面具体选择器处理 */
-}
-
-/* 当 selectable 时 hover 在 cb 之后的第一列出左缘线 */
-:where(.q-table-wrap[data-selectable]) .q-tr:hover .q-td:nth-child(2) {
-  box-shadow: inset 2px 0 0 var(--azure, #5CA8FF);
-}
-
-.q-tr-sel {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.12));
-}
-
-.q-tr:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--azure, #5CA8FF);
-}
-
-/* 单元格 */
-.q-td {
-  padding: 0 14px;
-  height: var(--q-row-h);
-  border-bottom: 1px solid var(--line-0, #20242C);
-  vertical-align: middle;
-  font-size: 12.5px;
-}
-
-.q-td-cb {
-  width: 34px;
-  padding: 0 10px;
-}
-
-/* 对齐 */
-.q-align-left { text-align: left; }
-.q-align-center { text-align: center; }
-.q-align-right { text-align: right; }
-
-th.q-align-right .q-th-inner { justify-content: flex-end; }
-
-/* checkbox 样式 */
-.q-cbox {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--azure, #5CA8FF);
-  cursor: pointer;
-  display: block;
-}
-
-/* 骨架行 */
-.q-tr-skeleton .q-td {
-  padding: 0 14px;
-  height: var(--q-row-h);
-  border-bottom: 1px solid var(--line-0, #20242C);
-}
-
-.q-skel {
-  height: 12px;
-  border-radius: 4px;
-  background: var(--bg-2, #171A20);
-  animation: q-skel-pulse 1.6s ease-in-out infinite;
-}
-
-.q-skel-cb {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-
-@keyframes q-skel-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* 空态 */
-.q-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 64px 24px;
-  color: var(--ink-2, #5C6470);
-  font-size: 13px;
-}
-
-/* 底部分页栏 */
-.q-tfoot {
-  display: flex;
-  align-items: center;
-  padding: 11px 16px;
-  color: var(--ink-2, #5C6470);
-  font-size: 11.5px;
-  gap: 14px;
-  border-top: 1px solid var(--line-0, #20242C);
-}
-
-.q-tfoot-info {
-  color: var(--ink-2, #5C6470);
-}
-
-.q-mono {
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-variant-numeric: tabular-nums;
-  color: var(--ink-0, #E8EBF0);
-}
-
-.q-azure {
-  color: var(--azure, #5CA8FF) !important;
-}
-
-.q-pages {
-  margin-left: auto;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.q-pg {
-  min-width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-size: 11px;
-  color: var(--ink-1, #97A0AF);
-  background: transparent;
-  border: none;
-  padding: 0 4px;
-  transition: background 0.12s, color 0.12s;
-}
-
-.q-pg:hover:not(:disabled):not(.q-pg-ellipsis) {
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-}
-
-.q-pg-on {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.12)) !important;
-  color: var(--azure, #5CA8FF) !important;
-  font-weight: 600;
-}
-
-.q-pg:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.q-pg-ellipsis {
-  cursor: default;
-}
-
-.q-pg:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 12px rgba(92, 168, 255, 0.2);
-}
-
-/* 金额约定 class（工作包 A 提供全局变量，此处兜底） */
+/* 金额约定 class（全局可用） */
 :global(.q-money) {
   font-family: var(--font-mono, "IBM Plex Mono", monospace);
   font-variant-numeric: tabular-nums;
-  color: var(--money, #F2F5FA);
-  text-shadow: var(--money-glow, 0 0 18px rgba(214, 232, 255, 0.22));
+  color: hsl(var(--foreground));
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .q-skel { animation: none; }
-  .q-tr, .q-pg, .q-th-sort { transition: none; }
+  :deep(.animate-pulse) { animation: none; }
 }
 </style>

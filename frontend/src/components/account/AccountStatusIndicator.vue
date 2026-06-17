@@ -1,20 +1,21 @@
 <template>
   <div class="flex items-center gap-1.5">
     <!-- Main status badge (absorbs 429/529 countdown) -->
-    <button
+    <Button
       v-if="isTempUnschedulable"
       type="button"
-      :class="['badge text-[10px]', statusClass, 'cursor-pointer']"
+      variant="ghost"
+      :class="['inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium leading-none h-auto', statusClass]"
       :title="t('admin.accounts.status.viewTempUnschedDetails')"
       @click="handleTempUnschedClick"
-    >{{ statusText }}</button>
-    <span v-else-if="isRateLimited" class="badge text-[10px] badge-warning" :title="t('admin.accounts.status.rateLimitedUntil', { time: formatDateTime(account.rate_limit_reset_at) })">
+    >{{ statusText }}</Button>
+    <Badge v-else-if="isRateLimited" class="text-[10px] border-transparent bg-amber-500/15 text-amber-400" :title="t('admin.accounts.status.rateLimitedUntil', { time: formatDateTime(account.rate_limit_reset_at) })">
       429 {{ rateLimitCountdown }}
-    </span>
-    <span v-else-if="isOverloaded" class="badge text-[10px] badge-danger" :title="t('admin.accounts.status.overloadedUntil', { time: formatTime(account.overload_until) })">
+    </Badge>
+    <Badge v-else-if="isOverloaded" class="text-[10px] border-transparent bg-red-500/15 text-red-400" :title="t('admin.accounts.status.overloadedUntil', { time: formatTime(account.overload_until) })">
       529 {{ overloadCountdown }}
-    </span>
-    <span v-else :class="['badge text-[10px]', statusClass]">{{ statusText }}</span>
+    </Badge>
+    <Badge v-else variant="outline" :class="['text-[10px] border-transparent', statusClass]">{{ statusText }}</Badge>
 
     <!-- Error tooltip -->
     <div v-if="hasError && account.error_message" class="group/error relative">
@@ -49,6 +50,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Account } from '@/types'
 import { formatCountdown, formatDateTime, formatCountdownWithSuffix, formatTime } from '@/utils/format'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const props = defineProps<{ account: Account }>()
@@ -83,12 +86,12 @@ const rateLimitCountdown = computed(() => formatCountdown(props.account.rate_lim
 const overloadCountdown = computed(() => formatCountdownWithSuffix(props.account.overload_until))
 
 const statusClass = computed(() => {
-  if (hasError.value) return 'badge-danger'
-  if (isTempUnschedulable.value) return 'badge-warning'
-  if (props.account.status !== 'active') return props.account.status === 'error' ? 'badge-danger' : 'badge-gray'
-  if (isQuotaExceeded.value) return 'badge-warning'
-  if (!props.account.schedulable) return 'badge-gray'
-  return 'badge-success'
+  if (hasError.value) return 'bg-red-500/15 text-red-400'
+  if (isTempUnschedulable.value) return 'bg-amber-500/15 text-amber-400'
+  if (props.account.status !== 'active') return props.account.status === 'error' ? 'bg-red-500/15 text-red-400' : 'bg-muted text-muted-foreground'
+  if (isQuotaExceeded.value) return 'bg-amber-500/15 text-amber-400'
+  if (!props.account.schedulable) return 'bg-muted text-muted-foreground'
+  return 'bg-emerald-500/15 text-emerald-400'
 })
 
 const statusText = computed(() => {

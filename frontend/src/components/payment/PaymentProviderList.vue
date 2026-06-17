@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <Card>
     <!-- Header -->
     <div class="border-b border-border px-4 py-3">
       <div class="flex items-center justify-between">
@@ -12,25 +12,24 @@
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             @click="emit('refresh')"
             :disabled="loading"
-            class="btn btn-secondary btn-sm"
             :title="t('common.refresh')"
           >
             <Icon name="refresh" size="sm" :class="loading ? 'animate-spin' : ''" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
             @click="emit('create')"
             :disabled="!canCreate"
-            :class="canCreate
-              ? 'btn btn-primary btn-sm'
-              : 'btn btn-secondary btn-sm cursor-not-allowed opacity-50'"
           >
             {{ t('admin.settings.payment.createProvider') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -39,7 +38,7 @@
     <div class="p-4">
       <!-- Loading -->
       <div v-if="loading && !providers.length" class="flex items-center justify-center py-6">
-        <div class="h-5 w-5 animate-spin rounded-full border-2 border-primary-300 border-t-transparent" />
+        <div class="h-5 w-5 animate-spin rounded-full border-2 border-primary/30 border-t-transparent" />
       </div>
 
       <!-- Provider cards (draggable) -->
@@ -78,17 +77,18 @@
             ? t('admin.settings.payment.noProviders')
             : t('admin.settings.payment.enableTypesFirst') }}
         </p>
-        <button
+        <Button
           type="button"
+          size="sm"
           v-if="canCreate"
           @click="emit('create')"
-          class="btn btn-primary btn-sm mt-2"
+          class="mt-2"
         >
           {{ t('admin.settings.payment.createProvider') }}
-        </button>
+        </Button>
       </div>
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -96,6 +96,8 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable } from 'vue-draggable-plus'
 import Icon from '@/components/icons/Icon.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import ProviderCard from './ProviderCard.vue'
 import type { ProviderInstance } from '@/types/payment'
 import type { TypeOption } from './providerConfig'

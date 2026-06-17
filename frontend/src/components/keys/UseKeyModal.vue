@@ -31,12 +31,13 @@
         <!-- Client Tabs -->
         <div v-if="clientTabs.length" class="border-b border-border">
           <nav class="-mb-px flex space-x-6" aria-label="Client">
-            <button
+            <Button
               v-for="tab in clientTabs"
               :key="tab.id"
+              variant="ghost"
               @click="activeClientTab = tab.id"
               :class="[
-                'whitespace-nowrap py-2.5 px-1 border-b-2 font-medium text-sm transition-colors',
+                'h-auto rounded-none whitespace-nowrap py-2.5 px-1 border-b-2 font-medium text-sm transition-colors hover:bg-transparent',
                 activeClientTab === tab.id
                   ? 'border-primary-300 text-primary-200'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
@@ -46,19 +47,20 @@
                 <component :is="tab.icon" class="w-4 h-4" />
                 {{ tab.label }}
               </span>
-            </button>
+            </Button>
           </nav>
         </div>
 
         <!-- OS/Shell Tabs -->
         <div v-if="showShellTabs" class="border-b border-border">
           <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-            <button
+            <Button
               v-for="tab in currentTabs"
               :key="tab.id"
+              variant="ghost"
               @click="activeTab = tab.id"
               :class="[
-                'whitespace-nowrap py-2.5 px-1 border-b-2 font-medium text-sm transition-colors',
+                'h-auto rounded-none whitespace-nowrap py-2.5 px-1 border-b-2 font-medium text-sm transition-colors hover:bg-transparent',
                 activeTab === tab.id
                   ? 'border-primary-300 text-primary-200'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
@@ -68,7 +70,7 @@
                 <component :is="tab.icon" class="w-4 h-4" />
                 {{ tab.label }}
               </span>
-            </button>
+            </Button>
           </nav>
         </div>
 
@@ -88,11 +90,13 @@
               <!-- Code Header -->
               <div class="flex items-center justify-between px-4 py-2 bg-secondary border-b border-border">
                 <span class="text-xs text-muted-foreground font-mono">{{ file.path }}</span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   @click="copyContent(file.content, index)"
-                  class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
+                  class="h-auto gap-1.5 px-2.5 py-1 text-xs font-medium"
                   :class="copiedIndex === index
-                    ? 'bg-emerald-500/10 text-emerald-400'
+                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400'
                     : 'bg-secondary hover:bg-accent text-foreground/85 hover:text-foreground'"
                 >
                   <svg v-if="copiedIndex === index" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -102,7 +106,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
                   </svg>
                   {{ copiedIndex === index ? t('keys.useKeyModal.copied') : t('keys.useKeyModal.copy') }}
-                </button>
+                </Button>
               </div>
               <!-- Code Content -->
               <pre class="p-4 text-sm font-mono text-foreground overflow-x-auto"><code v-if="file.highlighted" v-html="file.highlighted"></code><code v-else v-text="file.content"></code></pre>
@@ -122,12 +126,12 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button
+        <Button
+          variant="secondary"
           @click="emit('close')"
-          class="btn btn-secondary"
         >
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -138,6 +142,7 @@ import { ref, computed, h, watch, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 import { useClipboard } from '@/composables/useClipboard'
 import type { GroupPlatform } from '@/types'
 

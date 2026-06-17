@@ -12,28 +12,26 @@
       class="space-y-5"
     >
       <div>
-        <label class="input-label">{{ t('common.name') }}</label>
-        <input v-model="form.name" type="text" required class="input" data-tour="edit-account-form-name" />
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('common.name') }}</label>
+        <Input v-model="form.name" type="text" required data-tour="edit-account-form-name" />
       </div>
       <div>
-        <label class="input-label">{{ t('admin.accounts.notes') }}</label>
-        <textarea
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.notes') }}</label>
+        <Textarea
           v-model="form.notes"
           rows="3"
-          class="input"
           :placeholder="t('admin.accounts.notesPlaceholder')"
-        ></textarea>
-        <p class="input-hint">{{ t('admin.accounts.notesHint') }}</p>
+        />
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.notesHint') }}</p>
       </div>
 
       <!-- API Key fields (only for apikey type) -->
       <div v-if="account.type === 'apikey'" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.baseUrl') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.baseUrl') }}</label>
+          <Input
             v-model="editBaseUrl"
             type="text"
-            class="input"
             :placeholder="
               account.platform === 'openai'
                 ? 'https://api.openai.com'
@@ -44,14 +42,14 @@
                     : 'https://api.anthropic.com'
             "
           />
-          <p class="input-hint">{{ baseUrlHint }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ baseUrlHint }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.apiKey') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.apiKey') }}</label>
+          <Input
             v-model="editApiKey"
             type="password"
-            class="input font-mono"
+            class="font-mono"
             autocomplete="new-password"
             data-1p-ignore
             data-lpignore="true"
@@ -66,18 +64,18 @@
                     : 'sk-ant-...'
             "
           />
-          <p class="input-hint">{{ t('admin.accounts.leaveEmptyToKeep') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.leaveEmptyToKeep') }}</p>
         </div>
 
         <!-- Model Restriction Section (不适用于 Antigravity) -->
         <div v-if="account.platform !== 'antigravity'" class="border-t border-border pt-4">
-          <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
           <div
             v-if="isOpenAIModelRestrictionDisabled"
             class="mb-3 rounded-md bg-amber-500/10 p-3 border border-amber-500/30"
           >
-            <p class="text-xs text-amber-400">
+            <p class="text-xs text-amber-500">
               {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
             </p>
           </div>
@@ -85,13 +83,14 @@
           <template v-else>
             <!-- Mode Toggle -->
             <div class="mb-4 flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 @click="modelRestrictionMode = 'whitelist'"
                 :class="[
                   'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                   modelRestrictionMode === 'whitelist'
-                    ? 'bg-secondary text-primary-200 border border-border '
+                    ? 'bg-secondary text-primary border border-border '
                     : 'bg-muted text-muted-foreground hover:bg-accent'
                 ]"
               >
@@ -109,14 +108,15 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelWhitelist') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
                 @click="modelRestrictionMode = 'mapping'"
                 :class="[
                   'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                   modelRestrictionMode === 'mapping'
-                    ? 'bg-secondary text-primary-200 border border-border '
+                    ? 'bg-secondary text-primary border border-border '
                     : 'bg-muted text-muted-foreground hover:bg-accent'
                 ]"
               >
@@ -134,7 +134,7 @@
                   />
                 </svg>
                 {{ t('admin.accounts.modelMapping') }}
-              </button>
+              </Button>
             </div>
 
             <!-- Whitelist Mode -->
@@ -176,10 +176,10 @@
                 :key="getModelMappingKey(mapping)"
                 class="flex items-center gap-2"
               >
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg
@@ -195,16 +195,18 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -214,14 +216,15 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="addModelMapping"
-              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300 hover:text-foreground"
+              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
             >
               <svg
                 class="mr-1 inline h-4 w-4"
@@ -237,19 +240,20 @@
                 />
               </svg>
               {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
 
               <!-- Quick Add Buttons -->
               <div class="flex flex-wrap gap-2">
-                <button
+                <Button
                   v-for="preset in presetMappings"
                   :key="preset.label"
                   type="button"
+                  variant="ghost"
                   @click="addPresetMapping(preset.from, preset.to)"
-                  :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+                  :class="['rounded-md px-3 py-1 text-xs transition-colors h-auto', preset.color]"
                 >
                   + {{ preset.label }}
-                </button>
+                </Button>
               </div>
             </div>
           </template>
@@ -259,42 +263,27 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.poolMode') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.poolMode') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.poolModeHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="poolModeEnabled = !poolModeEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                poolModeEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  poolModeEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="poolModeEnabled" />
           </div>
-          <div v-if="poolModeEnabled" class="rounded-md bg-primary-300/10 p-3 border border-primary-300/30">
-            <p class="text-xs text-primary-200">
+          <div v-if="poolModeEnabled" class="rounded-md bg-primary/10 p-3 border border-primary/30">
+            <p class="text-xs text-primary">
               <Icon name="exclamationCircle" size="sm" class="mr-1 inline" :stroke-width="2" />
               {{ t('admin.accounts.poolModeInfo') }}
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryCount') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryCount') }}</label>
+            <Input
               v-model.number="poolModeRetryCount"
               type="number"
               min="0"
               :max="MAX_POOL_MODE_RETRY_COUNT"
               step="1"
-              class="input"
             />
             <p class="mt-1 text-xs text-muted-foreground">
               {{
@@ -306,11 +295,10 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
+            <Input
               v-model="poolModeRetryStatusCodesInput"
               type="text"
-              class="input"
               :placeholder="DEFAULT_POOL_MODE_RETRY_STATUS_CODES.join(', ')"
             />
             <p class="mt-1 text-xs text-muted-foreground">
@@ -323,31 +311,17 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.customErrorCodes') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.customErrorCodes') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.customErrorCodesHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="customErrorCodesEnabled = !customErrorCodesEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                customErrorCodesEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  customErrorCodesEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="customErrorCodesEnabled" />
           </div>
 
           <div v-if="customErrorCodesEnabled" class="space-y-3">
             <div class="rounded-md bg-amber-500/10 p-3 border border-amber-500/30">
-              <p class="text-xs text-amber-400">
+              <p class="text-xs text-amber-500">
                 <Icon name="exclamationTriangle" size="sm" class="mr-1 inline" :stroke-width="2" />
                 {{ t('admin.accounts.customErrorCodesWarning') }}
               </p>
@@ -355,34 +329,35 @@
 
             <!-- Error Code Buttons -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="code in commonErrorCodes"
                 :key="code.value"
                 type="button"
+                variant="ghost"
                 @click="toggleErrorCode(code.value)"
                 :class="[
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors h-auto',
                   selectedErrorCodes.includes(code.value)
-                    ? 'bg-red-500/10 text-red-400 ring-1 ring-red-500/40'
+                    ? 'bg-destructive/10 text-destructive ring-1 ring-destructive/40'
                     : 'bg-muted text-muted-foreground hover:bg-accent'
                 ]"
               >
                 {{ code.value }} {{ code.label }}
-              </button>
+              </Button>
             </div>
 
             <!-- Manual input -->
             <div class="flex items-center gap-2">
-              <input
+              <Input
                 v-model.number="customErrorCodeInput"
                 type="number"
                 min="100"
                 max="599"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.enterErrorCode')"
                 @keyup.enter="addCustomErrorCode"
               />
-              <button type="button" @click="addCustomErrorCode" class="btn btn-secondary px-3">
+              <Button type="button" variant="outline" size="icon" @click="addCustomErrorCode">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     stroke-linecap="round"
@@ -391,25 +366,28 @@
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
 
             <!-- Selected codes summary -->
             <div class="flex flex-wrap gap-1.5">
-              <span
+              <Badge
                 v-for="code in selectedErrorCodes.sort((a, b) => a - b)"
                 :key="code"
-                class="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-sm font-medium text-red-400 border border-red-500/30"
+                variant="outline"
+                class="gap-1 bg-destructive/10 px-2.5 py-0.5 text-sm font-medium text-destructive border-destructive/30"
               >
                 {{ code }}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeErrorCode(code)"
-                  class="hover:text-red-300"
+                  class="h-auto w-auto p-0 hover:bg-transparent hover:text-destructive/80"
                 >
                   <Icon name="x" size="sm" :stroke-width="2" />
-                </button>
-              </span>
+                </Button>
+              </Badge>
               <span v-if="selectedErrorCodes.length === 0" class="text-xs text-muted-foreground">
                 {{ t('admin.accounts.noneSelectedUsesDefault') }}
               </span>
@@ -424,13 +402,13 @@
         v-if="account.platform === 'openai' && account.type === 'oauth'"
         class="border-t border-border pt-4"
       >
-        <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
         <div
           v-if="isOpenAIModelRestrictionDisabled"
           class="mb-3 rounded-md bg-amber-500/10 p-3 border border-amber-500/30"
         >
-          <p class="text-xs text-amber-400">
+          <p class="text-xs text-amber-500">
             {{ t('admin.accounts.openai.modelRestrictionDisabledByPassthrough') }}
           </p>
         </div>
@@ -438,30 +416,32 @@
         <template v-else>
           <!-- Mode Toggle -->
           <div class="mb-4 flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'whitelist'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'whitelist'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
               {{ t('admin.accounts.modelWhitelist') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'mapping'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'mapping'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
               {{ t('admin.accounts.modelMapping') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Whitelist Mode -->
@@ -489,10 +469,10 @@
                 :key="'oauth-' + getModelMappingKey(mapping)"
                 class="flex items-center gap-2"
               >
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg
@@ -508,16 +488,18 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -527,29 +509,31 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="addModelMapping"
-              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300 hover:text-foreground"
+              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
             >
               + {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
 
             <!-- Quick Add Buttons -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="preset in presetMappings"
                 :key="'oauth-' + preset.label"
                 type="button"
+                variant="ghost"
                 @click="addPresetMapping(preset.from, preset.to)"
-                :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+                :class="['rounded-md px-3 py-1 text-xs transition-colors h-auto', preset.color]"
               >
                 + {{ preset.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </template>
@@ -558,24 +542,23 @@
       <!-- Upstream fields (only for upstream type) -->
       <div v-if="account.type === 'upstream'" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.upstream.baseUrl') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.upstream.baseUrl') }}</label>
+          <Input
             v-model="editBaseUrl"
             type="text"
-            class="input"
             placeholder="https://cloudcode-pa.googleapis.com"
           />
-          <p class="input-hint">{{ t('admin.accounts.upstream.baseUrlHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.upstream.baseUrlHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.upstream.apiKey') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.upstream.apiKey') }}</label>
+          <Input
             v-model="editApiKey"
             type="password"
-            class="input font-mono"
+            class="font-mono"
             placeholder="sk-..."
           />
-          <p class="input-hint">{{ t('admin.accounts.leaveEmptyToKeep') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.leaveEmptyToKeep') }}</p>
         </div>
       </div>
 
@@ -583,54 +566,56 @@
       <div v-if="(account.platform === 'gemini' || account.platform === 'anthropic') && account.type === 'service_account'" class="space-y-4">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label class="input-label">Project ID</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">Project ID</label>
+            <Input
               v-model="editVertexProjectId"
               type="text"
-              class="input font-mono"
+              class="font-mono"
               readonly
               :placeholder="t('admin.accounts.vertexProjectIdPlaceholder')"
             />
-            <p class="input-hint">{{ t('admin.accounts.vertexSaJsonEditHint') }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.vertexSaJsonEditHint') }}</p>
           </div>
           <div>
-            <label class="input-label">Location</label>
-            <select
-              v-model="editVertexLocation"
-              required
-              class="input font-mono"
-            >
-              <optgroup
-                v-for="group in VERTEX_LOCATION_OPTIONS"
-                :key="group.label"
-                :label="group.label"
-              >
-                <option
-                  v-for="option in group.options"
-                  :key="option.value"
-                  :value="option.value"
+            <label class="mb-1.5 block text-sm font-medium text-foreground">Location</label>
+            <ShadSelect v-model="editVertexLocation" required>
+              <SelectTrigger class="font-mono">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup
+                  v-for="group in VERTEX_LOCATION_OPTIONS"
+                  :key="group.label"
                 >
-                  {{ option.label }}
-                </option>
-              </optgroup>
-            </select>
-            <p class="input-hint">{{ t('admin.accounts.vertexLocationHint') }}</p>
+                  <SelectLabel>{{ group.label }}</SelectLabel>
+                  <SelectItem
+                    v-for="option in group.options"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </ShadSelect>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.vertexLocationHint') }}</p>
           </div>
         </div>
 
         <!-- Model Restriction Section for Service Account -->
         <div class="border-t border-border pt-4">
-          <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
           <!-- Mode Toggle -->
           <div class="mb-4 flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'whitelist'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'whitelist'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
@@ -648,14 +633,15 @@
                 />
               </svg>
               {{ t('admin.accounts.modelWhitelist') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'mapping'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'mapping'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
@@ -673,7 +659,7 @@
                 />
               </svg>
               {{ t('admin.accounts.modelMapping') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Whitelist Mode -->
@@ -715,10 +701,10 @@
                 :key="getModelMappingKey(mapping)"
                 class="flex items-center gap-2"
               >
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.requestModel')"
                 />
                 <svg
@@ -734,16 +720,18 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3"
                   />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
-                  class="input flex-1"
+                  class="flex-1"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -753,14 +741,15 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="addModelMapping"
-              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300 hover:text-foreground"
+              class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
             >
               <svg
                 class="mr-1 inline h-4 w-4"
@@ -776,19 +765,20 @@
                 />
               </svg>
               {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
 
             <!-- Quick Add Buttons -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="preset in presetMappings"
                 :key="preset.label"
                 type="button"
+                variant="ghost"
                 @click="addPresetMapping(preset.from, preset.to)"
-                :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+                :class="['rounded-md px-3 py-1 text-xs transition-colors h-auto', preset.color]"
               >
                 + {{ preset.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -799,103 +789,100 @@
         <!-- SigV4 fields -->
         <template v-if="!isBedrockAPIKeyMode">
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockAccessKeyId') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockAccessKeyId') }}</label>
+            <Input
               v-model="editBedrockAccessKeyId"
               type="text"
-              class="input font-mono"
+              class="font-mono"
               placeholder="AKIA..."
             />
           </div>
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockSecretAccessKey') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockSecretAccessKey') }}</label>
+            <Input
               v-model="editBedrockSecretAccessKey"
               type="password"
-              class="input font-mono"
+              class="font-mono"
               :placeholder="t('admin.accounts.bedrockSecretKeyLeaveEmpty')"
             />
-            <p class="input-hint">{{ t('admin.accounts.bedrockSecretKeyLeaveEmpty') }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockSecretKeyLeaveEmpty') }}</p>
           </div>
           <div>
-            <label class="input-label">{{ t('admin.accounts.bedrockSessionToken') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockSessionToken') }}</label>
+            <Input
               v-model="editBedrockSessionToken"
               type="password"
-              class="input font-mono"
+              class="font-mono"
               :placeholder="t('admin.accounts.bedrockSecretKeyLeaveEmpty')"
             />
-            <p class="input-hint">{{ t('admin.accounts.bedrockSessionTokenHint') }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockSessionTokenHint') }}</p>
           </div>
         </template>
 
         <!-- API Key field -->
         <div v-if="isBedrockAPIKeyMode">
-          <label class="input-label">{{ t('admin.accounts.bedrockApiKeyInput') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockApiKeyInput') }}</label>
+          <Input
             v-model="editBedrockApiKeyValue"
             type="password"
-            class="input font-mono"
+            class="font-mono"
             :placeholder="t('admin.accounts.bedrockApiKeyLeaveEmpty')"
           />
-          <p class="input-hint">{{ t('admin.accounts.bedrockApiKeyLeaveEmpty') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockApiKeyLeaveEmpty') }}</p>
         </div>
 
         <!-- Shared: Region -->
         <div>
-          <label class="input-label">{{ t('admin.accounts.bedrockRegion') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.bedrockRegion') }}</label>
+          <Input
             v-model="editBedrockRegion"
             type="text"
-            class="input"
             placeholder="us-east-1"
           />
-          <p class="input-hint">{{ t('admin.accounts.bedrockRegionHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.bedrockRegionHint') }}</p>
         </div>
 
         <!-- Shared: Force Global -->
         <div>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              v-model="editBedrockForceGlobal"
-              type="checkbox"
-              class="rounded border-border bg-card text-primary-600 focus:ring-ring"
-            />
+            <Checkbox v-model="editBedrockForceGlobal" />
             <span class="text-sm text-foreground/85">{{ t('admin.accounts.bedrockForceGlobal') }}</span>
           </label>
-          <p class="input-hint mt-1">{{ t('admin.accounts.bedrockForceGlobalHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground mt-1">{{ t('admin.accounts.bedrockForceGlobalHint') }}</p>
         </div>
 
         <!-- Model Restriction for Bedrock -->
         <div class="border-t border-border pt-4">
-          <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
           <!-- Mode Toggle -->
           <div class="mb-4 flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'whitelist'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'whitelist'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
               {{ t('admin.accounts.modelWhitelist') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               @click="modelRestrictionMode = 'mapping'"
               :class="[
                 'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                 modelRestrictionMode === 'mapping'
-                  ? 'bg-secondary text-primary-200 border border-border '
+                  ? 'bg-secondary text-primary border border-border '
                   : 'bg-muted text-muted-foreground hover:bg-accent'
               ]"
             >
               {{ t('admin.accounts.modelMapping') }}
-            </button>
+            </Button>
           </div>
 
           <!-- Whitelist Mode -->
@@ -910,27 +897,28 @@
           <!-- Mapping Mode -->
           <div v-else class="space-y-3">
             <div v-for="(mapping, index) in modelMappings" :key="getModelMappingKey(mapping)" class="flex items-center gap-2">
-              <input v-model="mapping.from" type="text" class="input flex-1" :placeholder="t('admin.accounts.fromModel')" />
+              <Input v-model="mapping.from" type="text" class="flex-1" :placeholder="t('admin.accounts.fromModel')" />
               <span class="text-muted-foreground">→</span>
-              <input v-model="mapping.to" type="text" class="input flex-1" :placeholder="t('admin.accounts.toModel')" />
-              <button type="button" @click="modelMappings.splice(index, 1)" class="text-red-400 hover:text-red-300">
+              <Input v-model="mapping.to" type="text" class="flex-1" :placeholder="t('admin.accounts.toModel')" />
+              <Button type="button" variant="ghost" size="icon" @click="modelMappings.splice(index, 1)" class="text-destructive hover:bg-transparent hover:text-destructive/80">
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
-            <button type="button" @click="modelMappings.push({ from: '', to: '' })" class="btn btn-secondary text-sm">
+            <Button type="button" variant="outline" size="sm" class="text-sm" @click="modelMappings.push({ from: '', to: '' })">
               + {{ t('admin.accounts.addMapping') }}
-            </button>
+            </Button>
             <!-- Bedrock Preset Mappings -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="preset in bedrockPresets"
                 :key="preset.from"
                 type="button"
+                variant="ghost"
                 @click="modelMappings.push({ from: preset.from, to: preset.to })"
-                :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+                :class="['rounded-md px-3 py-1 text-xs transition-colors h-auto', preset.color]"
               >
                 + {{ preset.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -939,42 +927,27 @@
         <div class="border-t border-border pt-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.poolMode') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.poolMode') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.poolModeHint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="poolModeEnabled = !poolModeEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                poolModeEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  poolModeEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="poolModeEnabled" />
           </div>
-          <div v-if="poolModeEnabled" class="rounded-md bg-primary-300/10 p-3 border border-primary-300/30">
-            <p class="text-xs text-primary-200">
+          <div v-if="poolModeEnabled" class="rounded-md bg-primary/10 p-3 border border-primary/30">
+            <p class="text-xs text-primary">
               <Icon name="exclamationCircle" size="sm" class="mr-1 inline" :stroke-width="2" />
               {{ t('admin.accounts.poolModeInfo') }}
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryCount') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryCount') }}</label>
+            <Input
               v-model.number="poolModeRetryCount"
               type="number"
               min="0"
               :max="MAX_POOL_MODE_RETRY_COUNT"
               step="1"
-              class="input"
             />
             <p class="mt-1 text-xs text-muted-foreground">
               {{
@@ -986,11 +959,10 @@
             </p>
           </div>
           <div v-if="poolModeEnabled" class="mt-3">
-            <label class="input-label">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
-            <input
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.poolModeRetryStatusCodes') }}</label>
+            <Input
               v-model="poolModeRetryStatusCodesInput"
               type="text"
-              class="input"
               :placeholder="DEFAULT_POOL_MODE_RETRY_STATUS_CODES.join(', ')"
             />
             <p class="mt-1 text-xs text-muted-foreground">
@@ -1003,7 +975,7 @@
       <!-- Antigravity model restriction (applies to all antigravity types) -->
       <!-- Antigravity 只支持模型映射模式，不支持白名单模式 -->
       <div v-if="account.platform === 'antigravity'" class="border-t border-border pt-4">
-        <label class="input-label">{{ t('admin.accounts.modelRestriction') }}</label>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.modelRestriction') }}</label>
 
         <!-- Mapping Mode Only (no toggle for Antigravity) -->
         <div>
@@ -1012,14 +984,15 @@
           </div>
 
           <div class="mb-3 flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               @click="syncAntigravityUpstreamModels"
               :disabled="isSyncingAntigravityUpstream || !account?.id"
-              class="rounded-md border border-emerald-500/30 px-3 py-1.5 text-sm text-emerald-400 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+              class="rounded-md border-emerald-500/30 px-3 py-1.5 text-sm text-emerald-500 hover:bg-emerald-500/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {{ isSyncingAntigravityUpstream ? t('admin.accounts.syncUpstreamModelsLoading') : t('admin.accounts.syncUpstreamModels') }}
-            </button>
+            </Button>
           </div>
 
           <div v-if="antigravityModelMappings.length > 0" class="mb-3 space-y-2">
@@ -1029,12 +1002,12 @@
               class="space-y-1"
             >
               <div class="flex items-center gap-2">
-                <input
+                <Input
                   v-model="mapping.from"
                   type="text"
                   :class="[
-                    'input flex-1',
-                    !isValidWildcardPattern(mapping.from) ? 'border-red-500' : '',
+                    'flex-1',
+                    !isValidWildcardPattern(mapping.from) ? 'border-destructive' : '',
                     mapping.to.includes('*') ? '' : ''
                   ]"
                   :placeholder="t('admin.accounts.requestModel')"
@@ -1042,19 +1015,21 @@
                 <svg class="h-4 w-4 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-                <input
+                <Input
                   v-model="mapping.to"
                   type="text"
                   :class="[
-                    'input flex-1',
-                    mapping.to.includes('*') ? 'border-red-500' : ''
+                    'flex-1',
+                    mapping.to.includes('*') ? 'border-destructive' : ''
                   ]"
                   :placeholder="t('admin.accounts.actualModel')"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   @click="removeAntigravityModelMapping(index)"
-                  class="rounded-md p-2 text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+                  class="rounded-md p-2 text-destructive transition-colors hover:bg-destructive/10 hover:text-destructive/80"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -1064,39 +1039,41 @@
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                     />
                   </svg>
-                </button>
+                </Button>
               </div>
               <!-- 校验错误提示 -->
-              <p v-if="!isValidWildcardPattern(mapping.from)" class="text-xs text-red-400">
+              <p v-if="!isValidWildcardPattern(mapping.from)" class="text-xs text-destructive">
                 {{ t('admin.accounts.wildcardOnlyAtEnd') }}
               </p>
-              <p v-if="mapping.to.includes('*')" class="text-xs text-red-400">
+              <p v-if="mapping.to.includes('*')" class="text-xs text-destructive">
                 {{ t('admin.accounts.targetNoWildcard') }}
               </p>
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             @click="addAntigravityModelMapping"
-            class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary-300 hover:text-foreground"
+            class="mb-3 w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
             <svg class="mr-1 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             {{ t('admin.accounts.addMapping') }}
-          </button>
+          </Button>
 
           <div class="flex flex-wrap gap-2">
-            <button
+            <Button
               v-for="preset in antigravityPresetMappings"
               :key="preset.label"
               type="button"
+              variant="ghost"
               @click="addAntigravityPresetMapping(preset.from, preset.to)"
-              :class="['rounded-md px-3 py-1 text-xs transition-colors', preset.color]"
+              :class="['rounded-md px-3 py-1 text-xs transition-colors h-auto', preset.color]"
             >
               + {{ preset.label }}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -1105,46 +1082,33 @@
       <div class="border-t border-border pt-4 space-y-4">
         <div class="mb-3 flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.tempUnschedulable.title') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.tempUnschedulable.title') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.tempUnschedulable.hint') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="tempUnschedEnabled = !tempUnschedEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              tempUnschedEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                tempUnschedEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="tempUnschedEnabled" />
         </div>
 
         <div v-if="tempUnschedEnabled" class="space-y-3">
-          <div class="rounded-md bg-primary-300/10 p-3 border border-primary-300/30">
-            <p class="text-xs text-primary-200">
+          <div class="rounded-md bg-primary/10 p-3 border border-primary/30">
+            <p class="text-xs text-primary">
               <Icon name="exclamationTriangle" size="sm" class="mr-1 inline" :stroke-width="2" />
               {{ t('admin.accounts.tempUnschedulable.notice') }}
             </p>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button
+            <Button
               v-for="preset in tempUnschedPresets"
               :key="preset.label"
               type="button"
+              variant="ghost"
               @click="addTempUnschedRule(preset.rule)"
-              class="rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
+              class="h-auto rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
             >
               + {{ preset.label }}
-            </button>
+            </Button>
           </div>
 
           <div v-if="tempUnschedRules.length > 0" class="space-y-3">
@@ -1158,72 +1122,74 @@
                   {{ t('admin.accounts.tempUnschedulable.ruleIndex', { index: index + 1 }) }}
                 </span>
                 <div class="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     :disabled="index === 0"
                     @click="moveTempUnschedRule(index, -1)"
-                    class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                    class="h-auto w-auto rounded p-1 text-muted-foreground transition-colors hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Icon name="chevronUp" size="sm" :stroke-width="2" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     :disabled="index === tempUnschedRules.length - 1"
                     @click="moveTempUnschedRule(index, 1)"
-                    class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+                    class="h-auto w-auto rounded p-1 text-muted-foreground transition-colors hover:bg-transparent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     @click="removeTempUnschedRule(index)"
-                    class="rounded p-1 text-red-400 transition-colors hover:text-red-300"
+                    class="h-auto w-auto rounded p-1 text-destructive transition-colors hover:bg-transparent hover:text-destructive/80"
                   >
                     <Icon name="x" size="sm" :stroke-width="2" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.errorCode') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.errorCode') }}</label>
+                  <Input
                     v-model.number="rule.error_code"
                     type="number"
                     min="100"
                     max="599"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.errorCodePlaceholder')"
                   />
                 </div>
                 <div>
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.durationMinutes') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.durationMinutes') }}</label>
+                  <Input
                     v-model.number="rule.duration_minutes"
                     type="number"
                     min="1"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.durationPlaceholder')"
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.keywords') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.keywords') }}</label>
+                  <Input
                     v-model="rule.keywords"
                     type="text"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.keywordsPlaceholder')"
                   />
-                  <p class="input-hint">{{ t('admin.accounts.tempUnschedulable.keywordsHint') }}</p>
+                  <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.tempUnschedulable.keywordsHint') }}</p>
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="input-label">{{ t('admin.accounts.tempUnschedulable.description') }}</label>
-                  <input
+                  <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.tempUnschedulable.description') }}</label>
+                  <Input
                     v-model="rule.description"
                     type="text"
-                    class="input"
                     :placeholder="t('admin.accounts.tempUnschedulable.descriptionPlaceholder')"
                   />
                 </div>
@@ -1231,10 +1197,11 @@
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             @click="addTempUnschedRule()"
-            class="w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary-300 hover:text-foreground"
+            class="w-full rounded-md border-2 border-dashed border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
             <svg
               class="mr-1 inline h-4 w-4"
@@ -1245,7 +1212,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             {{ t('admin.accounts.tempUnschedulable.addRule') }}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1256,72 +1223,57 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{
               t('admin.accounts.interceptWarmupRequests')
             }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.interceptWarmupRequestsDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="interceptWarmupRequests = !interceptWarmupRequests"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              interceptWarmupRequests ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                interceptWarmupRequests ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="interceptWarmupRequests" />
         </div>
       </div>
 
       <div>
         <div class="mb-1 flex items-center gap-2">
-          <label class="input-label mb-0">{{ t('admin.accounts.proxy') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.proxy') }}</label>
         </div>
         <ProxySelector v-model="form.proxy_id" :proxies="proxies" />
       </div>
 
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div>
-          <label class="input-label">{{ t('admin.accounts.concurrency') }}</label>
-          <input v-model.number="form.concurrency" type="number" min="1" class="input"
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.concurrency') }}</label>
+          <Input v-model.number="form.concurrency" type="number" min="1"
             @input="form.concurrency = Math.max(1, form.concurrency || 1)" />
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.loadFactor') }}</label>
-          <input v-model.number="form.load_factor" type="number" min="1"
-            class="input" :placeholder="String(form.concurrency || 1)"
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.loadFactor') }}</label>
+          <Input v-model.number="form.load_factor" type="number" min="1"
+            :placeholder="String(form.concurrency || 1)"
             @input="form.load_factor = (form.load_factor &amp;&amp; form.load_factor >= 1) ? form.load_factor : null" />
-          <p class="input-hint">{{ t('admin.accounts.loadFactorHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.loadFactorHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.priority') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.priority') }}</label>
+          <Input
             v-model.number="form.priority"
             type="number"
             min="1"
-            class="input"
             data-tour="account-form-priority"
           />
-          <p class="input-hint">{{ t('admin.accounts.priorityHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.priorityHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.billingRateMultiplier') }}</label>
-          <input v-model.number="form.rate_multiplier" type="number" min="0" step="0.001" class="input" />
-          <p class="input-hint">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.billingRateMultiplier') }}</label>
+          <Input v-model.number="form.rate_multiplier" type="number" min="0" step="0.001" />
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.billingRateMultiplierHint') }}</p>
         </div>
       </div>
       <div class="border-t border-border pt-4">
-        <label class="input-label">{{ t('admin.accounts.expiresAt') }}</label>
-        <input v-model="expiresAtInput" type="datetime-local" class="input" />
-        <p class="input-hint">{{ t('admin.accounts.expiresAtHint') }}</p>
+        <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.expiresAt') }}</label>
+        <Input v-model="expiresAtInput" type="datetime-local" />
+        <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.expiresAtHint') }}</p>
       </div>
 
       <!-- OpenAI 自动透传开关（OAuth/API Key） -->
@@ -1331,26 +1283,12 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.oauthPassthrough') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.oauthPassthrough') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.oauthPassthroughDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="openaiPassthroughEnabled = !openaiPassthroughEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              openaiPassthroughEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                openaiPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="openaiPassthroughEnabled" />
         </div>
       </div>
 
@@ -1361,18 +1299,19 @@
       >
         <div class="overflow-hidden rounded-lg border border-border bg-card ">
           <div class="flex items-start gap-3 px-4 py-3">
-            <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary text-primary-200  ring-1 ring-border">
+            <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary text-primary  ring-1 ring-border">
               <Icon name="sparkles" size="sm" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                <label class="input-label mb-0">{{ t('admin.accounts.openai.codexImageGenerationBridge') }}</label>
-                <span
-                  class="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.codexImageGenerationBridge') }}</label>
+                <Badge
+                  variant="outline"
+                  class="border-transparent px-2 py-0.5 text-[11px] font-medium"
                   :class="codexImageGenerationBridgeBadgeClass"
                 >
                   {{ codexImageGenerationBridgeBadgeLabel }}
-                </span>
+                </Badge>
               </div>
               <p class="mt-1 text-xs leading-5 text-muted-foreground">
                 {{ t('admin.accounts.openai.codexImageGenerationBridgeDesc') }}
@@ -1381,14 +1320,15 @@
           </div>
           <div class="border-t border-border bg-card p-2">
             <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <button
+              <Button
                 v-for="option in codexImageGenerationBridgeOptions"
                 :key="option.value"
                 type="button"
+                variant="ghost"
                 :data-testid="`codex-image-bridge-${option.value}`"
                 @click="codexImageGenerationBridgeMode = option.value"
                 :class="[
-                  'group flex min-h-[68px] items-start gap-2 rounded-md border px-3 py-2 text-left transition-all',
+                  'group flex h-auto min-h-[68px] items-start justify-start gap-2 rounded-md border px-3 py-2 text-left transition-all',
                   codexImageGenerationBridgeMode === option.value
                     ? 'border-border bg-secondary text-foreground  ring-1 ring-border'
                     : 'border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-accent'
@@ -1398,8 +1338,8 @@
                   :class="[
                     'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors',
                     codexImageGenerationBridgeMode === option.value
-                      ? 'border-primary-300 bg-primary-300 text-dark-900'
-                      : 'border-border text-transparent group-hover:border-primary-300'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border text-transparent group-hover:border-primary'
                   ]"
                 >
                   <Icon name="check" size="xs" :stroke-width="2" />
@@ -1408,7 +1348,7 @@
                   <span class="block text-sm font-medium">{{ option.label }}</span>
                   <span class="mt-0.5 block text-xs leading-4 text-muted-foreground">{{ option.description }}</span>
                 </span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1421,7 +1361,7 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.wsMode') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.wsMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.wsModeDesc') }}
             </p>
@@ -1442,7 +1382,7 @@
       >
         <div class="flex items-center justify-between gap-4">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.responsesMode') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.responsesMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.responsesModeDesc') }}
             </p>
@@ -1464,13 +1404,13 @@
         </div>
         <div
           v-else
-          class="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-400 border border-amber-500/30"
+          class="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-500 border border-amber-500/30"
           data-testid="openai-responses-mode-not-applicable"
         >
           {{ t('admin.accounts.openai.responsesModeTextDisabledHint') }}
         </div>
         <div>
-          <label class="input-label mb-2 block">{{ t('admin.accounts.openai.endpointCapabilities') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground mb-2 block">{{ t('admin.accounts.openai.endpointCapabilities') }}</label>
           <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label
               v-for="option in openAIEndpointCapabilityOptions"
@@ -1479,7 +1419,7 @@
             >
               <input
                 type="checkbox"
-                class="rounded border-border bg-card text-primary-600 focus:ring-ring"
+                class="rounded border-border bg-card text-primary focus:ring-ring"
                 :data-testid="`openai-endpoint-capability-${option.value}`"
                 :checked="openAIEndpointCapabilities.includes(option.value)"
                 @change="toggleOpenAIEndpointCapability(option.value, $event)"
@@ -1487,7 +1427,7 @@
               <span class="text-foreground/85">{{ option.label }}</span>
             </label>
           </div>
-          <p class="input-hint">{{ t('admin.accounts.openai.endpointCapabilitiesDesc') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.openai.endpointCapabilitiesDesc') }}</p>
         </div>
       </div>
 
@@ -1498,26 +1438,12 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.anthropic.apiKeyPassthrough') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.anthropic.apiKeyPassthrough') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.anthropic.apiKeyPassthroughDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="anthropicPassthroughEnabled = !anthropicPassthroughEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              anthropicPassthroughEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                anthropicPassthroughEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="anthropicPassthroughEnabled" />
         </div>
       </div>
 
@@ -1528,16 +1454,21 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.anthropic.webSearchEmulation') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.anthropic.webSearchEmulation') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.anthropic.webSearchEmulationDesc') }}
             </p>
           </div>
-          <select v-model="webSearchEmulationMode" class="input w-24 text-sm">
-            <option value="default">{{ t('admin.accounts.anthropic.webSearchDefault') }}</option>
-            <option value="enabled">{{ t('admin.accounts.anthropic.webSearchEnabled') }}</option>
-            <option value="disabled">{{ t('admin.accounts.anthropic.webSearchDisabled') }}</option>
-          </select>
+          <ShadSelect v-model="webSearchEmulationMode">
+            <SelectTrigger class="w-24 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default">{{ t('admin.accounts.anthropic.webSearchDefault') }}</SelectItem>
+              <SelectItem value="enabled">{{ t('admin.accounts.anthropic.webSearchEnabled') }}</SelectItem>
+              <SelectItem value="disabled">{{ t('admin.accounts.anthropic.webSearchDisabled') }}</SelectItem>
+            </SelectContent>
+          </ShadSelect>
         </div>
       </div>
 
@@ -1547,7 +1478,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-1.5 block text-sm font-medium text-foreground mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaControl.hint') }}
           </p>
@@ -1598,7 +1529,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-1.5 block text-sm font-medium text-foreground mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaLimitHint') }}
           </p>
@@ -1651,52 +1582,24 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.codexCLIOnly') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.codexCLIOnly') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.codexCLIOnlyDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="codexCLIOnlyEnabled = !codexCLIOnlyEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              codexCLIOnlyEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="codexCLIOnlyEnabled" />
         </div>
         <div
           v-if="codexCLIOnlyEnabled"
           class="mt-4 flex items-center justify-between border-l-2 border-border pl-4"
         >
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCode') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.codexCLIOnlyAllowClaudeCodeDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="codexCLIOnlyAllowClaudeCodeEnabled = !codexCLIOnlyAllowClaudeCodeEnabled"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              codexCLIOnlyAllowClaudeCodeEnabled ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                codexCLIOnlyAllowClaudeCodeEnabled ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="codexCLIOnlyAllowClaudeCodeEnabled" />
         </div>
       </div>
 
@@ -1706,7 +1609,7 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{ t('admin.accounts.openai.compactMode') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.openai.compactMode') }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.openai.compactModeDesc') }}
             </p>
@@ -1726,63 +1629,49 @@
           </span>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.openai.compactModelMapping') }}</label>
-          <p class="input-hint">{{ t('admin.accounts.openai.compactModelMappingDesc') }}</p>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.openai.compactModelMapping') }}</label>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.openai.compactModelMappingDesc') }}</p>
           <div v-if="openAICompactModelMappings.length > 0" class="mb-3 space-y-2">
             <div
               v-for="(mapping, index) in openAICompactModelMappings"
               :key="getOpenAICompactModelMappingKey(mapping)"
               class="flex items-center gap-2"
             >
-              <input
+              <Input
                 v-model="mapping.from"
                 type="text"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.fromModel')"
               />
               <span class="text-muted-foreground">→</span>
-              <input
+              <Input
                 v-model="mapping.to"
                 type="text"
-                class="input flex-1"
+                class="flex-1"
                 :placeholder="t('admin.accounts.toModel')"
               />
-              <button type="button" @click="removeOpenAICompactModelMapping(index)" class="text-red-400 hover:text-red-300">
+              <Button type="button" variant="ghost" size="icon" @click="removeOpenAICompactModelMapping(index)" class="text-destructive hover:bg-transparent hover:text-destructive/80">
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
           </div>
-          <button type="button" @click="addOpenAICompactModelMapping" class="btn btn-secondary text-sm">
+          <Button type="button" variant="outline" size="sm" class="text-sm" @click="addOpenAICompactModelMapping">
             + {{ t('admin.accounts.addMapping') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div>
         <div class="flex items-center justify-between">
           <div>
-            <label class="input-label mb-0">{{
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{
               t('admin.accounts.autoPauseOnExpired')
             }}</label>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.autoPauseOnExpiredDesc') }}
             </p>
           </div>
-          <button
-            type="button"
-            @click="autoPauseOnExpired = !autoPauseOnExpired"
-            :class="[
-              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-              autoPauseOnExpired ? 'bg-primary-600' : 'bg-muted'
-            ]"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                autoPauseOnExpired ? 'translate-x-5' : 'translate-x-0'
-              ]"
-            />
-          </button>
+          <Switch v-model="autoPauseOnExpired" />
         </div>
       </div>
 
@@ -1792,75 +1681,43 @@
       >
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('admin.accounts.autoPause5hDisabled') }}</label>
-            <button
-              type="button"
-              @click="autoPause5hDisabled = !autoPause5hDisabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                autoPause5hDisabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-              data-testid="auto-pause-5h-disabled"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  autoPause5hDisabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.autoPause5hDisabled') }}</label>
+            <Switch v-model="autoPause5hDisabled" data-testid="auto-pause-5h-disabled" />
           </div>
-          <p class="input-hint">{{ t('admin.accounts.autoPauseDisabledHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.autoPauseDisabledHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.autoPause5hThreshold') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.autoPause5hThreshold') }}</label>
+          <Input
             v-model.number="autoPause5hThreshold"
             type="number"
             min="0"
             max="100"
             step="0.1"
-            class="input"
             :disabled="autoPause5hDisabled"
             data-testid="auto-pause-5h-threshold"
           />
-          <p class="input-hint">{{ t('admin.accounts.autoPauseThresholdHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.autoPauseThresholdHint') }}</p>
         </div>
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('admin.accounts.autoPause7dDisabled') }}</label>
-            <button
-              type="button"
-              @click="autoPause7dDisabled = !autoPause7dDisabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                autoPause7dDisabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-              data-testid="auto-pause-7d-disabled"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  autoPause7dDisabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.autoPause7dDisabled') }}</label>
+            <Switch v-model="autoPause7dDisabled" data-testid="auto-pause-7d-disabled" />
           </div>
-          <p class="input-hint">{{ t('admin.accounts.autoPauseDisabledHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.autoPauseDisabledHint') }}</p>
         </div>
         <div>
-          <label class="input-label">{{ t('admin.accounts.autoPause7dThreshold') }}</label>
-          <input
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.autoPause7dThreshold') }}</label>
+          <Input
             v-model.number="autoPause7dThreshold"
             type="number"
             min="0"
             max="100"
             step="0.1"
-            class="input"
             :disabled="autoPause7dDisabled"
             data-testid="auto-pause-7d-threshold"
           />
-          <p class="input-hint">{{ t('admin.accounts.autoPauseThresholdHint') }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.autoPauseThresholdHint') }}</p>
         </div>
       </div>
 
@@ -1870,7 +1727,7 @@
         class="border-t border-border pt-4 space-y-4"
       >
         <div class="mb-3">
-          <h3 class="input-label mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
+          <h3 class="mb-1.5 block text-sm font-medium text-foreground mb-0 text-base font-semibold">{{ t('admin.accounts.quotaControl.title') }}</h3>
           <p class="mt-1 text-xs text-muted-foreground">
             {{ t('admin.accounts.quotaControl.hint') }}
           </p>
@@ -1880,58 +1737,44 @@
         <div class="rounded-lg border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.windowCost.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.windowCost.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.windowCost.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="windowCostEnabled = !windowCostEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                windowCostEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  windowCostEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="windowCostEnabled" />
           </div>
 
           <div v-if="windowCostEnabled" class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.windowCost.limit') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.windowCost.limit') }}</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">$</span>
+                <Input
                   v-model.number="windowCostLimit"
                   type="number"
                   min="0"
                   step="1"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="t('admin.accounts.quotaControl.windowCost.limitPlaceholder')"
                 />
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.windowCost.limitHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.windowCost.limitHint') }}</p>
             </div>
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.windowCost.stickyReserve') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.windowCost.stickyReserve') }}</label>
               <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">$</span>
+                <Input
                   v-model.number="windowCostStickyReserve"
                   type="number"
                   min="0"
                   step="1"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="t('admin.accounts.quotaControl.windowCost.stickyReservePlaceholder')"
                 />
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.windowCost.stickyReserveHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.windowCost.stickyReserveHint') }}</p>
             </div>
           </div>
         </div>
@@ -1940,55 +1783,40 @@
         <div class="rounded-lg border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.sessionLimit.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.sessionLimit.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.sessionLimit.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="sessionLimitEnabled = !sessionLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                sessionLimitEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  sessionLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="sessionLimitEnabled" />
           </div>
 
           <div v-if="sessionLimitEnabled" class="grid grid-cols-2 gap-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessions') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessions') }}</label>
+              <Input
                 v-model.number="maxSessions"
                 type="number"
                 min="1"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.sessionLimit.maxSessionsPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessionsHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.maxSessionsHint') }}</p>
             </div>
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeout') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeout') }}</label>
               <div class="relative">
-                <input
+                <Input
                   v-model.number="sessionIdleTimeout"
                   type="number"
                   min="1"
                   step="1"
-                  class="input pr-12"
+                  class="pr-12"
                   :placeholder="t('admin.accounts.quotaControl.sessionLimit.idleTimeoutPlaceholder')"
                 />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">{{ t('common.minutes') }}</span>
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">{{ t('common.minutes') }}</span>
               </div>
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeoutHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.sessionLimit.idleTimeoutHint') }}</p>
             </div>
           </div>
         </div>
@@ -1997,53 +1825,39 @@
         <div class="rounded-lg border border-border p-4">
           <div class="mb-3 flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.rpmLimit.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.rpmLimit.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.rpmLimit.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="rpmLimitEnabled = !rpmLimitEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                rpmLimitEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  rpmLimitEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="rpmLimitEnabled" />
           </div>
 
           <div v-if="rpmLimitEnabled" class="space-y-4">
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpm') }}</label>
+              <Input
                 v-model.number="baseRpm"
                 type="number"
                 min="1"
                 max="1000"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.baseRpmPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.baseRpmHint') }}</p>
             </div>
 
             <div>
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.strategy') }}</label>
               <div class="flex gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   @click="rpmStrategy = 'tiered'"
                   :class="[
-                    'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                    'h-auto flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
                     rpmStrategy === 'tiered'
-                      ? 'bg-secondary text-primary-200 border border-border '
+                      ? 'bg-secondary text-primary border border-border '
                       : 'bg-muted text-muted-foreground hover:bg-accent'
                   ]"
                 >
@@ -2051,14 +1865,15 @@
                     <div>{{ t('admin.accounts.quotaControl.rpmLimit.strategyTiered') }}</div>
                     <div class="mt-0.5 text-[10px] opacity-70">{{ t('admin.accounts.quotaControl.rpmLimit.strategyTieredHint') }}</div>
                   </div>
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   @click="rpmStrategy = 'sticky_exempt'"
                   :class="[
-                    'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                    'h-auto flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all',
                     rpmStrategy === 'sticky_exempt'
-                      ? 'bg-secondary text-primary-200 border border-border '
+                      ? 'bg-secondary text-primary border border-border '
                       : 'bg-muted text-muted-foreground hover:bg-accent'
                   ]"
                 >
@@ -2066,42 +1881,41 @@
                     <div>{{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExempt') }}</div>
                     <div class="mt-0.5 text-[10px] opacity-70">{{ t('admin.accounts.quotaControl.rpmLimit.strategyStickyExemptHint') }}</div>
                   </div>
-                </button>
+                </Button>
               </div>
             </div>
 
             <div v-if="rpmStrategy === 'tiered'">
-              <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</label>
-              <input
+              <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBuffer') }}</label>
+              <Input
                 v-model.number="rpmStickyBuffer"
                 type="number"
                 min="1"
                 step="1"
-                class="input"
                 :placeholder="t('admin.accounts.quotaControl.rpmLimit.stickyBufferPlaceholder')"
               />
-              <p class="input-hint">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.stickyBufferHint') }}</p>
             </div>
 
           </div>
 
           <!-- 用户消息限速模式（独立于 RPM 开关，始终可见） -->
           <div class="mt-4">
-            <label class="input-label">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
+            <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueue') }}</label>
             <p class="mt-1 text-xs text-muted-foreground mb-2">
               {{ t('admin.accounts.quotaControl.rpmLimit.userMsgQueueHint') }}
             </p>
             <div class="flex space-x-2">
-              <button type="button" v-for="opt in umqModeOptions" :key="opt.value"
+              <Button type="button" variant="ghost" v-for="opt in umqModeOptions" :key="opt.value"
                 @click="userMsgQueueMode = opt.value"
                 :class="[
-                  'px-3 py-1.5 text-sm rounded-md border transition-colors',
+                  'h-auto px-3 py-1.5 text-sm rounded-md border transition-colors',
                   userMsgQueueMode === opt.value
-                    ? 'bg-primary-600 text-white border-primary-600'
+                    ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card text-foreground/85 border-border hover:bg-accent'
                 ]">
                 {{ opt.label }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -2110,34 +1924,25 @@
         <div class="rounded-lg border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.tlsFingerprint.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.tlsFingerprint.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.tlsFingerprint.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="tlsFingerprintEnabled = !tlsFingerprintEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                tlsFingerprintEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  tlsFingerprintEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="tlsFingerprintEnabled" />
           </div>
           <!-- Profile selector -->
           <div v-if="tlsFingerprintEnabled" class="mt-3">
-            <select v-model="tlsFingerprintProfileId" class="input">
-              <option :value="null">{{ t('admin.accounts.quotaControl.tlsFingerprint.defaultProfile') }}</option>
-              <option v-if="tlsFingerprintProfiles.length > 0" :value="-1">{{ t('admin.accounts.quotaControl.tlsFingerprint.randomProfile') }}</option>
-              <option v-for="p in tlsFingerprintProfiles" :key="p.id" :value="p.id">{{ p.name }}</option>
-            </select>
+            <ShadSelect v-model="tlsFingerprintProfileId">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem :value="null">{{ t('admin.accounts.quotaControl.tlsFingerprint.defaultProfile') }}</SelectItem>
+                <SelectItem v-if="tlsFingerprintProfiles.length > 0" :value="-1">{{ t('admin.accounts.quotaControl.tlsFingerprint.randomProfile') }}</SelectItem>
+                <SelectItem v-for="p in tlsFingerprintProfiles" :key="p.id" :value="p.id">{{ p.name }}</SelectItem>
+              </SelectContent>
+            </ShadSelect>
           </div>
         </div>
 
@@ -2145,26 +1950,12 @@
         <div class="rounded-lg border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.sessionIdMasking.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.sessionIdMasking.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.sessionIdMasking.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="sessionIdMaskingEnabled = !sessionIdMaskingEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                sessionIdMaskingEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  sessionIdMaskingEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="sessionIdMaskingEnabled" />
           </div>
         </div>
 
@@ -2172,36 +1963,24 @@
         <div class="rounded-lg border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.cacheTTLOverride.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.cacheTTLOverride.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.cacheTTLOverride.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="cacheTTLOverrideEnabled = !cacheTTLOverrideEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                cacheTTLOverrideEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  cacheTTLOverrideEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="cacheTTLOverrideEnabled" />
           </div>
           <div v-if="cacheTTLOverrideEnabled" class="mt-3">
-            <label class="input-label text-xs">{{ t('admin.accounts.quotaControl.cacheTTLOverride.target') }}</label>
-            <select
-              v-model="cacheTTLOverrideTarget"
-              class="mt-1 block w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground  focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="5m">5m</option>
-              <option value="1h">1h</option>
-            </select>
+            <label class="mb-1.5 block text-sm font-medium text-foreground text-xs">{{ t('admin.accounts.quotaControl.cacheTTLOverride.target') }}</label>
+            <ShadSelect v-model="cacheTTLOverrideTarget">
+              <SelectTrigger class="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5m">5m</SelectItem>
+                <SelectItem value="1h">1h</SelectItem>
+              </SelectContent>
+            </ShadSelect>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.quotaControl.cacheTTLOverride.targetHint') }}
             </p>
@@ -2212,32 +1991,17 @@
         <div class="rounded-lg border border-border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <label class="input-label mb-0">{{ t('admin.accounts.quotaControl.customBaseUrl.label') }}</label>
+              <label class="mb-1.5 block text-sm font-medium text-foreground mb-0">{{ t('admin.accounts.quotaControl.customBaseUrl.label') }}</label>
               <p class="mt-1 text-xs text-muted-foreground">
                 {{ t('admin.accounts.quotaControl.customBaseUrl.hint') }}
               </p>
             </div>
-            <button
-              type="button"
-              @click="customBaseUrlEnabled = !customBaseUrlEnabled"
-              :class="[
-                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-                customBaseUrlEnabled ? 'bg-primary-600' : 'bg-muted'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  customBaseUrlEnabled ? 'translate-x-5' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Switch v-model="customBaseUrlEnabled" />
           </div>
           <div v-if="customBaseUrlEnabled" class="mt-3">
-            <input
+            <Input
               v-model="customBaseUrl"
               type="text"
-              class="input"
               :placeholder="t('admin.accounts.quotaControl.customBaseUrl.urlHint')"
             />
           </div>
@@ -2246,18 +2010,17 @@
 
       <div class="border-t border-border pt-4">
         <div>
-          <label class="input-label">{{ t('common.status') }}</label>
+          <label class="mb-1.5 block text-sm font-medium text-foreground">{{ t('common.status') }}</label>
           <Select v-model="form.status" :options="statusOptions" />
         </div>
 
         <!-- Mixed Scheduling (only for antigravity accounts, read-only in edit mode) -->
         <div v-if="account?.platform === 'antigravity'" class="flex items-center gap-2">
           <label class="flex cursor-not-allowed items-center gap-2 opacity-60">
-            <input
-              type="checkbox"
+            <Checkbox
               v-model="mixedScheduling"
               disabled
-              class="h-4 w-4 cursor-not-allowed rounded border-border bg-card text-primary-500 focus:ring-ring"
+              class="cursor-not-allowed"
             />
             <span class="text-sm font-medium text-foreground/85">
               {{ t('admin.accounts.mixedScheduling') }}
@@ -2282,11 +2045,7 @@
         </div>
         <div v-if="account?.platform === 'antigravity'" class="mt-3 flex items-center gap-2">
           <label class="flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              v-model="allowOverages"
-              class="h-4 w-4 rounded border-border bg-card text-primary-500 focus:ring-ring"
-            />
+            <Checkbox v-model="allowOverages" />
             <span class="text-sm font-medium text-foreground/85">
               {{ t('admin.accounts.allowOverages') }}
             </span>
@@ -2323,14 +2082,13 @@
 
     <template #footer>
       <div v-if="account" class="flex justify-end gap-3">
-        <button @click="handleClose" type="button" class="btn btn-secondary">
+        <Button @click="handleClose" type="button" variant="outline">
           {{ t('common.cancel') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="edit-account-form"
           :disabled="submitting"
-          class="btn btn-primary"
           data-tour="account-form-submit"
         >
           <svg
@@ -2354,7 +2112,7 @@
             ></path>
           </svg>
           {{ submitting ? t('admin.accounts.updating') : t('common.update') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -2391,6 +2149,21 @@ import type {
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Select from '@/components/common/Select.vue'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select as ShadSelect,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import Icon from '@/components/icons/Icon.vue'
 import ProxySelector from '@/components/common/ProxySelector.vue'
 import GroupSelector from '@/components/common/GroupSelector.vue'
@@ -2416,6 +2189,14 @@ import {
   splitModelMappingObject,
   isValidWildcardPattern
 } from '@/composables/useModelWhitelist'
+import {
+  usePoolModeConfig,
+  DEFAULT_POOL_MODE_RETRY_COUNT,
+  MAX_POOL_MODE_RETRY_COUNT,
+  DEFAULT_POOL_MODE_RETRY_STATUS_CODES,
+} from '@/composables/usePoolModeConfig'
+import { useCustomErrorCodes } from '@/composables/useCustomErrorCodes'
+import { useTempUnschedRules } from '@/composables/useTempUnschedRules'
 
 interface Props {
   show: boolean
@@ -2451,13 +2232,6 @@ interface ModelMapping {
   to: string
 }
 
-interface TempUnschedRuleForm {
-  error_code: number | null
-  keywords: string
-  duration_minutes: number | null
-  description: string
-}
-
 // State
 const submitting = ref(false)
 const editBaseUrl = ref('https://api.anthropic.com')
@@ -2480,47 +2254,27 @@ const modelMappings = ref<ModelMapping[]>([])
 const openAICompactModelMappings = ref<ModelMapping[]>([])
 const modelRestrictionMode = ref<'whitelist' | 'mapping'>('whitelist')
 const allowedModels = ref<string[]>([])
-const DEFAULT_POOL_MODE_RETRY_COUNT = 3
-const MAX_POOL_MODE_RETRY_COUNT = 10
-const DEFAULT_POOL_MODE_RETRY_STATUS_CODES = [401, 403, 429]
-const poolModeEnabled = ref(false)
-const poolModeRetryCount = ref(DEFAULT_POOL_MODE_RETRY_COUNT)
-const poolModeRetryStatusCodesInput = ref('')
-
-function parsePoolModeRetryStatusCodes(input: string): number[] {
-  if (!input || !input.trim()) return []
-  const seen = new Set<number>()
-  const out: number[] = []
-  for (const token of input.split(/[,\s]+/)) {
-    const trimmed = token.trim()
-    if (!trimmed) continue
-    const n = Number(trimmed)
-    if (!Number.isFinite(n) || !Number.isInteger(n)) continue
-    if (n < 100 || n > 599) continue
-    if (seen.has(n)) continue
-    seen.add(n)
-    out.push(n)
-  }
-  return out.sort((a, b) => a - b)
-}
-
-function formatPoolModeRetryStatusCodes(value: unknown): string {
-  if (!Array.isArray(value)) return ''
-  const out: number[] = []
-  const seen = new Set<number>()
-  for (const v of value) {
-    const n = typeof v === 'string' ? Number(v.trim()) : Number(v)
-    if (!Number.isFinite(n) || !Number.isInteger(n)) continue
-    if (n < 100 || n > 599) continue
-    if (seen.has(n)) continue
-    seen.add(n)
-    out.push(n)
-  }
-  return out.sort((a, b) => a - b).join(', ')
-}
-const customErrorCodesEnabled = ref(false)
-const selectedErrorCodes = ref<number[]>([])
-const customErrorCodeInput = ref<number | null>(null)
+// Pool Mode 配置（共享 composable，见 usePoolModeConfig.ts）
+const {
+  poolModeEnabled,
+  poolModeRetryCount,
+  poolModeRetryStatusCodesInput,
+  reset: resetPoolMode,
+  loadFromCredentials: loadPoolMode,
+  applyToCredentials: applyPoolMode,
+} = usePoolModeConfig()
+// 自定义错误码配置（共享 composable，见 useCustomErrorCodes.ts）
+const {
+  customErrorCodesEnabled,
+  selectedErrorCodes,
+  customErrorCodeInput,
+  toggleErrorCode,
+  addCustomErrorCode,
+  removeErrorCode,
+  reset: resetCustomErrorCodes,
+  loadFromCredentials: loadCustomErrorCodes,
+  applyToCredentials: applyCustomErrorCodes,
+} = useCustomErrorCodes()
 const interceptWarmupRequests = ref(false)
 const autoPauseOnExpired = ref(false)
 const autoPause5hThreshold = ref<number | null>(null)
@@ -2533,12 +2287,21 @@ const antigravityModelRestrictionMode = ref<'whitelist' | 'mapping'>('whitelist'
 const antigravityWhitelistModels = ref<string[]>([])
 const antigravityModelMappings = ref<ModelMapping[]>([])
 const isSyncingAntigravityUpstream = ref(false)
-const tempUnschedEnabled = ref(false)
-const tempUnschedRules = ref<TempUnschedRuleForm[]>([])
+// 临时不可调度规则配置（共享 composable，见 useTempUnschedRules.ts）
+const {
+  tempUnschedEnabled,
+  tempUnschedRules,
+  getTempUnschedRuleKey,
+  tempUnschedPresets,
+  addTempUnschedRule,
+  removeTempUnschedRule,
+  moveTempUnschedRule,
+  applyToCredentials: applyTempUnschedConfig,
+  loadFromCredentials: loadTempUnschedRules,
+} = useTempUnschedRules('edit-temp-unsched-rule')
 const getModelMappingKey = createStableObjectKeyResolver<ModelMapping>('edit-model-mapping')
 const getOpenAICompactModelMappingKey = createStableObjectKeyResolver<ModelMapping>('edit-openai-compact-model-mapping')
 const getAntigravityModelMappingKey = createStableObjectKeyResolver<ModelMapping>('edit-antigravity-model-mapping')
-const getTempUnschedRuleKey = createStableObjectKeyResolver<TempUnschedRuleForm>('edit-temp-unsched-rule')
 
 const showMixedChannelWarning = ref(false)
 const mixedChannelWarningDetails = ref<{ groupName: string; currentPlatform: string; otherPlatform: string } | null>(
@@ -2669,9 +2432,9 @@ const codexImageGenerationBridgeBadgeLabel = computed(() => {
 const codexImageGenerationBridgeBadgeClass = computed(() => {
   switch (codexImageGenerationBridgeMode.value) {
     case 'enabled':
-      return ' text-emerald-400 bg-emerald-900/40'
+      return 'text-emerald-500 bg-emerald-500/10'
     case 'disabled':
-      return 'bg-rose-900/40 text-rose-300'
+      return 'text-destructive bg-destructive/10'
     default:
       return 'bg-accent text-muted-foreground'
   }
@@ -2806,35 +2569,6 @@ const openAICompactStatusKey = computed(() => {
 
 // Computed: current preset mappings based on platform
 const presetMappings = computed(() => getPresetMappingsByPlatform(props.account?.platform || 'anthropic'))
-const tempUnschedPresets = computed(() => [
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.overloadLabel'),
-    rule: {
-      error_code: 529,
-      keywords: 'overloaded, too many',
-      duration_minutes: 60,
-      description: t('admin.accounts.tempUnschedulable.presets.overloadDesc')
-    }
-  },
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.rateLimitLabel'),
-    rule: {
-      error_code: 429,
-      keywords: 'rate limit, too many requests',
-      duration_minutes: 10,
-      description: t('admin.accounts.tempUnschedulable.presets.rateLimitDesc')
-    }
-  },
-  {
-    label: t('admin.accounts.tempUnschedulable.presets.unavailableLabel'),
-    rule: {
-      error_code: 503,
-      keywords: 'unavailable, maintenance',
-      duration_minutes: 30,
-      description: t('admin.accounts.tempUnschedulable.presets.unavailableDesc')
-    }
-  }
-])
 
 // Computed: default base URL based on platform
 const defaultBaseUrl = computed(() => {
@@ -2882,19 +2616,6 @@ const expiresAtInput = computed({
 })
 
 // Watchers
-const normalizePoolModeRetryCount = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return DEFAULT_POOL_MODE_RETRY_COUNT
-  }
-  const normalized = Math.trunc(value)
-  if (normalized < 0) {
-    return 0
-  }
-  if (normalized > MAX_POOL_MODE_RETRY_COUNT) {
-    return MAX_POOL_MODE_RETRY_COUNT
-  }
-  return normalized
-}
 
 const loadModelRestrictionFromMapping = (rawMapping?: Record<string, unknown>) => {
   const parsed = splitModelMappingObject(rawMapping)
@@ -3102,20 +2823,10 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     loadModelRestrictionFromMapping(credentials.model_mapping as Record<string, unknown> | undefined)
 
     // Load pool mode
-    poolModeEnabled.value = credentials.pool_mode === true
-    poolModeRetryCount.value = normalizePoolModeRetryCount(
-      Number(credentials.pool_mode_retry_count ?? DEFAULT_POOL_MODE_RETRY_COUNT)
-    )
-    poolModeRetryStatusCodesInput.value = formatPoolModeRetryStatusCodes(credentials.pool_mode_retry_status_codes)
+    loadPoolMode(credentials)
 
     // Load custom error codes
-    customErrorCodesEnabled.value = credentials.custom_error_codes_enabled === true
-    const existingErrorCodes = credentials.custom_error_codes as number[] | undefined
-    if (existingErrorCodes && Array.isArray(existingErrorCodes)) {
-      selectedErrorCodes.value = [...existingErrorCodes]
-    } else {
-      selectedErrorCodes.value = []
-    }
+    loadCustomErrorCodes(credentials)
   } else if (newAccount.type === 'bedrock' && newAccount.credentials) {
     const bedrockCreds = newAccount.credentials as Record<string, unknown>
     const authMode = (bedrockCreds.auth_mode as string) || 'sigv4'
@@ -3131,10 +2842,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
     }
 
     // Load pool mode for bedrock
-    poolModeEnabled.value = bedrockCreds.pool_mode === true
-    const retryCount = bedrockCreds.pool_mode_retry_count
-    poolModeRetryCount.value = (typeof retryCount === 'number' && retryCount >= 0) ? retryCount : DEFAULT_POOL_MODE_RETRY_COUNT
-    poolModeRetryStatusCodesInput.value = formatPoolModeRetryStatusCodes(bedrockCreds.pool_mode_retry_status_codes)
+    loadPoolMode(bedrockCreds)
 
     // Load quota limits for bedrock
     const bedrockExtra = (newAccount.extra as Record<string, unknown>) || {}
@@ -3175,11 +2883,8 @@ const syncFormFromAccount = (newAccount: Account | null) => {
       modelMappings.value = []
       allowedModels.value = []
     }
-    poolModeEnabled.value = false
-    poolModeRetryCount.value = DEFAULT_POOL_MODE_RETRY_COUNT
-    poolModeRetryStatusCodesInput.value = ''
-    customErrorCodesEnabled.value = false
-    selectedErrorCodes.value = []
+    resetPoolMode()
+    resetCustomErrorCodes()
   }
   editApiKey.value = ''
 }
@@ -3284,153 +2989,7 @@ const syncAntigravityUpstreamModels = async () => {
   }
 }
 
-// Error code toggle helper
-const toggleErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index === -1) {
-    // Adding code - check for 429/529 warning
-    if (code === 429) {
-      if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-        return
-      }
-    } else if (code === 529) {
-      if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-        return
-      }
-    }
-    selectedErrorCodes.value.push(code)
-  } else {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
 
-// Add custom error code from input
-const addCustomErrorCode = () => {
-  const code = customErrorCodeInput.value
-  if (code === null || code < 100 || code > 599) {
-    appStore.showError(t('admin.accounts.invalidErrorCode'))
-    return
-  }
-  if (selectedErrorCodes.value.includes(code)) {
-    appStore.showInfo(t('admin.accounts.errorCodeExists'))
-    return
-  }
-  // Check for 429/529 warning
-  if (code === 429) {
-    if (!confirm(t('admin.accounts.customErrorCodes429Warning'))) {
-      return
-    }
-  } else if (code === 529) {
-    if (!confirm(t('admin.accounts.customErrorCodes529Warning'))) {
-      return
-    }
-  }
-  selectedErrorCodes.value.push(code)
-  customErrorCodeInput.value = null
-}
-
-// Remove error code
-const removeErrorCode = (code: number) => {
-  const index = selectedErrorCodes.value.indexOf(code)
-  if (index !== -1) {
-    selectedErrorCodes.value.splice(index, 1)
-  }
-}
-
-const addTempUnschedRule = (preset?: TempUnschedRuleForm) => {
-  if (preset) {
-    tempUnschedRules.value.push({ ...preset })
-    return
-  }
-  tempUnschedRules.value.push({
-    error_code: null,
-    keywords: '',
-    duration_minutes: 30,
-    description: ''
-  })
-}
-
-const removeTempUnschedRule = (index: number) => {
-  tempUnschedRules.value.splice(index, 1)
-}
-
-const moveTempUnschedRule = (index: number, direction: number) => {
-  const target = index + direction
-  if (target < 0 || target >= tempUnschedRules.value.length) return
-  const rules = tempUnschedRules.value
-  const current = rules[index]
-  rules[index] = rules[target]
-  rules[target] = current
-}
-
-const buildTempUnschedRules = (rules: TempUnschedRuleForm[]) => {
-  const out: Array<{
-    error_code: number
-    keywords: string[]
-    duration_minutes: number
-    description: string
-  }> = []
-
-  for (const rule of rules) {
-    const errorCode = Number(rule.error_code)
-    const duration = Number(rule.duration_minutes)
-    const keywords = splitTempUnschedKeywords(rule.keywords)
-    if (!Number.isFinite(errorCode) || errorCode < 100 || errorCode > 599) {
-      continue
-    }
-    if (!Number.isFinite(duration) || duration <= 0) {
-      continue
-    }
-    if (keywords.length === 0) {
-      continue
-    }
-    out.push({
-      error_code: Math.trunc(errorCode),
-      keywords,
-      duration_minutes: Math.trunc(duration),
-      description: rule.description.trim()
-    })
-  }
-
-  return out
-}
-
-const applyTempUnschedConfig = (credentials: Record<string, unknown>) => {
-  if (!tempUnschedEnabled.value) {
-    delete credentials.temp_unschedulable_enabled
-    delete credentials.temp_unschedulable_rules
-    return true
-  }
-
-  const rules = buildTempUnschedRules(tempUnschedRules.value)
-  if (rules.length === 0) {
-    appStore.showError(t('admin.accounts.tempUnschedulable.rulesInvalid'))
-    return false
-  }
-
-  credentials.temp_unschedulable_enabled = true
-  credentials.temp_unschedulable_rules = rules
-  return true
-}
-
-function loadTempUnschedRules(credentials?: Record<string, unknown>) {
-  tempUnschedEnabled.value = credentials?.temp_unschedulable_enabled === true
-  const rawRules = credentials?.temp_unschedulable_rules
-  if (!Array.isArray(rawRules)) {
-    tempUnschedRules.value = []
-    return
-  }
-
-  tempUnschedRules.value = rawRules.map((rule) => {
-    const entry = rule as Record<string, unknown>
-    return {
-      error_code: toPositiveNumber(entry.error_code),
-      keywords: formatTempUnschedKeywords(entry.keywords),
-      duration_minutes: toPositiveNumber(entry.duration_minutes),
-      description: typeof entry.description === 'string' ? entry.description : ''
-    }
-  })
-}
 
 // Load quota control settings from account (Anthropic OAuth/SetupToken only)
 function loadQuotaControlSettings(account: Account) {
@@ -3510,35 +3069,6 @@ function loadQuotaControlSettings(account: Account) {
     customBaseUrlEnabled.value = true
     customBaseUrl.value = account.custom_base_url || ''
   }
-}
-
-function formatTempUnschedKeywords(value: unknown) {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === 'string')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0)
-      .join(', ')
-  }
-  if (typeof value === 'string') {
-    return value
-  }
-  return ''
-}
-
-const splitTempUnschedKeywords = (value: string) => {
-  return value
-    .split(/[,;]/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-}
-
-function toPositiveNumber(value: unknown) {
-  const num = Number(value)
-  if (!Number.isFinite(num) || num <= 0) {
-    return null
-  }
-  return Math.trunc(num)
 }
 
 const needsMixedChannelCheck = () => props.account?.platform === 'antigravity' || props.account?.platform === 'anthropic'
@@ -3726,30 +3256,11 @@ const handleSubmit = async () => {
         }
       }
 
-      // Add pool mode if enabled
-      if (poolModeEnabled.value) {
-        newCredentials.pool_mode = true
-        newCredentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-        const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-        if (parsedRetryStatusCodes.length > 0) {
-          newCredentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-        } else {
-          delete newCredentials.pool_mode_retry_status_codes
-        }
-      } else {
-        delete newCredentials.pool_mode
-        delete newCredentials.pool_mode_retry_count
-        delete newCredentials.pool_mode_retry_status_codes
-      }
+      // Pool mode
+      applyPoolMode(newCredentials, 'edit')
 
       // Add custom error codes if enabled
-      if (customErrorCodesEnabled.value) {
-        newCredentials.custom_error_codes_enabled = true
-        newCredentials.custom_error_codes = [...selectedErrorCodes.value]
-      } else {
-        delete newCredentials.custom_error_codes_enabled
-        delete newCredentials.custom_error_codes
-      }
+      applyCustomErrorCodes(newCredentials, 'edit')
 
       // Add intercept warmup requests setting
       applyInterceptWarmup(newCredentials, interceptWarmupRequests.value, 'edit')
@@ -3852,20 +3363,7 @@ const handleSubmit = async () => {
       }
 
       // Pool mode
-      if (poolModeEnabled.value) {
-        newCredentials.pool_mode = true
-        newCredentials.pool_mode_retry_count = normalizePoolModeRetryCount(poolModeRetryCount.value)
-        const parsedRetryStatusCodes = parsePoolModeRetryStatusCodes(poolModeRetryStatusCodesInput.value)
-        if (parsedRetryStatusCodes.length > 0) {
-          newCredentials.pool_mode_retry_status_codes = parsedRetryStatusCodes
-        } else {
-          delete newCredentials.pool_mode_retry_status_codes
-        }
-      } else {
-        delete newCredentials.pool_mode
-        delete newCredentials.pool_mode_retry_count
-        delete newCredentials.pool_mode_retry_status_codes
-      }
+      applyPoolMode(newCredentials, 'edit')
 
       // Model mapping
       const modelMapping = buildModelRestrictionMapping()

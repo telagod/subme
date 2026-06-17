@@ -3,7 +3,7 @@
   <Transition name="ps-fade">
     <div
       v-if="visible"
-      class="ps-overlay"
+      class="fixed inset-0 z-40 bg-black/45"
       @click="$emit('close')"
     />
   </Transition>
@@ -12,98 +12,105 @@
   <Transition name="ps-slide">
     <div
       v-if="visible"
-      class="ps-drawer"
+      class="fixed right-0 top-0 z-50 flex h-full w-full max-w-[420px] flex-col overflow-y-auto border-l border-border bg-card shadow-[inset_0_1px_0_rgba(255,255,255,0.04),-8px_0_32px_rgba(0,0,0,0.4)]"
     >
       <!-- 头部 -->
-      <div class="ps-head">
-        <div class="ps-head-left">
-          <CalculatorIcon class="ps-head-ico" />
-          <h2 class="ps-head-title">{{ t('admin.pricingDesk.simTitle') }}</h2>
+      <div class="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-4">
+        <div class="flex items-center gap-2">
+          <CalculatorIcon class="h-[18px] w-[18px] shrink-0 text-primary" />
+          <h2 class="m-0 text-sm font-semibold text-foreground">{{ t('admin.pricingDesk.simTitle') }}</h2>
         </div>
-        <button
-          class="ps-close q-focus-glow"
+        <Button
+          variant="ghost"
+          size="icon"
           :aria-label="t('admin.pricingDesk.simClose')"
           @click="$emit('close')"
         >
-          <XIcon class="ps-close-ico" />
-        </button>
+          <XIcon class="h-4 w-4" />
+        </Button>
       </div>
 
       <!-- 表单区 -->
-      <div class="ps-body">
+      <div class="flex flex-col gap-[18px] p-5">
         <!-- 选模型 -->
-        <div class="ps-field">
-          <label class="ps-label">{{ t('admin.pricingDesk.simModelLabel') }}</label>
-          <select
-            v-model="selectedModel"
-            class="ps-select q-focus-glow"
-          >
-            <option value="">{{ t('admin.pricingDesk.simModelPlaceholder') }}</option>
-            <optgroup v-for="platform in platforms" :key="platform" :label="platform">
-              <option
-                v-for="model in modelsByPlatform[platform]"
-                :key="model"
-                :value="model"
-              >
-                {{ model }}
-              </option>
-            </optgroup>
-          </select>
+        <div class="flex flex-col gap-[5px]">
+          <Label class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.pricingDesk.simModelLabel') }}</Label>
+          <Select v-model="selectedModel">
+            <SelectTrigger class="w-full text-[12.5px]">
+              <SelectValue :placeholder="t('admin.pricingDesk.simModelPlaceholder')" />
+            </SelectTrigger>
+            <SelectContent>
+              <template v-for="platform in platforms" :key="platform">
+                <SelectGroup>
+                  <SelectLabel>{{ platform }}</SelectLabel>
+                  <SelectItem
+                    v-for="model in modelsByPlatform[platform]"
+                    :key="model"
+                    :value="model"
+                  >
+                    {{ model }}
+                  </SelectItem>
+                </SelectGroup>
+              </template>
+            </SelectContent>
+          </Select>
         </div>
 
         <!-- 选分组 -->
-        <div class="ps-field">
-          <label class="ps-label">{{ t('admin.pricingDesk.simGroupLabel') }}</label>
-          <select
-            v-model="selectedGroupId"
-            class="ps-select q-focus-glow"
+        <div class="flex flex-col gap-[5px]">
+          <Label class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.pricingDesk.simGroupLabel') }}</Label>
+          <Select
+            :model-value="selectedGroupId === null ? '' : String(selectedGroupId)"
+            @update:model-value="(v) => selectedGroupId = v === '' ? null : Number(v)"
           >
-            <option :value="null">{{ t('admin.pricingDesk.simGroupPlaceholder') }}</option>
-            <option v-for="g in activeGroups" :key="g.id" :value="g.id">
-              {{ g.name }} (×{{ g.rate_multiplier.toFixed(2) }})
-            </option>
-          </select>
+            <SelectTrigger class="w-full text-[12.5px]">
+              <SelectValue :placeholder="t('admin.pricingDesk.simGroupPlaceholder')" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="g in activeGroups" :key="g.id" :value="String(g.id)">
+                {{ g.name }} (×{{ g.rate_multiplier.toFixed(2) }})
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <!-- Token 量 -->
-        <div class="ps-token-row">
-          <div class="ps-field">
-            <label class="ps-label">{{ t('admin.pricingDesk.simInputTokens') }}</label>
-            <input
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-[5px]">
+            <Label class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.pricingDesk.simInputTokens') }}</Label>
+            <Input
               v-model.number="inputTokens"
               type="number"
               min="0"
-              class="ps-input q-focus-glow"
               placeholder="1000000"
             />
           </div>
-          <div class="ps-field">
-            <label class="ps-label">{{ t('admin.pricingDesk.simOutputTokens') }}</label>
-            <input
+          <div class="flex flex-col gap-[5px]">
+            <Label class="text-[11.5px] font-semibold text-muted-foreground">{{ t('admin.pricingDesk.simOutputTokens') }}</Label>
+            <Input
               v-model.number="outputTokens"
               type="number"
               min="0"
-              class="ps-input q-focus-glow"
               placeholder="200000"
             />
           </div>
         </div>
 
         <!-- Cache 命中滑杆 -->
-        <div class="ps-field">
-          <label class="ps-label ps-label-row">
+        <div class="flex flex-col gap-[5px]">
+          <Label class="flex items-center justify-between text-[11.5px] font-semibold text-muted-foreground">
             <span>{{ t('admin.pricingDesk.simCacheHit') }}</span>
-            <span class="ps-cache-pct">{{ (cacheHitRatio * 100).toFixed(0) }}%</span>
-          </label>
+            <span class="font-mono tabular-nums text-primary">{{ (cacheHitRatio * 100).toFixed(0) }}%</span>
+          </Label>
           <input
             v-model.number="cacheHitRatio"
             type="range"
             min="0"
             max="1"
             step="0.01"
-            class="ps-range"
+            class="ps-range w-full cursor-pointer"
           />
-          <div class="ps-range-hint">
+          <div class="mt-[3px] flex justify-between text-[10.5px] text-muted-foreground">
             <span>0%</span>
             <span>100%</span>
           </div>
@@ -112,14 +119,16 @@
         <!-- 结果展示 -->
         <div
           v-if="selectedModel && selectedGroupId !== null && cell"
-          class="ps-result"
+          class="flex flex-col gap-[10px] rounded-xl border border-border bg-muted/40 p-[14px]"
         >
-          <div class="ps-result-label">{{ t('admin.pricingDesk.simResultTitle') }}</div>
-          <div class="ps-result-rows">
+          <div class="text-[9.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+            {{ t('admin.pricingDesk.simResultTitle') }}
+          </div>
+          <div class="flex flex-col gap-[7px]">
             <SimResultRow :label="t('admin.pricingDesk.simInputCost')" :value="inputCost" />
             <SimResultRow :label="t('admin.pricingDesk.simOutputCost')" :value="outputCost" />
             <SimResultRow v-if="cacheHitRatio > 0" :label="t('admin.pricingDesk.simCacheCost')" :value="cacheCost" />
-            <div class="ps-result-divider">
+            <div class="mt-[2px] border-t border-border pt-2">
               <SimResultRow :label="t('admin.pricingDesk.simTotal')" :value="totalCost" :large="true" />
             </div>
           </div>
@@ -127,29 +136,31 @@
           <!-- 对比官方价 -->
           <div
             v-if="officialTotal !== null"
-            class="ps-cmp"
-            :class="totalCost <= officialTotal ? 'ps-cmp-ok' : 'ps-cmp-bad'"
+            class="flex flex-col gap-1 rounded-lg p-[10px_12px]"
+            :class="totalCost <= officialTotal ? 'bg-emerald-500/10' : 'bg-destructive/10'"
           >
-            <div class="ps-cmp-ref">{{ t('admin.pricingDesk.simOfficialTotal') }}<span class="q-money">{{ fmtUSD(officialTotal) }}</span></div>
+            <div class="text-[11px] text-muted-foreground">
+              {{ t('admin.pricingDesk.simOfficialTotal') }}<span class="font-mono tabular-nums text-foreground">{{ fmtUSD(officialTotal) }}</span>
+            </div>
             <div
-              class="ps-cmp-verdict"
-              :class="totalCost <= officialTotal ? 'ps-ok' : 'ps-bad'"
+              class="text-xs font-semibold"
+              :class="totalCost <= officialTotal ? 'text-emerald-500' : 'text-destructive'"
             >
               {{ totalCost <= officialTotal
                 ? t('admin.pricingDesk.simCheaper', { diff: fmtUSD(officialTotal - totalCost), pct: ((1 - totalCost / officialTotal) * 100).toFixed(1) })
                 : t('admin.pricingDesk.simDearer', { diff: fmtUSD(totalCost - officialTotal), pct: ((totalCost / officialTotal - 1) * 100).toFixed(1) }) }}
             </div>
           </div>
-          <p v-else class="ps-no-ref">{{ t('admin.pricingDesk.simNoOfficialRef') }}</p>
+          <p v-else class="m-0 text-[11px] text-muted-foreground">{{ t('admin.pricingDesk.simNoOfficialRef') }}</p>
         </div>
 
         <!-- 未选模型/分组提示 -->
         <div
           v-else
-          class="ps-placeholder"
+          class="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-10 text-center"
         >
-          <CalculatorIcon class="ps-placeholder-ico" />
-          <p class="ps-placeholder-txt">{{ t('admin.pricingDesk.simSelectHint') }}</p>
+          <CalculatorIcon class="h-8 w-8 text-muted-foreground opacity-35" />
+          <p class="m-0 text-[12.5px] text-muted-foreground">{{ t('admin.pricingDesk.simSelectHint') }}</p>
         </div>
       </div>
     </div>
@@ -163,6 +174,18 @@ import { CalculatorIcon, XIcon } from 'lucide-vue-next'
 import SimResultRow from './SimResultRow.vue'
 import type { MatrixRow, OfficialPricing } from './usePricingMatrix'
 import type { AdminGroup } from '@/types'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const props = defineProps<{
   visible: boolean
@@ -249,111 +272,10 @@ function fmtUSD(v: number): string {
 </script>
 
 <style scoped>
-/* ── 遮罩 ── */
-.ps-overlay {
-  position: fixed; inset: 0; z-index: 40;
-  background: rgba(0, 0, 0, .45);
-}
-
-/* ── 抽屉面板 ── */
-.ps-drawer {
-  position: fixed; right: 0; top: 0; z-index: 50;
-  width: 100%; max-width: 420px; height: 100%;
-  overflow-y: auto;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border-left: 1px solid var(--line-1);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.04)), -8px 0 32px rgba(0,0,0,.4);
-}
-
-/* ── 头部 ── */
-.ps-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid var(--line-0);
-  background: var(--bg-2);
-}
-.ps-head-left { display: flex; align-items: center; gap: 8px; }
-.ps-head-ico { width: 18px; height: 18px; color: var(--azure); flex-shrink: 0; }
-.ps-head-title { font-size: 14px; font-weight: 600; color: var(--ink-0); margin: 0; }
-
-.ps-close {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 5px; border-radius: 8px; border: 1px solid transparent;
-  background: transparent; color: var(--ink-2);
-  cursor: pointer; transition: border-color .15s, color .15s, background .15s;
-}
-.ps-close:hover { border-color: var(--line-1); color: var(--ink-0); background: var(--bg-2); }
-.ps-close-ico { width: 16px; height: 16px; }
-
-/* ── 表单区 ── */
-.ps-body { display: flex; flex-direction: column; gap: 18px; padding: 20px; }
-
-.ps-field { display: flex; flex-direction: column; gap: 5px; }
-.ps-label {
-  font-size: 11.5px; font-weight: 600; color: var(--ink-1);
-}
-.ps-label-row { display: flex; align-items: center; justify-content: space-between; }
-.ps-cache-pct { color: var(--azure); font-family: var(--font-mono, monospace); font-variant-numeric: tabular-nums; }
-
-.ps-select,
-.ps-input {
-  width: 100%; padding: 7px 10px; border-radius: 8px;
-  font-size: 12.5px; font-family: inherit;
-  background: var(--bg-0); border: 1px solid var(--line-1);
-  color: var(--ink-0);
-  transition: border-color .15s;
-  -webkit-appearance: none; appearance: none;
-}
-.ps-select:hover, .ps-input:hover { border-color: var(--line-0); }
-
-.ps-token-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
+/* range slider accent color — no Tailwind equivalent */
 .ps-range {
-  width: 100%; accent-color: var(--azure);
-  cursor: pointer;
+  accent-color: hsl(var(--primary));
 }
-.ps-range-hint {
-  display: flex; justify-content: space-between;
-  font-size: 10.5px; color: var(--ink-2); margin-top: 3px;
-}
-
-/* ── 结果卡 ── */
-.ps-result {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 14px;
-  background: var(--bg-2); border: 1px solid var(--line-0);
-  border-radius: var(--q-radius, 12px);
-}
-.ps-result-label {
-  font-size: 9.5px; font-weight: 600; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--ink-2);
-}
-.ps-result-rows { display: flex; flex-direction: column; gap: 7px; }
-.ps-result-divider {
-  border-top: 1px solid var(--line-1); padding-top: 8px; margin-top: 2px;
-}
-
-/* 对比官方价 */
-.ps-cmp {
-  border-radius: 8px; padding: 10px 12px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.ps-cmp-ok  { background: var(--ok-dim); }
-.ps-cmp-bad { background: var(--bad-dim); }
-.ps-cmp-ref { font-size: 11px; color: var(--ink-1); }
-.ps-cmp-verdict { font-size: 12px; font-weight: 600; }
-.ps-ok  { color: var(--ok); }
-.ps-bad { color: var(--bad); }
-.ps-no-ref { font-size: 11px; color: var(--ink-2); margin: 0; }
-
-/* ── 空态 ── */
-.ps-placeholder {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; padding: 40px 16px;
-  background: var(--bg-2); border: 1px dashed var(--line-1);
-  border-radius: var(--q-radius, 12px); text-align: center;
-}
-.ps-placeholder-ico { width: 32px; height: 32px; color: var(--ink-2); opacity: .35; }
-.ps-placeholder-txt { font-size: 12.5px; color: var(--ink-2); margin: 0; }
 
 /* ── 入/出场动画 ── */
 .ps-fade-enter-active,

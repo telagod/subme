@@ -1,178 +1,260 @@
 <template>
-  <div class="card p-6">
-    <!-- Toolbar: left filters (multi-line) + right actions -->
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <!-- Left: filters (allowed to wrap to multiple rows) -->
-      <div class="flex flex-1 flex-wrap items-end gap-4">
-        <!-- User Search -->
-        <div ref="userSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
-          <label class="input-label">{{ t('admin.usage.userFilter') }}</label>
-          <input
-            v-model="userKeyword"
-            type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchUserPlaceholder')"
-            @input="debounceUserSearch"
-            @focus="showUserDropdown = true"
-          />
-          <button
-            v-if="filters.user_id"
-            type="button"
-            @click="clearUser"
-            class="absolute right-2 top-9 text-muted-foreground"
-            aria-label="Clear user filter"
-          >
-            ✕
-          </button>
-          <div
-            v-if="showUserDropdown && (userResults.length > 0 || userKeyword)"
-            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card "
-          >
-            <button
-              v-for="u in userResults"
-              :key="u.id"
+  <Card>
+    <CardContent class="p-6">
+      <!-- Toolbar: left filters (multi-line) + right actions -->
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <!-- Left: filters (allowed to wrap to multiple rows) -->
+        <div class="flex flex-1 flex-wrap items-end gap-4">
+          <!-- User Search -->
+          <div ref="userSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
+            <Label class="mb-1 block">{{ t('admin.usage.userFilter') }}</Label>
+            <Input
+              v-model="userKeyword"
+              type="text"
+              class="pr-8"
+              :placeholder="t('admin.usage.searchUserPlaceholder')"
+              @input="debounceUserSearch"
+              @focus="showUserDropdown = true"
+            />
+            <Button
+              v-if="filters.user_id"
               type="button"
-              @click="selectUser(u)"
-              class="w-full px-4 py-2 text-left hover:bg-accent"
+              variant="ghost"
+              size="icon"
+              @click="clearUser"
+              class="absolute right-1 top-7 h-7 w-7 text-muted-foreground"
+              aria-label="Clear user filter"
             >
-              <span>{{ u.email }}<span v-if="u.deleted" class="ml-1 text-xs text-muted-foreground">（{{ t('admin.usage.userDeletedBadge') }}）</span></span>
-              <span class="ml-2 text-xs text-muted-foreground">#{{ u.id }}</span>
-            </button>
+              ✕
+            </Button>
+            <div
+              v-if="showUserDropdown && (userResults.length > 0 || userKeyword)"
+              class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card"
+            >
+              <Button
+                v-for="u in userResults"
+                :key="u.id"
+                type="button"
+                variant="ghost"
+                @click="selectUser(u)"
+                class="h-auto w-full justify-start px-4 py-2 text-left"
+              >
+                <span>{{ u.email }}<span v-if="u.deleted" class="ml-1 text-xs text-muted-foreground">（{{ t('admin.usage.userDeletedBadge') }}）</span></span>
+                <span class="ml-2 text-xs text-muted-foreground">#{{ u.id }}</span>
+              </Button>
+            </div>
           </div>
-        </div>
 
-        <!-- API Key Search -->
-        <div ref="apiKeySearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
-          <label class="input-label">{{ t('usage.apiKeyFilter') }}</label>
-          <input
-            v-model="apiKeyKeyword"
-            type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchApiKeyPlaceholder')"
-            @input="debounceApiKeySearch"
-            @focus="onApiKeyFocus"
-          />
-          <button
-            v-if="filters.api_key_id"
-            type="button"
-            @click="onClearApiKey"
-            class="absolute right-2 top-9 text-muted-foreground"
-            aria-label="Clear API key filter"
-          >
-            ✕
-          </button>
-          <div
-            v-if="showApiKeyDropdown && apiKeyResults.length > 0"
-            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card "
-          >
-            <button
-              v-for="k in apiKeyResults"
-              :key="k.id"
+          <!-- API Key Search -->
+          <div ref="apiKeySearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[240px]">
+            <Label class="mb-1 block">{{ t('usage.apiKeyFilter') }}</Label>
+            <Input
+              v-model="apiKeyKeyword"
+              type="text"
+              class="pr-8"
+              :placeholder="t('admin.usage.searchApiKeyPlaceholder')"
+              @input="debounceApiKeySearch"
+              @focus="onApiKeyFocus"
+            />
+            <Button
+              v-if="filters.api_key_id"
               type="button"
-              @click="selectApiKey(k)"
-              class="w-full px-4 py-2 text-left hover:bg-accent"
+              variant="ghost"
+              size="icon"
+              @click="onClearApiKey"
+              class="absolute right-1 top-7 h-7 w-7 text-muted-foreground"
+              aria-label="Clear API key filter"
             >
-              <span class="truncate">{{ k.name || `#${k.id}` }}</span>
-              <span class="ml-2 text-xs text-muted-foreground">#{{ k.id }}</span>
-            </button>
+              ✕
+            </Button>
+            <div
+              v-if="showApiKeyDropdown && apiKeyResults.length > 0"
+              class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card"
+            >
+              <Button
+                v-for="k in apiKeyResults"
+                :key="k.id"
+                type="button"
+                variant="ghost"
+                @click="selectApiKey(k)"
+                class="h-auto w-full justify-start px-4 py-2 text-left"
+              >
+                <span class="truncate">{{ k.name || `#${k.id}` }}</span>
+                <span class="ml-2 text-xs text-muted-foreground">#{{ k.id }}</span>
+              </Button>
+            </div>
           </div>
-        </div>
 
-        <!-- Model Filter -->
-        <div class="w-full sm:w-auto sm:min-w-[220px]">
-          <label class="input-label">{{ t('usage.model') }}</label>
-          <Select v-model="filters.model" :options="modelOptions" searchable @change="emitChange" />
-        </div>
+          <!-- Model Filter -->
+          <div class="w-full sm:w-auto sm:min-w-[220px]">
+            <Label class="mb-1 block">{{ t('usage.model') }}</Label>
+            <Select
+              :model-value="filters.model ?? '__all__'"
+              @update:model-value="v => { filters.model = v === '__all__' ? null : v; emitChange() }"
+            >
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="t('admin.usage.allModels')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in modelOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <!-- Account Filter -->
-        <div ref="accountSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[220px]">
-          <label class="input-label">{{ t('admin.usage.account') }}</label>
-          <input
-            v-model="accountKeyword"
-            type="text"
-            class="input pr-8"
-            :placeholder="t('admin.usage.searchAccountPlaceholder')"
-            @input="debounceAccountSearch"
-            @focus="showAccountDropdown = true"
-          />
-          <button
-            v-if="filters.account_id"
-            type="button"
-            @click="clearAccount"
-            class="absolute right-2 top-9 text-muted-foreground"
-            aria-label="Clear account filter"
-          >
-            ✕
-          </button>
-          <div
-            v-if="showAccountDropdown && (accountResults.length > 0 || accountKeyword)"
-            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card "
-          >
-            <button
-              v-for="a in accountResults"
-              :key="a.id"
+          <!-- Account Filter -->
+          <div ref="accountSearchRef" class="usage-filter-dropdown relative w-full sm:w-auto sm:min-w-[220px]">
+            <Label class="mb-1 block">{{ t('admin.usage.account') }}</Label>
+            <Input
+              v-model="accountKeyword"
+              type="text"
+              class="pr-8"
+              :placeholder="t('admin.usage.searchAccountPlaceholder')"
+              @input="debounceAccountSearch"
+              @focus="showAccountDropdown = true"
+            />
+            <Button
+              v-if="filters.account_id"
               type="button"
-              @click="selectAccount(a)"
-              class="w-full px-4 py-2 text-left hover:bg-accent"
+              variant="ghost"
+              size="icon"
+              @click="clearAccount"
+              class="absolute right-1 top-7 h-7 w-7 text-muted-foreground"
+              aria-label="Clear account filter"
             >
-              <span class="truncate">{{ a.name }}</span>
-              <span class="ml-2 text-xs text-muted-foreground">#{{ a.id }}</span>
-            </button>
+              ✕
+            </Button>
+            <div
+              v-if="showAccountDropdown && (accountResults.length > 0 || accountKeyword)"
+              class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-card"
+            >
+              <Button
+                v-for="a in accountResults"
+                :key="a.id"
+                type="button"
+                variant="ghost"
+                @click="selectAccount(a)"
+                class="h-auto w-full justify-start px-4 py-2 text-left"
+              >
+                <span class="truncate">{{ a.name }}</span>
+                <span class="ml-2 text-xs text-muted-foreground">#{{ a.id }}</span>
+              </Button>
+            </div>
           </div>
+
+          <!-- Request Type Filter -->
+          <div class="w-full sm:w-auto sm:min-w-[180px]">
+            <Label class="mb-1 block">{{ t('usage.type') }}</Label>
+            <Select
+              :model-value="filters.request_type ?? '__all__'"
+              @update:model-value="v => { filters.request_type = v === '__all__' ? null : v; emitChange() }"
+            >
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="t('admin.usage.allTypes')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in requestTypeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Billing Type Filter -->
+          <div class="w-full sm:w-auto sm:min-w-[200px]">
+            <Label class="mb-1 block">{{ t('admin.usage.billingType') }}</Label>
+            <Select
+              :model-value="filters.billing_type != null ? String(filters.billing_type) : '__all__'"
+              @update:model-value="v => { filters.billing_type = v === '__all__' ? null : Number(v); emitChange() }"
+            >
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="t('admin.usage.allBillingTypes')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in billingTypeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Billing Mode Filter -->
+          <div class="w-full sm:w-auto sm:min-w-[200px]">
+            <Label class="mb-1 block">{{ t('admin.usage.billingMode') }}</Label>
+            <Select
+              :model-value="filters.billing_mode ?? '__all__'"
+              @update:model-value="v => { filters.billing_mode = v === '__all__' ? null : v; emitChange() }"
+            >
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="t('admin.usage.allBillingModes')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in billingModeOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Group Filter -->
+          <div class="w-full sm:w-auto sm:min-w-[200px]">
+            <Label class="mb-1 block">{{ t('admin.usage.group') }}</Label>
+            <Select
+              :model-value="filters.group_id != null ? String(filters.group_id) : '__all__'"
+              @update:model-value="v => { filters.group_id = v === '__all__' ? null : Number(v); emitChange() }"
+            >
+              <SelectTrigger class="w-full">
+                <SelectValue :placeholder="t('admin.usage.allGroups')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in groupOptions" :key="String(opt.value ?? '__all__')" :value="String(opt.value ?? '__all__')">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
         </div>
 
-        <!-- Request Type Filter -->
-        <div class="w-full sm:w-auto sm:min-w-[180px]">
-          <label class="input-label">{{ t('usage.type') }}</label>
-          <Select v-model="filters.request_type" :options="requestTypeOptions" @change="emitChange" />
+        <!-- Right: actions -->
+        <div v-if="showActions" class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+          <Button type="button" variant="outline" @click="$emit('refresh')">
+            {{ t('common.refresh') }}
+          </Button>
+          <Button type="button" variant="outline" @click="$emit('reset')">
+            {{ t('common.reset') }}
+          </Button>
+          <slot name="after-reset" />
+          <Button type="button" variant="destructive" @click="$emit('cleanup')">
+            {{ t('admin.usage.cleanup.button') }}
+          </Button>
+          <Button type="button" @click="$emit('export')" :disabled="exporting">
+            {{ t('usage.exportExcel') }}
+          </Button>
         </div>
-
-        <!-- Billing Type Filter -->
-        <div class="w-full sm:w-auto sm:min-w-[200px]">
-          <label class="input-label">{{ t('admin.usage.billingType') }}</label>
-          <Select v-model="filters.billing_type" :options="billingTypeOptions" @change="emitChange" />
-        </div>
-
-        <!-- Billing Mode Filter -->
-        <div class="w-full sm:w-auto sm:min-w-[200px]">
-          <label class="input-label">{{ t('admin.usage.billingMode') }}</label>
-          <Select v-model="filters.billing_mode" :options="billingModeOptions" @change="emitChange" />
-        </div>
-
-        <!-- Group Filter -->
-        <div class="w-full sm:w-auto sm:min-w-[200px]">
-          <label class="input-label">{{ t('admin.usage.group') }}</label>
-          <Select v-model="filters.group_id" :options="groupOptions" searchable @change="emitChange" />
-        </div>
-
       </div>
-
-      <!-- Right: actions -->
-      <div v-if="showActions" class="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
-        <button type="button" @click="$emit('refresh')" class="btn btn-secondary">
-          {{ t('common.refresh') }}
-        </button>
-        <button type="button" @click="$emit('reset')" class="btn btn-secondary">
-          {{ t('common.reset') }}
-        </button>
-        <slot name="after-reset" />
-        <button type="button" @click="$emit('cleanup')" class="btn btn-danger">
-          {{ t('admin.usage.cleanup.button') }}
-        </button>
-        <button type="button" @click="$emit('export')" :disabled="exporting" class="btn btn-primary">
-          {{ t('usage.exportExcel') }}
-        </button>
-      </div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, toRef, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
-import Select, { type SelectOption } from '@/components/common/Select.vue'
+import type { SelectOption } from '@/components/common/Select.vue'
 import type { SimpleApiKey, SimpleUser } from '@/api/admin/usage'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type ModelValue = Record<string, any>
 

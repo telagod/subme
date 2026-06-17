@@ -75,11 +75,6 @@ function mountModal() {
       stubs: {
         BaseDialog: { template: '<div><slot /><slot name="footer" /></div>' },
         Select: { template: '<div class="select-stub"></div>' },
-        TextArea: {
-          props: ['modelValue'],
-          emits: ['update:modelValue'],
-          template: '<textarea class="textarea-stub" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />'
-        },
         Icon: true
       }
     }
@@ -121,7 +116,7 @@ describe('AccountTestModal', () => {
     await wrapper.setProps({ show: true })
     await flushPromises()
 
-    const promptInput = wrapper.find('textarea.textarea-stub')
+    const promptInput = wrapper.find('textarea')
     expect(promptInput.exists()).toBe(true)
     await promptInput.setValue('draw a tiny orange cat astronaut')
 

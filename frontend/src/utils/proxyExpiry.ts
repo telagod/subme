@@ -8,12 +8,13 @@ export const daysUntil = (iso: string): number =>
   Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
 
 // 倒计时徽章的 CSS class(纯函数,无 i18n 依赖)。
+const EXPIRY_BADGE = 'inline-flex w-fit items-center rounded px-1.5 py-0.5 text-[10px] font-medium'
 export function proxyExpiryBadgeClass(expiresAt: string | null, status?: string): string {
-  if (status === 'expired') return 'badge badge-danger'
+  if (status === 'expired') return `${EXPIRY_BADGE} bg-red-500/15 text-red-400`
   const d = expiresAt ? daysUntil(expiresAt) : Infinity
-  if (d <= EXPIRY_DANGER_DAYS) return 'badge badge-danger'
-  if (d <= EXPIRY_WARN_DAYS) return 'badge badge-warning'
-  return 'text-gray-500'
+  if (d <= EXPIRY_DANGER_DAYS) return `${EXPIRY_BADGE} bg-red-500/15 text-red-400`
+  if (d <= EXPIRY_WARN_DAYS) return `${EXPIRY_BADGE} bg-amber-500/15 text-amber-400`
+  return 'text-muted-foreground'
 }
 
 // 倒计时文案的 i18n key + 参数(返回 key 而非已翻译文本,便于单测且不耦合 i18n)。

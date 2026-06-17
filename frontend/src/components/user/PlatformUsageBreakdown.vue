@@ -1,43 +1,44 @@
 <template>
-  <div class="group/usage relative text-sm">
+  <div class="text-sm">
     <div class="flex items-center gap-1.5">
       <span class="text-muted-foreground">{{ t('admin.users.today') }}:</span>
       <span class="font-medium text-foreground">${{ today.toFixed(4) }}</span>
-      <Icon
-        v-if="hasBreakdown"
-        name="infoCircle"
-        size="xs"
-        class="text-muted-foreground"
-      />
+      <TooltipProvider v-if="hasBreakdown">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Icon
+              name="infoCircle"
+              size="xs"
+              class="cursor-default text-muted-foreground"
+            />
+          </TooltipTrigger>
+          <TooltipContent side="right" class="min-w-[220px] px-3 py-2 text-xs">
+            <div class="mb-1.5 flex items-center justify-between gap-3 border-b border-border pb-1 text-[11px] text-muted-foreground">
+              <span>{{ t('admin.users.platformBreakdown') }}</span>
+              <span class="font-mono">{{ t('admin.users.today') }} / {{ t('admin.users.total') }}</span>
+            </div>
+            <div
+              v-for="item in sortedBreakdown"
+              :key="item.platform"
+              class="flex items-center justify-between gap-3 py-0.5"
+              :class="{ 'opacity-70 italic': item.isOther }"
+            >
+              <span class="capitalize">
+                {{ item.isOther ? t('admin.users.platformOther') : platformLabel(item.platform) }}
+              </span>
+              <span class="font-mono">
+                ${{ item.today_actual_cost.toFixed(4) }}
+                <span class="opacity-50">/</span>
+                ${{ item.total_actual_cost.toFixed(4) }}
+              </span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
     <div class="mt-0.5 flex items-center gap-1.5">
       <span class="text-muted-foreground">{{ t('admin.users.total') }}:</span>
       <span class="font-medium text-foreground">${{ total.toFixed(4) }}</span>
-    </div>
-
-    <div
-      v-if="hasBreakdown"
-      class="pointer-events-none absolute left-full top-0 z-50 ml-2 min-w-[220px] whitespace-nowrap rounded-md border border-border bg-card px-3 py-2 text-xs text-foreground opacity-0  transition-opacity duration-100 group-hover/usage:opacity-100"
-    >
-      <div class="mb-1.5 flex items-center justify-between gap-3 border-b border-border pb-1 text-[11px] text-muted-foreground">
-        <span>{{ t('admin.users.platformBreakdown') }}</span>
-        <span class="font-mono">{{ t('admin.users.today') }} / {{ t('admin.users.total') }}</span>
-      </div>
-      <div
-        v-for="item in sortedBreakdown"
-        :key="item.platform"
-        class="flex items-center justify-between gap-3 py-0.5"
-        :class="{ 'opacity-70 italic': item.isOther }"
-      >
-        <span class="capitalize">
-          {{ item.isOther ? t('admin.users.platformOther') : platformLabel(item.platform) }}
-        </span>
-        <span class="font-mono">
-          ${{ item.today_actual_cost.toFixed(4) }}
-          <span class="opacity-50">/</span>
-          ${{ item.total_actual_cost.toFixed(4) }}
-        </span>
-      </div>
     </div>
   </div>
 </template>
@@ -46,6 +47,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { PlatformUsage } from '@/api/admin/dashboard'
 
 const props = defineProps<{

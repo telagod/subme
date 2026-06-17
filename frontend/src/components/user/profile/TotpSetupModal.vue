@@ -3,7 +3,7 @@
     <div class="flex min-h-full items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/50 transition-opacity" @click="$emit('close')"></div>
 
-      <div class="relative w-full max-w-md transform rounded-lg bg-card p-6  transition-all border border-border">
+      <div class="relative w-full max-w-md transform rounded-lg bg-card p-6 transition-all border border-border">
         <!-- Header -->
         <div class="mb-6 text-center">
           <h3 class="text-xl font-semibold text-foreground">
@@ -18,31 +18,32 @@
         <div v-if="step === 0" class="space-y-6">
           <!-- Loading verification method -->
           <div v-if="methodLoading" class="flex items-center justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-200"></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary/20"></div>
           </div>
 
           <template v-else>
             <!-- Email verification -->
             <div v-if="verificationMethod === 'email'" class="space-y-4">
               <div>
-                <label class="input-label">{{ t('profile.totp.emailCode') }}</label>
+                <Label class="mb-1.5 block">{{ t('profile.totp.emailCode') }}</Label>
                 <div class="flex gap-2">
-                  <input
+                  <Input
                     v-model="verifyForm.emailCode"
                     type="text"
                     maxlength="6"
                     inputmode="numeric"
-                    class="input flex-1"
+                    class="flex-1"
                     :placeholder="t('profile.totp.enterEmailCode')"
                   />
-                  <button
+                  <Button
                     type="button"
-                    class="btn btn-secondary whitespace-nowrap"
+                    variant="outline"
+                    class="whitespace-nowrap"
                     :disabled="sendingCode || codeCooldown > 0"
                     @click="handleSendCode"
                   >
                     {{ codeCooldown > 0 ? `${codeCooldown}s` : (sendingCode ? t('common.sending') : t('profile.totp.sendCode')) }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -50,29 +51,27 @@
             <!-- Password verification -->
             <div v-else class="space-y-4">
               <div>
-                <label class="input-label">{{ t('profile.currentPassword') }}</label>
-                <input
+                <Label class="mb-1.5 block">{{ t('profile.currentPassword') }}</Label>
+                <Input
                   v-model="verifyForm.password"
                   type="password"
                   autocomplete="current-password"
-                  class="input"
                   :placeholder="t('profile.totp.enterPassword')"
                 />
               </div>
             </div>
 
             <div class="flex justify-end gap-3 pt-4">
-              <button type="button" class="btn btn-secondary" @click="$emit('close')">
+              <Button type="button" variant="outline" @click="$emit('close')">
                 {{ t('common.cancel') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                class="btn btn-primary"
                 :disabled="!canProceedFromVerify || setupLoading"
                 @click="handleVerifyAndSetup"
               >
                 {{ setupLoading ? t('common.loading') : t('common.next') }}
-              </button>
+              </Button>
             </div>
           </template>
         </div>
@@ -95,31 +94,32 @@
                 <code class="rounded bg-muted px-3 py-2 font-mono text-sm text-foreground">
                   {{ setupData.secret }}
                 </code>
-                <button
+                <Button
                   type="button"
-                  class="rounded p-1.5 text-muted-foreground hover:bg-accent"
+                  variant="ghost"
+                  size="icon"
+                  class="h-8 w-8 text-muted-foreground"
                   @click="copySecret"
                 >
                   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
                   </svg>
-                </button>
+                </Button>
               </div>
             </div>
           </template>
 
           <div class="flex justify-end gap-3 pt-4">
-            <button type="button" class="btn btn-secondary" @click="$emit('close')">
+            <Button type="button" variant="outline" @click="$emit('close')">
               {{ t('common.cancel') }}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              class="btn btn-primary"
               :disabled="!setupData"
               @click="step = 2"
             >
               {{ t('common.next') }}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -127,11 +127,11 @@
         <div v-if="step === 2" class="space-y-6">
           <form @submit.prevent="handleVerify">
             <div class="mb-6">
-              <label class="input-label text-center block mb-3">
+              <Label class="text-center block mb-3">
                 {{ t('profile.totp.enterCode') }}
-              </label>
+              </Label>
               <div class="flex justify-center gap-2">
-                <input
+                <Input
                   v-for="(_, index) in 6"
                   :key="index"
                   :ref="(el) => setInputRef(el, index)"
@@ -139,7 +139,7 @@
                   maxlength="1"
                   inputmode="numeric"
                   pattern="[0-9]"
-                  class="h-12 w-10 rounded-md border border-border bg-card text-foreground text-center text-lg font-semibold focus:border-ring focus:ring-ring"
+                  class="h-12 w-10 text-center text-lg font-semibold"
                   @input="handleCodeInput($event, index)"
                   @keydown="handleKeydown($event, index)"
                   @paste="handlePaste"
@@ -148,16 +148,15 @@
             </div>
 
             <div class="flex justify-end gap-3">
-              <button type="button" class="btn btn-secondary" @click="step = 1">
+              <Button type="button" variant="outline" @click="step = 1">
                 {{ t('common.back') }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                class="btn btn-primary"
                 :disabled="verifying || code.join('').length !== 6"
               >
                 {{ verifying ? t('common.verifying') : t('profile.totp.verify') }}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -173,6 +172,9 @@ import { useAppStore } from '@/stores/app'
 import { totpAPI } from '@/api'
 import type { TotpSetupResponse } from '@/types'
 import QRCode from 'qrcode'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const emit = defineEmits<{
   close: []

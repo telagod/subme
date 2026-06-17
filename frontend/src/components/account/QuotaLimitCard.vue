@@ -3,6 +3,8 @@ import { ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import QuotaDimensionRow from './QuotaDimensionRow.vue'
 import type { QuotaThresholdType, QuotaResetMode } from '@/constants/account'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 const { t } = useI18n()
 
@@ -139,27 +141,16 @@ const dailyFixedHint = computed(() =>
             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
           </svg>
           <div>
-            <label class="input-label mb-0 cursor-pointer">{{ t('admin.accounts.quotaLimitToggle') }}</label>
+            <Label class="mb-0 cursor-pointer">{{ t('admin.accounts.quotaLimitToggle') }}</Label>
             <p class="mt-0.5 text-xs text-muted-foreground">
               {{ t('admin.accounts.quotaLimitToggleHint') }}
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          @click="localEnabled = !localEnabled"
-          :class="[
-            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-            localEnabled ? 'bg-primary-300' : 'bg-muted'
-          ]"
-        >
-          <span
-            :class="[
-              'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-              localEnabled ? 'translate-x-5' : 'translate-x-0'
-            ]"
-          />
-        </button>
+        <Switch
+          :checked="localEnabled"
+          @update:checked="val => localEnabled = val"
+        />
       </div>
 
       <!-- Collapsible content -->

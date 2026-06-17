@@ -118,7 +118,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['apikey']
     })
 
-    await wrapper.get('#bulk-edit-model-restriction-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-model-restriction-enabled').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
 
@@ -136,7 +136,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['oauth']
     })
 
-    await wrapper.get('#bulk-edit-openai-passthrough-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-passthrough-enabled').trigger('click')
     await wrapper.get('#bulk-edit-openai-passthrough-toggle').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
@@ -155,7 +155,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['oauth']
     })
 
-    await wrapper.get('#bulk-edit-openai-ws-mode-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-ws-mode-enabled').trigger('click')
     await wrapper.get('[data-testid="bulk-edit-openai-ws-mode-select"]').setValue('passthrough')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
@@ -184,7 +184,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['oauth']
     })
 
-    await wrapper.get('#bulk-edit-openai-codex-cli-only-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-codex-cli-only-enabled').trigger('click')
     await wrapper.get('#bulk-edit-openai-codex-cli-only-toggle').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
@@ -203,7 +203,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['oauth']
     })
 
-    await wrapper.get('#bulk-edit-openai-codex-allow-claude-code-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-codex-allow-claude-code-enabled').trigger('click')
     await wrapper.get('#bulk-edit-openai-codex-allow-claude-code-toggle').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
@@ -222,7 +222,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['apikey']
     })
 
-    await wrapper.get('#bulk-edit-openai-apikey-ws-mode-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-apikey-ws-mode-enabled').trigger('click')
     await wrapper.get('[data-testid="bulk-edit-openai-apikey-ws-mode-select"]').setValue('ctx_pool')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
@@ -250,9 +250,9 @@ describe('BulkEditAccountModal', () => {
       }
     })
 
-    await wrapper.get('#bulk-edit-openai-compact-mode-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-compact-mode-enabled').trigger('click')
     await wrapper.get('[data-testid="bulk-edit-openai-compact-mode-select"]').setValue('force_on')
-    await wrapper.get('#bulk-edit-openai-compact-model-mapping-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-compact-model-mapping-enabled').trigger('click')
     await wrapper.get('[data-testid="bulk-edit-openai-compact-model-mapping-add"]').trigger('click')
     const inputs = wrapper.findAll('[data-testid="bulk-edit-openai-compact-model-mapping-input"]')
     await inputs[0].setValue('gpt-5.4')
@@ -280,7 +280,7 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['apikey']
     })
 
-    await wrapper.get('#bulk-edit-openai-passthrough-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-passthrough-enabled').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
 
@@ -299,9 +299,9 @@ describe('BulkEditAccountModal', () => {
       selectedTypes: ['oauth']
     })
 
-    await wrapper.get('#bulk-edit-openai-passthrough-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-openai-passthrough-enabled').trigger('click')
     await wrapper.get('#bulk-edit-openai-passthrough-toggle').trigger('click')
-    await wrapper.get('#bulk-edit-model-restriction-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-model-restriction-enabled').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
 
@@ -333,7 +333,7 @@ describe('BulkEditAccountModal', () => {
       }
     })
 
-    await wrapper.get('#bulk-edit-status-enabled').setValue(true)
+    await wrapper.get('#bulk-edit-status-enabled').trigger('click')
     await wrapper.get('#bulk-edit-account-form').trigger('submit.prevent')
     await flushPromises()
 

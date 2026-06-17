@@ -1,5 +1,6 @@
 <template>
-  <div class="card p-4">
+  <Card>
+  <CardContent class="p-4">
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-sm font-semibold text-foreground">
         {{ title || t('usage.endpointDistribution') }}
@@ -9,62 +10,72 @@
           v-if="showSourceToggle"
           class="inline-flex rounded-md border border-border bg-muted p-0.5"
         >
-          <button
+          <Button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            variant="ghost"
+            size="sm"
+            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
             :class="source === 'inbound'
               ? 'bg-card text-foreground '
               : 'text-muted-foreground hover:text-foreground'"
             @click="emit('update:source', 'inbound')"
           >
             {{ t('usage.inbound') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            variant="ghost"
+            size="sm"
+            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
             :class="source === 'upstream'
               ? 'bg-card text-foreground '
               : 'text-muted-foreground hover:text-foreground'"
             @click="emit('update:source', 'upstream')"
           >
             {{ t('usage.upstream') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            variant="ghost"
+            size="sm"
+            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
             :class="source === 'path'
               ? 'bg-card text-foreground '
               : 'text-muted-foreground hover:text-foreground'"
             @click="emit('update:source', 'path')"
           >
             {{ t('usage.path') }}
-          </button>
+          </Button>
         </div>
 
         <div
           v-if="showMetricToggle"
           class="inline-flex rounded-md border border-border bg-muted p-0.5"
         >
-          <button
+          <Button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            variant="ghost"
+            size="sm"
+            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
             :class="metric === 'tokens'
               ? 'bg-card text-foreground '
               : 'text-muted-foreground hover:text-foreground'"
             @click="emit('update:metric', 'tokens')"
           >
             {{ t('admin.dashboard.metricTokens') }}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            variant="ghost"
+            size="sm"
+            class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
             :class="metric === 'actual_cost'
               ? 'bg-card text-foreground '
               : 'text-muted-foreground hover:text-foreground'"
             @click="emit('update:metric', 'actual_cost')"
           >
             {{ t('admin.dashboard.metricActualCost') }}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -92,7 +103,7 @@
                 class="border-t border-border cursor-pointer transition-colors hover:bg-accent"
                 @click="toggleBreakdown(item.endpoint)"
               >
-                <td class="max-w-[180px] truncate py-1.5 font-medium text-primary-200 hover:text-foreground" :title="item.endpoint">
+                <td class="max-w-[180px] truncate py-1.5 font-medium text-foreground hover:text-foreground" :title="item.endpoint">
                   <span class="inline-flex items-center gap-1">
                     <svg v-if="expandedKey === item.endpoint" class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     <svg v-else class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -105,7 +116,7 @@
                 <td class="py-1.5 text-right text-foreground/85">
                   {{ formatTokens(item.total_tokens) }}
                 </td>
-                <td class="py-1.5 text-right text-emerald-400">
+                <td class="py-1.5 text-right text-emerald-500">
                   ${{ formatCost(item.actual_cost) }}
                 </td>
                 <td class="py-1.5 text-right text-muted-foreground">
@@ -128,7 +139,8 @@
     <div v-else class="flex h-48 items-center justify-center text-sm text-muted-foreground">
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
-  </div>
+  </CardContent>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -136,6 +148,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { EndpointStat, UserBreakdownItem } from '@/types'

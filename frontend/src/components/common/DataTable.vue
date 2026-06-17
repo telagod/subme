@@ -1,7 +1,7 @@
 <template>
   <div v-if="!isDesktopViewport" class="space-y-3">
     <template v-if="loading">
-      <div v-for="i in 5" :key="i" class="rounded-md border border-border bg-card p-4">
+      <Card v-for="i in 5" :key="i" class="rounded-md border-border p-4">
         <div class="space-y-3">
           <div v-for="column in dataColumns" :key="column.key" class="flex justify-between">
             <div class="h-4 w-20 animate-pulse rounded bg-muted"></div>
@@ -11,11 +11,11 @@
             <div class="h-8 w-full animate-pulse rounded bg-muted"></div>
           </div>
         </div>
-      </div>
+      </Card>
     </template>
 
     <template v-else-if="!data || data.length === 0">
-      <div class="rounded-md border border-border bg-card p-12 text-center">
+      <Card class="rounded-md border-border p-12 text-center">
         <slot name="empty">
           <div class="flex flex-col items-center">
             <Icon
@@ -28,7 +28,7 @@
             </p>
           </div>
         </slot>
-      </div>
+      </Card>
     </template>
 
     <template v-else>
@@ -43,7 +43,7 @@
           class="pb-3"
           :style="{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start - cardScrollMargin}px)` }"
         >
-          <div :class="['rounded-md border border-border bg-card p-4', props.rowClass?.(sortedData[virtualRow.index], virtualRow.index)]">
+          <Card :class="['rounded-md border-border p-4', props.rowClass?.(sortedData[virtualRow.index], virtualRow.index)]">
             <div class="space-y-3">
               <div
                 v-for="column in dataColumns"
@@ -63,7 +63,7 @@
                 <slot name="cell-actions" :row="sortedData[virtualRow.index]" :value="sortedData[virtualRow.index]['actions']" :expanded="actionsExpanded"></slot>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </template>
@@ -72,7 +72,7 @@
   <div
     v-else
     ref="tableWrapperRef"
-    class="table-wrapper"
+    class="overflow-x-auto"
     :class="{
       'actions-expanded': actionsExpanded,
       'is-scrollable': isScrollable
@@ -220,6 +220,7 @@ import { useVirtualizer, useWindowVirtualizer, observeElementRect as observeElem
 import { useI18n } from 'vue-i18n'
 import type { Column } from './types'
 import Icon from '@/components/icons/Icon.vue'
+import { Card } from '@/components/ui/card'
 
 const { t } = useI18n()
 

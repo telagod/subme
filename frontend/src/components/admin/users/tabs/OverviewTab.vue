@@ -1,108 +1,108 @@
 <template>
-  <div class="ud-tab-content">
+  <div class="flex flex-col gap-5">
     <!-- KPI 三格（去重：余额/消耗已在抽屉顶部 KPI 条展示，此处放更有信息量的活动指标） -->
-    <div class="ud-kpi-row">
-      <div class="ud-kpi-card">
-        <span class="ud-kpi-label">{{ t('admin.userTabs.kpiMonthRequests') }}</span>
-        <span class="ud-kpi-value" v-if="!statsLoading">{{ monthStats.total_requests.toLocaleString() }}</span>
-        <span class="ud-kpi-value ud-muted" v-else>…</span>
-      </div>
-      <div class="ud-kpi-card">
-        <span class="ud-kpi-label">{{ t('admin.userTabs.kpiMonthTokens') }}</span>
-        <span class="ud-kpi-value ud-mono" v-if="!statsLoading">{{ fmtTok(monthStats.total_tokens) }}</span>
-        <span class="ud-kpi-value ud-muted" v-else>…</span>
-      </div>
-      <div class="ud-kpi-card">
-        <span class="ud-kpi-label">{{ t('admin.userTabs.kpiConcurrency') }}</span>
-        <span class="ud-kpi-value ud-mono">{{ user.current_concurrency ?? 0 }}<span class="ud-kpi-sub-inline">/{{ user.concurrency }}</span></span>
-      </div>
+    <div class="grid grid-cols-3 gap-2.5">
+      <Card class="flex flex-col gap-1 px-4 py-3.5">
+        <span class="text-[10.5px] font-semibold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.userTabs.kpiMonthRequests') }}</span>
+        <span class="font-mono text-lg font-bold tabular-nums text-foreground" v-if="!statsLoading">{{ monthStats.total_requests.toLocaleString() }}</span>
+        <span class="font-mono text-lg font-bold tabular-nums text-muted-foreground" v-else>…</span>
+      </Card>
+      <Card class="flex flex-col gap-1 px-4 py-3.5">
+        <span class="text-[10.5px] font-semibold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.userTabs.kpiMonthTokens') }}</span>
+        <span class="font-mono text-lg font-bold tabular-nums text-foreground" v-if="!statsLoading">{{ fmtTok(monthStats.total_tokens) }}</span>
+        <span class="font-mono text-lg font-bold tabular-nums text-muted-foreground" v-else>…</span>
+      </Card>
+      <Card class="flex flex-col gap-1 px-4 py-3.5">
+        <span class="text-[10.5px] font-semibold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.userTabs.kpiConcurrency') }}</span>
+        <span class="font-mono text-lg font-bold tabular-nums text-foreground">{{ user.current_concurrency ?? 0 }}<span class="ml-0.5 text-xs font-normal text-muted-foreground">/{{ user.concurrency }}</span></span>
+      </Card>
     </div>
 
     <!-- 近 30 日消耗折线图（SVG 简版） -->
-    <div class="ud-chart-wrap">
-      <p class="ud-section-label">{{ t('admin.userTabs.chart30dTitle') }}</p>
-      <div v-if="chartLoading" class="ud-chart-placeholder">
-        <svg class="ud-chart-empty-ico" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <div class="flex flex-col gap-2">
+      <p class="m-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.chart30dTitle') }}</p>
+      <div v-if="chartLoading" class="flex h-[100px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card text-xs text-muted-foreground">
+        <svg class="opacity-30" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <rect x="3" y="6" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.3"/>
           <circle cx="14" cy="14" r="3" stroke="currentColor" stroke-width="1.3"/>
         </svg>
         {{ t('admin.userTabs.loading') }}
       </div>
-      <div v-else-if="chartError" class="ud-chart-placeholder">
-        <svg class="ud-chart-empty-ico" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <div v-else-if="chartError" class="flex h-[100px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card text-xs text-muted-foreground">
+        <svg class="opacity-30" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
           <circle cx="14" cy="14" r="10" stroke="currentColor" stroke-width="1.3"/>
           <path d="M14 9v6M14 18v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <span class="ud-muted">{{ chartError }}</span>
+        <span>{{ chartError }}</span>
       </div>
       <template v-else>
         <!-- 无数据体面空态 -->
-        <div v-if="!chartPath" class="ud-chart-placeholder">
-          <svg class="ud-chart-empty-ico" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <div v-if="!chartPath" class="flex h-[100px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card text-xs text-muted-foreground">
+          <svg class="opacity-30" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <path d="M4 22L10 14L15 18L20 10L24 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2"/>
             <rect x="3" y="6" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.3" opacity=".4"/>
           </svg>
           <span>{{ t('admin.userTabs.chartNoData') }}</span>
         </div>
-        <!-- 有数据：azure 折线 + 渐变填充 -->
+        <!-- 有数据：primary 折线 + 渐变填充 -->
         <svg
           v-else
-          class="ud-chart-svg"
+          class="block h-[100px] w-full"
           viewBox="0 0 480 100"
           preserveAspectRatio="none"
           :aria-label="t('admin.userTabs.chart30dTitle')"
         >
           <defs>
             <linearGradient id="ud-chart-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--azure,#5CA8FF)" stop-opacity="0.22"/>
-              <stop offset="100%" stop-color="var(--azure,#5CA8FF)" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#5CA8FF" stop-opacity="0.22"/>
+              <stop offset="100%" stop-color="#5CA8FF" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <!-- 网格线 -->
-          <line x1="0" y1="25" x2="480" y2="25" stroke="var(--line-0)" stroke-width="1"/>
-          <line x1="0" y1="50" x2="480" y2="50" stroke="var(--line-0)" stroke-width="1"/>
-          <line x1="0" y1="75" x2="480" y2="75" stroke="var(--line-0)" stroke-width="1"/>
+          <line x1="0" y1="25" x2="480" y2="25" stroke="hsl(var(--border))" stroke-width="1"/>
+          <line x1="0" y1="50" x2="480" y2="50" stroke="hsl(var(--border))" stroke-width="1"/>
+          <line x1="0" y1="75" x2="480" y2="75" stroke="hsl(var(--border))" stroke-width="1"/>
           <!-- 面积填充（渐变） -->
           <path :d="chartFillPath" fill="url(#ud-chart-grad)"/>
-          <!-- 折线 azure -->
-          <path :d="chartPath" fill="none" stroke="var(--azure,#5CA8FF)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- 折线 -->
+          <path :d="chartPath" fill="none" stroke="#5CA8FF" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
       </template>
     </div>
 
     <!-- 基础信息 -->
-    <div class="ud-info-grid">
-      <div class="ud-info-row">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoUserId') }}</span>
-        <span class="ud-info-val ud-mono">#{{ user.id }}</span>
+    <div class="flex flex-col">
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoUserId') }}</span>
+        <span class="flex-1 break-all font-mono text-xs text-foreground">#{{ user.id }}</span>
       </div>
-      <div class="ud-info-row">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoEmail') }}</span>
-        <span class="ud-info-val">{{ user.email }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoEmail') }}</span>
+        <span class="flex-1 break-all text-foreground">{{ user.email }}</span>
       </div>
-      <div class="ud-info-row" v-if="user.username">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoUsername') }}</span>
-        <span class="ud-info-val">{{ user.username }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]" v-if="user.username">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoUsername') }}</span>
+        <span class="flex-1 break-all text-foreground">{{ user.username }}</span>
       </div>
-      <div class="ud-info-row">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoConcurrency') }}</span>
-        <span class="ud-info-val ud-mono">{{ user.concurrency }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoConcurrency') }}</span>
+        <span class="flex-1 break-all font-mono text-xs text-foreground">{{ user.concurrency }}</span>
       </div>
-      <div class="ud-info-row" v-if="user.rpm_limit !== undefined">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoRpm') }}</span>
-        <span class="ud-info-val ud-mono">{{ user.rpm_limit === 0 ? t('admin.userTabs.infoRpmUnlimited') : user.rpm_limit }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]" v-if="user.rpm_limit !== undefined">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoRpm') }}</span>
+        <span class="flex-1 break-all font-mono text-xs text-foreground">{{ user.rpm_limit === 0 ? t('admin.userTabs.infoRpmUnlimited') : user.rpm_limit }}</span>
       </div>
-      <div class="ud-info-row">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoRegistered') }}</span>
-        <span class="ud-info-val ud-muted">{{ fmt(user.created_at) }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoRegistered') }}</span>
+        <span class="flex-1 break-all text-muted-foreground">{{ fmt(user.created_at) }}</span>
       </div>
-      <div class="ud-info-row" v-if="user.last_active_at">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoLastActive') }}</span>
-        <span class="ud-info-val ud-muted">{{ fmt(user.last_active_at) }}</span>
+      <div class="flex items-baseline gap-3 border-b border-border py-[9px] text-[12.5px]" v-if="user.last_active_at">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoLastActive') }}</span>
+        <span class="flex-1 break-all text-muted-foreground">{{ fmt(user.last_active_at) }}</span>
       </div>
-      <div class="ud-info-row" v-if="user.notes">
-        <span class="ud-info-key">{{ t('admin.userTabs.infoNotes') }}</span>
-        <span class="ud-info-val">{{ user.notes }}</span>
+      <div class="flex items-baseline gap-3 py-[9px] text-[12.5px]" v-if="user.notes">
+        <span class="w-20 shrink-0 text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.infoNotes') }}</span>
+        <span class="flex-1 break-all text-foreground">{{ user.notes }}</span>
       </div>
     </div>
   </div>
@@ -114,6 +114,7 @@ import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
 import type { AdminUser } from '@/types'
 import { formatDateTime } from '@/utils/format'
+import { Card } from '@/components/ui/card'
 
 const { t } = useI18n()
 const props = defineProps<{ user: AdminUser }>()
@@ -209,56 +210,3 @@ async function loadChart() {
 watch(() => props.user.id, () => { loadStats(); loadChart() })
 onMounted(() => { loadStats(); loadChart() })
 </script>
-
-<style scoped>
-.ud-tab-content { display: flex; flex-direction: column; gap: 20px; }
-
-.ud-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.ud-kpi-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-  background: var(--metal,linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-0);
-  border-radius: 10px;
-  box-shadow: var(--edge-hi,inset 0 1px 0 rgba(255,255,255,.04));
-}
-.ud-kpi-label { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
-.ud-kpi-value { font-family: var(--font-mono,"IBM Plex Mono",monospace); font-size: 18px; font-weight: 700; color: var(--ink-0); font-variant-numeric: tabular-nums; }
-.ud-kpi-sub-inline { font-size: 12px; color: var(--ink-2); margin-left: 2px; font-weight: 400; }
-
-.ud-chart-wrap { display: flex; flex-direction: column; gap: 8px; }
-.ud-section-label { font-size: 11.5px; color: var(--ink-2); margin: 0; }
-.ud-chart-svg { width: 100%; height: 100px; display: block; }
-.ud-chart-placeholder {
-  height: 100px;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 8px;
-  font-size: 12px; color: var(--ink-2);
-  background: var(--metal,linear-gradient(180deg,#15181E,#0E1014));
-  border-radius: 8px; border: 1px solid var(--line-0);
-  box-shadow: var(--edge-hi,inset 0 1px 0 rgba(255,255,255,.04));
-}
-.ud-chart-empty-ico { opacity: .3; color: var(--ink-2); }
-
-.ud-info-grid { display: flex; flex-direction: column; gap: 0; }
-.ud-info-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line-0);
-  font-size: 12.5px;
-}
-.ud-info-row:last-child { border-bottom: none; }
-.ud-info-key { width: 80px; flex-shrink: 0; color: var(--ink-2); font-size: 11.5px; }
-.ud-info-val { color: var(--ink-0); flex: 1; word-break: break-all; }
-.ud-mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
-.ud-muted { color: var(--ink-2); }
-</style>

@@ -15,7 +15,7 @@
           <div
             class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary "
           >
-            <Icon name="chartBar" size="md" class="text-primary-200" />
+            <Icon name="chartBar" size="md" class="text-muted-foreground" />
           </div>
           <div>
             <div class="font-semibold text-foreground">{{ account.name }}</div>
@@ -24,16 +24,16 @@
             </div>
           </div>
         </div>
-        <span
-          :class="[
-            'rounded-full px-2.5 py-1 text-xs font-semibold',
+        <Badge
+          variant="outline"
+          :class="
             account.status === 'active'
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-              : 'bg-muted text-muted-foreground border border-border'
-          ]"
+              ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+              : 'bg-muted text-muted-foreground border-border'
+          "
         >
           {{ account.status }}
-        </span>
+        </Badge>
       </div>
 
       <!-- Loading State -->
@@ -45,15 +45,13 @@
         <!-- Row 1: Main Stats Cards -->
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <!-- 30-Day Total Cost -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.totalCost')
               }}</span>
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="dollar" size="sm" class="text-primary-200" />
+                <Icon name="dollar" size="sm" class="text-muted-foreground" />
               </div>
             </div>
             <p class="text-2xl font-bold text-foreground">
@@ -68,18 +66,16 @@
                 }})
               </span>
             </p>
-          </div>
+          </Card>
 
           <!-- 30-Day Total Requests -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.totalRequests')
               }}</span>
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="bolt" size="sm" class="text-primary-200" />
+                <Icon name="bolt" size="sm" class="text-muted-foreground" />
               </div>
             </div>
             <p class="text-2xl font-bold text-foreground">
@@ -88,12 +84,10 @@
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.stats.totalCalls') }}
             </p>
-          </div>
+          </Card>
 
           <!-- Daily Average Cost -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.avgDailyCost')
@@ -102,7 +96,7 @@
                 <Icon
                   name="calculator"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                 />
               </div>
             </div>
@@ -119,19 +113,17 @@
                 ({{ t('usage.userBilled') }}: ${{ formatCost(stats.summary.avg_daily_user_cost) }})
               </span>
             </p>
-          </div>
+          </Card>
 
           <!-- Daily Average Requests -->
-          <div
-            class="card p-4"
-          >
+          <Card class="p-4">
             <div class="mb-2 flex items-center justify-between">
               <span class="text-xs font-medium text-muted-foreground">{{
                 t('admin.accounts.stats.avgDailyRequests')
               }}</span>
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
                 <svg
-                  class="h-4 w-4 text-primary-200"
+                  class="h-4 w-4 text-muted-foreground"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -151,16 +143,16 @@
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('admin.accounts.stats.avgDailyUsage') }}
             </p>
-          </div>
+          </Card>
         </div>
 
         <!-- Row 2: Today, Highest Cost, Highest Requests -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <!-- Today Overview -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="clock" size="sm" class="text-primary-200" />
+                <Icon name="clock" size="sm" class="text-muted-foreground" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.todayOverview')
@@ -196,13 +188,13 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Highest Cost Day -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="fire" size="sm" class="text-primary-200" />
+                <Icon name="fire" size="sm" class="text-muted-foreground" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.highestCostDay')
@@ -219,7 +211,7 @@
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-xs text-muted-foreground">{{ t('usage.accountBilled') }}</span>
-                <span class="text-sm font-semibold text-amber-400"
+                <span class="text-sm font-semibold text-amber-500"
                   >${{ formatCost(stats.summary.highest_cost_day?.cost || 0) }}</span
                 >
               </div>
@@ -238,16 +230,16 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Highest Request Day -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
                 <Icon
                   name="trendingUp"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                 />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
@@ -267,7 +259,7 @@
                 <span class="text-xs text-muted-foreground">{{
                   t('admin.accounts.stats.requests')
                 }}</span>
-                <span class="text-sm font-semibold text-primary-200">{{
+                <span class="text-sm font-semibold text-foreground">{{
                   formatNumber(stats.summary.highest_request_day?.requests || 0)
                 }}</span>
               </div>
@@ -284,16 +276,16 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Row 3: Token Stats -->
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <!-- Accumulated Tokens -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="cube" size="sm" class="text-primary-200" />
+                <Icon name="cube" size="sm" class="text-muted-foreground" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.accumulatedTokens')
@@ -317,13 +309,13 @@
                 }}</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Performance -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
-                <Icon name="bolt" size="sm" class="text-primary-200" />
+                <Icon name="bolt" size="sm" class="text-muted-foreground" />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
                 t('admin.accounts.stats.performance')
@@ -347,16 +339,16 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
 
           <!-- Recent Activity -->
-          <div class="card p-4">
+          <Card class="p-4">
             <div class="mb-3 flex items-center gap-2">
               <div class="rounded-md border border-border bg-secondary p-1.5 ">
                 <Icon
                   name="clipboard"
                   size="sm"
-                  class="text-primary-200"
+                  class="text-muted-foreground"
                 />
               </div>
               <span class="text-sm font-semibold text-foreground">{{
@@ -389,11 +381,11 @@
                 >
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         <!-- Usage Trend Chart -->
-        <div class="card p-4">
+        <Card class="p-4">
           <h3 class="mb-4 text-sm font-semibold text-foreground">
             {{ t('admin.accounts.stats.usageTrend') }}
           </h3>
@@ -406,7 +398,7 @@
               {{ t('admin.dashboard.noDataAvailable') }}
             </div>
           </div>
-        </div>
+        </Card>
 
         <!-- Model Distribution -->
         <ModelDistributionChart :model-stats="stats.models" :loading="false" />
@@ -436,12 +428,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button
-          @click="handleClose"
-          class="btn btn-secondary"
-        >
+        <Button variant="outline" @click="handleClose">
           {{ t('common.close') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -467,6 +456,9 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import EndpointDistributionChart from '@/components/charts/EndpointDistributionChart.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { adminAPI } from '@/api/admin'
 import type { Account, AccountUsageStatsResponse } from '@/types'
 

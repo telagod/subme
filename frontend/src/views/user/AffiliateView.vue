@@ -3,48 +3,48 @@
     <div class="space-y-6">
       <div v-if="loading" class="flex justify-center py-12">
         <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-[var(--azure)] border-t-transparent"
+          class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"
         ></div>
       </div>
 
       <template v-else-if="detail">
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="card p-5">
+          <Card class="p-5">
             <p class="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Icon name="dollar" size="sm" class="text-primary-500" />
+              <Icon name="dollar" size="sm" class="text-primary" />
               {{ t('affiliate.stats.rebateRate') }}
             </p>
-            <p class="mt-2 text-2xl font-semibold text-primary-200">
+            <p class="mt-2 text-2xl font-semibold text-foreground">
               {{ formattedRebateRate }}<span class="ml-0.5 text-base font-medium">%</span>
             </p>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ t('affiliate.stats.rebateRateHint') }}
             </p>
-          </div>
-          <div class="card p-5">
+          </Card>
+          <Card class="p-5">
             <p class="text-sm text-muted-foreground">{{ t('affiliate.stats.invitedUsers') }}</p>
             <p class="mt-2 text-2xl font-semibold text-foreground">
               {{ formatCount(detail.aff_count) }}
             </p>
-          </div>
-          <div class="card p-5">
+          </Card>
+          <Card class="p-5">
             <p class="text-sm text-muted-foreground">{{ t('affiliate.stats.availableQuota') }}</p>
-            <p class="q-money mt-2 text-2xl font-semibold text-[var(--ok)]">
+            <p class="mt-2 text-2xl font-semibold text-emerald-500">
               {{ formatCurrency(detail.aff_quota) }}
             </p>
-          </div>
-          <div class="card p-5">
+          </Card>
+          <Card class="p-5">
             <p class="text-sm text-muted-foreground">{{ t('affiliate.stats.totalQuota') }}</p>
             <p class="mt-2 text-2xl font-semibold text-foreground">
               {{ formatCurrency(detail.aff_history_quota) }}
             </p>
-            <p v-if="detail.aff_frozen_quota > 0" class="mt-1 text-xs text-[var(--warn)]">
+            <p v-if="detail.aff_frozen_quota > 0" class="mt-1 text-xs text-amber-500">
               {{ t('affiliate.stats.frozenQuota') }}: {{ formatCurrency(detail.aff_frozen_quota) }}
             </p>
-          </div>
+          </Card>
         </div>
 
-        <div class="card p-6">
+        <Card class="p-6">
           <h3 class="text-base font-semibold text-foreground">{{ t('affiliate.title') }}</h3>
           <p class="mt-1 text-sm text-muted-foreground">{{ t('affiliate.description') }}</p>
 
@@ -53,10 +53,10 @@
               <p class="text-sm font-medium text-foreground/85">{{ t('affiliate.yourCode') }}</p>
               <div class="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
                 <code class="flex-1 truncate text-sm font-semibold text-foreground">{{ detail.aff_code }}</code>
-                <button class="btn btn-secondary btn-sm" @click="copyCode">
+                <Button variant="outline" size="sm" @click="copyCode">
                   <Icon name="copy" size="sm" />
                   <span>{{ t('affiliate.copyCode') }}</span>
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -64,10 +64,10 @@
               <p class="text-sm font-medium text-foreground/85">{{ t('affiliate.inviteLink') }}</p>
               <div class="flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2">
                 <code class="flex-1 truncate text-sm text-foreground/85">{{ inviteLink }}</code>
-                <button class="btn btn-secondary btn-sm" @click="copyInviteLink">
+                <Button variant="outline" size="sm" @click="copyInviteLink">
                   <Icon name="copy" size="sm" />
                   <span>{{ t('affiliate.copyLink') }}</span>
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -81,59 +81,57 @@
               <li v-if="detail.aff_frozen_quota > 0">4. {{ t('affiliate.tips.line4') }}</li>
             </ul>
           </div>
-        </div>
+        </Card>
 
-        <div class="card p-6">
+        <Card class="p-6">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 class="text-base font-semibold text-foreground">{{ t('affiliate.transfer.title') }}</h3>
               <p class="mt-1 text-sm text-muted-foreground">{{ t('affiliate.transfer.description') }}</p>
             </div>
-            <button
-              class="btn btn-primary"
+            <Button
               :disabled="transferring || detail.aff_quota <= 0"
               @click="transferQuota"
             >
               <Icon v-if="transferring" name="refresh" size="sm" class="animate-spin" />
               <Icon v-else name="dollar" size="sm" />
               <span>{{ transferring ? t('affiliate.transfer.transferring') : t('affiliate.transfer.button') }}</span>
-            </button>
+            </Button>
           </div>
-          <p v-if="detail.aff_quota <= 0" class="mt-3 text-sm text-[var(--warn)]">
+          <p v-if="detail.aff_quota <= 0" class="mt-3 text-sm text-amber-500">
             {{ t('affiliate.transfer.empty') }}
           </p>
-        </div>
+        </Card>
 
-        <div class="card p-6">
+        <Card class="p-6">
           <h3 class="text-base font-semibold text-foreground">{{ t('affiliate.invitees.title') }}</h3>
           <div v-if="detail.invitees.length === 0" class="mt-4 rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
             {{ t('affiliate.invitees.empty') }}
           </div>
           <div v-else class="mt-4 overflow-x-auto">
-            <table class="w-full min-w-[560px] text-left text-sm">
-              <thead>
-                <tr class="border-b border-border text-muted-foreground">
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.email') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.username') }}</th>
-                  <th class="px-3 py-2 font-medium text-right">{{ t('affiliate.invitees.columns.rebate') }}</th>
-                  <th class="px-3 py-2 font-medium">{{ t('affiliate.invitees.columns.joinedAt') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
+            <Table class="min-w-[560px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{{ t('affiliate.invitees.columns.email') }}</TableHead>
+                  <TableHead>{{ t('affiliate.invitees.columns.username') }}</TableHead>
+                  <TableHead class="text-right">{{ t('affiliate.invitees.columns.rebate') }}</TableHead>
+                  <TableHead>{{ t('affiliate.invitees.columns.joinedAt') }}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
                   v-for="item in detail.invitees"
                   :key="item.user_id"
-                  class="border-b border-border last:border-b-0"
                 >
-                  <td class="px-3 py-3 text-foreground">{{ item.email || '-' }}</td>
-                  <td class="px-3 py-3 text-foreground/85">{{ item.username || '-' }}</td>
-                  <td class="px-3 py-3 text-right font-medium text-[var(--ok)]">{{ formatCurrency(item.total_rebate) }}</td>
-                  <td class="px-3 py-3 text-foreground/85">{{ formatDateTime(item.created_at) || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
+                  <TableCell class="text-foreground">{{ item.email || '-' }}</TableCell>
+                  <TableCell class="text-foreground/85">{{ item.username || '-' }}</TableCell>
+                  <TableCell class="text-right font-medium text-emerald-500">{{ formatCurrency(item.total_rebate) }}</TableCell>
+                  <TableCell class="text-foreground/85">{{ formatDateTime(item.created_at) || '-' }}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
-        </div>
+        </Card>
       </template>
     </div>
   </AppLayout>
@@ -151,6 +149,9 @@ import { useAuthStore } from '@/stores/auth'
 import { useClipboard } from '@/composables/useClipboard'
 import { formatCurrency, formatDateTime } from '@/utils/format'
 import { extractApiErrorMessage } from '@/utils/apiError'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 
 const { t } = useI18n()
 const appStore = useAppStore()

@@ -1,10 +1,10 @@
 <template>
-  <div class="as-body">
+  <div class="flex flex-col gap-4 px-5 py-4">
     <!-- Require email on third-party signup toggle -->
-    <div class="as-toggle-row as-toggle-row--top">
+    <div class="flex items-start justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
       <div>
-        <label class="as-toggle-label">{{ t('admin.settings.authSourceDefaults.requireEmailLabel') }}</label>
-        <p class="as-hint">{{ t('admin.settings.authSourceDefaults.requireEmailHint') }}</p>
+        <Label class="mb-0.5 block text-sm font-medium text-foreground">{{ t('admin.settings.authSourceDefaults.requireEmailLabel') }}</Label>
+        <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.authSourceDefaults.requireEmailHint') }}</p>
       </div>
       <Toggle
         :model-value="localForceEmail"
@@ -13,17 +13,17 @@
     </div>
 
     <!-- Auth source cards -->
-    <div class="as-sources">
+    <div class="flex flex-col gap-3">
       <div
         v-for="meta in sourceMeta"
         :key="meta.source"
-        class="as-source-card"
+        class="flex flex-col rounded-[10px] border border-border px-4 py-3.5"
       >
         <!-- Card header: title + description + grant_on_signup toggle -->
-        <div class="as-source-head">
-          <div class="as-source-info">
-            <div class="as-source-title">{{ meta.title }}</div>
-            <p class="as-source-desc">{{ meta.description }}</p>
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0 flex-1">
+            <div class="text-[13.5px] font-semibold text-foreground">{{ meta.title }}</div>
+            <p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">{{ meta.description }}</p>
           </div>
           <Toggle
             v-model="localState[meta.source].grant_on_signup"
@@ -36,31 +36,29 @@
         <div
           v-if="localState[meta.source].grant_on_signup"
           :data-testid="`auth-source-${meta.source}-panel`"
-          class="as-source-panel"
+          class="mt-3.5 flex flex-col gap-4 border-t border-border pt-3.5"
         >
-          <p class="as-hint as-hint--top">{{ t('admin.settings.authSourceDefaults.enabledHint') }}</p>
+          <p class="m-0 mb-1 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.authSourceDefaults.enabledHint') }}</p>
 
           <!-- Balance + Concurrency -->
-          <div class="as-grid-2">
-            <div class="as-field">
-              <label class="as-field-label">{{ t('admin.settings.defaults.defaultBalance') }}</label>
-              <input
+          <div class="grid grid-cols-2 gap-3 max-[540px]:grid-cols-1">
+            <div class="flex flex-col">
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.defaults.defaultBalance') }}</Label>
+              <Input
                 v-model.number="localState[meta.source].balance"
                 type="number"
                 step="0.01"
                 min="0"
-                class="as-input"
                 placeholder="0.00"
                 @change="emitAll"
               />
             </div>
-            <div class="as-field">
-              <label class="as-field-label">{{ t('admin.settings.defaults.defaultConcurrency') }}</label>
-              <input
+            <div class="flex flex-col">
+              <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.defaults.defaultConcurrency') }}</Label>
+              <Input
                 v-model.number="localState[meta.source].concurrency"
                 type="number"
                 min="1"
-                class="as-input"
                 placeholder="5"
                 @change="emitAll"
               />
@@ -68,10 +66,10 @@
           </div>
 
           <!-- grant_on_first_bind -->
-          <div class="as-toggle-row">
+          <div class="flex items-start justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
             <div>
-              <label class="as-toggle-label">{{ t('admin.settings.authSourceDefaults.grantOnFirstBindLabel') }}</label>
-              <p class="as-hint">{{ t('admin.settings.authSourceDefaults.grantOnFirstBindHint') }}</p>
+              <Label class="mb-0.5 block text-sm font-medium text-foreground">{{ t('admin.settings.authSourceDefaults.grantOnFirstBindLabel') }}</Label>
+              <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.authSourceDefaults.grantOnFirstBindHint') }}</p>
             </div>
             <Toggle
               v-model="localState[meta.source].grant_on_first_bind"
@@ -80,37 +78,39 @@
           </div>
 
           <!-- Default subscriptions -->
-          <div class="as-sub-section">
-            <div class="as-sub-header">
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-start justify-between gap-3">
               <div>
-                <label class="as-sub-label">{{ t('admin.settings.authSourceDefaults.defaultSubscriptionsLabel') }}</label>
-                <p class="as-hint">{{ t('admin.settings.authSourceDefaults.defaultSubscriptionsHint') }}</p>
+                <Label class="mb-0.5 block text-[13px] font-semibold text-foreground">{{ t('admin.settings.authSourceDefaults.defaultSubscriptionsLabel') }}</Label>
+                <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.authSourceDefaults.defaultSubscriptionsHint') }}</p>
               </div>
-              <button
+              <Button
                 type="button"
-                class="as-btn as-btn-sm"
+                variant="outline"
+                size="sm"
+                class="shrink-0 text-[11.5px]"
                 :disabled="subscriptionGroups.length === 0"
                 @click="addSubscription(meta.source)"
               >
                 {{ t('admin.settings.defaults.addDefaultSubscription') }}
-              </button>
+              </Button>
             </div>
 
             <div
               v-if="localState[meta.source].subscriptions.length === 0"
-              class="as-empty"
+              class="rounded-lg border border-dashed border-border px-3.5 py-2.5 text-[12.5px] text-muted-foreground"
             >
               {{ t('admin.settings.authSourceDefaults.noSourceSubscriptions') }}
             </div>
 
-            <div v-else class="as-sub-list">
+            <div v-else class="flex flex-col gap-2">
               <div
                 v-for="(item, index) in localState[meta.source].subscriptions"
                 :key="`${meta.source}-sub-${index}`"
-                class="as-sub-row"
+                class="grid grid-cols-[1fr_160px_auto] items-end gap-2.5 rounded-lg border border-border px-3 py-2.5 max-[640px]:grid-cols-1"
               >
-                <div class="as-sub-group">
-                  <label class="as-field-label">{{ t('admin.settings.defaults.subscriptionGroup') }}</label>
+                <div class="flex flex-col">
+                  <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.defaults.subscriptionGroup') }}</Label>
                   <Select
                     v-model="item.group_id"
                     class="default-sub-group-select"
@@ -126,7 +126,7 @@
                         :subscription-type="(option as GroupOption).subscriptionType"
                         :rate-multiplier="(option as GroupOption).rate"
                       />
-                      <span v-else class="as-muted">{{ t('admin.settings.defaults.subscriptionGroup') }}</span>
+                      <span v-else class="text-muted-foreground">{{ t('admin.settings.defaults.subscriptionGroup') }}</span>
                     </template>
                     <template #option="{ option, selected }">
                       <GroupOptionItem
@@ -140,91 +140,93 @@
                     </template>
                   </Select>
                 </div>
-                <div class="as-sub-days">
-                  <label class="as-field-label">{{ t('admin.settings.defaults.subscriptionValidityDays') }}</label>
-                  <input
+                <div class="flex flex-col">
+                  <Label class="mb-1 block text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.defaults.subscriptionValidityDays') }}</Label>
+                  <Input
                     v-model.number="item.validity_days"
                     type="number"
                     min="1"
                     max="36500"
-                    class="as-input as-input--h42"
+                    class="h-[42px]"
                     @change="emitAll"
                   />
                 </div>
-                <div class="as-sub-del">
-                  <button
+                <div class="flex items-end">
+                  <Button
                     type="button"
-                    class="as-btn as-btn-danger"
+                    variant="outline"
+                    size="sm"
+                    class="w-full text-destructive hover:border-destructive/30 hover:bg-destructive/7 hover:text-destructive"
                     @click="removeSubscription(meta.source, index)"
                   >
                     {{ t('common.delete') }}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Platform quotas override matrix -->
-          <div class="as-quota-section">
-            <div class="as-quota-header">
-              <label class="as-sub-label">{{ t('admin.settings.authSourceDefaults.platformQuotasOverride') }}</label>
-              <p class="as-hint">{{ t('admin.settings.authSourceDefaults.platformQuotasOverrideHint') }}</p>
+          <div class="flex flex-col gap-2.5">
+            <div class="flex flex-col gap-0.5">
+              <Label class="block text-[13px] font-semibold text-foreground">{{ t('admin.settings.authSourceDefaults.platformQuotasOverride') }}</Label>
+              <p class="m-0 text-[11.5px] leading-relaxed text-muted-foreground">{{ t('admin.settings.authSourceDefaults.platformQuotasOverrideHint') }}</p>
             </div>
-            <div class="as-table-wrap">
-              <table class="as-table">
-                <thead>
-                  <tr class="as-table-head">
-                    <th class="as-th">{{ t('admin.settings.platformQuota.platform') }}</th>
-                    <th class="as-th">{{ t('admin.settings.platformQuota.daily') }}</th>
-                    <th class="as-th">{{ t('admin.settings.platformQuota.weekly') }}</th>
-                    <th class="as-th">{{ t('admin.settings.platformQuota.monthly') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
+            <div class="overflow-x-auto">
+              <Table class="w-full text-[12.5px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead class="pb-2 pr-3.5 pt-0 text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">{{ t('admin.settings.platformQuota.platform') }}</TableHead>
+                    <TableHead class="pb-2 pr-3.5 pt-0 text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">{{ t('admin.settings.platformQuota.daily') }}</TableHead>
+                    <TableHead class="pb-2 pr-3.5 pt-0 text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">{{ t('admin.settings.platformQuota.weekly') }}</TableHead>
+                    <TableHead class="pb-2 pr-3.5 pt-0 text-[11px] font-semibold uppercase tracking-[.05em] text-muted-foreground">{{ t('admin.settings.platformQuota.monthly') }}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
                     v-for="p in PLATFORMS"
                     :key="`${meta.source}-pq-${p}`"
-                    class="as-table-row"
+                    class="align-top"
                   >
-                    <td class="as-td-platform">
-                      <span class="as-mono">{{ p }}</span>
-                    </td>
-                    <td class="as-td-quota">
-                      <input
+                    <TableCell class="py-1 pr-3.5 align-middle">
+                      <span class="font-mono text-xs text-foreground opacity-85">{{ p }}</span>
+                    </TableCell>
+                    <TableCell class="py-1 pr-3.5">
+                      <Input
                         v-model.number="localState[meta.source].platform_quotas[p]!.daily"
                         type="number"
                         step="0.01"
                         min="0"
-                        class="as-input as-input--quota"
+                        class="h-8 w-28 px-2 text-[12.5px]"
                         :placeholder="t('admin.settings.platformQuota.placeholder')"
                         @change="emitAll"
                       />
-                    </td>
-                    <td class="as-td-quota">
-                      <input
+                    </TableCell>
+                    <TableCell class="py-1 pr-3.5">
+                      <Input
                         v-model.number="localState[meta.source].platform_quotas[p]!.weekly"
                         type="number"
                         step="0.01"
                         min="0"
-                        class="as-input as-input--quota"
+                        class="h-8 w-28 px-2 text-[12.5px]"
                         :placeholder="t('admin.settings.platformQuota.placeholder')"
                         @change="emitAll"
                       />
-                    </td>
-                    <td class="as-td-quota">
-                      <input
+                    </TableCell>
+                    <TableCell class="py-1 pr-3.5">
+                      <Input
                         v-model.number="localState[meta.source].platform_quotas[p]!.monthly"
                         type="number"
                         step="0.01"
                         min="0"
-                        class="as-input as-input--quota"
+                        class="h-8 w-28 px-2 text-[12.5px]"
                         :placeholder="t('admin.settings.platformQuota.placeholder')"
                         @change="emitAll"
                       />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>
@@ -240,6 +242,10 @@ import Toggle from '@/components/common/Toggle.vue'
 import Select from '@/components/common/Select.vue'
 import GroupBadge from '@/components/common/GroupBadge.vue'
 import GroupOptionItem from '@/components/common/GroupOptionItem.vue'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { adminAPI } from '@/api'
 import {
   buildAuthSourceDefaultsState,
@@ -435,163 +441,3 @@ function removeSubscription(source: AuthSourceType, index: number) {
   emitAll()
 }
 </script>
-
-<style scoped>
-/* QUENCH surface — consistent with UserDefaultsSection */
-.as-body {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* ── Source list ───────────────────────────────────────────────────────── */
-.as-sources { display: flex; flex-direction: column; gap: 12px; }
-
-.as-source-card {
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 10px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Card header */
-.as-source-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.as-source-info { flex: 1; min-width: 0; }
-.as-source-title { font-size: 13.5px; font-weight: 600; color: var(--ink-0, #E8EBF0); }
-.as-source-desc  { font-size: 12px; color: var(--ink-2, #5C6470); margin: 3px 0 0; line-height: 1.5; }
-
-/* Expanded panel */
-.as-source-panel {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line-0, #20242C);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* ── Typography helpers ────────────────────────────────────────────────── */
-.as-hint       { font-size: 11.5px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 0; }
-.as-hint--top  { margin-bottom: 4px; }
-.as-field-label { font-size: 11.5px; font-weight: 500; color: var(--ink-1, #97A0AF); display: block; margin-bottom: 4px; }
-.as-muted      { color: var(--ink-2, #5C6470); }
-.as-mono       { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: var(--ink-0, #E8EBF0); opacity: .85; }
-
-/* ── Balance / concurrency grid ────────────────────────────────────────── */
-.as-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 540px) { .as-grid-2 { grid-template-columns: 1fr; } }
-
-.as-field { display: flex; flex-direction: column; }
-
-/* ── Toggle row ────────────────────────────────────────────────────────── */
-.as-toggle-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--line-0, #20242C);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-.as-toggle-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-0, #E8EBF0);
-  display: block;
-  margin-bottom: 3px;
-}
-
-/* ── Subscriptions ─────────────────────────────────────────────────────── */
-.as-sub-section { display: flex; flex-direction: column; gap: 10px; }
-.as-sub-label   { font-size: 13px; font-weight: 600; color: var(--ink-0, #E8EBF0); display: block; margin-bottom: 2px; }
-
-.as-sub-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.as-empty {
-  border: 1px dashed var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 12.5px;
-  color: var(--ink-2, #5C6470);
-}
-
-.as-sub-list { display: flex; flex-direction: column; gap: 8px; }
-
-.as-sub-row {
-  display: grid;
-  grid-template-columns: 1fr 160px auto;
-  gap: 10px;
-  align-items: end;
-  border: 1px solid var(--line-0, #20242C);
-  border-radius: 8px;
-  padding: 10px 12px;
-}
-@media (max-width: 640px) { .as-sub-row { grid-template-columns: 1fr; } }
-
-.as-sub-group { display: flex; flex-direction: column; }
-.as-sub-days  { display: flex; flex-direction: column; }
-.as-sub-del   { display: flex; align-items: flex-end; }
-
-/* ── Platform quota matrix ─────────────────────────────────────────────── */
-.as-quota-section { display: flex; flex-direction: column; gap: 10px; }
-.as-quota-header  { display: flex; flex-direction: column; gap: 3px; }
-
-.as-table-wrap { overflow-x: auto; }
-.as-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-.as-table-head {}
-.as-th {
-  text-align: left; padding: 0 14px 8px 0;
-  font-size: 11px; font-weight: 600; color: var(--ink-2, #5C6470);
-  text-transform: uppercase; letter-spacing: .05em;
-}
-.as-table-row { vertical-align: top; }
-.as-td-platform { padding: 4px 14px 4px 0; vertical-align: middle; }
-.as-td-quota    { padding: 4px 14px 4px 0; }
-
-/* ── Inputs ────────────────────────────────────────────────────────────── */
-.as-input {
-  width: 100%; padding: 7px 10px; border-radius: 7px;
-  border: 1px solid var(--line-1, #2F3540); background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0); font-size: 13px; font-family: inherit; outline: none;
-  transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
-}
-.as-input:focus { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.13); }
-.as-input--h42  { height: 42px; }
-.as-input--quota { height: 32px; width: 112px; font-size: 12.5px; padding: 4px 8px; }
-
-/* ── Buttons ───────────────────────────────────────────────────────────── */
-.as-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 6px 13px; border-radius: 7px; font-size: 12.5px; font-weight: 500;
-  font-family: inherit; cursor: pointer; user-select: none;
-  border: 1px solid var(--line-1, #2F3540); background: transparent;
-  color: var(--ink-1, #97A0AF);
-  transition: border-color .12s, color .12s, background .12s;
-  white-space: nowrap;
-}
-.as-btn:hover:not(:disabled) { border-color: var(--line-0, #20242C); color: var(--ink-0, #E8EBF0); background: var(--bg-2, #171A20); }
-.as-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.as-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-.as-btn-sm { padding: 4px 10px; font-size: 11.5px; flex-shrink: 0; }
-
-.as-btn-danger { color: rgba(242, 92, 105, .8); width: 100%; }
-.as-btn-danger:hover:not(:disabled) { color: var(--bad, #F25C69); background: rgba(242,92,105,.07); border-color: rgba(242,92,105,.3); }
-</style>

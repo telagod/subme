@@ -1,23 +1,23 @@
 <template>
-  <div class="card">
-    <div class="border-b border-border px-6 py-4">
-      <h2 class="text-lg font-medium text-foreground">
+  <Card>
+    <CardHeader class="border-b border-border px-6 py-4">
+      <CardTitle class="text-lg font-medium text-foreground">
         {{ t('profile.totp.title') }}
-      </h2>
-      <p class="mt-1 text-sm text-muted-foreground">
+      </CardTitle>
+      <CardDescription class="mt-1 text-sm text-muted-foreground">
         {{ t('profile.totp.description') }}
-      </p>
-    </div>
-    <div class="px-6 py-6">
+      </CardDescription>
+    </CardHeader>
+    <CardContent class="px-6 py-6">
       <!-- Loading state -->
       <div v-if="loading" class="flex items-center justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-300"></div>
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary/30"></div>
       </div>
 
       <!-- Feature disabled globally -->
       <div v-else-if="status && !status.feature_enabled" class="flex items-center gap-4 py-4">
-        <div class="flex-shrink-0 rounded-md border border-border bg-secondary p-3 ">
-          <svg class="h-6 w-6 text-primary-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <div class="flex-shrink-0 rounded-md border border-border bg-secondary p-3">
+          <svg class="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
         </div>
@@ -35,7 +35,7 @@
       <div v-else-if="status?.enabled" class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div class="flex-shrink-0 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3">
-            <svg class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <svg class="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
           </div>
@@ -48,20 +48,20 @@
             </p>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          class="btn btn-outline-danger"
+          variant="destructive"
           @click="showDisableDialog = true"
         >
           {{ t('profile.totp.disable') }}
-        </button>
+        </Button>
       </div>
 
       <!-- 2FA Not Enabled -->
       <div v-else class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="flex-shrink-0 rounded-md border border-border bg-secondary p-3 ">
-            <svg class="h-6 w-6 text-primary-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <div class="flex-shrink-0 rounded-md border border-border bg-secondary p-3">
+            <svg class="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
           </div>
@@ -74,15 +74,14 @@
             </p>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          class="btn btn-primary"
           @click="showSetupModal = true"
         >
           {{ t('profile.totp.enable') }}
-        </button>
+        </Button>
       </div>
-    </div>
+    </CardContent>
 
     <!-- Setup Modal -->
     <TotpSetupModal
@@ -97,7 +96,7 @@
       @close="showDisableDialog = false"
       @success="handleDisableSuccess"
     />
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -105,6 +104,8 @@ import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { totpAPI } from '@/api'
 import type { TotpStatus } from '@/types'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import TotpSetupModal from './TotpSetupModal.vue'
 import TotpDisableDialog from './TotpDisableDialog.vue'
 

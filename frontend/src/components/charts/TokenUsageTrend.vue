@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4">
+  <Card class="p-4">
     <h3 class="mb-4 text-sm font-semibold text-foreground">
       {{ t('admin.dashboard.tokenUsageTrend') }}
     </h3>
@@ -15,7 +15,7 @@
     >
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +33,7 @@ import {
   Filler
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
+import { Card } from '@/components/ui/card'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import type { TrendDataPoint } from '@/types'
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="card p-4">
+  <Card class="p-4">
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-sm font-semibold text-foreground">
         {{ t('admin.dashboard.groupDistribution') }}
@@ -8,26 +8,30 @@
         v-if="showMetricToggle"
         class="inline-flex rounded-md border border-border bg-muted p-0.5"
       >
-        <button
+        <Button
           type="button"
-          class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+          variant="ghost"
+          size="sm"
+          class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
           :class="metric === 'tokens'
             ? 'bg-secondary text-foreground '
             : 'text-muted-foreground hover:text-foreground'"
           @click="emit('update:metric', 'tokens')"
         >
           {{ t('admin.dashboard.metricTokens') }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+          variant="ghost"
+          size="sm"
+          class="rounded-md px-2.5 py-1 text-xs font-medium transition-colors h-auto"
           :class="metric === 'actual_cost'
             ? 'bg-secondary text-foreground '
             : 'text-muted-foreground hover:text-foreground'"
           @click="emit('update:metric', 'actual_cost')"
         >
           {{ t('admin.dashboard.metricActualCost') }}
-        </button>
+        </Button>
       </div>
     </div>
     <div v-if="loading" class="flex h-48 items-center justify-center">
@@ -58,7 +62,7 @@
               >
                 <td
                   class="max-w-[100px] truncate py-1.5 font-medium"
-                  :class="group.group_id > 0 ? 'text-primary-200 hover:text-primary-100' : 'text-foreground'"
+                  :class="group.group_id > 0 ? 'text-primary hover:text-primary/80' : 'text-foreground'"
                   :title="group.group_name || String(group.group_id)"
                 >
                   <span class="inline-flex items-center gap-1">
@@ -103,7 +107,7 @@
     >
       {{ t('admin.dashboard.noDataAvailable') }}
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -111,6 +115,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { Doughnut } from 'vue-chartjs'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { GroupStat, UserBreakdownItem } from '@/types'

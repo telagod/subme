@@ -99,14 +99,14 @@ const labelClass = computed(() => {
 
   if (!isSubscription.value) {
     // Standard: subtle background (不再为专属倍率使用不同的背景色)
-    return `${base} bg-white/10`
+    return `${base} bg-foreground/10`
   }
 
   // 订阅类型：根据剩余天数显示不同颜色
   if (props.daysRemaining !== null && props.daysRemaining !== undefined) {
     if (props.daysRemaining <= 0 || props.daysRemaining <= 3) {
       // 已过期或紧急（<=3天）：红色
-      return `${base} bg-red-800/50 text-red-400`
+      return `${base} bg-red-500/15 text-red-600 dark:text-red-400`
     }
     if (props.daysRemaining <= 7) {
       // 警告（<=7天）：橙色
@@ -132,22 +132,22 @@ const badgeClass = computed(() => {
   if (props.platform === 'anthropic') {
     // Claude: orange theme
     return isSubscription.value
-      ? 'bg-orange-900/30 text-orange-400'
-      : 'bg-amber-900/20 text-amber-400'
+      ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
   } else if (props.platform === 'openai') {
     // OpenAI: green theme
     return isSubscription.value
       ? 'bg-emerald-500/10 text-emerald-400'
-      : 'bg-green-900/20 text-emerald-400 '
+      : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
   }
   if (props.platform === 'gemini') {
     return isSubscription.value
       ? 'bg-sky-500/10 text-sky-400'
-      : 'bg-sky-900/20 text-sky-400'
+      : 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
   }
   // Fallback: original colors
   return isSubscription.value
-    ? 'bg-violet-900/30 text-violet-400'
+    ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
     : 'bg-emerald-500/10 text-emerald-400'
 })
 </script>

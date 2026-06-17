@@ -51,9 +51,9 @@
 
     <template #footer>
       <div class="flex justify-end">
-        <button @click="$emit('close')" class="btn btn-secondary">
+        <Button variant="secondary" @click="$emit('close')">
           {{ t('channelStatus.closeDetail') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -69,6 +69,7 @@ import {
   type UserMonitorDetail,
 } from '@/api/channelMonitor'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
 import { useChannelMonitorFormat } from '@/composables/useChannelMonitorFormat'
 
 const props = defineProps<{

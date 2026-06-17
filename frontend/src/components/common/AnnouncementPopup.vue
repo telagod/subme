@@ -6,47 +6,52 @@
         class="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/70 p-4 pt-[8vh]"
       >
         <div
-          class="w-full max-w-[680px] overflow-hidden rounded-lg border border-border bg-card  ring-1 ring-white/5"
+          class="w-full max-w-[680px] overflow-hidden rounded-lg border border-border bg-card"
           @click.stop
         >
-          <!-- Header with warm gradient -->
+          <!-- Header -->
           <div class="relative overflow-hidden border-b border-border bg-card px-8 py-6">
-            <div class="relative z-10">
-              <!-- Icon and badge -->
-              <div class="mb-3 flex items-center gap-2">
-                <div class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary-200 ">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
+            <div class="relative z-10 flex items-start justify-between gap-4">
+              <div>
+                <div class="mb-3 flex items-center gap-2">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-secondary text-primary">
+                    <Icon name="bell" size="md" :stroke-width="2" />
+                  </div>
+                  <Badge variant="outline" class="gap-1.5 border-primary/30 bg-primary/10 text-primary">
+                    <span class="relative flex h-2 w-2">
+                      <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                      <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                    </span>
+                    {{ t('announcements.unread') }}
+                  </Badge>
                 </div>
-                <span class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-400">
-                  <span class="relative flex h-2 w-2">
-                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-                    <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-400"></span>
-                  </span>
-                  {{ t('announcements.unread') }}
-                </span>
+
+                <h2 class="mb-2 text-2xl font-bold leading-tight text-foreground">
+                  {{ announcementStore.currentPopup.title }}
+                </h2>
+
+                <div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Icon name="clock" size="sm" :stroke-width="2" />
+                  <time>{{ formatRelativeWithDateTime(announcementStore.currentPopup.created_at) }}</time>
+                </div>
               </div>
 
-              <!-- Title -->
-              <h2 class="mb-2 text-2xl font-bold leading-tight text-foreground">
-                {{ announcementStore.currentPopup.title }}
-              </h2>
-
-              <!-- Time -->
-              <div class="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <time>{{ formatRelativeWithDateTime(announcementStore.currentPopup.created_at) }}</time>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                @click="handleSkip"
+                class="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                :aria-label="t('common.close')"
+              >
+                <Icon name="x" size="md" />
+              </Button>
             </div>
           </div>
 
           <!-- Body -->
           <div class="max-h-[50vh] overflow-y-auto bg-card px-8 py-8">
             <div class="relative">
-              <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-foreground"></div>
+              <div class="absolute left-0 top-0 bottom-0 w-1 rounded-full bg-muted-foreground/40"></div>
               <div class="pl-6">
                 <div
                   class="markdown-body prose prose-sm max-w-none"
@@ -57,19 +62,15 @@
           </div>
 
           <!-- Footer -->
-          <div class="border-t border-border bg-muted px-8 py-5">
-            <div class="flex items-center justify-end">
-              <button
-                @click="handleDismiss"
-                class="rounded-md border border-border bg-foreground px-6 py-2.5 text-sm font-medium text-foreground  transition-all hover: hover:scale-105"
-              >
-                <span class="flex items-center gap-2">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {{ t('announcements.markRead') }}
-                </span>
-              </button>
+          <div class="border-t border-border bg-card px-8 py-5">
+            <div class="flex items-center justify-end gap-3">
+              <Button variant="outline" @click="handleSkip">
+                {{ t('announcements.readLater') }}
+              </Button>
+              <Button @click="handleDismiss">
+                <Icon name="check" size="sm" :stroke-width="2" />
+                {{ t('announcements.markRead') }}
+              </Button>
             </div>
           </div>
         </div>
@@ -79,12 +80,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAnnouncementStore } from '@/stores/announcements'
 import { formatRelativeWithDateTime } from '@/utils/format'
+import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const { t } = useI18n()
 const announcementStore = useAnnouncementStore()
@@ -105,7 +109,24 @@ function handleDismiss() {
   announcementStore.dismissPopup()
 }
 
-// Manage body overflow — only set, never unset (bell component handles restore)
+function handleSkip() {
+  announcementStore.skipPopup()
+}
+
+function handleEscape(e: KeyboardEvent) {
+  if (e.key === 'Escape' && announcementStore.currentPopup) {
+    handleSkip()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', handleEscape)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleEscape)
+})
+
 watch(
   () => announcementStore.currentPopup,
   (popup) => {
@@ -150,11 +171,11 @@ watch(
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+  background: hsl(var(--border));
   border-radius: 4px;
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #4b5563, #374151);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 </style>

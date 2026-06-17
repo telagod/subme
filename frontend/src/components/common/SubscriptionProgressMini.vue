@@ -1,12 +1,13 @@
 <template>
   <div v-if="hasActiveSubscriptions" class="relative" ref="containerRef">
     <!-- Mini Progress Display -->
-    <button
+    <Button
+      variant="ghost"
       @click="toggleTooltip"
-      class="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5  transition-colors hover:bg-accent"
+      class="flex cursor-pointer items-center gap-2 rounded-md border border-border bg-secondary px-3 py-1.5 transition-colors hover:bg-accent"
       :title="t('subscriptionProgress.viewDetails')"
     >
-      <Icon name="creditCard" size="sm" class="text-primary-200" />
+      <Icon name="creditCard" size="sm" class="text-muted-foreground" />
       <div class="flex items-center gap-1.5">
         <!-- Combined progress indicator -->
         <div class="flex items-center gap-0.5">
@@ -21,7 +22,7 @@
           {{ activeSubscriptions.length }}
         </span>
       </div>
-    </button>
+    </Button>
 
     <!-- Hover/Click Tooltip -->
     <transition name="dropdown">
@@ -167,7 +168,7 @@
           <router-link
             to="/subscriptions"
             @click="closeTooltip"
-            class="block w-full py-1 text-center text-xs text-primary-400 hover:underline "
+            class="block w-full py-1 text-center text-xs text-primary hover:underline"
           >
             {{ t('subscriptionProgress.viewAll') }}
           </router-link>
@@ -180,6 +181,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
 import Icon from '@/components/icons/Icon.vue'
 import { useSubscriptionStore } from '@/stores'
 import type { UserSubscription } from '@/types'

@@ -1,138 +1,208 @@
 <template>
-  <div style="display:flex;height:100%;min-height:0;flex-direction:column;background:var(--bg-1,#13161C);">
-    <div v-if="loading" style="display:flex;flex:1;align-items:center;justify-content:center;padding:28px 0;" role="status" aria-label="加载中">
-      <div style="width:24px;height:24px;border-radius:50%;border-bottom:2px solid var(--ops-azure,#5CA8FF);" class="animate-spin" aria-hidden="true"></div>
+  <div class="flex h-full min-h-0 flex-col bg-background">
+    <div v-if="loading" class="flex flex-1 items-center justify-center py-7" role="status" aria-label="加载中">
+      <div class="h-6 w-6 animate-spin rounded-full border-b-2 border-primary" aria-hidden="true"></div>
     </div>
 
-    <div v-else style="display:flex;min-height:0;flex:1;flex-direction:column;">
-      <div style="min-height:0;flex:1;overflow:auto;border-bottom:1px solid var(--line-0,#20242C);">
-        <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
-          <thead class="od-table-head-row" style="position:sticky;top:0;z-index:10;">
+    <div v-else class="flex min-h-0 flex-1 flex-col">
+      <div class="min-h-0 flex-1 overflow-auto border-b border-border">
+        <table class="w-full border-collapse text-[11.5px]">
+          <thead class="sticky top-0 z-10 bg-muted">
             <tr>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.time') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.type') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.endpoint') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.platform') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.model') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.group') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.user') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.apiKey') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.account') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.status') }}</th>
-              <th style="padding:7px 12px;text-align:left;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.message') }}</th>
-              <th style="padding:7px 12px;text-align:right;border-bottom:1px solid var(--line-0,#20242C);" class="od-sys-label">{{ t('admin.ops.errorLog.action') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.time') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.type') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.endpoint') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.platform') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.model') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.group') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.user') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.apiKey') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.account') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.status') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.message') }}</th>
+              <th class="border-b border-border px-3 py-[7px] text-right text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">{{ t('admin.ops.errorLog.action') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="rows.length === 0">
-              <td colspan="12" style="padding:36px;text-align:center;font-size:13px;color:var(--ink-2,#5C6470);">{{ t('admin.ops.errorLog.noErrors') }}</td>
+              <td colspan="12" class="px-9 py-9 text-center text-[13px] text-muted-foreground">{{ t('admin.ops.errorLog.noErrors') }}</td>
             </tr>
-            <tr v-for="log in rows" :key="log.id" class="od-tr-border" style="cursor:pointer;" @click="emit('openErrorDetail', log.id)">
+            <tr v-for="log in rows" :key="log.id" class="cursor-pointer border-b border-border last:border-b-0" @click="emit('openErrorDetail', log.id)">
               <!-- Time -->
-              <td style="padding:7px 12px;white-space:nowrap;">
-                <el-tooltip :content="log.request_id || log.client_request_id" placement="top" :show-after="500">
-                  <span class="od-mono" style="font-size:11px;color:var(--ink-0,#E8EBF0);">{{ formatDateTime(log.created_at).split(' ')[1] }}</span>
-                </el-tooltip>
+              <td class="whitespace-nowrap px-3 py-[7px]">
+                <TooltipProvider>
+                  <Tooltip :delay-duration="500">
+                    <TooltipTrigger as-child>
+                      <span class="font-mono tabular-nums text-[11px] text-foreground">{{ formatDateTime(log.created_at).split(' ')[1] }}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ log.request_id || log.client_request_id }}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </td>
               <!-- Type -->
-              <td style="padding:7px 12px;white-space:nowrap;">
+              <td class="whitespace-nowrap px-3 py-[7px]">
                 <span :class="getTypeBadge(log).className">{{ getTypeBadge(log).label }}</span>
               </td>
               <!-- Endpoint -->
-              <td style="padding:7px 12px;">
-                <div style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <el-tooltip v-if="log.inbound_endpoint" :content="formatEndpointTooltip(log)" placement="top" :show-after="500">
-                    <span class="od-mono" style="font-size:10.5px;color:var(--ink-1,#97A0AF);">{{ log.inbound_endpoint }}</span>
-                  </el-tooltip>
-                  <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+              <td class="px-3 py-[7px]">
+                <div class="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
+                  <TooltipProvider v-if="log.inbound_endpoint">
+                    <Tooltip :delay-duration="500">
+                      <TooltipTrigger as-child>
+                        <span class="font-mono tabular-nums text-[10.5px] text-muted-foreground">{{ log.inbound_endpoint }}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>{{ formatEndpointTooltip(log) }}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span v-else class="text-muted-foreground">-</span>
                 </div>
               </td>
               <!-- Platform -->
-              <td style="padding:7px 12px;white-space:nowrap;">
-                <span class="od-badge od-badge-dim" style="text-transform:uppercase;font-size:9.5px;">{{ log.platform || '-' }}</span>
+              <td class="whitespace-nowrap px-3 py-[7px]">
+                <Badge variant="outline" class="rounded-full text-[9.5px] font-semibold uppercase text-muted-foreground bg-muted border-border">{{ log.platform || '-' }}</Badge>
               </td>
               <!-- Model -->
-              <td style="padding:7px 12px;">
-                <div style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <td class="px-3 py-[7px]">
+                <div class="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap">
                   <template v-if="hasModelMapping(log)">
-                    <el-tooltip :content="modelMappingTooltip(log)" placement="top" :show-after="500">
-                      <span class="od-mono" style="font-size:10.5px;color:var(--ink-1,#97A0AF);display:flex;align-items:center;gap:3px;">
-                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ log.requested_model }}</span>
-                        <span style="color:var(--ink-2,#5C6470);flex-shrink:0;">→</span>
-                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ops-azure,#5CA8FF);">{{ log.upstream_model }}</span>
-                      </span>
-                    </el-tooltip>
+                    <TooltipProvider>
+                      <Tooltip :delay-duration="500">
+                        <TooltipTrigger as-child>
+                          <span class="flex items-center gap-[3px] font-mono tabular-nums text-[10.5px] text-muted-foreground">
+                            <span class="overflow-hidden text-ellipsis whitespace-nowrap">{{ log.requested_model }}</span>
+                            <span class="shrink-0 text-muted-foreground">→</span>
+                            <span class="overflow-hidden text-ellipsis whitespace-nowrap text-primary">{{ log.upstream_model }}</span>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{{ modelMappingTooltip(log) }}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </template>
                   <template v-else>
-                    <span v-if="displayModel(log)" class="od-mono" style="font-size:10.5px;color:var(--ink-1,#97A0AF);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;" :title="displayModel(log)">{{ displayModel(log) }}</span>
-                    <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+                    <span v-if="displayModel(log)" class="block overflow-hidden text-ellipsis whitespace-nowrap font-mono tabular-nums text-[10.5px] text-muted-foreground" :title="displayModel(log)">{{ displayModel(log) }}</span>
+                    <span v-else class="text-muted-foreground">-</span>
                   </template>
                 </div>
               </td>
               <!-- Group -->
-              <td style="padding:7px 12px;">
-                <el-tooltip v-if="log.group_id" :content="t('admin.ops.errorLog.id') + ' ' + log.group_id" placement="top" :show-after="500">
-                  <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;font-size:11.5px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ log.group_name || '-' }}</span>
-                </el-tooltip>
-                <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+              <td class="px-3 py-[7px]">
+                <TooltipProvider v-if="log.group_id">
+                  <Tooltip :delay-duration="500">
+                    <TooltipTrigger as-child>
+                      <span class="block max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap text-[11.5px] font-medium text-foreground">{{ log.group_name || '-' }}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ t('admin.ops.errorLog.id') + ' ' + log.group_id }}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
               <!-- User -->
-              <td style="padding:7px 12px;">
-                <el-tooltip v-if="log.user_id" :content="t('admin.ops.errorLog.userId') + ' ' + log.user_id" placement="top" :show-after="500">
-                  <span style="display:block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ log.user_email || '-' }}</span>
-                </el-tooltip>
-                <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+              <td class="px-3 py-[7px]">
+                <TooltipProvider v-if="log.user_id">
+                  <Tooltip :delay-duration="500">
+                    <TooltipTrigger as-child>
+                      <span class="block max-w-[140px] overflow-hidden text-ellipsis whitespace-nowrap text-[11.5px] font-medium text-foreground">{{ log.user_email || '-' }}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ t('admin.ops.errorLog.userId') + ' ' + log.user_id }}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
               <!-- API Key -->
-              <td style="padding:7px 12px;">
-                <div v-if="log.api_key_id || log.api_key_name" style="display:flex;max-width:140px;align-items:center;gap:4px;">
-                  <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--ink-0,#E8EBF0);" :title="log.api_key_name || ('#' + log.api_key_id)">{{ log.api_key_name || ('#' + log.api_key_id) }}</span>
-                  <span v-if="log.api_key_deleted" class="od-badge od-badge-bad" style="flex-shrink:0;font-size:9px;">{{ t('admin.ops.errorLog.keyDeletedBadge') }}</span>
+              <td class="px-3 py-[7px]">
+                <div v-if="log.api_key_id || log.api_key_name" class="flex max-w-[140px] items-center gap-1">
+                  <span class="overflow-hidden text-ellipsis whitespace-nowrap text-[11.5px] font-medium text-foreground" :title="log.api_key_name || ('#' + log.api_key_id)">{{ log.api_key_name || ('#' + log.api_key_id) }}</span>
+                  <Badge v-if="log.api_key_deleted" variant="outline" class="shrink-0 rounded-full text-[9px] font-semibold bg-destructive/15 text-destructive border-transparent">{{ t('admin.ops.errorLog.keyDeletedBadge') }}</Badge>
                 </div>
-                <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
               <!-- Account -->
-              <td style="padding:7px 12px;">
-                <el-tooltip v-if="log.account_id" :content="t('admin.ops.errorLog.accountId') + ' ' + log.account_id" placement="top" :show-after="500">
-                  <span style="display:block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--ink-0,#E8EBF0);">{{ log.account_name || '-' }}</span>
-                </el-tooltip>
-                <span v-else style="color:var(--ink-2,#5C6470);">-</span>
+              <td class="px-3 py-[7px]">
+                <TooltipProvider v-if="log.account_id">
+                  <Tooltip :delay-duration="500">
+                    <TooltipTrigger as-child>
+                      <span class="block max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap text-[11.5px] font-medium text-foreground">{{ log.account_name || '-' }}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ t('admin.ops.errorLog.accountId') + ' ' + log.account_id }}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <span v-else class="text-muted-foreground">-</span>
               </td>
               <!-- Status -->
-              <td style="padding:7px 12px;white-space:nowrap;">
-                <div style="display:flex;align-items:center;gap:4px;">
+              <td class="whitespace-nowrap px-3 py-[7px]">
+                <div class="flex items-center gap-1">
                   <span :class="getStatusClass(log.status_code)">{{ log.status_code }}</span>
                   <span v-if="log.severity" :class="['od-badge', getSeverityClass(log.severity)]">{{ log.severity }}</span>
-                  <span v-if="log.request_type != null && log.request_type > 0" class="od-badge od-badge-dim">{{ formatRequestType(log.request_type) }}</span>
+                  <Badge v-if="log.request_type != null && log.request_type > 0" variant="outline" class="rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border-border">{{ formatRequestType(log.request_type) }}</Badge>
                 </div>
               </td>
               <!-- Message -->
-              <td style="padding:7px 12px;">
-                <div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                  <p style="font-size:10.5px;font-weight:500;color:var(--ink-2,#5C6470);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" :title="log.message">{{ formatSmartMessage(log.message) || '-' }}</p>
+              <td class="px-3 py-[7px]">
+                <div class="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+                  <p class="overflow-hidden text-ellipsis whitespace-nowrap text-[10.5px] font-medium text-muted-foreground" :title="log.message">{{ formatSmartMessage(log.message) || '-' }}</p>
                 </div>
               </td>
               <!-- Actions -->
-              <td style="padding:7px 12px;white-space:nowrap;text-align:right;" @click.stop>
-                <button type="button" class="od-btn" style="padding:2px 8px;font-size:10px;color:var(--ops-azure,#5CA8FF);" @click="emit('openErrorDetail', log.id)">{{ t('admin.ops.errorLog.details') }}</button>
+              <td class="whitespace-nowrap px-3 py-[7px] text-right" @click.stop>
+                <Button type="button" variant="ghost" size="sm" class="h-auto px-2 py-0.5 text-[10px] text-primary" @click="emit('openErrorDetail', log.id)">{{ t('admin.ops.errorLog.details') }}</Button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div style="background:var(--bg-2,#171A20);">
+      <div class="bg-muted">
         <Pagination v-if="total > 0" :total="total" :page="page" :page-size="pageSize" @update:page="emit('update:page', $event)" @update:pageSize="emit('update:pageSize', $event)" />
       </div>
     </div>
   </div>
 </template>
 
-<style src="../ops-quench.css"></style>
+<style scoped>
+/* od-badge* classes are returned by script functions (getStatusClass / getTypeBadge / getSeverityClass)
+   and cannot be changed without touching <script>. Redefined here using semantic tokens — no QUENCH vars. */
+.od-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.od-badge-ok {
+  background: hsl(var(--success) / 0.12);
+  border: 1px solid hsl(var(--success) / 0.35);
+  color: hsl(var(--success));
+}
+.od-badge-warn {
+  background: hsl(38 92% 60% / 0.12);
+  border: 1px solid hsl(38 92% 60% / 0.35);
+  color: hsl(38 92% 50%);
+}
+.od-badge-bad {
+  background: hsl(var(--destructive) / 0.12);
+  border: 1px solid hsl(var(--destructive) / 0.35);
+  color: hsl(var(--destructive));
+}
+.od-badge-dim {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.od-badge-azure {
+  background: hsl(var(--primary) / 0.12);
+  border: 1px solid hsl(var(--primary) / 0.35);
+  color: hsl(var(--primary));
+}
+</style>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import Pagination from '@/components/common/Pagination.vue'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import type { OpsErrorLog } from '@/api/admin/ops'
 import { getSeverityClass, formatDateTime } from '../utils/opsFormatters'
 

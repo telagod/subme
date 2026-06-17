@@ -1,15 +1,17 @@
 <template>
-  <header class="glass sticky top-0 z-30 border-b border-border/50">
+  <header class="bg-card/95 sticky top-0 z-30 border-b border-border/50">
     <div class="flex h-16 items-center justify-between px-4 md:px-6">
       <!-- Left: Mobile Menu Toggle + Page Title -->
       <div class="flex items-center gap-4">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           @click="toggleMobileSidebar"
-          class="btn-ghost btn-icon lg:hidden"
+          class="text-muted-foreground hover:text-foreground lg:hidden"
           aria-label="Toggle Menu"
         >
           <Icon name="menu" size="md" />
-        </button>
+        </Button>
 
         <div class="hidden lg:block">
           <h1 class="text-lg font-semibold text-foreground">
@@ -23,6 +25,18 @@
 
       <!-- Right: Announcements + Docs + Language + Subscriptions + Balance + User Dropdown -->
       <div class="flex items-center gap-3">
+        <!-- Theme Toggle -->
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="toggle"
+          class="text-muted-foreground hover:text-foreground"
+          :title="isDark ? t('common.lightMode') : t('common.darkMode')"
+        >
+          <Icon v-if="isDark" name="sun" size="md" />
+          <Icon v-else name="moon" size="md" />
+        </Button>
+
         <!-- Announcement Bell -->
         <AnnouncementBell v-if="user" />
 
@@ -50,7 +64,7 @@
           class="hidden items-center gap-2 rounded-md bg-accent px-3 py-1.5 sm:flex"
         >
           <svg
-            class="h-4 w-4 text-primary-200"
+            class="h-4 w-4 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -69,9 +83,10 @@
 
         <!-- User Dropdown -->
         <div v-if="user" class="relative" ref="dropdownRef">
-          <button
+          <Button
+            variant="ghost"
             @click="toggleDropdown"
-            class="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
+            class="flex items-center gap-2 h-auto rounded-lg p-1.5"
             aria-label="User Menu"
           >
             <div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md border border-border bg-secondary text-sm font-medium text-foreground ">
@@ -92,11 +107,11 @@
               </div>
             </div>
             <Icon name="chevronDown" size="sm" class="hidden text-muted-foreground md:block" />
-          </button>
+          </Button>
 
           <!-- Dropdown Menu -->
           <transition name="dropdown">
-            <div v-if="dropdownOpen" class="dropdown right-0 mt-2 w-56">
+            <div v-if="dropdownOpen" class="absolute z-50 bg-popover text-popover-foreground rounded-md border border-border shadow-lg py-1 origin-top-right animate-scale-in right-0 mt-2 w-56">
               <!-- User Info -->
               <div class="border-b border-border px-4 py-3">
                 <div class="text-sm font-medium text-foreground">
@@ -110,18 +125,18 @@
                 <div class="text-xs text-muted-foreground">
                   {{ t('common.balance') }}
                 </div>
-                <div class="text-sm font-semibold text-primary-200">
+                <div class="text-sm font-semibold text-foreground">
                   ${{ user.balance?.toFixed(2) || '0.00' }}
                 </div>
               </div>
 
               <div class="py-1">
-                <router-link to="/profile" @click="closeDropdown" class="dropdown-item">
+                <router-link to="/profile" @click="closeDropdown" class="px-4 py-2 text-sm text-foreground/85 hover:bg-accent hover:text-foreground flex cursor-pointer items-center gap-2 transition-colors">
                   <Icon name="user" size="sm" />
                   {{ t('nav.profile') }}
                 </router-link>
 
-                <router-link to="/keys" @click="closeDropdown" class="dropdown-item">
+                <router-link to="/keys" @click="closeDropdown" class="px-4 py-2 text-sm text-foreground/85 hover:bg-accent hover:text-foreground flex cursor-pointer items-center gap-2 transition-colors">
                   <Icon name="key" size="sm" />
                   {{ t('nav.apiKeys') }}
                 </router-link>
@@ -132,7 +147,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   @click="closeDropdown"
-                  class="dropdown-item"
+                  class="px-4 py-2 text-sm text-foreground/85 hover:bg-accent hover:text-foreground flex cursor-pointer items-center gap-2 transition-colors"
                 >
                   <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     <path
@@ -173,20 +188,21 @@
               </div>
 
               <div v-if="showOnboardingButton" class="border-t border-border py-1">
-                <button @click="handleReplayGuide" class="dropdown-item w-full">
+                <Button variant="ghost" @click="handleReplayGuide" class="w-full justify-start rounded-none px-4 py-2 text-sm font-normal text-foreground/85 h-auto">
                   <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     <path
                       d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14a1 1 0 110 2 1 1 0 010-2zm1.07-7.75c0-.6-.49-1.25-1.32-1.25-.7 0-1.22.4-1.43 1.02a1 1 0 11-1.9-.62A3.41 3.41 0 0111.8 5c2.02 0 3.25 1.4 3.25 2.9 0 2-1.83 2.55-2.43 3.12-.43.4-.47.75-.47 1.23a1 1 0 01-2 0c0-1 .16-1.82 1.1-2.7.69-.64 1.82-1.05 1.82-2.06z"
                     />
                   </svg>
                   {{ $t('onboarding.restartTour') }}
-                </button>
+                </Button>
               </div>
 
               <div class="border-t border-border py-1">
-                <button
+                <Button
+                  variant="ghost"
                   @click="handleLogout"
-                  class="dropdown-item w-full text-red-400 hover:bg-red-50"
+                  class="w-full justify-start rounded-none px-4 py-2 text-sm font-normal text-destructive hover:bg-destructive/10 hover:text-destructive h-auto"
                 >
                   <svg
                     class="h-4 w-4"
@@ -202,7 +218,7 @@
                     />
                   </svg>
                   {{ t('nav.logout') }}
-                </button>
+                </Button>
               </div>
             </div>
           </transition>
@@ -217,7 +233,9 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAppStore, useAuthStore, useOnboardingStore } from '@/stores'
+import { useTheme } from '@/composables/useTheme'
 import { useAdminSettingsStore } from '@/stores/adminSettings'
+import { Button } from '@/components/ui/button'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import SubscriptionProgressMini from '@/components/common/SubscriptionProgressMini.vue'
 import AnnouncementBell from '@/components/common/AnnouncementBell.vue'
@@ -231,6 +249,7 @@ const authStore = useAuthStore()
 const adminSettingsStore = useAdminSettingsStore()
 const onboardingStore = useOnboardingStore()
 
+const { isDark, toggle } = useTheme()
 const user = computed(() => authStore.user)
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)

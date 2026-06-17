@@ -33,18 +33,19 @@
 
       <template #actions>
         <div class="flex justify-end gap-3">
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           @click="loadApiKeys"
           :disabled="loading"
-          class="btn btn-secondary"
           :title="t('common.refresh')"
         >
           <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-        </button>
-        <button @click="showCreateModal = true" class="btn btn-primary" data-tour="keys-create-btn">
+        </Button>
+        <Button @click="showCreateModal = true" data-tour="keys-create-btn">
           <Icon name="plus" size="md" class="mr-2" />
           {{ t('keys.createKey') }}
-        </button>
+        </Button>
       </div>
       </template>
 
@@ -63,12 +64,14 @@
               <code class="code text-xs">
                 {{ maskApiKey(value) }}
               </code>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="copyToClipboard(value, row.id)"
-                class="rounded-md p-1 transition-colors hover:bg-accent"
+                class="h-7 w-7"
                 :class="
                   copiedKeyId === row.id
-                    ? 'text-[var(--ok)]'
+                    ? 'text-emerald-500'
                     : 'text-muted-foreground hover:text-foreground'
                 "
                 :title="copiedKeyId === row.id ? t('keys.copied') : t('keys.copyToClipboard')"
@@ -80,7 +83,7 @@
                   :stroke-width="2"
                 />
                 <Icon v-else name="clipboard" size="sm" />
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -91,7 +94,7 @@
                 v-if="row.ip_whitelist?.length > 0 || row.ip_blacklist?.length > 0"
                 name="shield"
                 size="sm"
-                class="text-primary-200"
+                class="text-primary"
                 :title="t('keys.ipRestrictionEnabled')"
               />
             </div>
@@ -99,10 +102,11 @@
 
           <template #cell-group="{ row }">
             <div class="group/dropdown relative">
-              <button
-                :ref="(el) => setGroupButtonRef(row.id, el)"
+              <Button
+                :ref="(el) => setGroupButtonRef(row.id, (el as any)?.$el ?? null)"
+                variant="ghost"
                 @click="openGroupSelector(row)"
-                class="-mx-2 -my-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1 transition-all duration-200 hover:bg-muted"
+                class="-mx-2 -my-1 flex h-auto cursor-pointer items-center gap-2 rounded-lg px-2 py-1 font-normal transition-all duration-200 hover:bg-muted"
                 :title="t('keys.clickToChangeGroup')"
               >
                 <GroupBadge
@@ -130,7 +134,7 @@
                     d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -138,13 +142,13 @@
             <div class="text-sm">
               <div class="flex items-center gap-1.5">
                 <span class="text-muted-foreground">{{ t('keys.today') }}:</span>
-                <span class="q-money font-medium text-sm">
+                <span class="font-mono tabular-nums font-medium text-sm text-foreground">
                   ${{ (usageStats[row.id]?.today_actual_cost ?? 0).toFixed(4) }}
                 </span>
               </div>
               <div class="mt-0.5 flex items-center gap-1.5">
                 <span class="text-muted-foreground">{{ t('keys.total') }}:</span>
-                <span class="q-money font-medium text-sm">
+                <span class="font-mono tabular-nums font-medium text-sm text-foreground">
                   ${{ (usageStats[row.id]?.total_actual_cost ?? 0).toFixed(4) }}
                 </span>
               </div>
@@ -153,10 +157,10 @@
                 <div class="flex items-center gap-1.5">
                   <span class="text-muted-foreground">{{ t('keys.quota') }}:</span>
                   <span :class="[
-                    'q-money font-medium text-sm',
-                    row.quota_used >= row.quota ? 'text-[var(--bad)]' :
-                    row.quota_used >= row.quota * 0.8 ? 'text-[var(--warn)]' :
-                    ''
+                    'font-mono tabular-nums font-medium text-sm',
+                    row.quota_used >= row.quota ? 'text-destructive' :
+                    row.quota_used >= row.quota * 0.8 ? 'text-amber-500' :
+                    'text-foreground'
                   ]">
                     ${{ row.quota_used?.toFixed(2) || '0.00' }} / ${{ row.quota?.toFixed(2) }}
                   </span>
@@ -165,9 +169,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      row.quota_used >= row.quota ? 'bg-[var(--bad)]' :
-                      row.quota_used >= row.quota * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      row.quota_used >= row.quota ? 'bg-destructive' :
+                      row.quota_used >= row.quota * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((row.quota_used / row.quota) * 100, 100) + '%' }"
                   />
@@ -184,8 +188,8 @@
                   <span class="text-muted-foreground">5h</span>
                   <span :class="[
                     'font-medium tabular-nums',
-                    row.usage_5h >= row.rate_limit_5h ? 'text-[var(--bad)]' :
-                    row.usage_5h >= row.rate_limit_5h * 0.8 ? 'text-[var(--warn)]' :
+                    row.usage_5h >= row.rate_limit_5h ? 'text-destructive' :
+                    row.usage_5h >= row.rate_limit_5h * 0.8 ? 'text-amber-500' :
                     'text-foreground/85'
                   ]">
                     ${{ row.usage_5h?.toFixed(2) || '0.00' }}/${{ row.rate_limit_5h?.toFixed(2) }}
@@ -195,9 +199,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      row.usage_5h >= row.rate_limit_5h ? 'bg-[var(--bad)]' :
-                      row.usage_5h >= row.rate_limit_5h * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      row.usage_5h >= row.rate_limit_5h ? 'bg-destructive' :
+                      row.usage_5h >= row.rate_limit_5h * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((row.usage_5h / row.rate_limit_5h) * 100, 100) + '%' }"
                   />
@@ -212,8 +216,8 @@
                   <span class="text-muted-foreground">1d</span>
                   <span :class="[
                     'font-medium tabular-nums',
-                    row.usage_1d >= row.rate_limit_1d ? 'text-[var(--bad)]' :
-                    row.usage_1d >= row.rate_limit_1d * 0.8 ? 'text-[var(--warn)]' :
+                    row.usage_1d >= row.rate_limit_1d ? 'text-destructive' :
+                    row.usage_1d >= row.rate_limit_1d * 0.8 ? 'text-amber-500' :
                     'text-foreground/85'
                   ]">
                     ${{ row.usage_1d?.toFixed(2) || '0.00' }}/${{ row.rate_limit_1d?.toFixed(2) }}
@@ -223,9 +227,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      row.usage_1d >= row.rate_limit_1d ? 'bg-[var(--bad)]' :
-                      row.usage_1d >= row.rate_limit_1d * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      row.usage_1d >= row.rate_limit_1d ? 'bg-destructive' :
+                      row.usage_1d >= row.rate_limit_1d * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((row.usage_1d / row.rate_limit_1d) * 100, 100) + '%' }"
                   />
@@ -240,8 +244,8 @@
                   <span class="text-muted-foreground">7d</span>
                   <span :class="[
                     'font-medium tabular-nums',
-                    row.usage_7d >= row.rate_limit_7d ? 'text-[var(--bad)]' :
-                    row.usage_7d >= row.rate_limit_7d * 0.8 ? 'text-[var(--warn)]' :
+                    row.usage_7d >= row.rate_limit_7d ? 'text-destructive' :
+                    row.usage_7d >= row.rate_limit_7d * 0.8 ? 'text-amber-500' :
                     'text-foreground/85'
                   ]">
                     ${{ row.usage_7d?.toFixed(2) || '0.00' }}/${{ row.rate_limit_7d?.toFixed(2) }}
@@ -251,9 +255,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      row.usage_7d >= row.rate_limit_7d ? 'bg-[var(--bad)]' :
-                      row.usage_7d >= row.rate_limit_7d * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      row.usage_7d >= row.rate_limit_7d ? 'bg-destructive' :
+                      row.usage_7d >= row.rate_limit_7d * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((row.usage_7d / row.rate_limit_7d) * 100, 100) + '%' }"
                   />
@@ -263,15 +267,17 @@
                 </div>
               </div>
               <!-- Reset button -->
-              <button
+              <Button
                 v-if="row.usage_5h > 0 || row.usage_1d > 0 || row.usage_7d > 0"
+                variant="ghost"
+                size="sm"
                 @click.stop="confirmResetRateLimitFromTable(row)"
-                class="mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-primary-600"
+                class="mt-0.5 h-auto gap-1 px-1.5 py-0.5 text-xs font-normal text-muted-foreground hover:text-primary"
                 :title="t('keys.resetRateLimitUsage')"
               >
                 <Icon name="refresh" size="xs" />
                 {{ t('keys.resetUsage') }}
-              </button>
+              </Button>
             </div>
             <span v-else class="text-sm text-muted-foreground">-</span>
           </template>
@@ -279,7 +285,7 @@
           <template #cell-expires_at="{ value }">
             <span v-if="value" :class="[
               'text-sm',
-              new Date(value) < new Date() ? 'text-[var(--bad)]' : 'text-muted-foreground'
+              new Date(value) < new Date() ? 'text-destructive' : 'text-muted-foreground'
             ]">
               {{ formatDateTime(value) }}
             </span>
@@ -287,15 +293,15 @@
           </template>
 
           <template #cell-status="{ value }">
-            <span :class="[
-              'badge',
-              value === 'active' ? 'badge-success' :
-              value === 'quota_exhausted' ? 'badge-warning' :
-              value === 'expired' ? 'badge-danger' :
-              'badge-gray'
+            <Badge :class="[
+              'border-transparent',
+              value === 'active' ? 'bg-emerald-500/15 text-emerald-500' :
+              value === 'quota_exhausted' ? 'bg-amber-500/15 text-amber-500' :
+              value === 'expired' ? 'bg-destructive/15 text-destructive' :
+              'bg-accent text-muted-foreground'
             ]">
               {{ t('keys.status.' + value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-last_used_at="{ value }">
@@ -312,52 +318,57 @@
           <template #cell-actions="{ row }">
             <div class="flex items-center gap-1">
               <!-- Use Key Button -->
-              <button
+              <Button
+                variant="ghost"
                 @click="openUseKeyModal(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-[var(--ok-dim)] hover:text-[var(--ok)]"
+                class="h-auto flex-col gap-0.5 p-1.5 text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500"
               >
                 <Icon name="terminal" size="sm" />
                 <span class="text-xs">{{ t('keys.useKey') }}</span>
-              </button>
+              </Button>
               <!-- Import to CC Switch Button -->
-              <button
+              <Button
                 v-if="!publicSettings?.hide_ccs_import_button"
+                variant="ghost"
                 @click="importToCcswitch(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-[var(--azure-dim)] hover:text-[var(--azure)]"
+                class="h-auto flex-col gap-0.5 p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
               >
                 <Icon name="upload" size="sm" />
                 <span class="text-xs">{{ t('keys.importToCcSwitch') }}</span>
-              </button>
+              </Button>
               <!-- Toggle Status Button -->
-              <button
+              <Button
+                variant="ghost"
                 @click="toggleKeyStatus(row)"
                 :class="[
-                  'flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors',
+                  'h-auto flex-col gap-0.5 p-1.5',
                   row.status === 'active'
-                    ? 'text-muted-foreground hover:bg-[var(--warn-dim)] hover:text-[var(--warn)]'
-                    : 'text-muted-foreground hover:bg-[var(--ok-dim)] hover:text-[var(--ok)]'
+                    ? 'text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500'
+                    : 'text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-500'
                 ]"
               >
                 <Icon v-if="row.status === 'active'" name="ban" size="sm" />
                 <Icon v-else name="checkCircle" size="sm" />
                 <span class="text-xs">{{ row.status === 'active' ? t('keys.disable') : t('keys.enable') }}</span>
-              </button>
+              </Button>
               <!-- Edit Button -->
-              <button
+              <Button
+                variant="ghost"
                 @click="editKey(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-primary-600"
+                class="h-auto flex-col gap-0.5 p-1.5 text-muted-foreground hover:bg-muted hover:text-primary"
               >
                 <Icon name="edit" size="sm" />
                 <span class="text-xs">{{ t('common.edit') }}</span>
-              </button>
+              </Button>
               <!-- Delete Button -->
-              <button
+              <Button
+                variant="ghost"
                 @click="confirmDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-[var(--bad-dim)] hover:text-[var(--bad)]"
+                class="h-auto flex-col gap-0.5 p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="trash" size="sm" />
                 <span class="text-xs">{{ t('common.delete') }}</span>
-              </button>
+              </Button>
             </div>
           </template>
 
@@ -393,19 +404,18 @@
     >
       <form id="key-form" @submit.prevent="handleSubmit" class="space-y-5">
         <div>
-          <label class="input-label">{{ t('keys.nameLabel') }}</label>
-          <input
+          <Label class="mb-1.5 block">{{ t('keys.nameLabel') }}</Label>
+          <Input
             v-model="formData.name"
             type="text"
             required
-            class="input"
             :placeholder="t('keys.namePlaceholder')"
             data-tour="key-form-name"
           />
         </div>
 
         <div>
-          <label class="input-label">{{ t('keys.groupLabel') }}</label>
+          <Label class="mb-1.5 block">{{ t('keys.groupLabel') }}</Label>
           <Select
             v-model="formData.group_id"
             :options="groupOptions"
@@ -442,38 +452,24 @@
         <!-- Custom Key Section (only for create) -->
         <div v-if="!showEditModal" class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('keys.customKeyLabel') }}</label>
-            <button
-              type="button"
-              @click="formData.use_custom_key = !formData.use_custom_key"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.use_custom_key ? 'bg-azure' : 'bg-accent'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.use_custom_key ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Label class="block">{{ t('keys.customKeyLabel') }}</Label>
+            <Switch v-model="formData.use_custom_key" />
           </div>
           <div v-if="formData.use_custom_key">
-            <input
+            <Input
               v-model="formData.custom_key"
               type="text"
-              class="input font-mono"
+              class="font-mono"
               :placeholder="t('keys.customKeyPlaceholder')"
-              :class="{ 'border-[var(--bad)]': customKeyError }"
+              :class="{ 'border-destructive focus-visible:ring-destructive': customKeyError }"
             />
-            <p v-if="customKeyError" class="mt-1 text-sm text-[var(--bad)]">{{ customKeyError }}</p>
-            <p v-else class="input-hint">{{ t('keys.customKeyHint') }}</p>
+            <p v-if="customKeyError" class="mt-1 text-sm text-destructive">{{ customKeyError }}</p>
+            <p v-else class="mt-1 text-xs text-muted-foreground">{{ t('keys.customKeyHint') }}</p>
           </div>
         </div>
 
         <div v-if="showEditModal">
-          <label class="input-label">{{ t('keys.statusLabel') }}</label>
+          <Label class="mb-1.5 block">{{ t('keys.statusLabel') }}</Label>
           <Select
             v-model="formData.status"
             :options="statusOptions"
@@ -484,92 +480,57 @@
         <!-- IP Restriction Section -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('keys.ipRestriction') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_ip_restriction = !formData.enable_ip_restriction"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_ip_restriction ? 'bg-azure' : 'bg-accent'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_ip_restriction ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Label class="block">{{ t('keys.ipRestriction') }}</Label>
+            <Switch v-model="formData.enable_ip_restriction" />
           </div>
 
           <div v-if="formData.enable_ip_restriction" class="space-y-4 pt-2">
             <div>
-              <label class="input-label">{{ t('keys.ipWhitelist') }}</label>
-              <textarea
+              <Label class="mb-1.5 block">{{ t('keys.ipWhitelist') }}</Label>
+              <Textarea
                 v-model="formData.ip_whitelist"
                 rows="3"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="t('keys.ipWhitelistPlaceholder')"
               />
-              <p class="input-hint">{{ t('keys.ipWhitelistHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('keys.ipWhitelistHint') }}</p>
             </div>
 
             <div>
-              <label class="input-label">{{ t('keys.ipBlacklist') }}</label>
-              <textarea
+              <Label class="mb-1.5 block">{{ t('keys.ipBlacklist') }}</Label>
+              <Textarea
                 v-model="formData.ip_blacklist"
                 rows="3"
-                class="input font-mono text-sm"
+                class="font-mono text-sm"
                 :placeholder="t('keys.ipBlacklistPlaceholder')"
               />
-              <p class="input-hint">{{ t('keys.ipBlacklistHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('keys.ipBlacklistHint') }}</p>
             </div>
           </div>
         </div>
 
         <!-- Quota Limit Section -->
         <div class="space-y-3">
-          <label class="input-label">{{ t('keys.quotaLimit') }}</label>
-          <!-- Switch commented out - always show input, 0 = unlimited
-          <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('keys.quotaLimit') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_quota = !formData.enable_quota"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_quota ? 'bg-azure' : 'bg-accent'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_quota ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
-          </div>
-          -->
-
+          <Label class="mb-1.5 block">{{ t('keys.quotaLimit') }}</Label>
           <div class="space-y-4">
             <div>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="formData.quota"
                   type="number"
                   step="0.01"
                   min="0"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="t('keys.quotaAmountPlaceholder')"
                 />
               </div>
-              <p class="input-hint">{{ t('keys.quotaAmountHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('keys.quotaAmountHint') }}</p>
             </div>
 
             <!-- Quota used display (only in edit mode) -->
             <div v-if="showEditModal && selectedKey && selectedKey.quota > 0">
-              <label class="input-label">{{ t('keys.quotaUsed') }}</label>
+              <Label class="mb-1.5 block">{{ t('keys.quotaUsed') }}</Label>
               <div class="flex items-center gap-2">
                 <div class="flex-1 rounded-lg bg-muted px-3 py-2">
                   <span class="font-medium text-foreground">
@@ -580,14 +541,15 @@
                     ${{ selectedKey.quota?.toFixed(2) || '0.00' }}
                   </span>
                 </div>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   @click="confirmResetQuota"
-                  class="btn btn-secondary text-sm"
                   :title="t('keys.resetQuotaUsed')"
                 >
                   {{ t('keys.reset') }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -596,37 +558,23 @@
         <!-- Rate Limit Section -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('keys.rateLimitSection') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_rate_limit = !formData.enable_rate_limit"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_rate_limit ? 'bg-azure' : 'bg-accent'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_rate_limit ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Label class="block">{{ t('keys.rateLimitSection') }}</Label>
+            <Switch v-model="formData.enable_rate_limit" />
           </div>
 
           <div v-if="formData.enable_rate_limit" class="space-y-4 pt-2">
-            <p class="input-hint -mt-2">{{ t('keys.rateLimitHint') }}</p>
+            <p class="-mt-2 text-xs text-muted-foreground">{{ t('keys.rateLimitHint') }}</p>
             <!-- 5-Hour Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit5h') }}</label>
+              <Label class="mb-1.5 block">{{ t('keys.rateLimit5h') }}</Label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="formData.rate_limit_5h"
                   type="number"
                   step="0.01"
                   min="0"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="'0'"
                 />
               </div>
@@ -636,8 +584,8 @@
                   <div class="flex-1 rounded-lg bg-muted px-3 py-2 text-sm">
                     <span :class="[
                       'font-medium',
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'text-[var(--bad)]' :
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'text-[var(--warn)]' :
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'text-destructive' :
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'text-amber-500' :
                       'text-foreground'
                     ]">
                       ${{ selectedKey.usage_5h?.toFixed(4) || '0.0000' }}
@@ -652,9 +600,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'bg-[var(--bad)]' :
-                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h ? 'bg-destructive' :
+                      selectedKey.usage_5h >= selectedKey.rate_limit_5h * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_5h / selectedKey.rate_limit_5h) * 100, 100) + '%' }"
                   />
@@ -664,15 +612,15 @@
 
             <!-- Daily Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit1d') }}</label>
+              <Label class="mb-1.5 block">{{ t('keys.rateLimit1d') }}</Label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="formData.rate_limit_1d"
                   type="number"
                   step="0.01"
                   min="0"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="'0'"
                 />
               </div>
@@ -682,8 +630,8 @@
                   <div class="flex-1 rounded-lg bg-muted px-3 py-2 text-sm">
                     <span :class="[
                       'font-medium',
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'text-[var(--bad)]' :
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'text-[var(--warn)]' :
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'text-destructive' :
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'text-amber-500' :
                       'text-foreground'
                     ]">
                       ${{ selectedKey.usage_1d?.toFixed(4) || '0.0000' }}
@@ -698,9 +646,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'bg-[var(--bad)]' :
-                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d ? 'bg-destructive' :
+                      selectedKey.usage_1d >= selectedKey.rate_limit_1d * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_1d / selectedKey.rate_limit_1d) * 100, 100) + '%' }"
                   />
@@ -710,15 +658,15 @@
 
             <!-- 7-Day Limit -->
             <div>
-              <label class="input-label">{{ t('keys.rateLimit7d') }}</label>
+              <Label class="mb-1.5 block">{{ t('keys.rateLimit7d') }}</Label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                <input
+                <Input
                   v-model.number="formData.rate_limit_7d"
                   type="number"
                   step="0.01"
                   min="0"
-                  class="input pl-7"
+                  class="pl-7"
                   :placeholder="'0'"
                 />
               </div>
@@ -728,8 +676,8 @@
                   <div class="flex-1 rounded-lg bg-muted px-3 py-2 text-sm">
                     <span :class="[
                       'font-medium',
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'text-[var(--bad)]' :
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'text-[var(--warn)]' :
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'text-destructive' :
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'text-amber-500' :
                       'text-foreground'
                     ]">
                       ${{ selectedKey.usage_7d?.toFixed(4) || '0.0000' }}
@@ -744,9 +692,9 @@
                   <div
                     :class="[
                       'h-full rounded-full transition-all',
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'bg-[var(--bad)]' :
-                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'bg-[var(--warn)]' :
-                      'bg-[var(--ok)]'
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d ? 'bg-destructive' :
+                      selectedKey.usage_7d >= selectedKey.rate_limit_7d * 0.8 ? 'bg-amber-500' :
+                      'bg-emerald-500'
                     ]"
                     :style="{ width: Math.min((selectedKey.usage_7d / selectedKey.rate_limit_7d) * 100, 100) + '%' }"
                   />
@@ -756,13 +704,14 @@
 
             <!-- Reset Rate Limit button (edit mode only) -->
             <div v-if="showEditModal && selectedKey && (selectedKey.rate_limit_5h > 0 || selectedKey.rate_limit_1d > 0 || selectedKey.rate_limit_7d > 0)">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 @click="confirmResetRateLimit"
-                class="btn btn-secondary text-sm"
               >
                 {{ t('keys.resetRateLimitUsage') }}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -770,64 +719,53 @@
         <!-- Expiration Section -->
         <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="input-label mb-0">{{ t('keys.expiration') }}</label>
-            <button
-              type="button"
-              @click="formData.enable_expiration = !formData.enable_expiration"
-              :class="[
-                'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
-                formData.enable_expiration ? 'bg-azure' : 'bg-accent'
-              ]"
-            >
-              <span
-                :class="[
-                  'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  formData.enable_expiration ? 'translate-x-4' : 'translate-x-0'
-                ]"
-              />
-            </button>
+            <Label class="block">{{ t('keys.expiration') }}</Label>
+            <Switch v-model="formData.enable_expiration" />
           </div>
 
           <div v-if="formData.enable_expiration" class="space-y-4 pt-2">
             <!-- Quick select buttons (for both create and edit mode) -->
             <div class="flex flex-wrap gap-2">
-              <button
+              <Button
                 v-for="days in ['7', '30', '90']"
                 :key="days"
                 type="button"
+                variant="ghost"
+                size="sm"
                 @click="setExpirationDays(parseInt(days))"
                 :class="[
-                  'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                  'h-auto px-3 py-1.5 text-sm font-normal',
                   formData.expiration_preset === days
-                    ? 'bg-[var(--azure-dim)] text-[var(--azure)]'
+                    ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
                     : 'bg-muted text-foreground/75 hover:bg-accent'
                 ]"
               >
                 {{ showEditModal ? t('keys.extendDays', { days }) : t('keys.expiresInDays', { days }) }}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 @click="formData.expiration_preset = 'custom'"
                 :class="[
-                  'rounded-lg px-3 py-1.5 text-sm transition-colors',
+                  'h-auto px-3 py-1.5 text-sm font-normal',
                   formData.expiration_preset === 'custom'
-                    ? 'bg-[var(--azure-dim)] text-[var(--azure)]'
+                    ? 'bg-primary/10 text-primary hover:bg-primary/10 hover:text-primary'
                     : 'bg-muted text-foreground/75 hover:bg-accent'
                 ]"
               >
                 {{ t('keys.customDate') }}
-              </button>
+              </Button>
             </div>
 
             <!-- Date picker (always show for precise adjustment) -->
             <div>
-              <label class="input-label">{{ t('keys.expirationDate') }}</label>
-              <input
+              <Label class="mb-1.5 block">{{ t('keys.expirationDate') }}</Label>
+              <Input
                 v-model="formData.expiration_date"
                 type="datetime-local"
-                class="input"
               />
-              <p class="input-hint">{{ t('keys.expirationDateHint') }}</p>
+              <p class="mt-1 text-xs text-muted-foreground">{{ t('keys.expirationDateHint') }}</p>
             </div>
 
             <!-- Current expiration display (only in edit mode) -->
@@ -842,14 +780,13 @@
       </form>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button @click="closeModals" type="button" class="btn btn-secondary">
+          <Button @click="closeModals" type="button" variant="outline">
             {{ t('common.cancel') }}
-          </button>
-          <button
+          </Button>
+          <Button
             form="key-form"
             type="submit"
             :disabled="submitting"
-            class="btn btn-primary"
             data-tour="key-form-submit"
           >
             <svg
@@ -879,7 +816,7 @@
                   ? t('common.update')
                   : t('common.create')
             }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -942,9 +879,10 @@
           {{ t('keys.ccsClientSelect.description') }}
 	        </p>
 	        <div class="grid grid-cols-2 gap-3">
-	          <button
+	          <Button
+	            variant="outline"
 	            @click="handleCcsClientSelect('claude')"
-	            class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-border hover:border-azure hover:bg-[var(--azure-dim)] transition-all"
+	            class="h-auto flex-col gap-2 whitespace-normal border-2 p-4 hover:border-primary hover:bg-primary/10"
 	          >
 	            <Icon name="terminal" size="xl" class="text-foreground/75" />
 	            <span class="font-medium text-foreground">{{
@@ -953,10 +891,11 @@
 	            <span class="text-xs text-muted-foreground">{{
 	              t('keys.ccsClientSelect.claudeCodeDesc')
 	            }}</span>
-	          </button>
-	          <button
+	          </Button>
+	          <Button
+	            variant="outline"
 	            @click="handleCcsClientSelect('gemini')"
-	            class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-border hover:border-azure hover:bg-[var(--azure-dim)] transition-all"
+	            class="h-auto flex-col gap-2 whitespace-normal border-2 p-4 hover:border-primary hover:bg-primary/10"
 	          >
 	            <Icon name="sparkles" size="xl" class="text-foreground/75" />
 	            <span class="font-medium text-foreground">{{
@@ -965,14 +904,14 @@
 	            <span class="text-xs text-muted-foreground">{{
 	              t('keys.ccsClientSelect.geminiCliDesc')
 	            }}</span>
-	          </button>
+	          </Button>
 	        </div>
 	      </div>
       <template #footer>
         <div class="flex justify-end">
-          <button @click="closeCcsClientSelect" class="btn btn-secondary">
+          <Button @click="closeCcsClientSelect" variant="outline">
             {{ t('common.cancel') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -982,7 +921,7 @@
       <div
         v-if="groupSelectorKeyId !== null && dropdownPosition"
         ref="dropdownRef"
-        class="animate-in fade-in slide-in-from-top-2 fixed z-[100000020] w-max min-w-[380px] overflow-hidden rounded-lg bg-card shadow-lg border border-[var(--line-0)] duration-200"
+        class="animate-in fade-in slide-in-from-top-2 fixed z-[100000020] w-max min-w-[380px] overflow-hidden rounded-lg bg-popover shadow-lg border border-border duration-200"
         style="pointer-events: auto !important;"
         :style="{
           top: dropdownPosition.top !== undefined ? dropdownPosition.top + 'px' : undefined,
@@ -996,10 +935,10 @@
             <svg class="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input
+            <Input
               v-model="groupSearchQuery"
               type="text"
-              class="w-full rounded-lg border border-border bg-card py-1.5 pl-8 pr-3 text-sm text-foreground placeholder-muted-foreground outline-none focus:border-azure focus:ring-1 focus:ring-azure/30"
+              class="h-9 pl-8 text-sm"
               :placeholder="t('keys.searchGroup')"
               @click.stop
             />
@@ -1007,16 +946,17 @@
         </div>
         <!-- Group list -->
         <div class="max-h-80 overflow-y-auto p-1.5">
-          <button
+          <Button
             v-for="option in filteredGroupOptions"
             :key="option.value ?? 'null'"
+            variant="ghost"
             @click="changeGroup(selectedKeyForGroup!, option.value)"
             :class="[
-              'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
+              'h-auto w-full justify-between rounded-lg px-3 py-2.5 text-sm font-normal',
               'border-b border-border last:border-0',
               selectedKeyForGroup?.group_id === option.value ||
               (!selectedKeyForGroup?.group_id && option.value === null)
-                ? 'bg-[var(--azure-dim)]'
+                ? 'bg-primary/10 hover:bg-primary/10'
                 : 'hover:bg-muted'
             ]"
             :title="option.description || undefined"
@@ -1033,7 +973,7 @@
                 (!selectedKeyForGroup?.group_id && option.value === null)
               "
             />
-          </button>
+          </Button>
           <!-- Empty state when search has no results -->
           <div v-if="filteredGroupOptions.length === 0" class="py-4 text-center text-sm text-muted-foreground">
             {{ t('keys.noGroupFound') }}
@@ -1064,6 +1004,12 @@ import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 	import Select from '@/components/common/Select.vue'
 	import SearchInput from '@/components/common/SearchInput.vue'
 	import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 	import UseKeyModal from '@/components/keys/UseKeyModal.vue'
 	import EndpointPopover from '@/components/keys/EndpointPopover.vue'
 	import GroupBadge from '@/components/common/GroupBadge.vue'

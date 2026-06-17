@@ -3,10 +3,10 @@
     <div class="space-y-4">
       <!-- Actions -->
       <div class="flex items-center justify-end gap-2">
-        <button @click="loadPlans" :disabled="plansLoading" class="btn btn-secondary" :title="t('common.refresh')">
+        <Button @click="loadPlans" :disabled="plansLoading" variant="outline" size="icon" :title="t('common.refresh')">
           <Icon name="refresh" size="md" :class="plansLoading ? 'animate-spin' : ''" />
-        </button>
-        <button @click="openPlanEdit(null)" class="btn btn-primary">{{ t('payment.admin.createPlan') }}</button>
+        </Button>
+        <Button @click="openPlanEdit(null)">{{ t('payment.admin.createPlan') }}</Button>
       </div>
 
       <!-- Plans Table -->
@@ -17,7 +17,7 @@
         <template #cell-group_id="{ value }">
           <span v-if="isGroupMissing(value)" class="text-sm">
             <span class="text-muted-foreground">#{{ value }}</span>
-            <span class="ml-1 badge badge-danger">{{ t('payment.admin.groupMissing') }}</span>
+            <Badge variant="destructive" class="ml-1">{{ t('payment.admin.groupMissing') }}</Badge>
           </span>
           <GroupBadge
             v-else-if="getGroup(value)"
@@ -37,30 +37,18 @@
           <span class="text-sm">{{ value }} {{ t('payment.admin.' + (row.validity_unit || 'days')) }}</span>
         </template>
         <template #cell-for_sale="{ value, row }">
-          <button
-            type="button"
-            :class="[
-              'relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-              value ? 'bg-foreground' : 'bg-muted'
-            ]"
-            @click="toggleForSale(row)"
-          >
-            <span :class="[
-              'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-foreground shadow ring-0 transition duration-200 ease-in-out',
-              value ? 'translate-x-4' : 'translate-x-0'
-            ]" />
-          </button>
+          <Switch :checked="value" @update:checked="toggleForSale(row)" />
         </template>
         <template #cell-actions="{ row }">
           <div class="flex items-center gap-2">
-            <button @click="openPlanEdit(row)" class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-primary-300/10 hover:text-primary-200">
+            <Button variant="ghost" size="sm" @click="openPlanEdit(row)" class="flex flex-col items-center gap-0.5 h-auto px-1.5 py-1.5 text-muted-foreground">
               <Icon name="edit" size="sm" />
               <span class="text-xs">{{ t('common.edit') }}</span>
-            </button>
-            <button @click="confirmDeletePlan(row)" class="flex flex-col items-center gap-0.5 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400">
+            </Button>
+            <Button variant="ghost" size="sm" @click="confirmDeletePlan(row)" class="flex flex-col items-center gap-0.5 h-auto px-1.5 py-1.5 text-muted-foreground hover:bg-red-500/10 hover:text-red-400">
               <Icon name="trash" size="sm" />
               <span class="text-xs">{{ t('common.delete') }}</span>
-            </button>
+            </Button>
           </div>
         </template>
       </DataTable>
@@ -83,6 +71,9 @@ import adminAPI from '@/api/admin'
 import type { SubscriptionPlan } from '@/types/payment'
 import type { AdminGroup } from '@/types'
 import type { Column } from '@/components/common/types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'

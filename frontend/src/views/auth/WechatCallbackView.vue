@@ -26,9 +26,9 @@
           "
           class="space-y-4"
         >
-          <div
+          <Card
             v-if="adoptionRequired && (suggestedDisplayName || suggestedAvatarUrl)"
-            class="rounded-lg border border-border bg-card p-4"
+            class="p-4"
           >
             <div class="space-y-3">
               <div class="space-y-1">
@@ -44,7 +44,7 @@
                 v-if="suggestedDisplayName"
                 class="flex items-start gap-3 rounded-md border border-border bg-card p-3 text-sm"
               >
-                <input v-model="adoptDisplayName" type="checkbox" class="mt-1 h-4 w-4" />
+                <Checkbox v-model="adoptDisplayName" class="mt-1" />
                 <span class="space-y-1">
                   <span class="block font-medium text-foreground">
                     {{ t('auth.oauthFlow.useDisplayName') }}
@@ -59,7 +59,7 @@
                 v-if="suggestedAvatarUrl"
                 class="flex items-start gap-3 rounded-md border border-border bg-card p-3 text-sm"
               >
-                <input v-model="adoptAvatar" type="checkbox" class="mt-1 h-4 w-4" />
+                <Checkbox v-model="adoptAvatar" class="mt-1" />
                 <img
                   :src="suggestedAvatarUrl"
                   :alt="t('auth.oauthFlow.avatarAlt', { providerName })"
@@ -75,24 +75,24 @@
                 </span>
               </label>
             </div>
-          </div>
+          </Card>
 
           <template v-if="needsInvitation">
             <p class="text-sm text-foreground/85">
               {{ t('auth.oidc.invitationRequired', { providerName }) }}
             </p>
             <div>
-              <input
+              <Input
                 v-model="invitationCode"
                 type="text"
-                class="input w-full"
+                class="w-full"
                 :placeholder="t('auth.invitationCodePlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleSubmitInvitation"
               />
             </div>
-            <button
-              class="btn btn-primary w-full"
+            <Button
+              class="w-full"
               :disabled="isSubmitting || !invitationCode.trim()"
               @click="handleSubmitInvitation"
             >
@@ -101,11 +101,9 @@
                   ? t('auth.oidc.completing')
                 : t('auth.oidc.completeRegistration')
               }}
-            </button>
+            </Button>
 
-            <div
-              class="rounded-lg border border-border bg-card p-4"
-            >
+            <Card class="p-4">
               <div class="space-y-3">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-foreground">
@@ -120,33 +118,32 @@
                   </p>
                 </div>
 
-                <input
+                <Input
                   v-if="!hasCurrentAuthToken"
                   v-model="existingAccountEmail"
                   data-testid="existing-account-email"
                   type="email"
-                  class="input w-full"
+                  class="w-full"
                   :placeholder="t('auth.emailPlaceholder')"
                   :disabled="isSubmitting"
                 />
 
-                <button
+                <Button
                   data-testid="existing-account-submit"
                   type="button"
-                  class="btn btn-secondary w-full"
+                  variant="secondary"
+                  class="w-full"
                   :disabled="isSubmitting"
                   @click="handleExistingAccountBinding"
                 >
                   {{ hasCurrentAuthToken ? t('auth.oauthFlow.bindCurrentAccount') : t('auth.signIn') }}
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           </template>
 
           <template v-else-if="needsChooser">
-            <div
-              class="rounded-lg border border-border bg-card p-4"
-            >
+            <Card class="p-4">
               <div class="space-y-4">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-foreground">
@@ -157,36 +154,37 @@
                   </p>
                 </div>
 
-                <button
+                <Button
                   data-testid="wechat-choice-bind-existing"
                   type="button"
-                  class="btn btn-primary w-full"
+                  class="w-full"
                   :disabled="isSubmitting"
                   @click="switchToBindLoginMode()"
                 >
                   {{ t('auth.oauthFlow.bindExistingAccount') }}
-                </button>
+                </Button>
 
-                <button
+                <Button
                   data-testid="wechat-choice-create-account"
                   type="button"
-                  class="btn btn-secondary w-full"
+                  variant="secondary"
+                  class="w-full"
                   :disabled="isSubmitting"
                   @click="switchToCreateAccountMode()"
                 >
                   {{ t('auth.oauthFlow.createNewAccount') }}
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           </template>
 
           <template v-else-if="needsAdoptionConfirmation">
             <p class="text-sm text-foreground/85">
               {{ t('auth.oauthFlow.reviewProfileBeforeContinue', { providerName }) }}
             </p>
-            <button class="btn btn-primary w-full" :disabled="isSubmitting" @click="handleContinueLogin">
+            <Button class="w-full" :disabled="isSubmitting" @click="handleContinueLogin">
               {{ isSubmitting ? t('common.processing') : t('auth.continue') }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="needsCreateAccount">
@@ -201,24 +199,22 @@
               @submit="handleCreateAccount"
               @switch-to-bind="switchToBindLoginMode"
             />
-            <button
+            <Button
               v-if="showBackToChooser"
-              class="btn btn-secondary w-full"
+              variant="secondary"
+              class="w-full"
               :disabled="isSubmitting"
               @click="switchToCreateAccountMode()"
             >
               {{ t('auth.oauthFlow.createNewAccount') }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="needsBindLogin">
             <p class="text-sm text-foreground/85">
               {{ t('auth.oauthFlow.bindSignInToExistingAccount', { providerName }) }}
             </p>
-            <div
-              v-if="hasCurrentAuthToken"
-              class="rounded-lg border border-border bg-card p-4"
-            >
+            <Card v-if="hasCurrentAuthToken" class="p-4">
               <div class="space-y-3">
                 <div class="space-y-1">
                   <p class="text-sm font-medium text-foreground">
@@ -229,53 +225,54 @@
                   </p>
                 </div>
 
-                <button
+                <Button
                   data-testid="existing-account-submit"
                   type="button"
-                  class="btn btn-primary w-full"
+                  class="w-full"
                   :disabled="isSubmitting"
                   @click="handleBindCurrentAccount"
                 >
                   {{ isSubmitting ? t('common.processing') : t('auth.oauthFlow.bindCurrentAccount') }}
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
             <div v-else class="space-y-3">
-              <input
+              <Input
                 v-model="bindLoginEmail"
                 data-testid="wechat-bind-login-email"
                 type="email"
-                class="input w-full"
+                class="w-full"
                 :placeholder="t('auth.emailPlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleBindLogin"
               />
-              <input
+              <Input
                 v-model="bindLoginPassword"
                 data-testid="wechat-bind-login-password"
                 type="password"
-                class="input w-full"
+                class="w-full"
                 :placeholder="t('auth.passwordPlaceholder')"
                 :disabled="isSubmitting"
                 @keyup.enter="handleBindLogin"
               />
-              <button
+              <Button
                 data-testid="wechat-bind-login-submit"
-                class="btn btn-primary w-full"
+                class="w-full"
                 :disabled="isSubmitting || !bindLoginEmail.trim() || !bindLoginPassword"
                 @click="handleBindLogin"
               >
                 {{ isSubmitting ? t('common.processing') : t('auth.oauthFlow.logInAndBind') }}
-              </button>
+              </Button>
             </div>
-            <button
+            <Button
               v-if="showBackToChooser"
-              class="btn btn-secondary w-full"
+              variant="secondary"
+              class="w-full"
               :disabled="isSubmitting"
               @click="switchToCreateAccountMode()"
             >
               {{ t('auth.oauthFlow.createNewAccount') }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="needsTotpChallenge">
@@ -288,25 +285,25 @@
               }}
             </p>
             <div class="space-y-3">
-              <input
+              <Input
                 v-model="totpCode"
                 data-testid="wechat-bind-login-totp"
                 type="text"
                 inputmode="numeric"
                 maxlength="6"
-                class="input w-full"
+                class="w-full"
                 placeholder="123456"
                 :disabled="isSubmitting"
                 @keyup.enter="handleSubmitTotpChallenge"
               />
-              <button
+              <Button
                 data-testid="wechat-bind-login-totp-submit"
-                class="btn btn-primary w-full"
+                class="w-full"
                 :disabled="isSubmitting || totpCode.trim().length !== 6"
                 @click="handleSubmitTotpChallenge"
               >
                 {{ isSubmitting ? t('common.processing') : t('auth.oauthFlow.verifyAndContinue') }}
-              </button>
+              </Button>
             </div>
           </template>
         </div>
@@ -320,6 +317,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Card } from '@/components/ui/card'
 import PendingOAuthCreateAccountForm, {
   type PendingOAuthCreateAccountPayload
 } from '@/components/auth/PendingOAuthCreateAccountForm.vue'

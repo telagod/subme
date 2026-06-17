@@ -1,45 +1,45 @@
 <template>
-  <div class="ud-tab-content">
+  <div class="flex flex-col gap-3.5">
     <!-- 汇总卡 -->
-    <div class="ud-stats-row" v-if="!statsLoading && !statsError">
-      <div class="ud-stat-card">
-        <span class="ud-stat-label">{{ t('admin.userTabs.usageTotalRequests') }}</span>
-        <span class="ud-stat-val">{{ stats.total_requests.toLocaleString() }}</span>
-      </div>
-      <div class="ud-stat-card">
-        <span class="ud-stat-label">{{ t('admin.userTabs.usageTotalCost') }}</span>
-        <span class="ud-stat-val q-money">${{ stats.total_cost.toFixed(4) }}</span>
-      </div>
-      <div class="ud-stat-card">
-        <span class="ud-stat-label">{{ t('admin.userTabs.usageTotalTokens') }}</span>
-        <span class="ud-stat-val">{{ stats.total_tokens.toLocaleString() }}</span>
-      </div>
+    <div class="grid grid-cols-3 gap-2" v-if="!statsLoading && !statsError">
+      <Card class="flex flex-col gap-[3px] px-3.5 py-[11px] shadow-none">
+        <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userTabs.usageTotalRequests') }}</span>
+        <span class="text-sm font-bold text-foreground">{{ stats.total_requests.toLocaleString() }}</span>
+      </Card>
+      <Card class="flex flex-col gap-[3px] px-3.5 py-[11px] shadow-none">
+        <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userTabs.usageTotalCost') }}</span>
+        <span class="text-sm font-bold text-emerald-500">${{ stats.total_cost.toFixed(4) }}</span>
+      </Card>
+      <Card class="flex flex-col gap-[3px] px-3.5 py-[11px] shadow-none">
+        <span class="text-[10.5px] text-muted-foreground">{{ t('admin.userTabs.usageTotalTokens') }}</span>
+        <span class="text-sm font-bold text-foreground">{{ stats.total_tokens.toLocaleString() }}</span>
+      </Card>
     </div>
 
-    <div v-if="loading" class="ud-loading">{{ t('admin.userTabs.loading') }}</div>
-    <div v-else-if="error" class="ud-error">{{ error }}</div>
-    <div v-else-if="!items.length" class="ud-empty">{{ t('admin.userTabs.usageNoRecords') }}</div>
-    <div v-else class="ud-table-wrap">
-      <table class="ud-table">
-        <thead>
-          <tr>
-            <th>{{ t('admin.userTabs.usageColTime') }}</th>
-            <th>{{ t('admin.userTabs.usageColModel') }}</th>
-            <th>{{ t('admin.userTabs.usageColCost') }}</th>
-            <th>{{ t('admin.userTabs.usageColToken') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in items" :key="row.id">
-            <td class="ud-muted ud-xs">{{ fmt(row.created_at) }}</td>
-            <td class="ud-mono ud-xs">{{ row.model }}</td>
-            <td class="q-money ud-xs">${{ row.total_cost?.toFixed(6) ?? '-' }}</td>
-            <td class="ud-xs">{{ ((row.input_tokens || 0) + (row.output_tokens || 0)).toLocaleString() }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-if="loading" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.loading') }}</div>
+    <div v-else-if="error" class="text-[12.5px] text-destructive">{{ error }}</div>
+    <div v-else-if="!items.length" class="py-5 text-center text-[12.5px] text-muted-foreground">{{ t('admin.userTabs.usageNoRecords') }}</div>
+    <div v-else class="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead class="whitespace-nowrap text-[10.5px]">{{ t('admin.userTabs.usageColTime') }}</TableHead>
+            <TableHead class="whitespace-nowrap text-[10.5px]">{{ t('admin.userTabs.usageColModel') }}</TableHead>
+            <TableHead class="whitespace-nowrap text-[10.5px]">{{ t('admin.userTabs.usageColCost') }}</TableHead>
+            <TableHead class="whitespace-nowrap text-[10.5px]">{{ t('admin.userTabs.usageColToken') }}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="row in items" :key="row.id">
+            <TableCell class="text-[11.5px] text-muted-foreground">{{ fmt(row.created_at) }}</TableCell>
+            <TableCell class="text-[11.5px] font-mono">{{ row.model }}</TableCell>
+            <TableCell class="text-[11.5px] text-emerald-500">${{ row.total_cost?.toFixed(6) ?? '-' }}</TableCell>
+            <TableCell class="text-[11.5px]">{{ ((row.input_tokens || 0) + (row.output_tokens || 0)).toLocaleString() }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
-    <div v-if="total > items.length" class="ud-more">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
+    <div v-if="total > items.length" class="text-center text-[11.5px] text-muted-foreground">{{ t('admin.userTabs.totalCountPartial', { total, shown: items.length }) }}</div>
   </div>
 </template>
 
@@ -50,6 +50,8 @@ import { adminAPI } from '@/api/admin'
 import type { AdminUser, AdminUsageLog } from '@/types'
 import type { AdminUsageStatsResponse } from '@/api/admin/usage'
 import { formatDateTime } from '@/utils/format'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Card } from '@/components/ui/card'
 
 const { t } = useI18n()
 const props = defineProps<{ user: AdminUser; active: boolean }>()
@@ -89,36 +91,3 @@ async function load() {
 watch(() => props.active, (v) => { if (v) load() })
 onMounted(() => { if (props.active) load() })
 </script>
-
-<style scoped>
-.ud-tab-content { display: flex; flex-direction: column; gap: 14px; }
-.ud-loading, .ud-empty { color: var(--ink-2); font-size: 12.5px; padding: 20px 0; text-align: center; }
-.ud-error { color: var(--bad); font-size: 12.5px; }
-
-.ud-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.ud-stat-card {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 11px 14px;
-  background: var(--bg-2); border: 1px solid var(--line-0); border-radius: 10px;
-}
-.ud-stat-label { font-size: 10.5px; color: var(--ink-2); }
-.ud-stat-val { font-size: 14px; font-weight: 700; color: var(--ink-0); }
-
-.ud-table-wrap { overflow-x: auto; }
-.ud-table {
-  width: 100%; border-collapse: collapse; font-size: 12px;
-}
-.ud-table th {
-  text-align: left; padding: 7px 10px; font-size: 10.5px; font-weight: 600;
-  color: var(--ink-2); border-bottom: 1px solid var(--line-0); white-space: nowrap;
-}
-.ud-table td {
-  padding: 7px 10px; border-bottom: 1px solid var(--line-0); vertical-align: middle;
-}
-.ud-table tbody tr:last-child td { border-bottom: none; }
-.ud-table tbody tr:hover td { background: var(--bg-2); }
-.ud-mono { font-family: 'IBM Plex Mono', monospace; }
-.ud-muted { color: var(--ink-2); }
-.ud-xs { font-size: 11.5px; }
-.ud-more { font-size: 11.5px; color: var(--ink-2); text-align: center; }
-</style>

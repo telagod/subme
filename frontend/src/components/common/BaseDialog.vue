@@ -1,9 +1,14 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition
+      enter-active-class="transition-opacity duration-150 ease-out"
+      leave-active-class="transition-opacity duration-100 ease-in"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
       <div
         v-if="show"
-        class="modal-overlay"
+        class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-0 pb-0 sm:items-center sm:px-4 sm:pb-4"
         :style="zIndexStyle"
         :aria-labelledby="dialogId"
         role="dialog"
@@ -11,28 +16,37 @@
         @click.self="handleClose"
       >
         <!-- Modal panel -->
-        <div ref="dialogRef" :class="['modal-content', widthClasses]" @click.stop>
+        <div
+          ref="dialogRef"
+          :class="[
+            'flex w-full max-h-[92vh] flex-col rounded-t-xl border border-border bg-card shadow-[0_8px_30px_rgba(0,0,0,0.4)] sm:max-h-[80vh] sm:rounded-xl',
+            widthClasses
+          ]"
+          @click.stop
+        >
           <!-- Header -->
-          <div class="modal-header">
-            <h3 :id="dialogId" class="modal-title">
+          <div class="flex flex-shrink-0 items-center justify-between border-b border-border px-4 py-3 sm:px-5 sm:py-4">
+            <h3 :id="dialogId" class="text-sm font-medium text-foreground">
               {{ title }}
             </h3>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               @click="emit('close')"
-              class="-mr-2 rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              class="-mr-2"
               aria-label="Close modal"
             >
               <Icon name="x" size="md" />
-            </button>
+            </Button>
           </div>
 
           <!-- Body -->
-          <div class="modal-body">
+          <div class="flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5 [overflow-scrolling:touch]">
             <slot></slot>
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="modal-footer">
+          <div v-if="$slots.footer" class="flex flex-shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3 sm:px-5">
             <slot name="footer"></slot>
           </div>
         </div>
@@ -44,6 +58,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onUnmounted, ref, nextTick } from 'vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
 
 // 生成唯一ID以避免多个对话框时ID冲突
 let dialogIdCounter = 0

@@ -1,18 +1,18 @@
 <template>
-  <div class="rp-wrap">
+  <div class="flex h-full flex-col gap-4 p-6 text-sm text-foreground">
     <!-- ── 页头 ── -->
-    <div class="rp-header">
-      <h1 class="rp-title">{{ resource.title }}</h1>
-      <button
+    <div class="flex flex-shrink-0 items-center gap-3.5">
+      <h1 class="m-0 flex-1 text-lg font-bold tracking-tight text-foreground">{{ resource.title }}</h1>
+      <Button
         v-if="resource.api.create"
-        class="rp-btn rp-btn-primary"
+        size="sm"
         @click="openCreateDrawer"
       >
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
           <path d="M6.5 2v9M2 6.5h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
         新建
-      </button>
+      </Button>
     </div>
 
     <!-- ── SavedViewTabs ── -->
@@ -24,47 +24,52 @@
     />
 
     <!-- ── 筛选条 ── -->
-    <div v-if="resource.filters && resource.filters.length > 0" class="rp-filters">
+    <div v-if="resource.filters && resource.filters.length > 0" class="flex flex-shrink-0 flex-wrap items-center gap-2.5">
       <!-- 关键词搜索 -->
-      <input
+      <Input
         v-model="state.q"
         type="search"
-        class="rp-search"
+        class="w-48 text-xs"
         placeholder="搜索…"
         @input="onSearchInput"
       />
 
       <!-- 下拉/文本过滤 -->
       <template v-for="filter in resource.filters" :key="filter.key">
-        <select
+        <Select
           v-if="filter.type === 'select'"
-          v-model="filterValues[filter.key]"
-          class="rp-filter-select"
-          @change="onFilterChange"
+          :model-value="filterValues[filter.key] || '__all__'"
+          @update:model-value="(val: string) => { filterValues[filter.key] = val === '__all__' ? '' : val; onFilterChange() }"
         >
-          <option value="">{{ filter.placeholder ?? filter.label }}</option>
-          <option
-            v-for="opt in (filter.options ?? [])"
-            :key="String(opt.value)"
-            :value="opt.value"
-          >{{ opt.label }}</option>
-        </select>
-        <input
+          <SelectTrigger class="w-36 text-xs">
+            <SelectValue :placeholder="filter.placeholder ?? filter.label" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{{ filter.placeholder ?? filter.label }}</SelectItem>
+            <SelectItem
+              v-for="opt in (filter.options ?? [])"
+              :key="String(opt.value)"
+              :value="String(opt.value)"
+            >{{ opt.label }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
           v-else
           v-model="filterValues[filter.key]"
           type="text"
-          class="rp-search"
+          class="w-48 text-xs"
           :placeholder="filter.placeholder ?? filter.label"
           @input="onFilterChange"
         />
       </template>
 
       <!-- 清除筛选 -->
-      <button
+      <Button
         v-if="hasActiveFilters"
-        class="rp-btn rp-btn-ghost rp-btn-sm"
+        variant="ghost"
+        size="sm"
         @click="clearFilters"
-      >清除</button>
+      >清除</Button>
     </div>
 
     <!-- ── DataTableV2 ── -->
@@ -86,14 +91,16 @@
     >
       <!-- 透传行操作插槽 -->
       <template v-if="resource.rowActions && resource.rowActions.length > 0" #[`cell-${rowActionsKey}`]="{ row }">
-        <div class="rp-actions">
+        <div class="flex items-center gap-1.5">
           <template v-for="action in resource.rowActions" :key="action.key">
-            <button
+            <Button
               v-if="!action.hidden || !action.hidden(row as any)"
-              class="rp-action-btn"
-              :class="{ 'rp-action-danger': action.danger }"
+              variant="outline"
+              size="sm"
+              :class="{ 'border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive': action.danger }"
+              class="h-6 px-2.5 text-[11.5px] font-medium"
               @click.stop="action.handler(row as any)"
-            >{{ action.label }}</button>
+            >{{ action.label }}</Button>
           </template>
         </div>
       </template>
@@ -110,7 +117,7 @@
       </template>
 
       <template #empty>
-        <div class="rp-empty">
+        <div class="flex flex-col items-center gap-3 px-6 py-14 text-sm text-muted-foreground">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
             <rect x="5" y="7" width="26" height="22" rx="4" stroke="currentColor" stroke-width="1.5"/>
             <line x1="11" y1="15" x2="25" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -122,7 +129,9 @@
     </DataTableV2>
 
     <!-- ── 错误提示 ── -->
-    <div v-if="error" class="rp-error">{{ error }}</div>
+    <Alert v-if="error" variant="destructive" class="flex-shrink-0">
+      <AlertDescription>{{ error }}</AlertDescription>
+    </Alert>
 
     <!-- ── BulkBar ── -->
     <BulkBar
@@ -131,11 +140,13 @@
       @clear="selectedRows = []"
     >
       <template v-for="action in resource.bulkActions" :key="action.key">
-        <button
-          class="rp-bulk-btn"
-          :class="{ 'q-btn-danger': action.danger }"
+        <Button
+          variant="outline"
+          size="sm"
+          :class="{ 'border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive': action.danger }"
+          class="h-7 px-2.5 text-[11.5px] font-semibold"
           @click="action.handler(selectedRows as any[])"
-        >{{ action.label }}</button>
+        >{{ action.label }}</Button>
       </template>
     </BulkBar>
 
@@ -157,6 +168,10 @@ import { DataTableV2, SavedViewTabs, BulkBar, useTableUrlState } from '@/compone
 import type { SavedView } from '@/components/datatable/types'
 import ResourceFormDrawer from './ResourceFormDrawer.vue'
 import type { ResourceDef } from './types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 // ── Props ──────────────────────────────────────────────────────────────
 const props = defineProps<{
@@ -318,211 +333,3 @@ async function handleFormSubmit(data: Record<string, unknown>) {
 // ── expose 给外部使用（可选） ─────────────────────────────────────────
 defineExpose({ openEditDrawer, reload: loadData })
 </script>
-
-<style scoped>
-/* ── 淬钢 QUENCH · ResourcePage ── */
-.rp-wrap {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 22px 24px;
-  gap: 16px;
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
-  font-size: 13px;
-  color: var(--ink-0, #E8EBF0);
-  box-sizing: border-box;
-}
-
-/* 页头 */
-.rp-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-}
-
-.rp-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink-0, #E8EBF0);
-  letter-spacing: -0.01em;
-  margin: 0;
-  flex: 1;
-}
-
-/* 筛选条 */
-.rp-filters {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.rp-search {
-  background: var(--bg-2, #171A20);
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 7px 12px;
-  font-size: 12.5px;
-  color: var(--ink-0, #E8EBF0);
-  outline: none;
-  width: 200px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  font-family: inherit;
-}
-
-.rp-search:focus {
-  border-color: rgba(92, 168, 255, 0.55);
-  box-shadow: 0 0 0 2px rgba(92, 168, 255, 0.12);
-}
-
-.rp-search::placeholder {
-  color: var(--ink-2, #5C6470);
-}
-
-.rp-filter-select {
-  background: var(--bg-2, #171A20);
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 8px;
-  padding: 7px 30px 7px 12px;
-  font-size: 12.5px;
-  color: var(--ink-0, #E8EBF0);
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5L5 6.5L8 3.5' stroke='%235C6470' stroke-width='1.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  transition: border-color 0.15s;
-}
-
-.rp-filter-select:focus {
-  border-color: rgba(92, 168, 255, 0.55);
-}
-
-/* 按钮 */
-.rp-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-
-.rp-btn-sm {
-  padding: 5px 10px;
-  font-size: 11.5px;
-}
-
-.rp-btn-primary {
-  background: var(--azure-dim, rgba(92, 168, 255, 0.15));
-  border-color: rgba(92, 168, 255, 0.4);
-  color: var(--azure-hi, #8CC4FF);
-}
-
-.rp-btn-primary:hover {
-  background: rgba(92, 168, 255, 0.25);
-  border-color: rgba(92, 168, 255, 0.6);
-  box-shadow: 0 0 14px rgba(92, 168, 255, 0.18);
-}
-
-.rp-btn-ghost {
-  background: transparent;
-  border-color: var(--line-1, #2F3540);
-  color: var(--ink-1, #97A0AF);
-}
-
-.rp-btn-ghost:hover {
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-}
-
-/* 行操作 */
-.rp-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rp-action-btn {
-  padding: 3px 9px;
-  border-radius: 6px;
-  font-size: 11.5px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid var(--line-1, #2F3540);
-  background: transparent;
-  color: var(--ink-1, #97A0AF);
-  font-family: inherit;
-  transition: all 0.13s;
-  white-space: nowrap;
-}
-
-.rp-action-btn:hover {
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-  border-color: #3D4554;
-}
-
-.rp-action-danger {
-  color: var(--bad, #F25C69);
-  border-color: rgba(242, 92, 105, 0.3);
-}
-
-.rp-action-danger:hover {
-  background: var(--bad-dim, rgba(242, 92, 105, 0.12));
-  border-color: rgba(242, 92, 105, 0.5);
-  color: var(--bad, #F25C69) !important;
-}
-
-/* 批量操作按钮 */
-.rp-bulk-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-
-.rp-bulk-btn:hover {
-  background: var(--bg-3, #1F232B);
-  border-color: #3D4554;
-}
-
-/* 错误提示 */
-.rp-error {
-  font-size: 12.5px;
-  color: var(--bad, #F25C69);
-  padding: 8px 12px;
-  background: var(--bad-dim, rgba(242, 92, 105, 0.1));
-  border: 1px solid rgba(242, 92, 105, 0.3);
-  border-radius: 8px;
-}
-
-/* 空态 */
-.rp-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 56px 24px;
-  color: var(--ink-2, #5C6470);
-  font-size: 13px;
-}
-</style>

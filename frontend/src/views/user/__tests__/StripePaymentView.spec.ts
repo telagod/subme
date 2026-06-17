@@ -88,6 +88,10 @@ function mountView() {
     global: {
       stubs: {
         AppLayout: { template: '<div><slot /></div>' },
+        // shadcn Card/CardContent are slot wrappers; render their slots so the
+        // amount header (rendered inside <Card>) is visible to wrapper.text().
+        Card: { template: '<div><slot /></div>' },
+        CardContent: { template: '<div><slot /></div>' },
         Icon: true,
       },
     },

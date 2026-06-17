@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <Card class="overflow-hidden">
     <div
       class="flex flex-col gap-3 border-b border-border px-6 py-4 lg:flex-row lg:items-start lg:justify-between"
     >
@@ -12,40 +12,42 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
-          class="btn btn-secondary btn-sm"
+          variant="outline"
+          size="sm"
           :disabled="loadingTemplate || previewing || !canPreview"
           @click="refreshPreview"
         >
           {{ previewing ? t("admin.settings.emailTemplates.previewing") : t("admin.settings.emailTemplates.preview") }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-secondary btn-sm"
+          variant="outline"
+          size="sm"
           :disabled="loadingTemplate || restoring || !selectedEvent || !selectedLocale"
           @click="restoreOfficial"
         >
           {{ restoring ? t("admin.settings.emailTemplates.restoring") : t("admin.settings.emailTemplates.restoreOfficial") }}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          class="btn btn-primary btn-sm"
+          size="sm"
           :disabled="loadingTemplate || saving || !canSave"
           @click="saveTemplate"
         >
           {{ saving ? t("admin.settings.emailTemplates.saving") : t("admin.settings.emailTemplates.save") }}
-        </button>
+        </Button>
       </div>
     </div>
 
-    <div class="space-y-6 p-6">
+    <CardContent class="space-y-6 p-6">
       <div
         v-if="loadingList"
         class="flex items-center gap-2 text-sm text-muted-foreground"
       >
         <span
-          class="h-4 w-4 animate-spin rounded-full border-b-2 border-primary-200"
+          class="h-4 w-4 animate-spin rounded-full border-b-2 border-primary"
         ></span>
         {{ t("common.loading") }}
       </div>
@@ -53,42 +55,50 @@
       <template v-else>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label class="input-label" for="email-template-event">
+            <Label for="email-template-event" class="mb-2 block">
               {{ t("admin.settings.emailTemplates.event") }}
-            </label>
-            <select
-              id="email-template-event"
-              v-model="selectedEvent"
-              class="input"
+            </Label>
+            <Select
+              :model-value="selectedEvent"
               :disabled="loadingTemplate || eventOptions.length === 0"
+              @update:model-value="selectedEvent = $event"
             >
-              <option
-                v-for="option in eventOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ formatEventOptionLabel(option) }}
-              </option>
-            </select>
+              <SelectTrigger id="email-template-event">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="option in eventOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ formatEventOptionLabel(option) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label class="input-label" for="email-template-locale">
+            <Label for="email-template-locale" class="mb-2 block">
               {{ t("admin.settings.emailTemplates.locale") }}
-            </label>
-            <select
-              id="email-template-locale"
-              v-model="selectedLocale"
-              class="input"
+            </Label>
+            <Select
+              :model-value="selectedLocale"
               :disabled="loadingTemplate || localeOptions.length === 0"
+              @update:model-value="selectedLocale = $event"
             >
-              <option
-                v-for="localeOption in localeOptions"
-                :key="localeOption"
-                :value="localeOption"
-              >
-                {{ formatLocale(localeOption) }}
-              </option>
-            </select>
+              <SelectTrigger id="email-template-locale">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="localeOption in localeOptions"
+                  :key="localeOption"
+                  :value="localeOption"
+                >
+                  {{ formatLocale(localeOption) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -100,21 +110,19 @@
             <div class="text-sm font-semibold text-foreground">
               {{ selectedEventMeta.label }}
             </div>
-            <span
-              class="rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-foreground/85 "
-            >
+            <Badge variant="secondary">
               {{ selectedEventMeta.categoryLabel }}
-            </span>
-            <span
-              class="rounded-full px-2.5 py-1 text-xs font-medium"
+            </Badge>
+            <Badge
+              variant="outline"
               :class="
                 selectedEventMeta.optional
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
               "
             >
               {{ selectedEventMeta.optional ? localText("可退订通知", "Optional") : localText("事务邮件", "Transactional") }}
-            </span>
+            </Badge>
           </div>
           <p class="mt-2 text-sm leading-6 text-foreground/85">
             {{ selectedEventMeta.timing }}
@@ -137,31 +145,30 @@
         <div v-else class="grid grid-cols-1 gap-6 xl:grid-cols-2">
           <div class="space-y-4">
             <div>
-              <label class="input-label" for="email-template-subject">
+              <Label for="email-template-subject" class="mb-2 block">
                 {{ t("admin.settings.emailTemplates.subject") }}
-              </label>
-              <input
+              </Label>
+              <Input
                 id="email-template-subject"
                 v-model="subject"
                 type="text"
-                class="input"
                 :disabled="loadingTemplate"
                 :placeholder="t('admin.settings.emailTemplates.subjectPlaceholder')"
               />
             </div>
 
             <div>
-              <label class="input-label" for="email-template-html">
+              <Label for="email-template-html" class="mb-2 block">
                 {{ t("admin.settings.emailTemplates.html") }}
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 id="email-template-html"
                 v-model="html"
                 rows="18"
-                class="input min-h-[28rem] resize-y font-mono text-sm leading-6"
+                class="min-h-[28rem] resize-y font-mono text-sm leading-6"
                 :disabled="loadingTemplate"
                 :placeholder="t('admin.settings.emailTemplates.htmlPlaceholder')"
-              ></textarea>
+              />
             </div>
 
             <div
@@ -174,15 +181,17 @@
                 {{ t("admin.settings.emailTemplates.placeholdersHelp") }}
               </p>
               <div class="mt-3 flex flex-wrap gap-2">
-                <button
+                <Button
                   v-for="placeholder in placeholderList"
                   :key="placeholder"
                   type="button"
-                  class="rounded-full border border-border bg-secondary px-3 py-1 font-mono text-xs text-foreground/85 transition-colors hover:border-primary-300 hover:text-primary-200"
+                  variant="outline"
+                  size="sm"
+                  class="h-auto rounded-full bg-secondary px-3 py-1 font-mono text-xs text-foreground/85 hover:border-primary hover:text-primary"
                   @click="copyPlaceholder(placeholder)"
                 >
                   {{ placeholder }}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -202,12 +211,13 @@
                     {{ previewSubject || t("admin.settings.emailTemplates.noPreview") }}
                   </div>
                 </div>
-                <span
+                <Badge
                   v-if="isCustomTemplate"
-                  class="rounded-full border border-border bg-primary-300/10 px-2.5 py-1 text-xs font-medium text-primary-200"
+                  variant="outline"
+                  class="border-primary/20 bg-primary/10 text-primary"
                 >
                   {{ t("admin.settings.emailTemplates.customized") }}
-                </span>
+                </Badge>
               </div>
               <div class="bg-muted p-3">
                 <iframe
@@ -225,8 +235,8 @@
           </div>
         </div>
       </template>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -239,6 +249,19 @@ import type {
 } from "@/api/admin/settings";
 import { useAppStore } from "@/stores";
 import { extractApiErrorMessage } from "@/utils/apiError";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const { t, locale } = useI18n();
 const appStore = useAppStore();

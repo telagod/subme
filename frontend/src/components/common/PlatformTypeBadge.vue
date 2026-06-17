@@ -112,16 +112,16 @@ const compactTypeLabel = computed(() => {
 })
 
 const compactPlatformClass = computed(() => {
-  if (props.platform === 'anthropic') return 'bg-orange-900/30 text-orange-400'
+  if (props.platform === 'anthropic') return 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
   if (props.platform === 'openai') return 'bg-emerald-500/10 text-emerald-400'
-  if (props.platform === 'antigravity') return 'bg-purple-900/30 text-purple-400'
+  if (props.platform === 'antigravity') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
   return 'bg-sky-500/10 text-sky-400'
 })
 
 const compactTypeClass = computed(() => {
-  if (props.platform === 'anthropic') return 'bg-orange-900/20 text-orange-300'
+  if (props.platform === 'anthropic') return 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
   if (props.platform === 'openai') return 'bg-emerald-500/10 text-emerald-300'
-  if (props.platform === 'antigravity') return 'bg-purple-900/20 text-purple-300'
+  if (props.platform === 'antigravity') return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
   return 'bg-sky-500/10 text-sky-300'
 })
 
@@ -169,26 +169,26 @@ const planLabel = computed(() => {
 
 const platformClass = computed(() => {
   if (props.platform === 'anthropic') {
-    return 'bg-orange-900/30 text-orange-400'
+    return 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
   }
   if (props.platform === 'openai') {
     return 'bg-emerald-500/10 text-emerald-400'
   }
   if (props.platform === 'antigravity') {
-    return 'bg-purple-900/30 text-purple-400'
+    return 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
   }
   return 'bg-sky-500/10 text-sky-400'
 })
 
 const typeClass = computed(() => {
   if (props.platform === 'anthropic') {
-    return 'bg-orange-900/30 text-orange-400  '
+    return 'bg-orange-500/10 text-orange-600 dark:text-orange-400  '
   }
   if (props.platform === 'openai') {
     return 'bg-emerald-500/10 text-emerald-400'
   }
   if (props.platform === 'antigravity') {
-    return 'bg-purple-900/30 text-purple-400  '
+    return 'bg-purple-500/10 text-purple-600 dark:text-purple-400  '
   }
   return 'bg-sky-500/10 text-sky-400'
 })

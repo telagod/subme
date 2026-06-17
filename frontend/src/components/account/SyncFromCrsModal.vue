@@ -29,12 +29,11 @@
 
       <div class="grid grid-cols-1 gap-4">
         <div>
-          <label for="crs-base-url" class="input-label">{{ t('admin.accounts.crsBaseUrl') }}</label>
-          <input
+          <Label for="crs-base-url" class="mb-1.5 block">{{ t('admin.accounts.crsBaseUrl') }}</Label>
+          <Input
             id="crs-base-url"
             v-model="form.base_url"
             type="text"
-            class="input"
             required
             :placeholder="t('admin.accounts.crsBaseUrlPlaceholder')"
           />
@@ -42,16 +41,15 @@
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label for="crs-username" class="input-label">{{ t('admin.accounts.crsUsername') }}</label>
-            <input id="crs-username" v-model="form.username" type="text" class="input" required autocomplete="username" />
+            <Label for="crs-username" class="mb-1.5 block">{{ t('admin.accounts.crsUsername') }}</Label>
+            <Input id="crs-username" v-model="form.username" type="text" required autocomplete="username" />
           </div>
           <div>
-            <label for="crs-password" class="input-label">{{ t('admin.accounts.crsPassword') }}</label>
-            <input
+            <Label for="crs-password" class="mb-1.5 block">{{ t('admin.accounts.crsPassword') }}</Label>
+            <Input
               id="crs-password"
               v-model="form.password"
               type="password"
-              class="input"
               required
               autocomplete="current-password"
             />
@@ -59,10 +57,9 @@
         </div>
 
         <label class="flex items-center gap-2 text-sm text-foreground/85">
-          <input
-            v-model="form.sync_proxies"
-            type="checkbox"
-            class="rounded border-border"
+          <Checkbox
+            :checked="form.sync_proxies"
+            @update:checked="(val) => (form.sync_proxies = val === true)"
           />
           {{ t('admin.accounts.syncProxies') }}
         </label>
@@ -87,7 +84,7 @@
             class="flex items-center gap-2 py-0.5"
           >
             <span
-              class="inline-block rounded bg-secondary border border-border px-1.5 py-0.5 text-[10px] font-medium text-primary-200"
+              class="inline-block rounded bg-secondary border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
             >{{ acc.platform }} / {{ acc.type }}</span>
             <span class="truncate">{{ acc.name }}</span>
           </div>
@@ -102,16 +99,20 @@
             <span class="ml-1 text-xs text-muted-foreground">({{ previewResult.new_accounts.length }})</span>
           </div>
           <div class="flex gap-2">
-            <button
+            <Button
               type="button"
-              class="text-xs text-primary-200 hover:text-foreground"
+              variant="ghost"
+              size="sm"
+              class="h-auto px-1.5 py-0.5 text-xs text-muted-foreground hover:text-foreground"
               @click="selectAll"
-            >{{ t('admin.accounts.crsSelectAll') }}</button>
-            <button
+            >{{ t('admin.accounts.crsSelectAll') }}</Button>
+            <Button
               type="button"
-              class="text-xs text-muted-foreground hover:text-foreground"
+              variant="ghost"
+              size="sm"
+              class="h-auto px-1.5 py-0.5 text-xs text-muted-foreground hover:text-foreground"
               @click="selectNone"
-            >{{ t('admin.accounts.crsSelectNone') }}</button>
+            >{{ t('admin.accounts.crsSelectNone') }}</Button>
           </div>
         </div>
         <div
@@ -122,11 +123,9 @@
             :key="acc.crs_account_id"
             class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 hover:bg-accent"
           >
-            <input
-              type="checkbox"
+            <Checkbox
               :checked="selectedIds.has(acc.crs_account_id)"
-              class="rounded border-border"
-              @change="toggleSelect(acc.crs_account_id)"
+              @update:checked="() => toggleSelect(acc.crs_account_id)"
             />
             <span
               class="inline-block rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400"
@@ -172,7 +171,7 @@
         </div>
 
         <div v-if="errorItems.length" class="mt-2">
-          <div class="text-sm font-medium text-red-400">
+          <div class="text-sm font-medium text-destructive">
             {{ t('admin.accounts.syncErrors') }}
           </div>
           <div
@@ -191,49 +190,47 @@
       <div class="flex justify-end gap-3">
         <!-- Step 1: Input -->
         <template v-if="currentStep === 'input'">
-          <button
-            class="btn btn-secondary"
+          <Button
+            variant="secondary"
             type="button"
             :disabled="previewing"
             @click="handleClose"
           >
             {{ t('common.cancel') }}
-          </button>
-          <button
-            class="btn btn-primary"
+          </Button>
+          <Button
             type="submit"
             form="sync-from-crs-form"
             :disabled="previewing"
           >
             {{ previewing ? t('admin.accounts.crsPreviewing') : t('admin.accounts.crsPreview') }}
-          </button>
+          </Button>
         </template>
 
         <!-- Step 2: Preview -->
         <template v-else-if="currentStep === 'preview'">
-          <button
-            class="btn btn-secondary"
+          <Button
+            variant="secondary"
             type="button"
             :disabled="syncing"
             @click="handleBack"
           >
             {{ t('admin.accounts.crsBack') }}
-          </button>
-          <button
-            class="btn btn-primary"
+          </Button>
+          <Button
             type="button"
             :disabled="syncing || hasNewButNoneSelected"
             @click="handleSync"
           >
             {{ syncing ? t('admin.accounts.syncing') : t('admin.accounts.syncNow') }}
-          </button>
+          </Button>
         </template>
 
         <!-- Step 3: Result -->
         <template v-else-if="currentStep === 'result'">
-          <button class="btn btn-secondary" type="button" @click="handleClose">
+          <Button variant="secondary" type="button" @click="handleClose">
             {{ t('common.close') }}
-          </button>
+          </Button>
         </template>
       </div>
     </template>
@@ -244,6 +241,10 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
 import type { PreviewFromCRSResult } from '@/api/admin/accounts'

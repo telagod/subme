@@ -339,6 +339,8 @@ export default {
     inactive: 'Inactive',
     more: 'More',
     close: 'Close',
+    lightMode: 'Switch to light',
+    darkMode: 'Switch to dark',
     enabled: 'Enabled',
     disabled: 'Disabled',
     total: 'Total',
@@ -4562,7 +4564,8 @@ export default {
       failedToUpdate: 'Failed to update announcement',
       failedToDelete: 'Failed to delete announcement',
       failedToLoadReadStatus: 'Failed to load read status',
-      deleteConfirm: 'Are you sure you want to delete this announcement? This action cannot be undone.'
+      deleteConfirm: 'Are you sure you want to delete this announcement? This action cannot be undone.',
+      emptyDescription: 'No announcements yet. Create one to get started.'
     },
 
     // Promo Codes
@@ -7226,6 +7229,7 @@ export default {
       tabPayment: 'Payment',
       tabEmail: 'Email',
       tabBackup: 'Backup',
+      noSearchResults: 'No matching settings found',
     },
   },
 
@@ -7313,7 +7317,8 @@ export default {
     total: 'announcements',
     emptyDescription: 'There are no system announcements at this time',
     readStatus: 'You have read this announcement',
-    markReadHint: 'Click "Mark as read" to mark this announcement'
+    markReadHint: 'Click "Mark as read" to mark this announcement',
+    readLater: 'Read later'
   },
 
   // User Subscriptions Page

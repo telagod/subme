@@ -4,23 +4,23 @@
   >
     <div class="flex flex-1 items-center justify-between sm:hidden">
       <!-- Mobile pagination -->
-      <button
+      <Button
+        variant="outline"
         @click="goToPage(page - 1)"
         :disabled="page === 1"
-        class="relative inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/85 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         {{ t('pagination.previous') }}
-      </button>
+      </Button>
       <span class="text-sm text-foreground/85">
         {{ t('pagination.pageOf', { page, total: totalPages }) }}
       </span>
-      <button
+      <Button
+        variant="outline"
         @click="goToPage(page + 1)"
         :disabled="page === totalPages"
-        class="relative ml-3 inline-flex items-center rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground/85 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         {{ t('pagination.next') }}
-      </button>
+      </Button>
     </div>
 
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
@@ -41,70 +41,87 @@
           <span class="text-sm text-foreground/85"
             >{{ t('pagination.perPage') }}:</span
           >
-          <div class="page-size-select w-20">
+          <div class="w-20">
             <Select
-              :model-value="pageSize"
-              :options="pageSizeSelectOptions"
+              :model-value="String(pageSize)"
               @update:model-value="handlePageSizeChange"
-            />
+            >
+              <SelectTrigger class="h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="opt in pageSizeSelectOptions"
+                  :key="opt.value"
+                  :value="String(opt.value)"
+                >
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div v-if="showJump" class="flex items-center space-x-2">
           <span class="text-sm text-foreground/85">{{ t('pagination.jumpTo') }}</span>
-          <input
+          <Input
             v-model="jumpPage"
             type="number"
             min="1"
             :max="totalPages"
-            class="input w-20 text-sm"
+            class="w-20 text-sm"
             :placeholder="t('pagination.jumpPlaceholder')"
             @keyup.enter="submitJump"
           />
-          <button type="button" class="btn btn-ghost btn-sm" @click="submitJump">
+          <Button type="button" variant="ghost" size="sm" @click="submitJump">
             {{ t('pagination.jumpAction') }}
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Desktop pagination buttons (Vercel-style) -->
       <nav class="inline-flex items-center gap-1" aria-label="Pagination">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           @click="goToPage(page - 1)"
           :disabled="page === 1"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          class="h-8 w-8"
           :aria-label="t('pagination.previous')"
         >
           <Icon name="chevronLeft" size="sm" />
-        </button>
+        </Button>
 
-        <button
+        <Button
           v-for="(pageNum, index) in visiblePages"
           :key="`${pageNum}-${index}`"
+          variant="ghost"
           @click="typeof pageNum === 'number' && goToPage(pageNum)"
           :disabled="typeof pageNum !== 'number'"
           :class="[
-            'inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[13px] font-medium transition-colors',
+            'h-8 min-w-8 px-2 text-[13px] font-medium',
             pageNum === page
-              ? 'bg-foreground text-background'
+              ? 'bg-foreground text-background hover:bg-foreground hover:text-background'
               : typeof pageNum === 'number'
-                ? 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                ? 'text-muted-foreground'
                 : 'cursor-default text-muted-foreground'
           ]"
           :aria-label="typeof pageNum === 'number' ? t('pagination.goToPage', { page: pageNum }) : undefined"
           :aria-current="pageNum === page ? 'page' : undefined"
         >
           {{ pageNum }}
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           @click="goToPage(page + 1)"
           :disabled="page === totalPages"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+          class="h-8 w-8"
           :aria-label="t('pagination.next')"
         >
           <Icon name="chevronRight" size="sm" />
-        </button>
+        </Button>
       </nav>
     </div>
   </div>
@@ -114,7 +131,9 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
-import Select from './Select.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { getConfiguredTablePageSizeOptions, normalizeTablePageSize } from '@/utils/tablePreferences'
 import { setPersistedPageSize } from '@/composables/usePersistedPageSize'
 
@@ -232,9 +251,3 @@ const submitJump = () => {
   goToPage(nextPage)
 }
 </script>
-
-<style scoped>
-.page-size-select :deep(.select-trigger) {
-  @apply px-3 py-1.5 text-sm;
-}
-</style>

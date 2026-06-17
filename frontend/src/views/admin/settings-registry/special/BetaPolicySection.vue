@@ -1,8 +1,11 @@
 <template>
-  <div class="bp-body">
+  <div class="flex flex-col gap-4 px-5 py-4">
     <!-- loading -->
-    <div v-if="loading" class="bp-loading">
-      <div class="bp-spinner" />
+    <div v-if="loading" class="flex items-center gap-2 text-sm text-muted-foreground">
+      <svg class="h-4 w-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+      </svg>
       {{ t('common.loading') }}
     </div>
 
@@ -11,157 +14,171 @@
       <div
         v-for="rule in rules"
         :key="rule.beta_token"
-        class="bp-rule-card"
+        class="flex flex-col gap-3 rounded-[10px] border border-border p-4"
       >
         <!-- card header -->
-        <div class="bp-rule-head">
-          <span class="bp-rule-name">{{ getBetaDisplayName(rule.beta_token) }}</span>
-          <span class="bp-rule-token">{{ rule.beta_token }}</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[13px] font-semibold text-foreground">{{ getBetaDisplayName(rule.beta_token) }}</span>
+          <span class="rounded-[5px] border border-border bg-muted px-[7px] py-0.5 font-mono text-[11px] text-muted-foreground">{{ rule.beta_token }}</span>
         </div>
 
-        <div class="bp-grid-2">
+        <div class="grid grid-cols-2 gap-3 max-[480px]:grid-cols-1">
           <!-- Action -->
-          <div class="bp-field">
-            <label class="bp-field-label">{{ t('admin.settings.betaPolicy.action') }}</label>
-            <Select
-              :modelValue="rule.action"
-              @update:modelValue="rule.action = $event as any"
-              :options="actionOptions"
-            />
+          <div class="flex flex-col gap-1">
+            <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.action') }}</Label>
+            <Select :modelValue="rule.action" @update:modelValue="rule.action = $event as any">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in actionOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <!-- Scope -->
-          <div class="bp-field">
-            <label class="bp-field-label">{{ t('admin.settings.betaPolicy.scope') }}</label>
-            <Select
-              :modelValue="rule.scope"
-              @update:modelValue="rule.scope = $event as any"
-              :options="scopeOptions"
-            />
+          <div class="flex flex-col gap-1">
+            <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.scope') }}</Label>
+            <Select :modelValue="rule.scope" @update:modelValue="rule.scope = $event as any">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in scopeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <!-- Error Message (only when action=block) -->
-        <div v-if="rule.action === 'block'" class="bp-field bp-field--mt">
-          <label class="bp-field-label">{{ t('admin.settings.betaPolicy.errorMessage') }}</label>
-          <input
+        <div v-if="rule.action === 'block'" class="mt-1 flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.errorMessage') }}</Label>
+          <Input
             v-model="rule.error_message"
             type="text"
-            class="bp-input"
             :placeholder="t('admin.settings.betaPolicy.errorMessagePlaceholder')"
           />
-          <p class="bp-field-hint">{{ t('admin.settings.betaPolicy.errorMessageHint') }}</p>
+          <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.betaPolicy.errorMessageHint') }}</p>
         </div>
 
         <!-- Quick Presets (only for tokens with presets) -->
-        <div v-if="betaPresets[rule.beta_token]?.length" class="bp-field bp-field--mt">
-          <label class="bp-field-label">{{ t('admin.settings.betaPolicy.quickPresets') }}</label>
-          <div class="bp-presets">
-            <button
+        <div v-if="betaPresets[rule.beta_token]?.length" class="mt-1 flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.quickPresets') }}</Label>
+          <div class="flex flex-wrap gap-1.5">
+            <Button
               v-for="preset in betaPresets[rule.beta_token]"
               :key="preset.label"
               type="button"
-              class="bp-preset-btn"
+              variant="outline"
+              size="sm"
+              class="h-auto border-primary/30 bg-primary/8 px-[11px] py-1 text-xs font-medium text-primary hover:bg-primary/18"
               @click="applyPreset(rule, preset)"
               :title="preset.description"
             >
               {{ preset.label }}
-            </button>
+            </Button>
           </div>
         </div>
 
         <!-- Model Whitelist -->
-        <div class="bp-field bp-field--mt">
-          <label class="bp-field-label">{{ t('admin.settings.betaPolicy.modelWhitelist') }}</label>
-          <p class="bp-field-hint bp-field-hint--top">{{ t('admin.settings.betaPolicy.modelWhitelistHint') }}</p>
+        <div class="mt-1 flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.modelWhitelist') }}</Label>
+          <p class="mb-1.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.betaPolicy.modelWhitelistHint') }}</p>
           <!-- existing patterns -->
           <div
             v-for="(_, index) in rule.model_whitelist || []"
             :key="index"
-            class="bp-pattern-row"
+            class="mb-1 flex items-center gap-2"
           >
-            <input
+            <Input
               v-model="rule.model_whitelist![index]"
               type="text"
-              class="bp-input bp-input--sm bp-input--mono"
+              class="h-8 font-mono text-xs"
               :placeholder="t('admin.settings.betaPolicy.modelPatternPlaceholder')"
             />
-            <button
+            <Button
               type="button"
-              class="bp-icon-btn bp-icon-btn--danger"
+              variant="ghost"
+              size="icon"
+              class="h-7 w-7 flex-shrink-0 text-muted-foreground hover:border hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
               @click="rule.model_whitelist!.splice(index, 1)"
               :aria-label="t('common.remove')"
             >
-              <svg class="bp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </Button>
           </div>
           <!-- add pattern -->
-          <button
+          <Button
             type="button"
-            class="bp-add-btn"
+            variant="ghost"
+            size="sm"
+            class="h-auto justify-start gap-1 px-0 py-1 text-xs text-primary hover:bg-transparent hover:text-foreground"
             @click="addModelPattern(rule)"
           >
-            <svg class="bp-add-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-[13px] w-[13px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             {{ t('admin.settings.betaPolicy.addModelPattern') }}
-          </button>
+          </Button>
           <!-- Common pattern chips -->
-          <div class="bp-chips">
-            <span class="bp-chips-label">{{ t('admin.settings.betaPolicy.commonPatterns') }}:</span>
-            <button
+          <div class="mt-1 flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] text-muted-foreground">{{ t('admin.settings.betaPolicy.commonPatterns') }}:</span>
+            <Button
               v-for="pattern in commonModelPatterns"
               :key="pattern"
               type="button"
-              class="bp-chip"
+              variant="outline"
+              size="sm"
+              class="h-auto rounded-[5px] px-[9px] py-0.5 font-mono text-[11.5px] text-muted-foreground hover:border-primary hover:bg-primary/7 hover:text-primary"
               @click="addQuickPattern(rule, pattern)"
             >
               {{ pattern }}
-            </button>
+            </Button>
           </div>
         </div>
 
         <!-- Fallback Action (only when model_whitelist is non-empty) -->
         <div
           v-if="rule.model_whitelist && rule.model_whitelist.length > 0"
-          class="bp-field bp-field--mt"
+          class="mt-1 flex flex-col gap-1"
         >
-          <label class="bp-field-label">{{ t('admin.settings.betaPolicy.fallbackAction') }}</label>
-          <Select
-            :modelValue="rule.fallback_action || 'pass'"
-            @update:modelValue="rule.fallback_action = $event as any"
-            :options="actionOptions"
-          />
-          <p class="bp-field-hint">{{ t('admin.settings.betaPolicy.fallbackActionHint') }}</p>
+          <Label class="text-[11.5px] font-medium">{{ t('admin.settings.betaPolicy.fallbackAction') }}</Label>
+          <Select :modelValue="rule.fallback_action || 'pass'" @update:modelValue="rule.fallback_action = $event as any">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in actionOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.betaPolicy.fallbackActionHint') }}</p>
           <!-- Fallback Error Message (only when fallback_action=block) -->
-          <div v-if="rule.fallback_action === 'block'" class="bp-fallback-err">
-            <input
+          <div v-if="rule.fallback_action === 'block'" class="mt-2 flex flex-col gap-1">
+            <Input
               v-model="rule.fallback_error_message"
               type="text"
-              class="bp-input"
               :placeholder="t('admin.settings.betaPolicy.fallbackErrorMessagePlaceholder')"
             />
-            <p class="bp-field-hint">{{ t('admin.settings.betaPolicy.errorMessageHint') }}</p>
+            <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.betaPolicy.errorMessageHint') }}</p>
           </div>
         </div>
       </div>
 
       <!-- Save button -->
-      <div class="bp-footer">
-        <button
+      <div class="flex justify-end border-t border-border pt-4">
+        <Button
           type="button"
-          class="bp-save-btn"
           :disabled="saving"
           @click="save"
         >
-          <svg v-if="saving" class="bp-spin" fill="none" viewBox="0 0 24 24">
+          <svg v-if="saving" class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
           {{ saving ? t('common.saving') : t('common.save') }}
-        </button>
+        </Button>
       </div>
     </template>
   </div>
@@ -170,11 +187,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import Select from '@/components/common/Select.vue'
 import { adminAPI } from '@/api/admin'
 import { useAppStore } from '@/stores'
 import { extractApiErrorMessage } from '@/utils/apiError'
 import type { BetaPolicyRule } from '@/api/admin/settings'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -308,118 +328,3 @@ async function save() {
   }
 }
 </script>
-
-<style scoped>
-.bp-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
-
-.bp-loading { display: flex; align-items: center; gap: 8px; color: var(--ink-2, #5C6470); font-size: 13px; }
-.bp-spinner {
-  width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid var(--line-1, #2F3540);
-  border-bottom-color: var(--azure, #5CA8FF);
-  animation: bp-spin .7s linear infinite; flex-shrink: 0;
-}
-@keyframes bp-spin { to { transform: rotate(360deg); } }
-
-/* Rule card */
-.bp-rule-card {
-  border: 1px solid var(--line-1, #2F3540); border-radius: 10px; padding: 16px;
-  display: flex; flex-direction: column; gap: 12px;
-}
-
-.bp-rule-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.bp-rule-name { font-size: 13px; font-weight: 600; color: var(--ink-0, #E8EBF0); }
-.bp-rule-token {
-  font-size: 11px; font-family: var(--font-mono, ui-monospace, monospace);
-  padding: 2px 7px; border-radius: 5px;
-  background: var(--bg-1, #13161B); color: var(--ink-2, #5C6470);
-  border: 1px solid var(--line-1, #2F3540);
-}
-
-.bp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 480px) { .bp-grid-2 { grid-template-columns: 1fr; } }
-
-.bp-field { display: flex; flex-direction: column; gap: 4px; }
-.bp-field--mt { margin-top: 4px; }
-.bp-field-label { font-size: 11.5px; font-weight: 500; color: var(--ink-1, #97A0AF); }
-.bp-field-hint { font-size: 11px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 2px 0 0; }
-.bp-field-hint--top { margin: 0 0 6px; }
-
-.bp-input {
-  width: 100%; padding: 7px 11px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540); background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0); font-size: 13px; font-family: inherit; outline: none;
-  transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
-}
-.bp-input:focus { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.14); }
-.bp-input--sm { padding: 5px 9px; font-size: 12px; }
-.bp-input--mono { font-family: var(--font-mono, ui-monospace, monospace); }
-
-.bp-pattern-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-
-.bp-icon-btn {
-  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 6px;
-  border: 1px solid transparent; background: transparent; cursor: pointer;
-  transition: color .12s, background .12s, border-color .12s;
-}
-.bp-icon-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.bp-icon-btn--danger { color: var(--ink-2, #5C6470); }
-.bp-icon-btn--danger:hover { color: var(--bad, #F25C69); background: rgba(242,92,105,.1); border-color: rgba(242,92,105,.25); }
-.bp-icon { width: 14px; height: 14px; }
-
-.bp-add-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 0; background: none; border: none; cursor: pointer; font-family: inherit;
-  font-size: 12px; color: var(--azure, #5CA8FF); transition: color .15s;
-}
-.bp-add-btn:hover { color: var(--ink-0, #E8EBF0); }
-.bp-add-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.bp-add-icon { width: 13px; height: 13px; }
-
-.bp-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
-.bp-chips-label { font-size: 11px; color: var(--ink-2, #5C6470); }
-.bp-chip {
-  padding: 2px 9px; border-radius: 5px; font-size: 11.5px; font-family: var(--font-mono, ui-monospace, monospace);
-  border: 1px solid var(--line-1, #2F3540); background: transparent;
-  color: var(--ink-1, #97A0AF); cursor: pointer;
-  transition: border-color .12s, background .12s, color .12s;
-}
-.bp-chip:hover { border-color: var(--azure, #5CA8FF); background: rgba(92,168,255,.07); color: var(--azure, #5CA8FF); }
-.bp-chip:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-.bp-presets { display: flex; flex-wrap: wrap; gap: 6px; }
-.bp-preset-btn {
-  display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px; border-radius: 7px;
-  border: 1px solid var(--azure-dim, #2A4D7A); background: rgba(92,168,255,.08);
-  color: var(--azure, #5CA8FF); font-size: 12px; font-weight: 500; font-family: inherit;
-  cursor: pointer; transition: background .12s, box-shadow .12s;
-}
-.bp-preset-btn:hover { background: rgba(92,168,255,.18); box-shadow: 0 0 0 1px var(--azure, #5CA8FF); }
-.bp-preset-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-.bp-fallback-err { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
-
-.bp-footer {
-  display: flex; justify-content: flex-end;
-  border-top: 1px solid var(--line-1, #2F3540); padding-top: 16px;
-}
-
-.bp-save-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-  font-family: inherit; cursor: pointer; user-select: none;
-  border: 1px solid var(--azure, #5CA8FF);
-  background: linear-gradient(180deg, rgba(92,168,255,.18) 0%, rgba(92,168,255,.08) 100%);
-  color: var(--azure, #5CA8FF);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 6px rgba(92,168,255,.15);
-  transition: background .15s, box-shadow .15s, opacity .15s;
-}
-.bp-save-btn:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(92,168,255,.28) 0%, rgba(92,168,255,.14) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 3px 10px rgba(92,168,255,.25);
-}
-.bp-save-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.bp-save-btn:disabled { opacity: .55; cursor: not-allowed; }
-.bp-spin { width: 14px; height: 14px; animation: bp-spin .7s linear infinite; }
-</style>

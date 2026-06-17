@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClipboard } from '@/composables/useClipboard'
 import type { CustomEndpoint } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 const props = defineProps<{
   apiBaseUrl: string
@@ -68,13 +70,14 @@ onBeforeUnmount(() => {
     <div
       v-for="(item, index) in allEndpoints"
       :key="index"
-      class="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs transition-colors hover:border-primary-200/50"
+      class="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs transition-colors hover:border-primary/50"
     >
       <span class="font-medium text-foreground/85">{{ item.name }}</span>
-      <span
+      <Badge
         v-if="item.isDefault"
-        class="rounded border border-border bg-secondary px-1 py-px text-[10px] font-medium leading-tight text-primary-200"
-      >{{ t('keys.endpoints.default') }}</span>
+        variant="secondary"
+        class="px-1 py-px text-[10px] font-medium leading-tight"
+      >{{ t('keys.endpoints.default') }}</Badge>
 
       <span class="text-muted-foreground/50">|</span>
 
@@ -89,17 +92,17 @@ onBeforeUnmount(() => {
             {{ item.description }}
           </p>
           <p
-            class="flex items-center gap-1.5 text-[11px] leading-4 text-primary-200"
+            class="flex items-center gap-1.5 text-[11px] leading-4 text-primary"
             :class="item.description ? 'mt-1.5' : ''"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-primary-200"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-primary"></span>
             {{ tooltipHint(item.endpoint) }}
           </p>
           <div class="absolute left-1/2 top-full h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r border-border bg-card"></div>
         </div>
 
         <code
-          class="cursor-pointer font-mono text-muted-foreground decoration-muted-foreground/60 decoration-dashed underline-offset-2 hover:text-primary-200 hover:underline focus:text-primary-200 focus:underline focus:outline-none"
+          class="cursor-pointer font-mono text-muted-foreground decoration-muted-foreground/60 decoration-dashed underline-offset-2 hover:text-primary hover:underline focus:text-primary focus:underline focus:outline-none"
           role="button"
           tabindex="0"
           @click="copy(item.endpoint)"
@@ -107,12 +110,14 @@ onBeforeUnmount(() => {
           @keydown.space.prevent="copy(item.endpoint)"
         >{{ item.endpoint }}</code>
 
-        <button
+        <Button
           type="button"
-          class="rounded p-0.5 transition-colors"
+          variant="ghost"
+          size="icon"
+          class="h-5 w-5 rounded p-0.5 transition-colors"
           :class="copiedEndpoint === item.endpoint
             ? 'text-emerald-400'
-            : 'text-muted-foreground hover:text-primary-200'"
+            : 'text-muted-foreground hover:text-primary'"
           :aria-label="tooltipHint(item.endpoint)"
           @click="copy(item.endpoint)"
         >
@@ -122,13 +127,13 @@ onBeforeUnmount(() => {
           <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-        </button>
+        </Button>
 
         <a
           :href="speedTestUrl(item.endpoint)"
           target="_blank"
           rel="noopener noreferrer"
-          class="rounded p-0.5 text-muted-foreground transition-colors hover:text-primary-200"
+          class="rounded p-0.5 text-muted-foreground transition-colors hover:text-primary"
           :title="t('keys.endpoints.speedTest')"
         >
           <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

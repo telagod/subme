@@ -34,71 +34,56 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
 
-        // ── primary：铬银强调（替换旧 teal）。色阶单调，300=高光银，500=中钢 ──
+        // ── primary：shadcn 语义（DEFAULT/foreground 走 --primary，明暗自适配）
+        //     + Zinc 数字阶（兼容 117 个文件 inline primary-* 残留，逐页清理）──
         primary: {
-          50: '#f6f7f8',
-          100: '#eceef1',
-          200: '#dadde2',
-          300: '#c0c4cc', // 铬银高光
-          400: '#a4a9b3',
-          500: '#888e99', // 中钢（主强调）
-          600: '#6c727d',
-          700: '#565a63',
-          800: '#3f4248',
-          900: '#2a2c30',
-          950: '#1a1b1e',
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
+          950: '#09090b',
           foreground: 'hsl(var(--primary-foreground))',
-          DEFAULT: '#c0c4cc'
+          DEFAULT: 'hsl(var(--primary))'
         },
 
-        // ── accent：金属银（hover / 次强调）──
+        // ── accent：shadcn 语义 + Zinc 数字阶（兼容 inline accent-* 残留）──
         accent: {
-          50: '#f8fafc',
-          100: '#eceef1',
-          200: '#dadde2',
-          300: '#bcc1c9',
-          400: '#9aa0a9',
-          500: '#7c828c',
-          600: '#5e636c',
-          700: '#474b52',
-          800: '#33363b',
-          900: '#222427',
-          950: '#141517',
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
+          950: '#09090b',
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))'
         },
 
-        // ── dark：纯炭中性阶（去 slate 蓝），用于 surface/border/bg ──
+        // ── dark：Zinc 暗中性阶（兼容全局类 / inline dark-* 残留，逐页清理）──
         dark: {
-          50: '#f5f6f7',
-          100: '#e8eaeb',
-          200: '#c9cccf',
-          300: '#9da2a7',
-          400: '#6e7378',
-          500: '#4a4e53',
-          600: '#2f3236',
-          700: '#26282b', // border
-          800: '#1a1c1e', // surface
-          900: '#121315', // elevated bg
-          950: '#0a0a0b' // page bg
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46', // border
+          800: '#27272a', // surface
+          900: '#18181b', // elevated bg
+          950: '#09090b' // page bg
         },
 
-        // ── QUENCH: 淬火蓝色阶（焦点 / 活性 / 实时） ──
-        azure: {
-          50: '#eef6ff',
-          100: '#d8ecff',
-          200: '#b3d9ff',
-          300: '#8CC4FF',
-          400: '#6eb5ff',
-          DEFAULT: '#5CA8FF',
-          500: '#5CA8FF',
-          600: '#3D91F0',
-          700: '#2676d6',
-          800: '#1a5cad',
-          900: '#154a8a',
-          950: '#0c2d57',
-          dim: 'rgba(92,168,255,.12)'
-        }
       },
       fontFamily: {
         sans: [
@@ -126,40 +111,10 @@ export default {
         '4xl': '2rem'
       },
       boxShadow: {
-        // ── 金属质感阴影：冷投影 + 顶部高光边（inset）──
-        metal: '0 1px 2px rgba(0,0,0,.6), 0 4px 16px rgba(0,0,0,.45)',
-        'metal-sm': '0 1px 2px rgba(0,0,0,.5)',
-        'metal-lg': '0 2px 4px rgba(0,0,0,.6), 0 12px 40px rgba(0,0,0,.5)',
-        'metal-edge': 'inset 0 1px 0 rgba(255,255,255,.10), inset 0 -1px 0 rgba(0,0,0,.4)',
-        'metal-edge-strong': 'inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.5)',
-        'metal-ring': '0 0 0 1px rgba(255,255,255,.06)',
-        // 兼容旧名（玻璃/光晕 → 退化为冷阴影，避免残留页面报错）
-        glass: '0 8px 32px rgba(0,0,0,.45)',
-        'glass-sm': '0 4px 16px rgba(0,0,0,.35)',
-        glow: '0 0 0 1px rgba(255,255,255,.08)',
-        'glow-lg': '0 0 0 1px rgba(255,255,255,.12)',
-        card: '0 1px 2px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.4)',
-        'card-hover': '0 2px 4px rgba(0,0,0,.6), 0 12px 32px rgba(0,0,0,.5)',
-        'inner-glow': 'inset 0 1px 0 rgba(255,255,255,.10)',
-
-        // ── QUENCH: 淬火焦点光晕 & 边缘高光 ──
-        'glow-focus': '0 0 0 1.5px rgba(92,168,255,.65), 0 0 20px rgba(92,168,255,.28)',
-        'edge-hi': 'inset 0 1px 0 rgba(255,255,255,.06)'
+        card: '0 1px 2px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.4)'
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        // 金属表面渐变（gunmetal）
-        'metal-surface': 'linear-gradient(180deg, #1f2225 0%, #16181a 100%)',
-        'metal-raised': 'linear-gradient(180deg, #2a2d31 0%, #1c1f22 100%)',
-        // 亮银主按钮（实体金属）
-        'metal-silver': 'linear-gradient(180deg, #e9ebee 0%, #c0c4cc 48%, #a9aeb6 100%)',
-        'metal-silver-hover': 'linear-gradient(180deg, #f2f4f6 0%, #ccd0d6 48%, #b6bbc3 100%)',
-        // 拉丝高光扫光
-        'metal-sheen':
-          'linear-gradient(105deg, transparent 40%, rgba(255,255,255,.08) 50%, transparent 60%)',
-        // 兼容旧名
-        'gradient-primary': 'linear-gradient(180deg, #e9ebee 0%, #c0c4cc 48%, #a9aeb6 100%)',
-        'gradient-dark': 'linear-gradient(135deg, #1c1f22 0%, #0a0a0b 100%)'
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))'
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',

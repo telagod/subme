@@ -1,106 +1,167 @@
 <template>
   <AppLayout>
-    <div class="srg-root">
-      <!-- Loading splash -->
-      <div v-if="loading" class="srg-loading">
-        <div class="srg-spinner" />
+    <div class="text-foreground">
+      <div v-if="loading" class="flex h-[60vh] items-center justify-center">
+        <div class="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
 
-      <template v-else>
-        <div class="srg-layout">
-          <!-- Left anchor nav -->
-          <aside class="srg-nav">
-            <div class="srg-search-wrap">
-              <input
+      <div v-else class="flex flex-col gap-6 lg:flex-row lg:gap-10">
+        <!-- Secondary nav: settings categories -->
+        <aside class="lg:w-[196px] lg:shrink-0">
+          <div class="lg:sticky lg:top-1">
+            <!-- search -->
+            <div class="relative mb-3">
+              <Search class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
                 v-model="searchQuery"
                 type="search"
-                class="srg-search"
+                class="h-9 pl-8 text-[13px]"
                 :placeholder="t('admin.settingsRegistry.searchPlaceholder')"
                 @input="onSearch"
               />
             </div>
-            <nav class="srg-toc">
-              <template v-for="[tab, sections] in visibleSectionsByTab" :key="tab">
-                <div class="srg-toc-group">
-                  <span class="srg-toc-tab">{{ tabLabel(tab) }}</span>
-                  <a
-                    v-for="section in sections"
-                    :key="section.id"
-                    :href="`#sr-section-${section.id}`"
-                    class="srg-toc-item"
-                    :class="{ active: activeSection === section.id, highlight: matchingSections.has(section.id) }"
-                    @click.prevent="scrollToSection(section.id)"
-                  >{{ resolveLabel(section.title) }}</a>
-                </div>
-              </template>
+            <!-- nav: vertical on lg, horizontal scroll on mobile -->
+            <nav class="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <button
+                v-for="tab in activeTabs"
+                :key="tab"
+                class="flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors"
+                :class="activeTab === tab
+                  ? 'bg-accent text-foreground'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'"
+                @click="activeTab = tab"
+              >
+                <component :is="tabIcon(tab)" class="h-4 w-4 shrink-0 opacity-80" />
+                <span class="whitespace-nowrap">{{ tabLabel(tab) }}</span>
+              </button>
             </nav>
-          </aside>
+          </div>
+        </aside>
 
-          <!-- Right scroll area -->
-          <main class="srg-main" ref="mainEl" @scroll="onMainScroll">
-            <template v-for="[, sections] in visibleSectionsByTab" :key="sections[0]?.tab">
+        <!-- Content -->
+        <div class="min-w-0 flex-1">
+          <div class="max-w-3xl">
+            <!-- section heading -->
+            <div class="mb-6">
+              <h1 class="text-xl font-semibold tracking-tight text-foreground">{{ tabLabel(activeTab) }}</h1>
+            </div>
+
+            <!-- section cards -->
+            <div class="flex flex-col gap-6">
               <SectionRenderer
-                v-for="section in sections"
+                v-for="section in currentSections"
                 :key="section.id"
                 :section="section"
                 :form="form"
                 :settings="savedSettings"
-                class="srg-section"
-                :class="{ 'srg-highlight': matchingSections.has(section.id) }"
+                :class="{ 'ring-1 ring-primary/40': matchingSections.has(section.id) }"
                 @update:field="onFieldUpdate"
               />
-            </template>
-          </main>
-        </div>
-
-        <!-- Sticky save bar -->
-        <Transition name="srg-bar">
-          <div v-if="dirtyCount > 0" class="srg-save-bar">
-            <span class="srg-dirty-count">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
-            <div class="srg-bar-acts">
-              <button class="srg-btn" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</button>
-              <button class="srg-btn srg-btn-metal" :disabled="saving" @click="saveChanges">
-                <span v-if="saving" class="srg-spinner srg-spinner-sm" />
-                {{ saving ? t('admin.settingsRegistry.savingBtn') : t('admin.settingsRegistry.saveBtn') }}
-              </button>
+              <div v-if="currentSections.length === 0" class="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+                <p class="text-sm text-muted-foreground">{{ searchQuery ? t('admin.settingsRegistry.noSearchResults') : t('empty.noData') }}</p>
+              </div>
             </div>
           </div>
-        </Transition>
-      </template>
+        </div>
+      </div>
+
+      <!-- Sticky save bar (centered over content column) -->
+      <Transition name="srg-bar">
+        <div
+          v-if="dirtyCount > 0"
+          class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 whitespace-nowrap rounded-xl border border-border bg-card px-4 py-2.5 shadow-lg lg:left-[calc(50%_+_114px)]"
+        >
+          <span class="font-mono text-[12.5px] tabular-nums text-muted-foreground">{{ t('admin.settingsRegistry.dirtyCount', { n: dirtyCount }) }}</span>
+          <div class="flex gap-2">
+            <Button variant="ghost" size="sm" :disabled="saving" @click="discardChanges">{{ t('admin.settingsRegistry.discardBtn') }}</Button>
+            <Button variant="default" size="sm" :disabled="saving" @click="saveChanges">
+              <span v-if="saving" class="mr-1.5 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-border border-t-primary-foreground align-[-3px]" />
+              {{ saving ? t('admin.settingsRegistry.savingBtn') : t('admin.settingsRegistry.saveBtn') }}
+            </Button>
+          </div>
+        </div>
+      </Transition>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  Search,
+  SlidersHorizontal,
+  ShieldCheck,
+  Users,
+  Sparkles,
+  Network,
+  CreditCard,
+  Mail,
+  ScrollText,
+  Archive,
+} from 'lucide-vue-next'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api'
 import type { TabId } from './types'
-import { allSections, getSectionsByTab } from './registry'
+import { allSections, getSectionsByTab, getActiveTabs } from './registry'
 import SectionRenderer from './SectionRenderer.vue'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const appStore = useAppStore()
 
-// ── state ──────────────────────────────────────────────────────────────────
 const loading = ref(true)
 const saving = ref(false)
 const savedSettings = ref<Record<string, unknown>>({})
 const form = ref<Record<string, unknown>>({})
 const searchQuery = ref('')
-const activeSection = ref('')
-const mainEl = ref<HTMLElement | null>(null)
 const matchingSections = ref<Set<string>>(new Set())
+const activeTab = ref<TabId>('general')
 
-// ── load ───────────────────────────────────────────────────────────────────
+/** Semantic tab order (overrides glob discovery order); icons per tab */
+const TAB_ORDER: TabId[] = [
+  'general', 'security', 'users', 'features',
+  'gateway', 'payment', 'email', 'agreement', 'backup',
+]
+const TAB_ICONS: Record<TabId, Component> = {
+  general: SlidersHorizontal,
+  security: ShieldCheck,
+  users: Users,
+  features: Sparkles,
+  gateway: Network,
+  payment: CreditCard,
+  email: Mail,
+  agreement: ScrollText,
+  backup: Archive,
+}
+
+const activeTabs = computed<TabId[]>(() => {
+  const present = getActiveTabs()
+  const presentSet = new Set(present)
+  const ordered = TAB_ORDER.filter(tab => presentSet.has(tab))
+  // Append any active tab not covered by TAB_ORDER (forward-compat safety)
+  for (const tab of present) if (!ordered.includes(tab)) ordered.push(tab)
+  return ordered
+})
+
+const sectionsByTab = computed(() => getSectionsByTab())
+
+const currentSections = computed(() => {
+  const sections = sectionsByTab.value.get(activeTab.value) ?? []
+  if (matchingSections.value.size === 0) return sections
+  return sections.filter(s => matchingSections.value.has(s.id))
+})
+
 async function loadSettings() {
   loading.value = true
   try {
     const data = await adminAPI.settings.getSettings() as unknown as Record<string, unknown>
     savedSettings.value = { ...data }
     form.value = { ...data }
+    const tabs = activeTabs.value
+    if (tabs.length > 0) activeTab.value = tabs[0]
   } catch (err) {
     appStore.showError(String(err))
   } finally {
@@ -110,13 +171,10 @@ async function loadSettings() {
 
 onMounted(loadSettings)
 
-// ── dirty tracking ─────────────────────────────────────────────────────────
 const dirtyCount = computed(() => {
   let count = 0
   for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) {
-      count++
-    }
+    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) count++
   }
   return count
 })
@@ -125,8 +183,6 @@ function onFieldUpdate(key: string, value: unknown) {
   form.value = { ...form.value, [key]: value }
 }
 
-// 默认订阅/认证源订阅：同一分组不可重复（迁自旧 SettingsView 的
-// findDuplicateDefaultSubscription 保存前校验，重复则拦截不提交）。
 function duplicateGroupId(list: unknown): unknown {
   if (!Array.isArray(list)) return undefined
   const seen = new Set<unknown>()
@@ -139,9 +195,7 @@ function duplicateGroupId(list: unknown): unknown {
   return undefined
 }
 
-// ── save / discard ─────────────────────────────────────────────────────────
 async function saveChanges() {
-  // 重复订阅校验：default_subscriptions 与各认证源 *_subscriptions 数组。
   for (const key of Object.keys(form.value)) {
     if (key === 'default_subscriptions' || key.endsWith('_subscriptions')) {
       const dup = duplicateGroupId(form.value[key])
@@ -153,9 +207,7 @@ async function saveChanges() {
   }
   const patch: Record<string, unknown> = {}
   for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) {
-      patch[key] = form.value[key]
-    }
+    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) patch[key] = form.value[key]
   }
   saving.value = true
   try {
@@ -170,14 +222,11 @@ async function saveChanges() {
 }
 
 function discardChanges() {
-  // Reassign both refs so that components watching props.settings also re-sync
-  // (their watch fires only when the savedSettings reference changes).
   const snapshot = { ...savedSettings.value }
   savedSettings.value = snapshot
   form.value = snapshot
 }
 
-// ── search ─────────────────────────────────────────────────────────────────
 function onSearch() {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) {
@@ -188,55 +237,17 @@ function onSearch() {
   for (const section of allSections) {
     const titleMatch = resolveLabel(section.title).toLowerCase().includes(q)
     const fieldMatch = section.fields.some(
-      (f) =>
-        f.key.toLowerCase().includes(q) ||
-        resolveLabel(f.label).toLowerCase().includes(q),
+      f => f.key.toLowerCase().includes(q) || resolveLabel(f.label).toLowerCase().includes(q),
     )
     if (titleMatch || fieldMatch) hits.add(section.id)
   }
   matchingSections.value = hits
-}
-
-// ── visible sections (filtered by search) ──────────────────────────────────
-const visibleSectionsByTab = computed<Map<TabId, typeof allSections>>(() => {
-  const byTab = getSectionsByTab()
-  if (matchingSections.value.size === 0) return byTab
-  const filtered = new Map<TabId, typeof allSections>()
-  for (const [tab, sections] of byTab) {
-    const visible = sections.filter((s) => matchingSections.value.has(s.id))
-    if (visible.length > 0) filtered.set(tab, visible)
+  if (hits.size > 0) {
+    const first = allSections.find(s => hits.has(s.id))
+    if (first) activeTab.value = first.tab
   }
-  return filtered
-})
-
-// ── scroll tracking (throttled via rAF) ────────────────────────────────────────
-let scrollRafId: number | null = null
-
-function onMainScroll() {
-  if (scrollRafId !== null) return
-  scrollRafId = requestAnimationFrame(() => {
-    scrollRafId = null
-    if (!mainEl.value) return
-    const cards = mainEl.value.querySelectorAll<HTMLElement>('[id^="sr-section-"]')
-    for (const card of cards) {
-      const rect = card.getBoundingClientRect()
-      if (rect.top <= 160) activeSection.value = card.id.replace('sr-section-', '')
-    }
-  })
 }
 
-onUnmounted(() => {
-  if (scrollRafId !== null) cancelAnimationFrame(scrollRafId)
-})
-
-async function scrollToSection(id: string) {
-  await nextTick()
-  const el = document.getElementById(`sr-section-${id}`)
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  activeSection.value = id
-}
-
-// ── label helpers ──────────────────────────────────────────────────────────
 function resolveLabel(key: string): string {
   try {
     const r = t(key)
@@ -249,99 +260,16 @@ function tabLabel(tab: string): string {
   const result = t(key)
   return result === key ? tab : result
 }
+
+function tabIcon(tab: string): Component {
+  return TAB_ICONS[tab as TabId] ?? SlidersHorizontal
+}
 </script>
 
 <style scoped>
-.srg-root { padding: 24px 28px 120px; font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif); color: var(--ink-0, #E8EBF0); position: relative; }
-
-/* layout */
-.srg-layout { display: flex; gap: 24px; align-items: flex-start; }
-.srg-nav { width: 200px; flex-shrink: 0; position: sticky; top: 5rem; max-height: calc(100vh - 7rem); overflow-y: auto; scrollbar-width: none; }
-.srg-nav::-webkit-scrollbar { display: none; }
-.srg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-
-/* search */
-.srg-search-wrap { margin-bottom: 12px; }
-.srg-search {
-  width: 100%; padding: 6px 10px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540); background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0); font-size: 12.5px; font-family: inherit; outline: none;
-  transition: border-color .15s; box-sizing: border-box;
-}
-.srg-search:focus,
-.srg-search:focus-visible { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.12); }
-
-/* toc */
-.srg-toc { display: flex; flex-direction: column; gap: 4px; }
-.srg-toc-group { display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
-.srg-toc-tab { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2, #5C6470); padding: 0 8px 4px; }
-.srg-toc-item {
-  display: block; padding: 5px 8px 5px 10px; border-radius: 6px;
-  font-size: 12px; color: var(--ink-1, #97A0AF); text-decoration: none;
-  border-left: 2px solid transparent;
-  transition: background .12s, color .12s, border-color .12s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.srg-toc-item:hover { background: var(--bg-2, #171A20); color: var(--ink-0, #E8EBF0); }
-.srg-toc-item:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 1px; }
-.srg-toc-item.active {
-  background: rgba(92,168,255,.08);
-  color: var(--ink-0, #E8EBF0);
-  border-left-color: var(--azure, #5CA8FF);
-}
-.srg-toc-item.highlight { color: var(--azure, #5CA8FF); font-weight: 500; }
-.srg-toc-item.active.highlight { color: var(--azure, #5CA8FF); }
-
-/* section highlight on search */
-.srg-section { transition: outline .15s; }
-.srg-highlight { outline: 1px solid rgba(92,168,255,.35); }
-
-/* loading */
-.srg-loading { display: flex; align-items: center; justify-content: center; height: 60vh; }
-.srg-spinner { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-1, #2F3540); border-top-color: var(--azure, #5CA8FF); animation: srg-spin .7s linear infinite; }
-.srg-spinner-sm { display: inline-block; width: 14px; height: 14px; border-width: 2px; vertical-align: -3px; margin-right: 6px; }
-@keyframes srg-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .srg-spinner, .srg-spinner-sm { animation: none; border-top-color: var(--azure, #5CA8FF); opacity: .7; }
-  .srg-bar-enter-active, .srg-bar-leave-active { transition: none; }
-}
-
-/* save bar — QUENCH metal surface */
-.srg-save-bar {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 16px;
-  background: var(--metal, linear-gradient(180deg,#15181E,#0E1014));
-  border: 1px solid var(--line-1, #2F3540);
-  border-radius: 12px; padding: 10px 16px;
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06)), 0 12px 40px rgba(0,0,0,.65);
-  z-index: 50; white-space: nowrap;
-}
-.srg-dirty-count {
-  font-size: 12.5px; color: var(--ink-1, #97A0AF);
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
-  font-variant-numeric: tabular-nums;
-}
-.srg-mono { font-family: var(--font-mono, "IBM Plex Mono", monospace); color: var(--azure, #5CA8FF); }
-.srg-bar-acts { display: flex; gap: 8px; }
-.srg-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 6px 14px; border-radius: 8px;
-  border: 1px solid transparent; background: transparent;
-  color: var(--ink-2, #5C6470); font-size: 12.5px; font-weight: 500;
-  cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s, background .15s;
-}
-.srg-btn:hover:not(:disabled) { border-color: var(--line-1, #2F3540); color: var(--ink-0, #E8EBF0); background: var(--bg-2, #171A20); }
-.srg-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.srg-btn:disabled { opacity: .4; cursor: not-allowed; }
-.srg-btn-metal {
-  background: var(--metal-raised, linear-gradient(180deg,#272D37,#14171D));
-  border-color: rgba(255,255,255,.1); color: var(--ink-0, #E8EBF0);
-  box-shadow: var(--edge-hi, inset 0 1px 0 rgba(255,255,255,.06));
-}
-.srg-btn-metal:hover:not(:disabled) { border-color: rgba(92,168,255,.4); box-shadow: var(--edge-hi), 0 0 12px rgba(92,168,255,.14); }
-.srg-btn-metal:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-
-/* bar transition */
 .srg-bar-enter-active, .srg-bar-leave-active { transition: opacity .2s, transform .2s; }
 .srg-bar-enter-from, .srg-bar-leave-to { opacity: 0; transform: translateX(-50%) translateY(8px); }
-
+@media (prefers-reduced-motion: reduce) {
+  .srg-bar-enter-active, .srg-bar-leave-active { transition: none; }
+}
 </style>

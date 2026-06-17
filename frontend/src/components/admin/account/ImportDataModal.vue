@@ -17,7 +17,7 @@
       </div>
 
       <div>
-        <label class="input-label">{{ t('admin.accounts.dataImportFile') }}</label>
+        <Label class="mb-1.5 block">{{ t('admin.accounts.dataImportFile') }}</Label>
         <div
           class="flex items-center justify-between gap-3 rounded-md border border-dashed border-border bg-muted px-4 py-3"
         >
@@ -27,9 +27,9 @@
             </div>
             <div class="text-xs text-muted-foreground">JSON (.json)</div>
           </div>
-          <button type="button" class="btn btn-secondary shrink-0" @click="openFilePicker">
+          <Button type="button" variant="outline" class="shrink-0" @click="openFilePicker">
             {{ t('common.chooseFile') }}
-          </button>
+          </Button>
         </div>
         <input
           ref="fileInput"
@@ -52,7 +52,7 @@
         </div>
 
         <div v-if="errorItems.length" class="mt-2">
-          <div class="text-sm font-medium text-red-400">
+          <div class="text-sm font-medium text-destructive">
             {{ t('admin.accounts.dataImportErrors') }}
           </div>
           <div
@@ -68,17 +68,16 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <button class="btn btn-secondary" type="button" :disabled="importing" @click="handleClose">
+        <Button variant="outline" type="button" :disabled="importing" @click="handleClose">
           {{ t('common.cancel') }}
-        </button>
-        <button
-          class="btn btn-primary"
+        </Button>
+        <Button
           type="submit"
           form="import-data-form"
           :disabled="importing"
         >
           {{ importing ? t('admin.accounts.dataImporting') : t('admin.accounts.dataImportButton') }}
-        </button>
+        </Button>
       </div>
     </template>
   </BaseDialog>
@@ -88,6 +87,8 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 import { adminAPI } from '@/api/admin'
 import { useAppStore } from '@/stores/app'
 import type { AdminDataImportResult } from '@/types'

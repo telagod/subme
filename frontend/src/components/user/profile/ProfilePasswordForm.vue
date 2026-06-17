@@ -1,72 +1,118 @@
 <template>
-  <div :class="props.embedded ? 'space-y-4' : 'card'">
-    <div
-      v-if="!props.embedded"
-      class="border-b border-border px-6 py-4"
-    >
-      <h2 class="text-lg font-medium text-foreground">
+  <Card v-if="!props.embedded">
+    <CardHeader class="border-b border-border px-6 py-4">
+      <CardTitle class="text-lg font-medium text-foreground">
         {{ t('profile.changePassword') }}
-      </h2>
-    </div>
-    <div :class="props.embedded ? '' : 'px-6 py-6'">
+      </CardTitle>
+    </CardHeader>
+    <CardContent class="px-6 py-6">
       <form @submit.prevent="handleChangePassword" class="space-y-4">
-        <div v-if="props.embedded">
-          <p class="text-sm font-semibold text-foreground">
-            {{ t('profile.changePassword') }}
-          </p>
-        </div>
         <div>
-          <label for="old_password" class="input-label">
+          <Label for="old_password" class="mb-2 block">
             {{ t('profile.currentPassword') }}
-          </label>
-          <input
+          </Label>
+          <Input
             id="old_password"
             v-model="form.old_password"
             type="password"
             required
             autocomplete="current-password"
-            class="input"
           />
         </div>
 
         <div>
-          <label for="new_password" class="input-label">
+          <Label for="new_password" class="mb-2 block">
             {{ t('profile.newPassword') }}
-          </label>
-          <input
+          </Label>
+          <Input
             id="new_password"
             v-model="form.new_password"
             type="password"
             required
             autocomplete="new-password"
-            class="input"
           />
-          <p class="input-hint">
+          <p class="mt-1 text-sm text-muted-foreground">
             {{ t('profile.passwordHint') }}
           </p>
         </div>
 
         <div>
-          <label for="confirm_password" class="input-label">
+          <Label for="confirm_password" class="mb-2 block">
             {{ t('profile.confirmNewPassword') }}
-          </label>
-          <input
+          </Label>
+          <Input
             id="confirm_password"
             v-model="form.confirm_password"
             type="password"
             required
             autocomplete="new-password"
-            class="input"
           />
         </div>
 
         <div class="flex justify-end pt-4">
-          <button type="submit" :disabled="loading" class="btn btn-primary">
+          <Button type="submit" :disabled="loading">
             {{ loading ? t('profile.changingPassword') : t('profile.changePasswordButton') }}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </CardContent>
+  </Card>
+
+  <div v-else class="space-y-4">
+    <form @submit.prevent="handleChangePassword" class="space-y-4">
+      <div>
+        <p class="text-sm font-semibold text-foreground">
+          {{ t('profile.changePassword') }}
+        </p>
+      </div>
+      <div>
+        <Label for="old_password_embedded" class="mb-2 block">
+          {{ t('profile.currentPassword') }}
+        </Label>
+        <Input
+          id="old_password_embedded"
+          v-model="form.old_password"
+          type="password"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <div>
+        <Label for="new_password_embedded" class="mb-2 block">
+          {{ t('profile.newPassword') }}
+        </Label>
+        <Input
+          id="new_password_embedded"
+          v-model="form.new_password"
+          type="password"
+          required
+          autocomplete="new-password"
+        />
+        <p class="mt-1 text-sm text-muted-foreground">
+          {{ t('profile.passwordHint') }}
+        </p>
+      </div>
+
+      <div>
+        <Label for="confirm_password_embedded" class="mb-2 block">
+          {{ t('profile.confirmNewPassword') }}
+        </Label>
+        <Input
+          id="confirm_password_embedded"
+          v-model="form.confirm_password"
+          type="password"
+          required
+          autocomplete="new-password"
+        />
+      </div>
+
+      <div class="flex justify-end pt-4">
+        <Button type="submit" :disabled="loading">
+          {{ loading ? t('profile.changingPassword') : t('profile.changePasswordButton') }}
+        </Button>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -75,6 +121,10 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { userAPI } from '@/api'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 const { t } = useI18n()
 const appStore = useAppStore()

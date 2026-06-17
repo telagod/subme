@@ -5,24 +5,27 @@
         role="tablist"
         class="inline-flex p-0.5 rounded-md bg-muted border border-border text-xs"
       >
-        <button
+        <Button
           v-for="opt in windowOptions"
           :key="opt.value"
           type="button"
+          variant="ghost"
+          size="sm"
           role="tab"
           :aria-selected="window === opt.value"
-          class="px-3 py-1 rounded transition-colors"
+          class="px-3 py-1 h-auto rounded transition-colors text-xs"
           :class="window === opt.value
-            ? 'bg-secondary  text-foreground font-semibold'
+            ? 'bg-secondary text-foreground font-semibold'
             : 'text-muted-foreground hover:text-foreground'"
           @click="emit('update:window', opt.value)"
         >
           {{ opt.label }}
-        </button>
+        </Button>
       </div>
 
-      <span
-        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold tracking-wider uppercase"
+      <Badge
+        variant="outline"
+        class="inline-flex items-center tracking-wider uppercase border-transparent"
         :class="overallChipClass"
       >
         <span
@@ -30,17 +33,19 @@
           :class="overallDotClass"
         ></span>
         {{ overallLabel }}
-      </span>
+      </Badge>
 
-      <button
+      <Button
         type="button"
-        class="h-8 w-8 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+        variant="ghost"
+        size="icon"
+        class="h-8 w-8"
         :disabled="loading"
         :title="t('common.refresh')"
         @click="emit('refresh')"
       >
         <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-      </button>
+      </Button>
 
       <AutoRefreshButton
         v-if="autoRefresh"
@@ -60,6 +65,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/icons/Icon.vue'
 import AutoRefreshButton from '@/components/common/AutoRefreshButton.vue'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 export type MonitorWindow = '7d' | '15d' | '30d'
 export type OverallStatus = 'operational' | 'degraded'
 

@@ -33,23 +33,8 @@ const commandPaletteOpen = ref(false)
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: #08090b;
-  /* Ambient background effects matching the mockup */
+  background: hsl(var(--background));
   position: relative;
-}
-
-.quench-shell::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(900px 480px at 72% -120px, rgba(92, 168, 255, 0.055), transparent 65%),
-    radial-gradient(700px 400px at 10% 110%, rgba(92, 168, 255, 0.025), transparent 60%),
-    linear-gradient(rgba(232, 235, 240, 0.016) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(232, 235, 240, 0.016) 1px, transparent 1px);
-  background-size: auto, auto, 48px 48px, 48px 48px;
 }
 
 .quench-shell__main {
@@ -66,7 +51,7 @@ const commandPaletteOpen = ref(false)
   overflow-y: auto;
   padding: 24px 26px 80px;
   scrollbar-width: thin;
-  scrollbar-color: #2f3540 transparent;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .quench-shell__content::-webkit-scrollbar {
@@ -74,9 +59,9 @@ const commandPaletteOpen = ref(false)
 }
 
 .quench-shell__content::-webkit-scrollbar-thumb {
-  background: #2f3540;
+  background: hsl(var(--border));
   border-radius: 6px;
-  border: 2px solid #08090b;
+  border: 2px solid hsl(var(--background));
 }
 
 .quench-shell__content::-webkit-scrollbar-track {

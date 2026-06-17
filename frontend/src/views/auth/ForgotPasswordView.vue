@@ -1,34 +1,46 @@
 <template>
   <AuthLayout>
-    <div class="fv-body">
+    <div class="flex flex-col">
       <!-- 标题 -->
-      <div class="fv-head">
-        <h2 class="fv-title">{{ t('auth.forgotPasswordTitle') }}</h2>
-        <p class="fv-sub">{{ t('auth.forgotPasswordHint') }}</p>
+      <div class="mb-6 text-center">
+        <h2 class="text-lg font-semibold tracking-tight text-foreground">{{ t('auth.forgotPasswordTitle') }}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{{ t('auth.forgotPasswordHint') }}</p>
       </div>
 
       <!-- 成功状态 -->
-      <div v-if="isSubmitted" class="fv-success">
-        <div class="fv-success-icon-wrap">
-          <Icon name="checkCircle" size="lg" class="fv-icon-ok" />
+      <div
+        v-if="isSubmitted"
+        class="flex flex-col items-center gap-4 rounded-xl border border-emerald-500/25 bg-emerald-500/[0.07] px-5 py-7 text-center"
+      >
+        <div
+          class="grid h-12 w-12 place-items-center rounded-full border border-emerald-500/30 bg-emerald-500/[0.12]"
+        >
+          <Icon name="checkCircle" size="lg" class="text-emerald-500" />
         </div>
-        <div class="fv-success-text">
-          <h3 class="fv-success-title">{{ t('auth.resetEmailSent') }}</h3>
-          <p class="fv-success-sub">{{ t('auth.resetEmailSentHint') }}</p>
+        <div>
+          <h3 class="mb-1.5 text-sm font-semibold text-foreground">{{ t('auth.resetEmailSent') }}</h3>
+          <p class="text-xs text-muted-foreground">{{ t('auth.resetEmailSentHint') }}</p>
         </div>
-        <router-link to="/login" class="fv-back-link">
+        <router-link
+          to="/login"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground no-underline transition-colors hover:text-primary focus-visible:rounded focus-visible:outline focus-visible:outline-[1.5px] focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
           <Icon name="arrowLeft" size="sm" />
           {{ t('auth.backToLogin') }}
         </router-link>
       </div>
 
       <!-- 表单状态 -->
-      <form v-else @submit.prevent="handleSubmit" class="fv-form">
-        <div class="fv-field">
-          <label for="email" class="fv-label">{{ t('auth.emailLabel') }}</label>
-          <div class="fv-inp-wrap" :class="{ 'fv-inp-wrap--error': errors.email }">
-            <Icon name="mail" size="md" class="fv-inp-icon" />
-            <input
+      <form v-else @submit.prevent="handleSubmit" class="flex flex-col">
+        <div class="mb-4">
+          <Label for="email" class="mb-2 block">{{ t('auth.emailLabel') }}</Label>
+          <div class="relative">
+            <Icon
+              name="mail"
+              size="md"
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
               id="email"
               v-model="formData.email"
               type="email"
@@ -36,13 +48,14 @@
               autofocus
               autocomplete="email"
               :disabled="isLoading"
-              class="fv-inp"
+              class="pl-10"
+              :class="{ 'border-destructive focus-visible:ring-destructive': errors.email }"
               :placeholder="t('auth.emailPlaceholder')"
             />
           </div>
         </div>
 
-        <div v-if="turnstileEnabled && turnstileSiteKey">
+        <div v-if="turnstileEnabled && turnstileSiteKey" class="mb-4">
           <TurnstileWidget
             ref="turnstileRef"
             :site-key="turnstileSiteKey"
@@ -52,25 +65,25 @@
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           :disabled="isLoading || (turnstileEnabled && !turnstileToken)"
-          class="fv-submit"
+          class="w-full"
         >
-          <svg v-if="isLoading" class="fv-spin" fill="none" viewBox="0 0 24 24">
+          <svg v-if="isLoading" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
           <Icon v-else name="mail" size="md" />
           {{ isLoading ? t('auth.sendingResetLink') : t('auth.sendResetLink') }}
-        </button>
+        </Button>
       </form>
     </div>
 
     <template #footer>
-      <p class="fv-footer-txt">
+      <p class="text-sm text-muted-foreground">
         {{ t('auth.rememberedPassword') }}
-        <router-link to="/login" class="fv-footer-link">{{ t('auth.signIn') }}</router-link>
+        <router-link to="/login" class="ml-1 text-foreground transition-colors hover:text-primary">{{ t('auth.signIn') }}</router-link>
       </p>
     </template>
   </AuthLayout>
@@ -80,6 +93,9 @@
 import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AuthLayout } from '@/components/layout'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import Icon from '@/components/icons/Icon.vue'
 import TurnstileWidget from '@/components/TurnstileWidget.vue'
 import { useAppStore } from '@/stores'
@@ -219,89 +235,3 @@ async function handleSubmit(): Promise<void> {
   }
 }
 </script>
-
-<style scoped>
-.fv-body { display: flex; flex-direction: column; gap: 0; }
-
-.fv-head { margin-bottom: 24px; text-align: center; }
-.fv-title { font-size: 17px; font-weight: 700; letter-spacing: 0.04em; color: var(--ink-0); margin-bottom: 4px; }
-.fv-sub { font-size: 12px; color: var(--ink-2); }
-
-/* 成功状态 */
-.fv-success {
-  display: flex; flex-direction: column; align-items: center; gap: 16px;
-  border-radius: 12px; border: 1px solid rgba(70,201,140,.25);
-  background: rgba(70,201,140,.07); padding: 28px 20px; text-align: center;
-}
-.fv-success-icon-wrap {
-  width: 48px; height: 48px; border-radius: 50%;
-  border: 1px solid rgba(70,201,140,.3);
-  background: rgba(70,201,140,.12);
-  display: grid; place-items: center;
-}
-.fv-icon-ok { color: #46C98C; }
-.fv-success-title { font-size: 15px; font-weight: 600; color: var(--ink-0); margin-bottom: 6px; }
-.fv-success-sub { font-size: 12px; color: var(--ink-2); }
-.fv-back-link {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 13px; font-weight: 500; color: var(--ink-1); text-decoration: none;
-  transition: color 0.15s ease;
-}
-.fv-back-link:hover { color: var(--azure); }
-.fv-back-link:focus-visible { outline: 1.5px solid var(--azure); outline-offset: 2px; border-radius: 4px; }
-
-/* 表单 */
-.fv-form { display: flex; flex-direction: column; gap: 0; }
-.fv-field { margin-bottom: 18px; }
-.fv-label { display: block; font-size: 12px; color: var(--ink-1); margin-bottom: 7px; }
-
-.fv-inp-wrap {
-  display: flex; align-items: center;
-  background: #0a0c0f; border: 1px solid var(--line-1);
-  border-radius: 12px; padding: 0 14px; height: 46px;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease; gap: 10px;
-}
-.fv-inp-wrap:focus-within { border-color: rgba(92,168,255,.75); box-shadow: var(--glow-focus); }
-.fv-inp-wrap--error { border-color: rgba(242,92,105,.6); }
-.fv-inp-wrap--error:focus-within { border-color: rgba(92,168,255,.75); box-shadow: var(--glow-focus); }
-
-.fv-inp-icon { flex: none; color: var(--ink-2); }
-.fv-inp {
-  flex: 1; min-width: 0; background: none; border: none; outline: none;
-  color: var(--ink-0); font: inherit; font-size: 13.5px;
-}
-.fv-inp::placeholder { color: var(--ink-2); }
-.fv-inp:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* 按钮 */
-.fv-submit {
-  width: 100%; height: 46px; border-radius: 12px;
-  border: 1px solid #3a4250; background: var(--metal-raised);
-  color: var(--ink-0); font: inherit; font-size: 14px; font-weight: 600;
-  letter-spacing: 0.2em; cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: var(--edge-hi), 0 2px 10px rgba(0,0,0,.4);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-  margin-bottom: 0;
-}
-.fv-submit:hover:not(:disabled) {
-  border-color: rgba(92,168,255,.55);
-  box-shadow: var(--edge-hi), 0 0 16px rgba(92,168,255,.22), 0 2px 10px rgba(0,0,0,.4);
-}
-.fv-submit:focus-visible { outline: none; border-color: rgba(92,168,255,.75); box-shadow: var(--glow-focus), 0 2px 10px rgba(0,0,0,.4); }
-.fv-submit:disabled { opacity: 0.45; cursor: not-allowed; }
-.fv-submit:active:not(:disabled) { transform: scale(0.985); }
-
-.fv-spin { width: 16px; height: 16px; animation: fv-spin 0.8s linear infinite; flex: none; }
-@keyframes fv-spin { to { transform: rotate(360deg); } }
-
-/* 页脚 */
-.fv-footer-txt { color: var(--ink-2); font-size: 13px; }
-.fv-footer-link { color: var(--ink-1); text-decoration: none; margin-left: 4px; transition: color 0.15s ease; }
-.fv-footer-link:hover { color: var(--azure); }
-
-@media (prefers-reduced-motion: reduce) {
-  .fv-spin { animation: none; }
-  .fv-inp-wrap, .fv-submit { transition: none; }
-}
-</style>

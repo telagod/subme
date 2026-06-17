@@ -37,7 +37,7 @@
       <!-- Checkmark -->
       <svg
         v-if="showCheckmark && selected"
-        class="h-4 w-4 shrink-0 text-primary-200"
+        class="h-4 w-4 shrink-0 text-primary"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -86,13 +86,13 @@ const hasCustomRate = computed(() => {
 const ratePillClass = computed(() => {
   switch (props.platform) {
     case 'anthropic':
-      return 'bg-amber-900/20 text-amber-400'
+      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
     case 'openai':
-      return 'bg-green-900/20 text-emerald-400 '
+      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
     case 'gemini':
-      return 'bg-sky-900/20 text-sky-400'
+      return 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
     default: // antigravity and others
-      return 'bg-violet-900/20 text-violet-400'
+      return 'bg-violet-500/10 text-violet-600 dark:text-violet-400'
   }
 })
 </script>

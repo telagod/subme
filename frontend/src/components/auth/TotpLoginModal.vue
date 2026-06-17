@@ -6,8 +6,8 @@
       <div class="relative w-full max-w-md transform rounded-lg bg-card p-6 shadow-lg transition-all">
         <!-- Header -->
         <div class="mb-6 text-center">
-          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary border border-border ">
-            <svg class="h-6 w-6 text-primary-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary border border-border">
+            <svg class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
           </div>
@@ -55,20 +55,21 @@
           </div>
           <!-- Loading indicator -->
           <div v-if="verifying" class="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-200"></div>
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
             {{ t('common.verifying') }}
           </div>
         </div>
 
         <!-- Cancel button only -->
-        <button
+        <Button
           type="button"
-          class="btn btn-secondary w-full"
+          variant="outline"
+          class="w-full"
           :disabled="verifying"
           @click="$emit('cancel')"
         >
           {{ t('common.cancel') }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
@@ -78,6 +79,7 @@
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
+import { Button } from '@/components/ui/button'
 
 defineProps<{
   tempToken: string
@@ -212,12 +214,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* TOTP 输入格 — QUENCH azure glow 焦点 */
+/* TOTP 输入格焦点 */
 .totp-cell:focus,
 .totp-cell:focus-visible {
   outline: none;
-  border-color: rgba(92, 168, 255, 0.75);
-  box-shadow: var(--glow-focus);
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.3);
 }
 
 /* 验证中旋转动画降级 */

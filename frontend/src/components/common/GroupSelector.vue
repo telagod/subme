@@ -1,19 +1,19 @@
 <template>
   <div>
-    <label class="input-label">
+    <Label class="mb-1.5 block text-sm font-medium text-foreground">
       {{ t('admin.users.groups') }}
       <span class="font-normal text-muted-foreground">{{ t('common.selectedCount', { count: modelValue.length }) }}</span>
-    </label>
+    </Label>
     <div
       v-if="isSearchable"
-      class="flex items-center gap-2 rounded-t-md border border-b-0 border-border bg-muted px-3 py-2"
+      class="relative rounded-t-md border border-b-0 border-border bg-muted"
     >
-      <Icon name="search" size="sm" class="shrink-0 text-muted-foreground" />
-      <input
+      <Icon name="search" size="sm" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 shrink-0 text-muted-foreground" />
+      <Input
         v-model="searchText"
         type="text"
         :placeholder="t('common.searchPlaceholder')"
-        class="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        class="border-0 bg-transparent pl-8 shadow-none focus-visible:ring-0"
       />
     </div>
     <div
@@ -30,12 +30,10 @@
         class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 transition-colors hover:bg-card"
         :title="t('admin.groups.rateAndAccounts', { rate: group.rate_multiplier, count: group.account_count || 0 })"
       >
-        <input
-          type="checkbox"
-          :value="group.id"
-          :checked="modelValue.includes(group.id)"
-          @change="handleChange(group.id, ($event.target as HTMLInputElement).checked)"
-          class="h-3.5 w-3.5 shrink-0 rounded border-border text-primary-500 focus:ring-primary-500"
+        <Checkbox
+          :model-value="modelValue.includes(group.id)"
+          @update:model-value="(checked) => handleChange(group.id, !!checked)"
+          class="h-3.5 w-3.5 shrink-0"
         />
         <GroupBadge
           :name="group.name"
@@ -61,6 +59,9 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import GroupBadge from './GroupBadge.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { AdminGroup, GroupPlatform } from '@/types'
 
 const { t } = useI18n()

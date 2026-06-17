@@ -1,19 +1,27 @@
 <template>
-  <div class="oq-chart-card">
-    <h3 class="oq-chart-title">{{ t('payment.admin.dailyRevenue') }}</h3>
-    <div class="oq-chart-h">
-      <div v-if="loading" class="oq-no-data">
-        <div class="oq-spinner"></div>
+  <Card>
+    <CardHeader class="pb-2">
+      <CardTitle class="text-sm font-semibold">{{ t('payment.admin.dailyRevenue') }}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div class="h-64">
+        <div v-if="loading" class="flex h-full items-center justify-center">
+          <svg class="h-7 w-7 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+        <Line v-else-if="chartData" :data="chartData" :options="chartOptions" />
+        <div v-else class="flex h-full items-center justify-center text-sm text-muted-foreground">{{ t('payment.admin.noData') }}</div>
       </div>
-      <Line v-else-if="chartData" :data="chartData" :options="chartOptions" />
-      <div v-else class="oq-no-data">{{ t('payment.admin.noData') }}</div>
-    </div>
-  </div>
+    </CardContent>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -30,22 +38,17 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 
 const { t } = useI18n()
 
-// ── QUENCH 图表配色（取自 tokens.css）──────────────────────────────────
-// --azure: #5CA8FF  → 主数据线（收入）
-// --ok:    #46C98C  → 次数据线（订单数）
-// --bg-2:  #171A20  → 网格线 / 轴线
-// --ink-2: #5C6470  → 轴文字
-// --ink-1: #97A0AF  → 图例文字
+// ── Chart color palette (semantic equivalents) ────────────────────────────
 const CHART_COLORS = {
-  azureLine:      '#5CA8FF',                       // --azure
-  azureFill:      'rgba(92,168,255,0.08)',          // --azure-dim × 0.66
-  okLine:         '#46C98C',                        // --ok
-  okFill:         'rgba(70,201,140,0.06)',          // --ok-dim × 0.4
-  gridLine:       'rgba(32,36,44,0.8)',             // --line-0
-  axisText:       '#5C6470',                        // --ink-2
-  legendText:     '#97A0AF',                        // --ink-1
-  tooltipBg:      '#171A20',                        // --bg-2
-  tooltipBorder:  '#2F3540',                        // --line-1
+  azureLine:      '#5CA8FF',                       // primary blue
+  azureFill:      'rgba(92,168,255,0.08)',          // primary blue dim fill
+  okLine:         '#46C98C',                        // success green
+  okFill:         'rgba(70,201,140,0.06)',          // success green dim fill
+  gridLine:       'rgba(32,36,44,0.8)',             // subtle grid
+  axisText:       '#5C6470',                        // muted axis text
+  legendText:     '#97A0AF',                        // muted legend text
+  tooltipBg:      '#171A20',                        // dark tooltip bg
+  tooltipBorder:  '#2F3540',                        // tooltip border
 } as const
 
 const props = defineProps<{
@@ -122,8 +125,8 @@ const chartOptions = {
       backgroundColor: CHART_COLORS.tooltipBg,
       borderColor: CHART_COLORS.tooltipBorder,
       borderWidth: 1,
-      titleColor: '#E8EBF0',  // --ink-0
-      bodyColor: '#97A0AF',   // --ink-1
+      titleColor: '#E8EBF0',
+      bodyColor: '#97A0AF',
       padding: 10,
     }
   }

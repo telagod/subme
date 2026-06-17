@@ -5,35 +5,39 @@
         <div class="flex flex-wrap items-center gap-3">
           <!-- Left: Search + Filters -->
           <div class="flex-1 sm:max-w-64">
-            <input
+            <Input
               v-model="searchQuery"
               type="text"
               :placeholder="t('admin.announcements.searchAnnouncements')"
-              class="input"
               @input="handleSearch"
             />
           </div>
-          <Select
-            v-model="filters.status"
-            :options="statusFilterOptions"
-            class="w-40"
-            @change="handleStatusChange"
-          />
+          <Select v-model="filters.status" @update:modelValue="handleStatusChange">
+            <SelectTrigger class="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in statusFilterOptions" :key="String(opt.value)" :value="opt.value">
+                {{ opt.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
           <!-- Right: Action buttons -->
           <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               @click="loadAnnouncements"
               :disabled="loading"
-              class="btn btn-secondary"
               :title="t('common.refresh')"
             >
               <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-            <button @click="openCreateDialog" class="btn btn-primary">
+            </Button>
+            <Button @click="openCreateDialog">
               <Icon name="plus" size="md" class="mr-1" />
               {{ t('admin.announcements.createAnnouncement') }}
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -62,31 +66,31 @@
           </template>
 
           <template #cell-status="{ value }">
-            <span
+            <Badge
+              variant="outline"
               :class="[
-                'badge',
                 value === 'active'
-                  ? 'badge-success'
+                  ? 'bg-emerald-500/10 text-emerald-600 border-transparent'
                   : value === 'draft'
-                    ? 'badge-gray'
-                    : 'badge-warning'
+                    ? ''
+                    : 'bg-amber-500/10 text-amber-600 border-transparent'
               ]"
             >
               {{ statusLabel(value) }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-notify_mode="{ row }">
-            <span
+            <Badge
+              variant="outline"
               :class="[
-                'badge',
                 row.notify_mode === 'popup'
-                  ? 'badge-warning'
-                  : 'badge-gray'
+                  ? 'bg-amber-500/10 text-amber-600 border-transparent'
+                  : ''
               ]"
             >
               {{ row.notify_mode === 'popup' ? t('admin.announcements.notifyModeLabels.popup') : t('admin.announcements.notifyModeLabels.silent') }}
-            </span>
+            </Badge>
           </template>
 
           <template #cell-targeting="{ row }">
@@ -114,34 +118,38 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center space-x-1">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="openReadStatus(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-blue-50 hover:text-sky-400"
                 :title="t('admin.announcements.readStatus')"
               >
                 <Icon name="eye" size="sm" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="openEditDialog(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground/85/75"
                 :title="t('common.edit')"
               >
                 <Icon name="edit" size="sm" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 @click="handleDelete(row)"
-                class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-400"
                 :title="t('common.delete')"
+                class="hover:bg-destructive/10 hover:text-destructive"
               >
                 <Icon name="trash" size="sm" />
-              </button>
+              </Button>
             </div>
           </template>
 
           <template #empty>
             <EmptyState
               :title="t('empty.noData')"
-              :description="t('admin.announcements.failedToLoad')"
+              :description="t('admin.announcements.emptyDescription')"
               :action-text="t('admin.announcements.createAnnouncement')"
               @action="openCreateDialog"
             />
@@ -170,37 +178,55 @@
     >
       <form id="announcement-form" @submit.prevent="handleSave" class="space-y-4">
         <div>
-          <label class="input-label">{{ t('admin.announcements.form.title') }}</label>
-          <input v-model="form.title" type="text" class="input" required />
+          <Label class="mb-1.5 block">{{ t('admin.announcements.form.title') }}</Label>
+          <Input v-model="form.title" type="text" required />
         </div>
 
         <div>
-          <label class="input-label">{{ t('admin.announcements.form.content') }}</label>
-          <textarea v-model="form.content" rows="6" class="input" required></textarea>
+          <Label class="mb-1.5 block">{{ t('admin.announcements.form.content') }}</Label>
+          <Textarea v-model="form.content" :rows="6" required />
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label class="input-label">{{ t('admin.announcements.form.status') }}</label>
-            <Select v-model="form.status" :options="statusOptions" />
+            <Label class="mb-1.5 block">{{ t('admin.announcements.form.status') }}</Label>
+            <Select v-model="form.status">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in statusOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <label class="input-label">{{ t('admin.announcements.form.notifyMode') }}</label>
-            <Select v-model="form.notify_mode" :options="notifyModeOptions" />
-            <p class="input-hint">{{ t('admin.announcements.form.notifyModeHint') }}</p>
+            <Label class="mb-1.5 block">{{ t('admin.announcements.form.notifyMode') }}</Label>
+            <Select v-model="form.notify_mode">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt in notifyModeOptions" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.announcements.form.notifyModeHint') }}</p>
           </div>
         </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label class="input-label">{{ t('admin.announcements.form.startsAt') }}</label>
-            <input v-model="form.starts_at_str" type="datetime-local" class="input" />
-            <p class="input-hint">{{ t('admin.announcements.form.startsAtHint') }}</p>
+            <Label class="mb-1.5 block">{{ t('admin.announcements.form.startsAt') }}</Label>
+            <Input v-model="form.starts_at_str" type="datetime-local" />
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.announcements.form.startsAtHint') }}</p>
           </div>
           <div>
-            <label class="input-label">{{ t('admin.announcements.form.endsAt') }}</label>
-            <input v-model="form.ends_at_str" type="datetime-local" class="input" />
-            <p class="input-hint">{{ t('admin.announcements.form.endsAtHint') }}</p>
+            <Label class="mb-1.5 block">{{ t('admin.announcements.form.endsAt') }}</Label>
+            <Input v-model="form.ends_at_str" type="datetime-local" />
+            <p class="mt-1 text-xs text-muted-foreground">{{ t('admin.announcements.form.endsAtHint') }}</p>
           </div>
         </div>
 
@@ -212,12 +238,12 @@
 
       <template #footer>
         <div class="flex justify-end gap-3">
-          <button type="button" @click="closeEdit" class="btn btn-secondary">
+          <Button type="button" variant="outline" @click="closeEdit">
             {{ t('common.cancel') }}
-          </button>
-          <button type="submit" form="announcement-form" :disabled="saving" class="btn btn-primary">
+          </Button>
+          <Button type="submit" form="announcement-form" :disabled="saving">
             {{ saving ? t('common.saving') : t('common.save') }}
-          </button>
+          </Button>
         </div>
       </template>
     </BaseDialog>
@@ -259,9 +285,14 @@ import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-import Select from '@/components/common/Select.vue'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import EmptyState from '@/components/common/EmptyState.vue'
 import Icon from '@/components/icons/Icon.vue'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 import AnnouncementTargetingEditor from '@/components/admin/announcements/AnnouncementTargetingEditor.vue'
 import AnnouncementReadStatusDialog from '@/components/admin/announcements/AnnouncementReadStatusDialog.vue'
@@ -273,7 +304,7 @@ const announcements = ref<Announcement[]>([])
 const loading = ref(false)
 
 const filters = reactive({
-  status: '',
+  status: 'all',
 })
 const searchQuery = ref('')
 
@@ -290,7 +321,7 @@ const sortState = reactive({
 })
 
 const statusFilterOptions = computed(() => [
-  { value: '', label: t('admin.announcements.allStatus') },
+  { value: 'all', label: t('admin.announcements.allStatus') },
   { value: 'draft', label: t('admin.announcements.statusLabels.draft') },
   { value: 'active', label: t('admin.announcements.statusLabels.active') },
   { value: 'archived', label: t('admin.announcements.statusLabels.archived') }
@@ -342,7 +373,7 @@ async function loadAnnouncements() {
   try {
     loading.value = true
     const res = await adminAPI.announcements.list(pagination.page, pagination.page_size, {
-      status: filters.status || undefined,
+      status: filters.status && filters.status !== 'all' ? filters.status : undefined,
       search: searchQuery.value || undefined,
       sort_by: sortState.sort_by,
       sort_order: sortState.sort_order

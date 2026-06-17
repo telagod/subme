@@ -1,9 +1,9 @@
 <template>
-  <div class="ofp-body">
+  <div class="flex flex-col gap-4 px-5 py-4">
     <!-- Empty state -->
     <div
       v-if="rules.length === 0"
-      class="ofp-empty"
+      class="rounded-xl border border-dashed border-border px-4 py-6 text-center text-[13px] text-muted-foreground"
     >
       {{ t('admin.settings.openaiFastPolicy.empty') }}
     </div>
@@ -12,28 +12,30 @@
     <div
       v-for="(rule, ruleIndex) in rules"
       :key="ruleIndex"
-      class="ofp-rule-card"
+      class="flex flex-col gap-3 rounded-xl border border-border p-4"
     >
-      <div class="ofp-rule-head">
-        <span class="ofp-rule-title">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-[13px] font-semibold text-foreground">
           {{ t('admin.settings.openaiFastPolicy.ruleHeader', { index: ruleIndex + 1 }) }}
         </span>
-        <button
+        <Button
           type="button"
-          class="ofp-icon-btn ofp-icon-btn--danger"
+          variant="ghost"
+          size="icon"
+          class="h-7 w-7 shrink-0 text-muted-foreground hover:border hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
           @click="removeRule(ruleIndex)"
           :title="t('admin.settings.openaiFastPolicy.removeRule')"
         >
-          <svg class="ofp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </button>
+        </Button>
       </div>
 
-      <div class="ofp-grid-3">
+      <div class="grid grid-cols-3 gap-3 max-[600px]:grid-cols-1">
         <!-- Service Tier -->
-        <div class="ofp-field">
-          <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.serviceTier') }}</label>
+        <div class="flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.serviceTier') }}</Label>
           <Select
             :modelValue="rule.service_tier"
             @update:modelValue="rule.service_tier = $event as 'all' | 'priority' | 'flex'"
@@ -42,8 +44,8 @@
         </div>
 
         <!-- Action -->
-        <div class="ofp-field">
-          <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.action') }}</label>
+        <div class="flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.action') }}</Label>
           <Select
             :modelValue="rule.action"
             @update:modelValue="rule.action = $event as 'pass' | 'filter' | 'block'"
@@ -52,8 +54,8 @@
         </div>
 
         <!-- Scope -->
-        <div class="ofp-field">
-          <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.scope') }}</label>
+        <div class="flex flex-col gap-1">
+          <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.scope') }}</Label>
           <Select
             :modelValue="rule.scope"
             @update:modelValue="rule.scope = $event as 'all' | 'oauth' | 'apikey' | 'bedrock'"
@@ -63,71 +65,73 @@
       </div>
 
       <!-- Error Message (only when action=block) -->
-      <div v-if="rule.action === 'block'" class="ofp-field ofp-field--mt">
-        <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.errorMessage') }}</label>
-        <input
+      <div v-if="rule.action === 'block'" class="mt-1 flex flex-col gap-1">
+        <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.errorMessage') }}</Label>
+        <Input
           v-model="rule.error_message"
           type="text"
-          class="ofp-input"
           :placeholder="t('admin.settings.openaiFastPolicy.errorMessagePlaceholder')"
         />
-        <p class="ofp-field-hint">{{ t('admin.settings.openaiFastPolicy.errorMessageHint') }}</p>
+        <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.errorMessageHint') }}</p>
       </div>
 
       <!-- Model Whitelist -->
-      <div class="ofp-field ofp-field--mt">
-        <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.modelWhitelist') }}</label>
-        <p class="ofp-field-hint ofp-field-hint--top">{{ t('admin.settings.openaiFastPolicy.modelWhitelistHint') }}</p>
+      <div class="mt-1 flex flex-col gap-1">
+        <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.modelWhitelist') }}</Label>
+        <p class="mb-1.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.modelWhitelistHint') }}</p>
         <div
           v-for="(_, patternIdx) in rule.model_whitelist || []"
           :key="patternIdx"
-          class="ofp-pattern-row"
+          class="mb-1 flex items-center gap-2"
         >
-          <input
+          <Input
             v-model="rule.model_whitelist![patternIdx]"
             type="text"
-            class="ofp-input ofp-input--sm ofp-input--mono"
+            class="h-8 font-mono text-xs"
             :placeholder="t('admin.settings.openaiFastPolicy.modelPatternPlaceholder')"
           />
-          <button
+          <Button
             type="button"
-            class="ofp-icon-btn ofp-icon-btn--danger"
+            variant="ghost"
+            size="icon"
+            class="h-7 w-7 shrink-0 text-muted-foreground hover:border hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
             @click="removeModelPattern(rule, patternIdx)"
           >
-            <svg class="ofp-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           type="button"
-          class="ofp-add-btn"
+          variant="ghost"
+          size="sm"
+          class="h-auto gap-1 px-0 py-0 text-xs text-primary hover:bg-transparent hover:text-foreground"
           @click="addModelPattern(rule)"
         >
-          <svg class="ofp-add-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="h-[13px] w-[13px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           {{ t('admin.settings.openaiFastPolicy.addModelPattern') }}
-        </button>
+        </Button>
       </div>
 
       <!-- Fallback Action (only when model_whitelist is non-empty) -->
       <div
         v-if="rule.model_whitelist && rule.model_whitelist.length > 0"
-        class="ofp-field ofp-field--mt"
+        class="mt-1 flex flex-col gap-1"
       >
-        <label class="ofp-field-label">{{ t('admin.settings.openaiFastPolicy.fallbackAction') }}</label>
+        <Label class="text-[11.5px] font-medium text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.fallbackAction') }}</Label>
         <Select
           :modelValue="rule.fallback_action || 'pass'"
           @update:modelValue="rule.fallback_action = $event as 'pass' | 'filter' | 'block'"
           :options="actionOptions"
         />
-        <p class="ofp-field-hint">{{ t('admin.settings.openaiFastPolicy.fallbackActionHint') }}</p>
-        <div v-if="rule.fallback_action === 'block'" class="ofp-fallback-err">
-          <input
+        <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.fallbackActionHint') }}</p>
+        <div v-if="rule.fallback_action === 'block'" class="mt-2">
+          <Input
             v-model="rule.fallback_error_message"
             type="text"
-            class="ofp-input"
             :placeholder="t('admin.settings.openaiFastPolicy.fallbackErrorMessagePlaceholder')"
           />
         </div>
@@ -135,18 +139,19 @@
     </div>
 
     <!-- Add Rule Button + save hint -->
-    <div class="ofp-add-rule-wrap">
-      <button
+    <div class="flex flex-col gap-1.5">
+      <Button
         type="button"
-        class="ofp-add-rule-btn"
+        variant="outline"
+        class="h-auto gap-1.5 px-3.5 py-[7px] text-[12.5px] font-medium text-muted-foreground hover:border-primary/60 hover:bg-primary/7 hover:text-primary"
         @click="addRule"
       >
-        <svg class="ofp-add-rule-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         {{ t('admin.settings.openaiFastPolicy.addRule') }}
-      </button>
-      <p class="ofp-save-hint">{{ t('admin.settings.openaiFastPolicy.saveHint') }}</p>
+      </Button>
+      <p class="m-0 text-[11px] leading-relaxed text-muted-foreground">{{ t('admin.settings.openaiFastPolicy.saveHint') }}</p>
     </div>
   </div>
 </template>
@@ -155,6 +160,9 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Select from '@/components/common/Select.vue'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import type { OpenAIFastPolicyRule } from '@/api/admin/settings'
 
 const props = defineProps<{
@@ -281,79 +289,3 @@ function removeModelPattern(rule: OpenAIFastPolicyRule, idx: number) {
 // mutates the reactive ref — we watch the whole rules array for deep changes)
 watch(rules, emitRules, { deep: true })
 </script>
-
-<style scoped>
-.ofp-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
-
-.ofp-empty {
-  border: 1px dashed var(--line-1, #2F3540); border-radius: 10px;
-  padding: 24px 16px; text-align: center; font-size: 13px; color: var(--ink-2, #5C6470);
-}
-
-/* Rule card */
-.ofp-rule-card {
-  border: 1px solid var(--line-1, #2F3540); border-radius: 10px; padding: 16px;
-  display: flex; flex-direction: column; gap: 12px;
-}
-
-.ofp-rule-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ofp-rule-title { font-size: 13px; font-weight: 600; color: var(--ink-0, #E8EBF0); }
-
-.ofp-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-@media (max-width: 600px) { .ofp-grid-3 { grid-template-columns: 1fr; } }
-
-.ofp-field { display: flex; flex-direction: column; gap: 4px; }
-.ofp-field--mt { margin-top: 4px; }
-.ofp-field-label { font-size: 11.5px; font-weight: 500; color: var(--ink-1, #97A0AF); }
-.ofp-field-hint { font-size: 11px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 2px 0 0; }
-.ofp-field-hint--top { margin: 0 0 6px; }
-
-.ofp-input {
-  width: 100%; padding: 7px 11px; border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540); background: var(--bg-0, #0C0E12);
-  color: var(--ink-0, #E8EBF0); font-size: 13px; font-family: inherit; outline: none;
-  transition: border-color .15s, box-shadow .15s; box-sizing: border-box;
-}
-.ofp-input:focus { border-color: var(--azure, #5CA8FF); box-shadow: 0 0 0 3px rgba(92,168,255,.14); }
-.ofp-input--sm { padding: 5px 9px; font-size: 12px; }
-.ofp-input--mono { font-family: var(--font-mono, ui-monospace, monospace); }
-
-.ofp-pattern-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-
-.ofp-icon-btn {
-  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 6px;
-  border: 1px solid transparent; background: transparent; cursor: pointer;
-  transition: color .12s, background .12s, border-color .12s;
-}
-.ofp-icon-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.ofp-icon-btn--danger { color: var(--ink-2, #5C6470); }
-.ofp-icon-btn--danger:hover { color: var(--bad, #F25C69); background: rgba(242,92,105,.1); border-color: rgba(242,92,105,.25); }
-.ofp-icon { width: 14px; height: 14px; }
-
-.ofp-add-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 0; background: none; border: none; cursor: pointer; font-family: inherit;
-  font-size: 12px; color: var(--azure, #5CA8FF); transition: color .15s;
-}
-.ofp-add-btn:hover { color: var(--ink-0, #E8EBF0); }
-.ofp-add-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.ofp-add-icon { width: 13px; height: 13px; }
-
-.ofp-fallback-err { margin-top: 8px; }
-
-.ofp-add-rule-wrap { display: flex; flex-direction: column; gap: 6px; }
-
-.ofp-add-rule-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500;
-  font-family: inherit; cursor: pointer;
-  border: 1px solid var(--line-1, #2F3540); background: transparent;
-  color: var(--ink-1, #97A0AF); transition: border-color .15s, color .15s, background .15s;
-}
-.ofp-add-rule-btn:hover { border-color: var(--azure, #5CA8FF); color: var(--azure, #5CA8FF); background: rgba(92,168,255,.07); }
-.ofp-add-rule-btn:focus-visible { outline: 2px solid var(--azure, #5CA8FF); outline-offset: 2px; }
-.ofp-add-rule-icon { width: 14px; height: 14px; }
-
-.ofp-save-hint { font-size: 11px; color: var(--ink-2, #5C6470); line-height: 1.5; margin: 0; }
-</style>

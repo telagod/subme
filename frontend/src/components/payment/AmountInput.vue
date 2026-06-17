@@ -2,42 +2,43 @@
   <div class="space-y-4">
     <!-- Quick Amount Buttons -->
     <div>
-      <label class="mb-2 block text-sm font-medium text-foreground/85">
+      <Label class="mb-2 block text-sm font-medium text-foreground/85">
         {{ t('payment.quickAmounts') }}
-      </label>
+      </Label>
       <div class="grid grid-cols-3 gap-2">
-        <button
+        <Button
           v-for="amt in filteredAmounts"
           :key="amt"
           type="button"
+          variant="outline"
           :class="[
-            'rounded-md border-2 px-4 py-3 text-center font-medium transition-colors',
+            'border-2 px-4 py-3 font-medium',
             modelValue === amt
-              ? 'border-primary-300/50 bg-secondary text-primary-200 '
-              : 'border-border bg-card text-foreground/85 hover:border-border',
+              ? 'border-primary-300/50 bg-secondary text-primary-200'
+              : 'border-border bg-card text-foreground/85',
           ]"
           @click="selectAmount(amt)"
         >
           {{ amt }}
-        </button>
+        </Button>
       </div>
     </div>
 
     <!-- Custom Amount Input -->
     <div>
-      <label class="mb-2 block text-sm font-medium text-foreground/85">
+      <Label class="mb-2 block text-sm font-medium text-foreground/85">
         {{ t('payment.customAmount') }}
-      </label>
+      </Label>
       <div class="relative">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
           $
         </span>
-        <input
+        <Input
           type="text"
           inputmode="decimal"
           :value="customText"
           :placeholder="placeholderText"
-          class="input w-full py-3 pl-8 pr-4"
+          class="w-full py-3 pl-8 pr-4"
           @input="handleInput"
         />
       </div>
@@ -48,6 +49,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const props = withDefaults(defineProps<{
   amounts?: number[]

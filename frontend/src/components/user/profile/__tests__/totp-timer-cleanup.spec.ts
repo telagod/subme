@@ -47,6 +47,8 @@ describe('TOTP 弹窗定时器清理', () => {
   let clearIntervalSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    // reka-ui DialogPortal teleports content to document.body; clear residue between tests
+    document.body.innerHTML = ''
     intervalSeed = 1000
     mocks.showSuccess.mockReset()
     mocks.showError.mockReset()
@@ -100,15 +102,17 @@ describe('TOTP 弹窗定时器清理', () => {
   })
 
   it('TotpDisableDialog 卸载时清理倒计时定时器', async () => {
-    const wrapper = mount(TotpDisableDialog)
+    // TotpDisableDialog uses reka-ui Dialog -> DialogPortal teleports to document.body,
+    // so query the send-code button from the document, not the wrapper.
+    const wrapper = mount(TotpDisableDialog, { attachTo: document.body })
     await flushPromises()
 
-    const sendButton = wrapper
-      .findAll('button')
-      .find((button) => button.text().includes('profile.totp.sendCode'))
+    const sendButton = Array.from(document.body.querySelectorAll('button')).find(
+      (button) => button.textContent?.includes('profile.totp.sendCode')
+    )
 
     expect(sendButton).toBeTruthy()
-    await sendButton!.trigger('click')
+    sendButton!.dispatchEvent(new Event('click', { bubbles: true }))
     await flushPromises()
 
     expect(setIntervalSpy).toHaveBeenCalledTimes(1)
@@ -129,7 +133,13 @@ describe('TOTP 弹窗定时器清理', () => {
     await flushPromises()
 
     await wrapper.get('input[type="password"]').setValue('correct horse battery staple')
-    await wrapper.get('button[type="button"].btn-primary').trigger('click')
+    // shadcn migration: old .btn-primary is gone; the "Next" button is now a shadcn Button.
+    // Locate it by text, matching the text-based style used elsewhere in this spec.
+    const nextButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('common.next'))
+    expect(nextButton).toBeTruthy()
+    await nextButton!.trigger('click')
     await flushPromises()
 
     expect(mocks.showError).toHaveBeenCalledWith('setup failed')
@@ -143,15 +153,23 @@ describe('TOTP 弹窗定时器清理', () => {
       response: { data: { message: 'disable failed' } }
     })
 
-    const wrapper = mount(TotpDisableDialog)
+    const wrapper = mount(TotpDisableDialog, { attachTo: document.body })
     await flushPromises()
 
-    await wrapper.get('input[type="password"]').setValue('correct horse battery staple')
-    await wrapper.get('form').trigger('submit.prevent')
+    // reka-ui DialogPortal teleports content to document.body; query the form/input there.
+    const passwordInput = document.body.querySelector<HTMLInputElement>('input[type="password"]')
+    expect(passwordInput).toBeTruthy()
+    passwordInput!.value = 'correct horse battery staple'
+    passwordInput!.dispatchEvent(new Event('input', { bubbles: true }))
+    await flushPromises()
+
+    const form = document.body.querySelector('form')
+    expect(form).toBeTruthy()
+    form!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
     await flushPromises()
 
     expect(mocks.showError).toHaveBeenCalledWith('disable failed')
-    expect(wrapper.text()).not.toContain('disable failed')
+    expect(document.body.textContent).not.toContain('disable failed')
     expect(wrapper.find('.bg-red-50').exists()).toBe(false)
   })
 })

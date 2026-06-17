@@ -16,20 +16,24 @@
       <slot />
 
       <!-- 清除选择 -->
-      <button
-        class="q-bulk-clear"
+      <Button
+        variant="ghost"
+        size="icon"
+        class="h-[26px] w-[26px] shrink-0 rounded-[7px] text-muted-foreground"
         aria-label="清除选择"
         @click="emit('clear')"
       >
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-      </button>
+      </Button>
     </div>
   </Teleport>
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+
 // ── Props ──────────────────────────────────────────────────────────────
 defineProps<{
   /** 已选行数量，>0 时浮出，= 0 时收起 */
@@ -43,7 +47,7 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-/* ── 淬钢 QUENCH · BulkBar 样式 ── */
+/* ── BulkBar 样式 ── */
 .q-bulkbar {
   position: fixed;
   left: 50%;
@@ -55,17 +59,17 @@ const emit = defineEmits<{
   gap: 10px;
   padding: 10px 16px;
   z-index: 60;
-  background: var(--metal-raised, linear-gradient(180deg, #272D37, #14171D));
-  border: 1px solid var(--line-1, #2F3540);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-radius: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 16px 48px rgba(0, 0, 0, 0.6),
-    0 0 24px rgba(92, 168, 255, 0.08);
+    0 0 24px rgba(0, 0, 0, 0.08);
   transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  font-family: var(--font-ui, "Archivo", "PingFang SC", sans-serif);
+  font-family: "Archivo", "PingFang SC", sans-serif;
   font-size: 12.5px;
-  color: var(--ink-0, #E8EBF0);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
@@ -81,35 +85,16 @@ const emit = defineEmits<{
 /* 已选计数 */
 .q-bulk-cnt {
   font-size: 12.5px;
-  color: var(--ink-1, #97A0AF);
+  color: hsl(var(--muted-foreground));
 }
 
 .q-bulk-num {
-  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-family: "IBM Plex Mono", monospace;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: var(--azure, #5CA8FF);
+  color: hsl(var(--primary));
 }
 
-/* 清除按钮 */
-.q-bulk-clear {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  border: none;
-  background: transparent;
-  color: var(--ink-2, #5C6470);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-
-.q-bulk-clear:hover {
-  background: var(--bg-3, #1F232B);
-  color: var(--ink-0, #E8EBF0);
-}
 
 /* 插槽内按钮统一样式（不强制，仅提供 :slotted 钩子） */
 :slotted(button) {
@@ -122,32 +107,26 @@ const emit = defineEmits<{
   font-size: 11.5px;
   font-weight: 600;
   border-radius: 8px;
-  border: 1px solid var(--line-1, #2F3540);
-  background: var(--bg-2, #171A20);
-  color: var(--ink-0, #E8EBF0);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   cursor: pointer;
   transition: all 0.15s;
 }
 
 :slotted(button:hover) {
-  background: var(--bg-3, #1F232B);
-  border-color: #3D4554;
+  background: hsl(var(--accent));
+  border-color: hsl(var(--border));
 }
 
 :slotted(button.q-btn-danger) {
-  color: var(--bad, #F25C69);
-  border-color: rgba(242, 92, 105, 0.35);
-  background: var(--bad-dim, rgba(242, 92, 105, 0.12));
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.35);
+  background: hsl(var(--destructive) / 0.12);
 }
 
-/* 键盘焦点：清除按钮 */
-.q-bulk-clear:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 1.5px rgba(92, 168, 255, 0.65), 0 0 14px rgba(92, 168, 255, 0.2);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .q-bulkbar { transition: none; }
-  .q-bulk-clear { transition: none; }
 }
 </style>
