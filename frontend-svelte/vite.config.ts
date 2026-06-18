@@ -56,6 +56,14 @@ export default defineConfig({
 					if (id.includes('/svelte-chartjs/')) return 'vendor-chart';
 					if (id.includes('/@kurkle/color/')) return 'vendor-chart';
 
+					// —— QR 码渲染懒加载岛（M7 profile/totp 落地）——
+					// `qrcode` 只被 TotpEnrollDialog 通过 dynamic `await import('qrcode')`
+					// 引用；规则必须早于 vendor 兜底，否则会被吸进 eager set，触发
+					// check-chunks 红线（memory: vendor-chunk-tdz-trap）。
+					if (id.includes('/qrcode/')) return 'vendor-qrcode';
+					if (id.includes('/dijkstrajs/')) return 'vendor-qrcode';
+					if (id.includes('/pngjs/')) return 'vendor-qrcode';
+
 					// —— 支付 SDK 懒加载岛（M6 落地）——
 					// @stripe/stripe-js + airwallex-payment-elements 都是百 KB 级
 					// 重包，必须落独立 lazy chunk。两条规则必须早于下面的 vendor

@@ -1,0 +1,251 @@
+<script lang="ts">
+	/**
+	 * TotpEnrollDialog · bits-ui Dialog 启动 2FA 注册（M7 profile/security）
+	 *
+	 * 流程：
+	 *   1. open=true → POST /api/v1/user/totp/setup → { secret, qr_code_url, setup_token }
+	 *   2. dynamic-import 'qrcode' → canvas/dataURL 渲染 otpauth:// URL
+	 *      （vite manualChunks 已规则路由到 vendor-qrcode lazy island）
+	 *   3. 用户输入 6 位 TOTP → POST /api/v1/user/totp/enable { code, setup_token }
+	 *   4. 成功 → toast + close + onEnabled() 回调（父刷新 user）
+	 *
+	 * RED LINE：
+	 *   - 不顶层 import 'qrcode'；只在 onMount 之后 await import('qrcode')；
+	 *     manualChunks 已把它落 'vendor-qrcode' 独立 lazy chunk，避免 eager 红线。
+	 *   - 不展示 secret plaintext 之外的字段；qr_code_url 是 otpauth:// 格式。
+	 *   - Select / sentinel 红线本组件不触发（无 Select）。
+	 */
+	import { Dialog } from 'bits-ui';
+	import { _ } from 'svelte-i18n';
+	import { ShieldCheck, AlertTriangle } from '@lucide/svelte';
+	import { enrollTotpStart, enrollTotpConfirm } from '$lib/api/user/profile';
+	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+
+	type Props = {
+		open: boolean;
+		onEnabled?: () => void;
+	};
+
+	let { open = $bindable(false), onEnabled }: Props = $props();
+
+	let phase = $state<'loading' | 'show-qr' | 'verify'>('loading');
+	let secret = $state('');
+	let qrUrl = $state('');
+	let setupToken = $state('');
+	let qrDataUrl = $state<string | null>(null);
+	let qrLoadError = $state<string | null>(null);
+	let code = $state('');
+	let submitting = $state(false);
+	let loadError = $state<string | null>(null);
+
+	async function loadSetup() {
+		phase = 'loading';
+		loadError = null;
+		try {
+			const resp = await enrollTotpStart({});
+			secret = resp.secret;
+			qrUrl = resp.qr_code_url;
+			setupToken = resp.setup_token;
+			phase = 'show-qr';
+			await renderQr();
+		} catch (err) {
+			const e = err as Error;
+			loadError = e?.message ?? $_('user.security.totp.setupFailed', { default: 'Failed to load setup' });
+			showError(loadError);
+		}
+	}
+
+	async function renderQr() {
+		qrLoadError = null;
+		try {
+			// Dynamic-import 才是 chunk 落 'vendor-qrcode' lazy 的关键；
+			// 顶层 import 会被 rollup 顺势吸进 vendor → check-chunks 红。
+			const mod: unknown = await import('qrcode');
+			const QR = (mod as { default?: unknown }).default ?? mod;
+			const fn = (QR as { toDataURL?: (text: string) => Promise<string> }).toDataURL;
+			if (typeof fn !== 'function') {
+				throw new Error('qrcode toDataURL missing');
+			}
+			qrDataUrl = await fn(qrUrl);
+		} catch (err) {
+			const e = err as Error;
+			qrLoadError = e?.message ?? 'qr render failed';
+		}
+	}
+
+	async function handleConfirm() {
+		if (submitting) return;
+		if (!/^\d{6}$/.test(code.trim())) {
+			showError(
+				$_('user.security.totp.invalidCode', { default: 'Enter the 6-digit code from your app' })
+			);
+			return;
+		}
+		submitting = true;
+		try {
+			await enrollTotpConfirm({ code: code.trim(), setup_token: setupToken });
+			showSuccess(
+				$_('user.security.totp.enableSuccess', { default: 'Two-factor authentication enabled' })
+			);
+			onEnabled?.();
+			open = false;
+		} catch (err) {
+			const e = err as Error;
+			showError(e?.message ?? $_('user.security.totp.verifyFailed', { default: 'Invalid code, try again' }));
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function resetState() {
+		phase = 'loading';
+		secret = '';
+		qrUrl = '';
+		setupToken = '';
+		qrDataUrl = null;
+		qrLoadError = null;
+		code = '';
+		submitting = false;
+		loadError = null;
+	}
+
+	// 父通过 bind:open 翻 true 时启动加载；bits-ui onOpenChange 在 controlled
+	// 模式不一定回调外部置 true，因此用 $effect 兜底。
+	let lastOpen = false;
+	$effect(() => {
+		if (open && !lastOpen) {
+			lastOpen = true;
+			loadSetup();
+		} else if (!open && lastOpen) {
+			lastOpen = false;
+			setTimeout(resetState, 200);
+		}
+	});
+
+	function handleCancel() {
+		if (submitting) return;
+		open = false;
+	}
+</script>
+
+<Dialog.Root bind:open>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+		/>
+		<Dialog.Content
+			data-testid="totp-enroll-dialog"
+			class="fixed left-1/2 top-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg outline-none"
+		>
+			<div class="flex items-start gap-3">
+				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+					<ShieldCheck class="h-5 w-5" />
+				</div>
+				<div class="space-y-1">
+					<Dialog.Title class="text-base font-semibold text-foreground">
+						{$_('user.security.totp.setupTitle', { default: 'Set up two-factor authentication' })}
+					</Dialog.Title>
+					<Dialog.Description class="text-sm text-muted-foreground">
+						{$_('user.security.totp.setupStep1', {
+							default: 'Scan the QR code below with your authenticator app, then enter the 6-digit code.'
+						})}
+					</Dialog.Description>
+				</div>
+			</div>
+
+			{#if phase === 'loading'}
+				<div
+					class="mt-6 flex items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-sm text-muted-foreground"
+					data-testid="totp-loading"
+				>
+					{$_('user.security.totp.loading', { default: 'Loading setup…' })}
+				</div>
+				{#if loadError}
+					<p
+						class="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+						data-testid="totp-load-error"
+					>
+						{loadError}
+					</p>
+				{/if}
+			{:else}
+				<div class="mt-6 space-y-4">
+					<div class="flex flex-col items-center gap-3">
+						<div
+							class="flex h-44 w-44 items-center justify-center rounded-md border border-border bg-white p-2"
+							data-testid="totp-qr-box"
+						>
+							{#if qrDataUrl}
+								<img
+									src={qrDataUrl}
+									alt="TOTP QR code"
+									data-testid="totp-qr-img"
+									class="h-full w-full object-contain"
+								/>
+							{:else if qrLoadError}
+								<div class="flex items-center gap-1 text-xs text-destructive" data-testid="totp-qr-error">
+									<AlertTriangle class="h-3.5 w-3.5" />
+									{$_('user.security.totp.qrFailed', { default: 'Failed to render QR code' })}
+								</div>
+							{:else}
+								<span class="text-xs text-muted-foreground">…</span>
+							{/if}
+						</div>
+
+						<div class="w-full space-y-1.5">
+							<span class="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+								{$_('user.security.totp.manualEntry', { default: 'Or enter this key manually' })}
+							</span>
+							<code
+								data-testid="totp-secret"
+								class="block w-full break-all rounded-md border border-input bg-muted/40 px-3 py-2 font-mono text-xs text-foreground"
+							>
+								{secret}
+							</code>
+						</div>
+					</div>
+
+					<div class="space-y-1.5">
+						<label for="totp-code" class="text-sm font-medium text-foreground">
+							{$_('user.security.totp.enterCode', { default: 'Enter the 6-digit code' })}
+						</label>
+						<input
+							id="totp-code"
+							type="text"
+							inputmode="numeric"
+							autocomplete="one-time-code"
+							maxlength="6"
+							pattern="[0-9]{6}"
+							data-testid="totp-code"
+							placeholder="123456"
+							bind:value={code}
+							class="block h-10 w-full rounded-md border border-input bg-background px-3 text-center font-mono text-lg tracking-widest text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+						/>
+					</div>
+
+					<div class="flex items-center justify-end gap-2 pt-1">
+						<button
+							type="button"
+							data-testid="totp-cancel"
+							onclick={handleCancel}
+							class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+						>
+							{$_('user.security.totp.cancel', { default: 'Cancel' })}
+						</button>
+						<button
+							type="button"
+							data-testid="totp-confirm"
+							disabled={submitting}
+							onclick={handleConfirm}
+							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{submitting
+								? $_('user.security.totp.verifying', { default: 'Verifying…' })
+								: $_('user.security.totp.verify', { default: 'Verify and enable' })}
+						</button>
+					</div>
+				</div>
+			{/if}
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>

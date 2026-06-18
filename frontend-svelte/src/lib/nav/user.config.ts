@@ -141,7 +141,7 @@ export function buildUserNavGroups(_opts: BuildUserNavOptions = {}): NavGroup[] 
 				{
 					key: 'affiliate',
 					labelKey: 'nav.affiliate',
-					path: '/affiliate',
+					path: '/affiliates',
 					icon: Users,
 					hideInSimpleMode: true,
 					featureFlag: 'affiliate'
