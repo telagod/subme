@@ -59,4 +59,22 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+
+	/* ── 密度模式 · AppShell 子树共用 ──
+	 * 注入到 AppShell 根节点 data-density="comfortable|compact" 上。
+	 * 子组件用 CSS 变量取尺寸，单源真相，避免散落的 if/else 切类名。
+	 *   --row-h   导航行 / 表格行高
+	 *   --input-h Input/Select/Button 触发器高度
+	 *   --px      水平内边距（横向 padding，行 + 触发器共享）
+	 */
+	[data-density='comfortable'] {
+		--row-h: 2.5rem; /* h-10 */
+		--input-h: 2.5rem; /* h-10 */
+		--px: 0.75rem; /* px-3 */
+	}
+	[data-density='compact'] {
+		--row-h: 2rem; /* h-8 */
+		--input-h: 2.25rem; /* h-9 */
+		--px: 0.5rem; /* px-2 */
+	}
 }

@@ -1,15 +1,33 @@
 <script lang="ts">
-	// seed page：证明构建链与样式链通路；不引入任何业务组件。
+	/**
+	 * Landing redirect (seed)
+	 *
+	 * 设计：
+	 *   - 真正的 auth-aware 跳转在后续 PR 里走 auth store + goto()。
+	 *   - 当前阶段用 <meta http-equiv="refresh"> 提供一个保守 fallback：
+	 *     未登录用户也是命中 /dashboard，再由 (user)/+layout 做兜底重定向到 /login。
+	 *   - 同时附带客户端 goto，避免静态 meta refresh 的 0.x 秒延迟可见。
+	 */
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+
+	onMount(() => {
+		goto('/dashboard', { replaceState: true });
+	});
 </script>
 
-<main class="min-h-screen bg-background text-foreground flex items-center justify-center font-sans">
-	<div class="max-w-xl px-6 text-center">
-		<h1 class="text-3xl font-semibold tracking-tight">subme · svelte-rewrite seed</h1>
-		<p class="mt-3 text-muted-foreground">
-			SvelteKit + adapter-static + Tailwind v3 + shadcn-svelte deps installed.
-		</p>
-		<p class="mt-1 text-sm text-muted-foreground">
-			Build output → <code class="font-mono">backend/internal/web/dist_svelte/</code>
-		</p>
+<svelte:head>
+	<meta http-equiv="refresh" content="0;url=/dashboard" />
+	<title>sub2api</title>
+</svelte:head>
+
+<main class="flex min-h-screen items-center justify-center bg-background text-foreground">
+	<div class="text-center">
+		<p class="text-sm text-muted-foreground">Redirecting…</p>
+		<noscript>
+			<p class="mt-2 text-sm">
+				<a class="underline" href="/dashboard">Continue to dashboard</a>
+			</p>
+		</noscript>
 	</div>
 </main>
