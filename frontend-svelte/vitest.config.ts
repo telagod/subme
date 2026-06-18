@@ -20,7 +20,10 @@ export default defineConfig({
 			// SvelteKit 虚拟模块在 vitest（裸 vite）里不存在 —— 用最小桩件兜住 import。
 			// 真实运行时由 SvelteKit 的 .svelte-kit 注入。
 			'$app/navigation': path.resolve(__dirname, 'src/lib/test/stub-app-navigation.ts'),
-			'$app/state': path.resolve(__dirname, 'src/lib/test/stub-app-state.ts')
+			'$app/state': path.resolve(__dirname, 'src/lib/test/stub-app-state.ts'),
+			'$app/stores': path.resolve(__dirname, 'src/lib/test/stub-app-stores.ts'),
+			'$app/forms': path.resolve(__dirname, 'src/lib/test/stub-app-forms.ts'),
+			'$app/environment': path.resolve(__dirname, 'src/lib/test/stub-app-environment.ts')
 		}
 	},
 	test: {

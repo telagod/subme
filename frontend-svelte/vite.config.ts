@@ -26,6 +26,19 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				manualChunks(id: string) {
+					// —— src/ 核心工具收编进 vendor ——
+					// hooks.client.ts 启动期需要的 store / api 子树（persisted /
+					// auth / toast / api/client / api/auth）默认会被 Rollup 切成
+					// 独立 eager chunks（每个 .svelte.ts 一个），触发 check-chunks
+					// 的 EAGER_CHUNK_CAP=2 红线。
+					//
+					// 把它们强行合并进 vendor：
+					//   1. 与框架代码同 chunk，依赖图上无跨 chunk 循环风险
+					//   2. 体积影响 < 5KB（store/client 实现都是数十行），可忽略
+					//   3. 与 vendor 同生同灭，hash 稳定性不变
+					if (id.includes('/src/lib/stores/') && id.endsWith('.svelte.ts')) return 'vendor';
+					if (id.includes('/src/lib/api/') && id.endsWith('.ts')) return 'vendor';
+
 					if (!id.includes('node_modules')) return;
 
 					// —— 懒加载安全岛 ——
@@ -35,12 +48,17 @@ export default defineConfig({
 					// POC 5 落地，含在 check-chunks 已知 lazy island 列表内。
 					if (id.includes('/@tanstack/svelte-virtual/')) return 'vendor-virtual';
 
+					// —— 图表库：M6 user dashboard 懒加载落地 ——
+					// chart.js + svelte-chartjs 只通过 UsageChart.svelte 的 await import()
+					// 链入；务必落独立 lazy chunk，否则会被 vendor 兜底吸走变 eager，
+					// check-chunks gate 直接红。规则必须早于下面的 vendor 兜底。
+					if (id.includes('/chart.js/')) return 'vendor-chart';
+					if (id.includes('/svelte-chartjs/')) return 'vendor-chart';
+					if (id.includes('/@kurkle/color/')) return 'vendor-chart';
+
 					// —— 懒加载安全岛占位：依赖未落地，预留命名空间 ——
 					// xlsx：导出功能（~400KB）
 					// if (id.includes('/xlsx/')) return 'vendor-xlsx';
-
-					// 图表库：仪表盘/统计页懒加载
-					// if (id.includes('/chart.js/')) return 'vendor-chart';
 
 					// 支付 SDK
 					// if (id.includes('/@stripe/')) return 'vendor-stripe';
