@@ -5399,9 +5399,6 @@ export default {
       general: {
         title: '通用设置',
       },
-      security: {
-        title: '安全与认证',
-      },
       gateway: {
         title: '网关服务',
       },
@@ -5553,6 +5550,7 @@ export default {
         frontendRedirectUrl: '前端回调地址'
       },
       security: {
+        title: '安全与认证',
         totp: '强制双因素认证（TOTP）',
         totpHint: '开启后管理员账号必须绑定 TOTP 才能登录',
         trustForwardedIp: '信任反代传递的客户端 IP',
@@ -7261,6 +7259,44 @@ export default {
       tabBackup: '备份',
       noSearchResults: '没有匹配的设置项',
     },
+
+    pricing: {
+      title: '定价台',
+      subtitle: 'OpenRouter 规范化定价 —— 只读核验',
+      refresh: '刷新',
+      retry: '重试',
+      searchPlaceholder: '搜索模型…',
+      empty: '当前筛选下没有匹配的模型。',
+      overriddenYes: '是',
+      filters: {
+        provider: '供应商',
+        providerAll: '全部供应商'
+      },
+      cols: {
+        model: '模型',
+        provider: '供应商',
+        input: '输入 $/M',
+        output: '输出 $/M',
+        cacheRead: '缓存读',
+        origin: '来源',
+        overridden: '已覆盖',
+        action: '操作'
+      },
+      verify: {
+        btn: '核验',
+        title: '核验供应商定价',
+        close: '关闭',
+        refetch: '重新获取',
+        retry: '重试',
+        ourLabel: '我方规范化价',
+        upstreamLabel: '上游 OpenRouter',
+        matches: '价格与上游一致',
+        mismatch: '价格与上游存在差异',
+        fetchedAt: '获取时间',
+        empty: '未选择模型',
+        errorTitle: '核验失败'
+      }
+    }
   },
 
   // Subscription Progress (Header component)

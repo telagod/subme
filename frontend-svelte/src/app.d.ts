@@ -10,4 +10,10 @@ declare global {
 	}
 }
 
+// Vite `?raw` import 类型（用于红线 grep test）
+declare module '*?raw' {
+	const src: string;
+	export default src;
+}
+
 export {};

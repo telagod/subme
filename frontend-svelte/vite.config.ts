@@ -28,6 +28,13 @@ export default defineConfig({
 				manualChunks(id: string) {
 					if (!id.includes('node_modules')) return;
 
+					// —— 懒加载安全岛 ——
+					// @tanstack/svelte-virtual：仅被 VirtualTable.svelte 通过 dynamic import 引用，
+					// 一定要落独立 lazy chunk，否则 rollup 会按 manualChunks 强制塞 vendor，
+					// VirtualTable 的 await import() 失效 —— 表面看不出但 perf 退化。
+					// POC 5 落地，含在 check-chunks 已知 lazy island 列表内。
+					if (id.includes('/@tanstack/svelte-virtual/')) return 'vendor-virtual';
+
 					// —— 懒加载安全岛占位：依赖未落地，预留命名空间 ——
 					// xlsx：导出功能（~400KB）
 					// if (id.includes('/xlsx/')) return 'vendor-xlsx';

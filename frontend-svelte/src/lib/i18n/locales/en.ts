@@ -5422,9 +5422,6 @@ export default {
       general: {
         title: 'General Settings',
       },
-      security: {
-        title: 'Security & Auth',
-      },
       gateway: {
         title: 'Gateway Settings',
       },
@@ -5576,6 +5573,7 @@ export default {
         frontendRedirectUrl: 'Frontend Redirect URL'
       },
       security: {
+        title: 'Security & Auth',
         totp: 'Enforce Two-Factor Auth (TOTP)',
         totpHint: 'When enabled, admin accounts must bind TOTP to sign in',
         trustForwardedIp: 'Trust forwarded client IP',
@@ -7274,6 +7272,44 @@ export default {
       tabBackup: 'Backup',
       noSearchResults: 'No matching settings found',
     },
+
+    pricing: {
+      title: 'Pricing Desk',
+      subtitle: 'OpenRouter canonical pricing — read-only verification',
+      refresh: 'Refresh',
+      retry: 'Retry',
+      searchPlaceholder: 'Search models…',
+      empty: 'No models match the current filter.',
+      overriddenYes: 'Yes',
+      filters: {
+        provider: 'Provider',
+        providerAll: 'All providers'
+      },
+      cols: {
+        model: 'Model',
+        provider: 'Provider',
+        input: 'Input $/M',
+        output: 'Output $/M',
+        cacheRead: 'Cache read',
+        origin: 'Origin',
+        overridden: 'Overridden',
+        action: 'Action'
+      },
+      verify: {
+        btn: 'Verify',
+        title: 'Verify provider pricing',
+        close: 'Close',
+        refetch: 'Re-fetch',
+        retry: 'Retry',
+        ourLabel: 'Our canonical',
+        upstreamLabel: 'Upstream OpenRouter',
+        matches: 'Prices match upstream',
+        mismatch: 'Prices differ from upstream',
+        fetchedAt: 'Fetched at',
+        empty: 'No model selected',
+        errorTitle: 'Verification failed'
+      }
+    }
   },
 
   // Subscription Progress (Header component)
