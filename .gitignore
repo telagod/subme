@@ -103,6 +103,16 @@ backend/internal/web/dist/
 backend/internal/web/dist/*
 !backend/internal/web/dist/.keep
 
+# Svelte rewrite dist (gated by `-tags=frontend_svelte`, see embed_svelte.go).
+# Same placeholder dance as the Vue dist above.
+backend/internal/web/dist_svelte/
+!backend/internal/web/dist_svelte/
+backend/internal/web/dist_svelte/*
+!backend/internal/web/dist_svelte/.keep
+
+# Makefile binary outputs (build-server-vue / build-server-svelte)
+bin/
+
 # 后端运行时缓存数据
 backend/data/
 

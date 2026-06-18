@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="text-scale" content="scale" />
+		%sveltekit.head%
+		<!--
+			Runtime config 占位：与 Vue tree window.__APP_CONFIG__ 注入契约对齐。
+			生产由后端 embed handler 替换为 /api/v1/settings/public 的内联快照，
+			dev 模式由 vite middleware（后续 POC 阶段补）回填，消除首屏闪烁。
+		-->
+		<script>
+			window.__APP_CONFIG__ = {};
+		</script>
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

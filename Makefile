@@ -1,4 +1,5 @@
-.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan
+.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan \
+	build-vue build-svelte build-server-vue build-server-svelte
 
 FRONTEND_CRITICAL_VITEST := \
 	src/views/auth/__tests__/LinuxDoCallbackView.spec.ts \
@@ -42,3 +43,25 @@ test-datamanagementd:
 
 secret-scan:
 	@python3 tools/secret_scan.py
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dual-SPA rewrite (Phase A-D) · Vue is default, Svelte gated by build tag.
+# Vue tree:    frontend/        -> backend/internal/web/dist/        (default)
+# Svelte tree: frontend-svelte/ -> backend/internal/web/dist_svelte/ (tag: frontend_svelte)
+# Both embeds require -tags=embed; the rewrite tree adds frontend_svelte.
+# Pin pnpm@9 — CI/CD lockfile is generated with pnpm 9 (see memory: pnpm-version-must-match-ci).
+# ─────────────────────────────────────────────────────────────────────────────
+
+build-vue:
+	@CI=true npx pnpm@9 --dir frontend run build
+
+build-svelte:
+	@CI=true npx pnpm@9 --dir frontend-svelte run build
+
+build-server-vue:
+	@mkdir -p bin
+	@cd backend && go build -tags=embed -o ../bin/server-vue ./cmd/server
+
+build-server-svelte:
+	@mkdir -p bin
+	@cd backend && go build -tags=embed,frontend_svelte -o ../bin/server-svelte ./cmd/server

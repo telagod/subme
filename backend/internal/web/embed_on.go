@@ -5,12 +5,12 @@ package web
 import (
 	"bytes"
 	"context"
-	"embed"
 	"encoding/json"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -24,8 +24,11 @@ const (
 	NonceHTMLPlaceholder = "__CSP_NONCE_VALUE__"
 )
 
-//go:embed all:dist
-var frontendFS embed.FS
+// frontendFS and distRoot are provided by build-tag-gated files:
+//   embed_vue.go     -> //go:build embed && !frontend_svelte (default: dist/)
+//   embed_svelte.go  -> //go:build embed && frontend_svelte  (alt:     dist_svelte/)
+// This keeps Vue as the default embedded SPA; the Svelte rewrite is gated
+// behind -tags=embed,frontend_svelte until Phase D switches the default.
 
 // PublicSettingsProvider is an interface to fetch public settings
 type PublicSettingsProvider interface {
@@ -44,7 +47,7 @@ type FrontendServer struct {
 
 // NewFrontendServer creates a new frontend server with settings injection
 func NewFrontendServer(settingsProvider PublicSettingsProvider) (*FrontendServer, error) {
-	distFS, err := fs.Sub(frontendFS, "dist")
+	distFS, err := fs.Sub(frontendFS, distRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +249,7 @@ func replaceNoncePlaceholder(html []byte, nonce string) []byte {
 // ServeEmbeddedFrontend returns a middleware for serving embedded frontend
 // This is the legacy function for backward compatibility when no settings provider is available
 func ServeEmbeddedFrontend() gin.HandlerFunc {
-	distFS, err := fs.Sub(frontendFS, "dist")
+	distFS, err := fs.Sub(frontendFS, distRoot)
 	if err != nil {
 		panic("failed to get dist subdirectory: " + err.Error())
 	}
@@ -331,6 +334,6 @@ func serveIndexHTML(c *gin.Context, fsys fs.FS) {
 }
 
 func HasEmbeddedFrontend() bool {
-	_, err := frontendFS.ReadFile("dist/index.html")
+	_, err := frontendFS.ReadFile(path.Join(distRoot, "index.html"))
 	return err == nil
 }
