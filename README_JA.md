@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Go](https://img.shields.io/badge/Go-1.25.7-00ADD8.svg)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.26.4-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
@@ -38,7 +38,7 @@ subme は、AI 製品のサブスクリプションから API クォータを配
 
 | コンポーネント | 技術 |
 |-----------|------------|
-| バックエンド | Go 1.25.7, Gin, Ent |
+| バックエンド | Go 1.26.4, Gin, Ent |
 | フロントエンド | Vue 3.4+, Vite 5+, TailwindCSS |
 | データベース | PostgreSQL 15+ |
 | キャッシュ/キュー | Redis 7+ |
@@ -533,7 +533,7 @@ sub2api/
 
 ## ライセンス
 
-本プロジェクトは [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) のフォークであり、[MIT License](LICENSE) の下でライセンスされています。
+本プロジェクトは [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) のフォークであり（元のフォーク；2026-06-18 同期切断、独立保守）、[MIT License](LICENSE) の下でライセンスされています。
 
 詳細は [NOTICE](NOTICE) を参照してください。
 

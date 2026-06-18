@@ -1,3 +1,5 @@
+> **历史档案 (2026-06-12 后)**：本文档为初始 QUENCH/淬钢 战略方向稿。2026-06-12 方向反转为 shadcn-vue 原生组件 + Zinc 中性盘，活生态文档为：frontend/docs/DESIGN_LANGUAGE.md（设计语言宪法）、frontend/RESHADCN.md（迁移战略）、frontend/RESHADCN_RULES.md（执行规约）。本文档保留作为方向溯源。
+
 # Subme 前端重塑方案 —— 「淬钢 QUENCH」
 
 > 一句话定位：把「API 转售站的管理页面」升级为「**一家公司的经营操作台**」。

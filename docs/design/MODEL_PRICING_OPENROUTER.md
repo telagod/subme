@@ -1,5 +1,7 @@
 # 模型定价数据源切换 OpenRouter —— 设计方案
 
+> **状态：已实现**（v0.2.0-subme.X 系列内落地，详见 MEMORY/openrouter-pricing-done + git log --grep=pricing|openrouter）。本文档保留作为设计决策溯源。GetModelPricing 为红线，不动。
+
 > 目标：把官方价数据源从 LiteLLM 切到 **OpenRouter**，单一源拿齐「价格 + 描述 + 能力」；
 > 妥善处理「一模型多供应商价差」的取舍；定价直接展示，可编辑、可核对、信息密集。
 

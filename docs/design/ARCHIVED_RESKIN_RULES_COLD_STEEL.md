@@ -1,3 +1,5 @@
+> **已弃用 2026-06-12**：被 frontend/RESHADCN_RULES.md 取代。保留作为方向溯源。
+
 # COLD STEEL Re-skin Rules（agent 执行规约）
 
 你正在把一个 Vue3 页面从「teal 玻璃拟态」改造成「冷钢黑白金属」。

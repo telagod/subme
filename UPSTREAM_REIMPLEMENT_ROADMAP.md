@@ -1,5 +1,7 @@
 # 上游重新实现路线图 · Wei-Shaw/sub2api → telagod/subme
 
+> **2026-06-18 起 fork 已断开同步。**本路线图为断开时刻 108-commit 快照的回顾分析；其中标注 pending 的项已在 v.7..v.20 干净重写覆盖（详见 docs/RELEASE_NOTES_SUBME_V7_V20.md）。**未来上游观测改走 docs/UPSTREAM_WATCH.md 单一事实源**，本文档保留作为重写决策溯源。
+
 > 生成 2026-06-17 ｜ 上游领先 108 提交（分叉点 `0aad6030` ≈ v0.1.135，对应上游 release v0.1.137）
 > **方法论铁律**：把上游改动当需求源，在重写版按本地架构**重新实现**，绝不 `git merge`（旧 module 路径 + 旧架构会污染重写版）。
 > 盘点方式：9 功能簇并行 survey + 对抗验证（8+ skip 判断全部 confirmed，零翻案）。所有「本地落点」基于 `main` ref。

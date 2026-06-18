@@ -1,3 +1,5 @@
+> **已弃用 2026-06-12**：被 frontend/RESHADCN.md 取代。保留作为方向溯源。
+
 # COLD STEEL · 前端冷钢黑白金属 Re-skin
 
 > 策略：**视觉层重写（re-skin）**，保留全部业务/数据/i18n/路由/stores，

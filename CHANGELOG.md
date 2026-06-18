@@ -45,6 +45,9 @@ Versions earlier than `v0.2.0-subme.7` predate this changelog; consult
   budget) instead of returning `nil` regardless of reachability.
 - Documented deferral rationale on `ContentModerationService.enforceAccountBan`
   admin path and `adminServiceImpl.RefreshAccountCredentials` stub.
+- Fork relationship: upstream edge formally detached 2026-06-18 at upstream HEAD
+  `4a5665da`. Future upstream-watch workflow + 108-commit historical snapshot
+  recorded in `docs/UPSTREAM_WATCH.md` (force-add required — `docs/*` is gitignored).
 
 ### Docs
 

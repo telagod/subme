@@ -17,3 +17,4 @@
 | `bf28a009` | 2026-06-12 | deferred | - | beta token 清理已对齐（2741e451#4）；top-level 字段过滤部分待评估 |
 | `448936d9` | 2026-06-12 | skipped | - | 上游自身 CI/gofmt/errcheck 修复，与本仓库无关 |
 | `d251487d` | 2026-06-12 | ported | c47e8743 | CC→Responses 转换链路 prompt_cache_key 透传，独立实现 |
+| `4a5665da` | 2026-06-18 | bulk-covered | v.7..v.20 | 108-commit historical snapshot (0aad6030..4a5665da, 2026-06-08..2026-06-16). 全部已在 v.7..v.20 干净重写覆盖；明细见 docs/RELEASE_NOTES_SUBME_V7_V20.md。Fork edge 自此断开，未来观测流程见 docs/UPSTREAM_WATCH.md。 |
