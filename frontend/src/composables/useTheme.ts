@@ -9,7 +9,9 @@ function resolveInitial(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === 'light' || stored === 'dark') return stored
-  } catch {}
+  } catch {
+    // localStorage not available (SSR / privacy mode); fall through to default
+  }
   return 'light'
 }
 

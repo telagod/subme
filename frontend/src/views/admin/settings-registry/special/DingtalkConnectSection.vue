@@ -284,7 +284,7 @@ watch(
 
 function set(key: keyof DingtalkLocal, value: unknown) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(local as any)[key] = value
+  (local as any)[key] = value
   emit('update:field', key, value)
 }
 

@@ -166,10 +166,10 @@ func TestAntigravityTokenRefresher_CacheKey_PrefersProjectID(t *testing.T) {
 // 进而 Antigravity 调用全部 401。
 func TestMergeCredentials_PreservesOldFieldsWhenNewMissing(t *testing.T) {
 	old := map[string]any{
-		"project_id":  "proj-123",
-		"email":       "user@example.com",
-		"plan_type":   "PRO",
-		"old_only":    "kept",
+		"project_id": "proj-123",
+		"email":      "user@example.com",
+		"plan_type":  "PRO",
+		"old_only":   "kept",
 	}
 	new_ := map[string]any{
 		"access_token":  "new-token",

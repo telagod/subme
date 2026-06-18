@@ -538,7 +538,7 @@ export function useAccountPoolActions(
     filters: BulkEditFilters,
     onDone: () => void,
   ): Promise<{ failedIds: number[] } | null> => {
-    let failedIds: number[] = []
+    const failedIds: number[] = []
     try {
       const { ids, total } = await fetchFilteredAccountIds(filters)
       if (total === 0 || ids.length === 0) {

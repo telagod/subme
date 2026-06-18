@@ -156,7 +156,9 @@ async function handleLogout() {
   closeDropdown()
   try {
     await authStore.logout()
-  } catch {}
+  } catch {
+    // ignore logout errors; we still route to /login
+  }
   await router.push('/login')
 }
 

@@ -12,11 +12,11 @@ import (
 
 // TestOpenAIGatewayServiceRecordUsage_CyberBlockedShortCircuit
 // 验证 phase-2 关键不变量：
-//   1) RequestType = RequestTypeCyberBlocked（admin 报表可过滤）
-//   2) 所有 tokens / costs = 0（安全阻断流量不计费）
-//   3) 业务身份字段保留（user / api_key / account / model）
-//   4) billing 链路完全跳过——不调 applyUsageBilling（billingRepo.calls == 0）
-//   5) usage 日志仍写入（admin 可见来源），且 inserted=true 路径
+//  1. RequestType = RequestTypeCyberBlocked（admin 报表可过滤）
+//  2. 所有 tokens / costs = 0（安全阻断流量不计费）
+//  3. 业务身份字段保留（user / api_key / account / model）
+//  4. billing 链路完全跳过——不调 applyUsageBilling（billingRepo.calls == 0）
+//  5. usage 日志仍写入（admin 可见来源），且 inserted=true 路径
 func TestOpenAIGatewayServiceRecordUsage_CyberBlockedShortCircuit(t *testing.T) {
 	usageRepo := &openAIRecordUsageLogRepoStub{inserted: true}
 	billingRepo := &openAIRecordUsageBillingRepoStub{result: &UsageBillingApplyResult{Applied: true}}

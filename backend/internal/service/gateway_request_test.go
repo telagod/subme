@@ -1394,10 +1394,10 @@ func TestOpenAIBodyHasThinkingEnabled(t *testing.T) {
 
 func TestApplyThinkingEnabledFallback(t *testing.T) {
 	tests := []struct {
-		name        string
-		body        string
-		model       string
-		wantEffort  string // ""=expect no reasoning_effort key
+		name          string
+		body          string
+		model         string
+		wantEffort    string // ""=expect no reasoning_effort key
 		wantUnchanged bool
 	}{
 		// thinking enabled + passback-required, no effort → 写 high

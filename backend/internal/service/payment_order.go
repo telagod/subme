@@ -329,9 +329,9 @@ func (s *PaymentService) checkDailyLimit(ctx context.Context, tx *dbent.Tx, user
 	// 用 SQL SUM 按 order_type 聚合，避免把整日订单全部拉回内存再循环累加。
 	// 余额充值用 pay_amount，其他订单用 amount —— 与历史循环逻辑保持一致。
 	type aggRow struct {
-		OrderType   string  `json:"order_type"`
-		SumAmount   float64 `json:"sum_amount"`
-		SumPayAmt   float64 `json:"sum_pay_amount"`
+		OrderType string  `json:"order_type"`
+		SumAmount float64 `json:"sum_amount"`
+		SumPayAmt float64 `json:"sum_pay_amount"`
 	}
 	var rows []aggRow
 	err := tx.PaymentOrder.Query().

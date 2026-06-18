@@ -8,7 +8,7 @@ import (
 func catalogFixture() []CatalogModel {
 	return []CatalogModel{
 		{ID: "anthropic/claude-sonnet-4-5"},
-		{ID: "anthropic/claude-sonnet-4.5"},    // 点号版本（同模型另一 ID，用于测试去重逻辑）
+		{ID: "anthropic/claude-sonnet-4.5"}, // 点号版本（同模型另一 ID，用于测试去重逻辑）
 		{ID: "anthropic/claude-3-5-sonnet"},
 		{ID: "anthropic/claude-opus-4"},
 		{ID: "anthropic/claude-haiku-3"},

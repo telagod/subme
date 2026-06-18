@@ -438,7 +438,7 @@ type ChatCompletionsRequest struct {
 	ReasoningEffort     string             `json:"reasoning_effort,omitempty"` // "low" | "medium" | "high" | "xhigh"
 	ServiceTier         string             `json:"service_tier,omitempty"`
 	PromptCacheKey      string             `json:"prompt_cache_key,omitempty"` // cache routing hint, must survive CC→Responses conversion
-	Stop                json.RawMessage    `json:"stop,omitempty"` // string or []string
+	Stop                json.RawMessage    `json:"stop,omitempty"`             // string or []string
 
 	// Legacy function calling (deprecated but still supported)
 	Functions    []ChatFunction  `json:"functions,omitempty"`

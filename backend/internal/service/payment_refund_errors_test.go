@@ -29,12 +29,12 @@ import (
 type refundUserRepoStub struct {
 	userRepoStub
 
-	user                 *User
-	getErr               error
-	updateBalanceErr     error
-	deductBalanceErr     error
-	updateBalanceCalls   []refundBalanceOp
-	deductBalanceCalls   []refundBalanceOp
+	user               *User
+	getErr             error
+	updateBalanceErr   error
+	deductBalanceErr   error
+	updateBalanceCalls []refundBalanceOp
+	deductBalanceCalls []refundBalanceOp
 }
 
 type refundBalanceOp struct {

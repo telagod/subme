@@ -78,7 +78,7 @@
               <!-- number -->
               <template v-else-if="field.type === 'number'">
                 <Input
-                  :model-value="formData[field.key] as number | string | null"
+                  :model-value="toNumberInputValue(formData[field.key])"
                   type="number"
                   :required="field.required"
                   :placeholder="field.placeholder ?? ''"
@@ -202,6 +202,12 @@ watch(
 const visibleFields = computed(() =>
   props.fields.filter(f => !f.showWhen || f.showWhen(formData))
 )
+
+function toNumberInputValue(v: unknown): number | string | null {
+  if (v === null || v === undefined) return null
+  if (typeof v === 'number' || typeof v === 'string') return v
+  return String(v)
+}
 
 function handleClose() {
   emit('update:modelValue', false)

@@ -24,9 +24,9 @@ type catalogProvider interface {
 
 // ModelCatalogHandler 处理模型目录的只读查询与同步触发，以及价格覆盖管理。
 type ModelCatalogHandler struct {
-	catalog   catalogProvider
-	overRepo  service.ModelOverrideRepository
-	resolver  *service.OverrideResolver
+	catalog  catalogProvider
+	overRepo service.ModelOverrideRepository
+	resolver *service.OverrideResolver
 }
 
 // NewModelCatalogHandler 构造函数；catalog 参数为 *service.OpenRouterCatalogService。
@@ -81,10 +81,10 @@ type catalogDetailDTO struct {
 	ContextLen   int                  `json:"context_len"`
 	Modalities   []string             `json:"modalities"`
 	Capabilities []string             `json:"capabilities"`
-	Baseline     catalogBaselineDTO   `json:"baseline"`    // 已应用覆盖后的最终基准
+	Baseline     catalogBaselineDTO   `json:"baseline"` // 已应用覆盖后的最终基准
 	Providers    []catalogProviderDTO `json:"providers"`
-	Overridden   bool                 `json:"overridden"`            // 是否存在覆盖记录
-	Override     *overrideDTO         `json:"override,omitempty"`    // 当前覆盖记录（nil = 无）
+	Overridden   bool                 `json:"overridden"`         // 是否存在覆盖记录
+	Override     *overrideDTO         `json:"override,omitempty"` // 当前覆盖记录（nil = 无）
 }
 
 // overrideDTO 覆盖记录摘要（展示用）。

@@ -369,7 +369,7 @@ watch(
     const fresh = pick(src)
     for (const k of Object.keys(fresh) as (keyof OidcLocal)[]) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(local as any)[k] = (fresh as any)[k]
+      (local as any)[k] = (fresh as any)[k]
     }
   },
   { deep: true },
@@ -377,7 +377,7 @@ watch(
 
 function set(key: keyof OidcLocal, value: unknown) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(local as any)[key] = value
+  (local as any)[key] = value
   emit('update:field', key, value)
 }
 

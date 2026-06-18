@@ -304,7 +304,7 @@ watch(
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function setField(key: keyof WechatLocal, value: unknown) {
-  ;(local.value as Record<string, unknown>)[key] = value
+  (local.value as Record<string, unknown>)[key] = value
   emit('update:field', key, value)
 }
 

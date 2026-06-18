@@ -15,11 +15,11 @@ import (
 
 // ChannelHandler handles admin channel management
 type ChannelHandler struct {
-	channelService  *service.ChannelService
-	billingService  *service.BillingService
-	pricingService  *service.PricingService
-	catalogService  *service.OpenRouterCatalogService // 展示用途：前端自动填充官方价，绝不用于真实计费
-	overResolver    *service.OverrideResolver         // 覆盖解析器（展示用途）
+	channelService *service.ChannelService
+	billingService *service.BillingService
+	pricingService *service.PricingService
+	catalogService *service.OpenRouterCatalogService // 展示用途：前端自动填充官方价，绝不用于真实计费
+	overResolver   *service.OverrideResolver         // 覆盖解析器（展示用途）
 }
 
 // NewChannelHandler creates a new admin channel handler

@@ -74,12 +74,12 @@ type RedeemCodeRepository interface {
 // RedeemCodeStats is the global redeem-code dashboard summary returned by
 // RedeemService.GetStats and exposed at GET /api/v1/admin/redeem-codes/stats.
 type RedeemCodeStats struct {
-	TotalCodes            int                `json:"total_codes"`
-	UnusedCodes           int                `json:"unused_codes"`
-	UsedCodes             int                `json:"used_codes"`
-	ExpiredCodes          int                `json:"expired_codes"`
-	TotalValueDistributed float64            `json:"total_value_distributed"`
-	ByType                map[string]int     `json:"by_type"`
+	TotalCodes            int            `json:"total_codes"`
+	UnusedCodes           int            `json:"unused_codes"`
+	UsedCodes             int            `json:"used_codes"`
+	ExpiredCodes          int            `json:"expired_codes"`
+	TotalValueDistributed float64        `json:"total_value_distributed"`
+	ByType                map[string]int `json:"by_type"`
 }
 
 // GenerateCodesRequest 生成兑换码请求

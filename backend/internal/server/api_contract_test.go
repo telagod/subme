@@ -322,7 +322,7 @@ func TestAPIContracts(t *testing.T) {
 						SubscriptionType:    service.SubscriptionTypeStandard,
 						ModelRoutingEnabled: true,
 						ModelRouting: map[string][]int64{
-							"claude-3-*": []int64{101, 102},
+							"claude-3-*": {101, 102},
 						},
 						AccountCount: 2,
 						CreatedAt:    deps.now,

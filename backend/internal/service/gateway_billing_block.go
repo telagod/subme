@@ -3,7 +3,6 @@ package service
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 
 	"github.com/tidwall/gjson"
@@ -75,18 +74,4 @@ func buildBillingAttributionText(reqBody []byte, cliVer string) (string, error) 
 		"x-anthropic-billing-header: cc_version=%s.%s; cc_entrypoint=cli; cch=00000;",
 		cliVer, fp,
 	), nil
-}
-
-// buildBillingAttributionBlockJSON produces a system-array billing attribution
-// block matching the real Claude Code CLI format. The cch=00000 placeholder is
-// later replaced with the actual xxhash64 digest of the full body.
-func buildBillingAttributionBlockJSON(reqBody []byte, cliVer string) ([]byte, error) {
-	text, err := buildBillingAttributionText(reqBody, cliVer)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(map[string]string{
-		"type": "text",
-		"text": text,
-	})
 }
