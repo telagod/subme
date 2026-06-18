@@ -279,23 +279,14 @@
       </div>
 
       <!-- 分页（表格模式） -->
-      <div v-if="viewMode === 'table' && pagination.total > pagination.page_size" class="flex items-center justify-center gap-3 py-2">
-        <Button
-          variant="outline"
-          size="icon"
-          class="w-7 h-7 text-base"
-          :disabled="pagination.page <= 1"
-          @click="handlePageChange(pagination.page - 1)"
-        >‹</Button>
-        <span class="text-xs text-muted-foreground font-mono">{{ pagination.page }} / {{ Math.max(1, Math.ceil(pagination.total / pagination.page_size)) }}</span>
-        <Button
-          variant="outline"
-          size="icon"
-          class="w-7 h-7 text-base"
-          :disabled="pagination.page >= Math.ceil(pagination.total / pagination.page_size)"
-          @click="handlePageChange(pagination.page + 1)"
-        >›</Button>
-      </div>
+      <Pagination
+        v-if="viewMode === 'table' && pagination.total > 0"
+        :total="pagination.total"
+        :page="pagination.page"
+        :page-size="pagination.page_size"
+        @update:page="handlePageChange"
+        @update:page-size="baseHandlePageSizeChange"
+      />
     </div>
 
     <!-- ── 模态框 ── -->
@@ -371,6 +362,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
+import Pagination from '@/components/common/Pagination.vue'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -443,9 +435,10 @@ const filterFields = computed<FilterFieldDef[]>(() => [
     label: t('admin.accountsQuench.filterType'),
     type: 'select',
     options: [
-      { value: 'api_key',     label: t('admin.accountsQuench.typeApiKey') },
-      { value: 'oauth',       label: t('admin.accountsQuench.typeOAuth') },
-      { value: 'setup_token', label: t('admin.accountsQuench.typeSetupToken') },
+      { value: 'apikey',       label: t('admin.accountsQuench.typeApiKey') },
+      { value: 'oauth',        label: t('admin.accountsQuench.typeOAuth') },
+      { value: 'setup-token',  label: t('admin.accountsQuench.typeSetupToken') },
+      { value: 'bedrock',      label: 'AWS Bedrock' },
     ],
   },
   {
@@ -453,10 +446,12 @@ const filterFields = computed<FilterFieldDef[]>(() => [
     label: t('admin.accountsQuench.filterStatus'),
     type: 'select',
     options: [
-      { value: 'active',       label: t('admin.accountsQuench.statusActive') },
-      { value: 'inactive',     label: t('admin.accountsQuench.statusInactive') },
-      { value: 'error',        label: t('admin.accountsQuench.statusError') },
-      { value: 'rate_limited', label: t('admin.accountsQuench.statusRateLimited') },
+      { value: 'active',            label: t('admin.accountsQuench.statusActive') },
+      { value: 'inactive',          label: t('admin.accountsQuench.statusInactive') },
+      { value: 'error',             label: t('admin.accountsQuench.statusError') },
+      { value: 'rate_limited',      label: t('admin.accountsQuench.statusRateLimited') },
+      { value: 'temp_unschedulable', label: t('admin.accountsQuench.statusTempUnschedulable') },
+      { value: 'unschedulable',     label: t('admin.accountsQuench.statusUnschedulable') },
     ],
   },
   {
@@ -471,7 +466,13 @@ const filterFields = computed<FilterFieldDef[]>(() => [
   {
     key: 'privacy_mode',
     label: t('admin.accountsQuench.filterPrivacyMode'),
-    type: 'boolean',
+    type: 'select',
+    options: [
+      { value: '__unset__',                  label: 'Not set' },
+      { value: 'training_off',               label: 'Training Off' },
+      { value: 'training_set_cf_blocked',    label: 'CF Blocked' },
+      { value: 'training_set_failed',        label: 'Set Failed' },
+    ],
   },
   {
     key: 'schedulable',
@@ -501,9 +502,7 @@ function applyFiltersToParams(vals: AdvancedFilterValues) {
   p.type         = typeof vals.type         === 'string' ? vals.type         : ''
   p.status       = typeof vals.status       === 'string' ? vals.status       : ''
   p.group        = typeof vals.group        === 'string' ? vals.group        : ''
-  p.privacy_mode = typeof vals.privacy_mode === 'boolean'
-    ? (vals.privacy_mode ? '1' : '0')
-    : ''
+  p.privacy_mode = typeof vals.privacy_mode === 'string' ? vals.privacy_mode : ''
   p.schedulable  = typeof vals.schedulable  === 'string' ? vals.schedulable  : ''
   p.has_proxy    = typeof vals.has_proxy    === 'string' ? vals.has_proxy    : ''
 }
@@ -548,7 +547,7 @@ function onFilterClear() {
 }
 
 // 表格加载器
-const { items: accounts, loading, params, pagination, load: baseLoad, reload: baseReload, debouncedReload, handlePageChange: basePageChange } = useTableLoader<Account, any>({
+const { items: accounts, loading, params, pagination, load: baseLoad, reload: baseReload, debouncedReload, handlePageChange: basePageChange, handlePageSizeChange: baseHandlePageSizeChange } = useTableLoader<Account, any>({
   fetchFn: adminAPI.accounts.list,
   initialParams: { platform: '', type: '', status: '', group: '', privacy_mode: '', schedulable: '', has_proxy: '', search: '', sort_by: 'name', sort_order: 'asc' }
 })
@@ -807,6 +806,7 @@ const doExport = () => {
     },
     sortBy.value, sortOrder.value,
     includeProxyOnExport.value,
+    selectedIds.value.length > 0 ? selectedIds.value : undefined,
   )
   showExportDialog.value = false
 }

@@ -54,11 +54,20 @@ const registration: SettingsSection = {
     },
     // force_email_on_third_party_signup lives in the Users tab in SettingsView
     // (authSourceDefaults card, line 3356) — registered in sections/users.ts.
+  ],
+}
+
+const apiKeyAcl: SettingsSection = {
+  id: 'security.apiKeyAcl',
+  tab: 'security',
+  title: 'admin.settings.apiKeyAcl.title',
+  description: 'admin.settings.apiKeyAcl.description',
+  fields: [
     {
       key: 'api_key_acl_trust_forwarded_ip',
-      label: 'admin.settings.security.trustForwardedIp',
+      label: 'admin.settings.apiKeyAcl.trustForwardedIp',
       type: 'switch',
-      help: 'admin.settings.security.trustForwardedIpHint',
+      help: 'admin.settings.apiKeyAcl.trustForwardedIpHint',
     },
   ],
 }
@@ -205,4 +214,4 @@ const google: SettingsSection = {
 // sync field grids, PKCE toggles) that exceed FieldRenderer capacity.
 // Backlogged as section.component migrations.
 
-export default [registration, turnstile, linuxdo, github, google] as SettingsSection[]
+export default [registration, apiKeyAcl, turnstile, linuxdo, github, google] as SettingsSection[]

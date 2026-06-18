@@ -4,6 +4,7 @@
  * + patchAccountInList: 过滤面感知行级 patch（移植自 legacy）
  */
 import { ref, reactive, triggerRef, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
 import type { Account, AccountPlatform, AccountType, WindowStats } from '@/types'
@@ -155,6 +156,7 @@ export function useAccountPoolActions(
   options: UseAccountPoolActionsOptions = {}
 ) {
   const appStore = useAppStore()
+  const { t } = useI18n()
   const { params, pagination, onLocalListMutation } = options
 
   // ── BulkEdit 状态（直接挂模态，不再 router.push 旧页）──────────────────
@@ -622,12 +624,15 @@ export function useAccountPoolActions(
     sortBy: string,
     sortOrder: 'asc' | 'desc',
     includeProxies: boolean = true,
+    ids?: number[],
   ) => {
     try {
-      const data = await adminAPI.accounts.exportData({
-        filters: { ...filters, sort_by: sortBy, sort_order: sortOrder },
-        includeProxies,
-      })
+      const data = ids && ids.length > 0
+        ? await adminAPI.accounts.exportData({ ids, includeProxies })
+        : await adminAPI.accounts.exportData({
+            filters: { ...filters, sort_by: sortBy, sort_order: sortOrder },
+            includeProxies,
+          })
       const ts = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url  = URL.createObjectURL(blob)
@@ -636,9 +641,9 @@ export function useAccountPoolActions(
       a.download = `sub2api-accounts-${ts}.json`
       a.click()
       URL.revokeObjectURL(url)
-      appStore.showSuccess('导出成功')
+      appStore.showSuccess(t('admin.accountsQuench.exportSuccess'))
     } catch (err: any) {
-      appStore.showError(err?.message || '导出失败')
+      appStore.showError(err?.message || t('admin.accountsQuench.exportError'))
     }
   }
 

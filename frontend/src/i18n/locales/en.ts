@@ -57,6 +57,11 @@ export default {
     // CTA section
     footer: {
       allRightsReserved: 'All rights reserved.'
+    },
+    tags: {
+      subscriptionToApi: 'Subscription to API',
+      stickySession: 'Sticky Sessions',
+      realtimeBilling: 'Pay As You Go'
     }
   },
 
@@ -6938,6 +6943,8 @@ export default {
       statusInactive: 'Disabled',
       statusError: 'Error',
       statusRateLimited: 'Rate Limited',
+      statusTempUnschedulable: 'Temp Unschedulable',
+      statusUnschedulable: 'Unschedulable',
       summaryTotal: 'Total',
       summaryActive: 'Active',
       summaryInactive: 'Disabled',
@@ -6997,6 +7004,8 @@ export default {
       bulkSchedulableDisabled: '{count} accounts disabled from scheduling.',
       bulkSchedulablePartial: 'Schedulable update partial: {success} ok, {failed} failed.',
       bulkSchedulableResultUnknown: 'Bulk update result format unrecognized; list reloaded.',
+      exportSuccess: 'Export Successful',
+      exportError: 'Export Failed',
       autoRefresh: {
         persistentFailure: 'Auto-refresh failed 3 times consecutively, paused. Re-enable manually.'
       },

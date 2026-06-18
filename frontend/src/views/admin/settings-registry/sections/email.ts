@@ -36,52 +36,21 @@ const smtp: SettingsSection = {
   tab: 'email',
   title: 'admin.settings.smtp.title',
   description: 'admin.settings.smtp.description',
-  fields: [
-    {
-      key: 'smtp_host',
-      label: 'admin.settings.smtp.host',
-      type: 'text',
-      placeholder: 'admin.settings.smtp.hostPlaceholder',
-    },
-    {
-      key: 'smtp_port',
-      label: 'admin.settings.smtp.port',
-      type: 'number',
-      placeholder: 'admin.settings.smtp.portPlaceholder',
-    },
-    {
-      key: 'smtp_username',
-      label: 'admin.settings.smtp.username',
-      type: 'text',
-      placeholder: 'admin.settings.smtp.usernamePlaceholder',
-    },
-    {
-      key: 'smtp_password',
-      label: 'admin.settings.smtp.password',
-      type: 'password',
-      sensitive: true,
-      placeholder: 'admin.settings.smtp.passwordPlaceholder',
-      help: 'admin.settings.smtp.passwordHint',
-    },
-    {
-      key: 'smtp_from_email',
-      label: 'admin.settings.smtp.fromEmail',
-      type: 'text',
-      placeholder: 'admin.settings.smtp.fromEmailPlaceholder',
-    },
-    {
-      key: 'smtp_from_name',
-      label: 'admin.settings.smtp.fromName',
-      type: 'text',
-      placeholder: 'admin.settings.smtp.fromNamePlaceholder',
-    },
-    {
-      key: 'smtp_use_tls',
-      label: 'admin.settings.smtp.useTls',
-      type: 'switch',
-      help: 'admin.settings.smtp.useTlsHint',
-    },
-  ],
+  fields: [],
+  component: defineAsyncComponent(
+    () => import('../special/SmtpSection.vue'),
+  ),
+}
+
+const testEmail: SettingsSection = {
+  id: 'email.test-email',
+  tab: 'email',
+  title: 'admin.settings.testEmail.title',
+  description: 'admin.settings.testEmail.description',
+  fields: [],
+  component: defineAsyncComponent(
+    () => import('../special/TestEmailSection.vue'),
+  ),
 }
 
 const subscriptionExpiry: SettingsSection = {
@@ -157,4 +126,4 @@ const quotaNotify: SettingsSection = {
   ),
 }
 
-export default [smtp, subscriptionExpiry, emailTemplates, balanceNotify, quotaNotify] as SettingsSection[]
+export default [smtp, testEmail, subscriptionExpiry, emailTemplates, balanceNotify, quotaNotify] as SettingsSection[]

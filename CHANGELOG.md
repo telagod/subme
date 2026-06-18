@@ -8,7 +8,92 @@ All notable changes to this fork are tracked here. This file follows
 Versions earlier than `v0.2.0-subme.7` predate this changelog; consult
 `git log v0.2.0-subme.6..` for the full historical record.
 
-## [Unreleased] — v0.2.0-subme.20
+## [v0.2.0-subme.23] — 2026-06-18
+
+Closing entry of the Vue era. Cleans up UI regressions accumulated since
+the v.5 → v.20 reshadcn migration, publishes the Svelte 5 rewrite
+construction blueprint, and removes 9 orphan components. After this tag,
+new work moves to `feat/svelte-rewrite` per `docs/SVELTE_REWRITE_PLAN.md`.
+
+### Added
+
+- `docs/SVELTE_REWRITE_PLAN.md` (force-added past `docs/*` gitignore): ~370-line
+  Svelte 5 rewrite construction blueprint — stack typing (Svelte 5 runes +
+  SvelteKit 2 + adapter-static + shadcn-svelte/bits-ui), 5-category
+  preservation set (OpenRouter pricing / orders+billing / plans+subscriptions
+  / settings-registry / v22 AppShell+nav), Go dual-SPA embed strategy
+  (build tag `frontend_svelte`), 5 hard-gate POCs (~10 days), 4-phase
+  ~49-day roadmap, 8 enforcement rules ("aesthetic charter").
+- `frontend/src/views/admin/settings-registry/special/SmtpSection.vue` —
+  SMTP fields + Test Connection button calling
+  `adminAPI.settings.testSmtpConnection()`.
+- `frontend/src/views/admin/settings-registry/special/TestEmailSection.vue` —
+  recipient input + Send button calling `adminAPI.settings.sendTestEmail()`.
+
+### Fixed
+
+- `AccountsPoolView`: filter values aligned to backend enum (`api_key`→`apikey`,
+  `setup_token`→`setup-token`, added bedrock); `privacy_mode` boolean →
+  4-option select (`__unset__` / `training_off` / `training_set_cf_blocked` /
+  `training_set_failed`); added `temp_unschedulable` / `unschedulable` status
+  options; export honors multi-select when non-empty; replaced inline
+  prev/next with `<Pagination>` component.
+- `AdminOrdersView`: dropped inline `<Dialog>` block, now renders
+  `<AdminOrderDetail>` child component (props-driven
+  `show/order/@close/@cancel/@retry/@refund`); removed unused
+  Dialog/Separator/ScrollArea/formatOrderDateTime imports and inline
+  audit-log fetch.
+- `HomeView`: added background decorations (grid + 2 blur orbs), user-initial
+  avatar pill in authenticated nav, Feature Tags pills row
+  (subscription→API / sticky session / realtime billing).
+- `SettingsRegistry`: SMTP section now async-loads dedicated component
+  (`SmtpSection.vue` via `defineAsyncComponent`); added `testEmail` section;
+  extracted `api_key_acl_trust_forwarded_ip` to its own `security.apiKeyAcl`
+  section with `admin.settings.apiKeyAcl.*` i18n keys.
+- `useAccountPoolActions`: export action accepts optional `ids?: number[]`
+  for filtered-export; replaced hardcoded toast strings with i18n keys
+  `admin.accountsQuench.{exportSuccess,exportError}`.
+
+### Removed
+
+- 9 orphan components with zero references repo-wide:
+  `account/QuotaBadge.vue`, `account/CapacityBadge.vue`,
+  `admin/account/{AccountBulkActionsBar,AccountTableActions,AccountTableFilters}.vue`,
+  `common/{Skeleton,StatusBadge,TextArea}.vue`,
+  `user/profile/ProfileAccountBindingsCard.vue`.
+
+### i18n
+
+- Added `home.tags.{subscriptionToApi, stickySession, realtimeBilling}` and
+  `admin.accountsQuench.{statusTempUnschedulable, statusUnschedulable,
+  exportSuccess, exportError}` (en + zh, parity test green).
+
+Verified: vue-tsc clean, vite build 15.72s, single eager vendor chunk
+preserved (477K raw / 157K gzip), 7 lazy islands intact
+(xlsx / chart / i18n / markdown / airwallex / driver / stripe).
+
+## [v0.2.0-subme.22] — 2026-06-18
+
+See `c0875399`: user-side re-shadcn AppShell (`Quench*` → `App*` rename,
+props-driven, no admin coupling); `nav.ts` split into adminNavGroups +
+buildUserNavGroups with featureFlag + hideInSimpleMode contract; new
+`shell/useNavFiltered` composable shared by admin/user; admin↔user
+view-switch in AppTopbar avatar dropdown; piggyback fixes for
+`/admin/subscriptions` filter-prefix triple-mismatch, admin own-user-view
+access, and `SettingsRegistryView` O(n)→O(1) dirty-tracking.
+
+## [v0.2.0-subme.21] — 2026-06-18
+
+See `6ca8d04e`: collapse eager vendor chunks (TDZ circular dep white-screen
+fix; single eager `vendor` chunk + 7 lazy islands — memory
+`vendor-chunk-tdz-trap`).
+See `61f4748a`: backend `gofmt -s` + unused symbol cleanup; frontend
+eslint cleanup (no rules disabled).
+See `5e0b73a9`: post-detach docs tidy + `docs/UPSTREAM_WATCH.md` as the
+single fact source for upstream-watch workflow (checkpoint `4a5665da` @
+2026-06-18, memory `upstream-watch-checkpoint`).
+
+## [v0.2.0-subme.20] — 2026-06-17
 
 ### Fixed
 

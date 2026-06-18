@@ -70,58 +70,14 @@
     </div>
 
     <!-- 订单详情弹窗 -->
-    <Dialog :open="showDetailDialog" @update:open="showDetailDialog = $event">
-      <DialogContent class="max-h-[86vh] w-[540px] max-w-[92vw] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>订单详情</DialogTitle>
-        </DialogHeader>
-        <div v-if="selectedOrder" class="grid grid-cols-2 gap-3.5">
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.orderId') }}</label><p class="m-0 font-mono text-sm tabular-nums text-foreground">#{{ selectedOrder.id }}</p></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.orderNo') }}</label><p class="m-0 font-mono text-[11.5px] tabular-nums text-foreground">{{ selectedOrder.out_trade_no }}</p></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.status') }}</label><span :class="['inline-flex items-center rounded px-2 py-0.5 text-[11px] font-semibold', (['COMPLETED','PAID'].includes(selectedOrder.status.toUpperCase())) ? 'bg-emerald-500/15 text-emerald-400' : (['PENDING','REFUND_REQUESTED'].includes(selectedOrder.status.toUpperCase())) ? 'bg-amber-500/15 text-amber-400' : (['FAILED','REFUND_FAILED','CANCELLED','EXPIRED'].includes(selectedOrder.status.toUpperCase())) ? 'bg-red-500/15 text-red-400' : selectedOrder.status.toUpperCase() === 'REFUNDED' ? 'bg-sky-500/12 text-sky-400' : 'bg-muted text-muted-foreground']">{{ t('payment.status.' + selectedOrder.status.toLowerCase(), selectedOrder.status) }}</span></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.amount') }}</label><span class="block font-mono tabular-nums text-sm text-foreground text-right">{{ selectedOrder.order_type === 'balance' ? '$' : '¥' }}{{ selectedOrder.amount.toFixed(2) }}</span></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.payAmount') }}</label><span class="block font-mono tabular-nums text-sm text-foreground text-right">¥{{ selectedOrder.pay_amount.toFixed(2) }}</span></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.paymentMethod') }}</label><p class="m-0 text-sm text-foreground">{{ t('payment.methods.' + selectedOrder.payment_type, selectedOrder.payment_type) }}</p></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.feeRate') }}</label><p class="m-0 text-sm text-foreground">{{ selectedOrder.fee_rate }}%</p></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.orders.createdAt') }}</label><p class="m-0 text-[11.5px] text-muted-foreground">{{ formatDateTime(selectedOrder.created_at) }}</p></div>
-          <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.expiresAt') }}</label><p class="m-0 text-[11.5px] text-muted-foreground">{{ formatDateTime(selectedOrder.expires_at) }}</p></div>
-          <div v-if="selectedOrder.paid_at" class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.paidAt') }}</label><p class="m-0 text-[11.5px] text-muted-foreground">{{ formatDateTime(selectedOrder.paid_at) }}</p></div>
-          <div v-if="selectedOrder.refund_amount" class="col-span-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3.5 py-3">
-            <h4 class="mb-2 text-[12.5px] font-bold text-destructive">{{ t('payment.admin.refundInfo') }}</h4>
-            <p class="m-0 text-[12.5px] text-destructive/85">{{ t('payment.admin.refundAmount') }}: {{ selectedOrder.order_type === 'balance' ? '$' : '¥' }}{{ selectedOrder.refund_amount.toFixed(2) }}</p>
-            <p v-if="selectedOrder.refund_reason" class="m-0 text-[12.5px] text-destructive/85">{{ t('payment.admin.refundReason') }}: {{ selectedOrder.refund_reason }}</p>
-          </div>
-          <div v-if="selectedOrder.refund_requested_at" class="col-span-2">
-            <Separator class="my-1" />
-            <p class="mb-2.5 text-[11.5px] font-semibold text-primary">{{ t('payment.admin.refundRequestInfo') }}</p>
-            <div class="grid grid-cols-2 gap-3.5">
-              <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.refundRequestedAt') }}</label><p class="m-0 text-[11.5px] text-muted-foreground">{{ formatDateTime(selectedOrder.refund_requested_at) }}</p></div>
-              <div class="flex flex-col gap-0.5"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.refundRequestedBy') }}</label><p class="m-0 text-sm text-foreground">#{{ selectedOrder.refund_requested_by }}</p></div>
-              <div class="flex flex-col gap-0.5 col-span-2"><label class="block text-[11px] text-muted-foreground">{{ t('payment.admin.refundRequestReason') }}</label><p class="m-0 text-sm text-foreground">{{ selectedOrder.refund_request_reason }}</p></div>
-            </div>
-          </div>
-          <div v-if="orderAuditLogs.length > 0" class="col-span-2">
-            <Separator class="my-1" />
-            <p class="mb-2.5 text-[11.5px] font-semibold text-primary">{{ t('payment.admin.auditLogs') }}</p>
-            <ScrollArea class="max-h-[180px]">
-              <div class="flex flex-col gap-1.5">
-                <div v-for="log in orderAuditLogs" :key="log.id" class="rounded-lg border border-border bg-muted px-2.5 py-2">
-                  <div class="mb-0.5 flex items-center justify-between">
-                    <span class="text-xs font-semibold text-foreground">{{ log.action }}</span>
-                    <span class="text-[11px] text-muted-foreground">{{ formatDateTime(log.created_at) }}</span>
-                  </div>
-                  <div v-if="log.detail" class="break-all text-[11.5px] text-muted-foreground">{{ log.detail }}</div>
-                  <div v-if="log.operator" class="text-[11.5px] text-muted-foreground">{{ t('payment.admin.operator') }}: {{ log.operator }}</div>
-                </div>
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" size="sm" @click="showDetailDialog = false">关闭</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AdminOrderDetail
+      :show="showDetailDialog"
+      :order="selectedOrder"
+      @close="showDetailDialog = false"
+      @cancel="handleCancelOrder"
+      @retry="handleRetryOrder"
+      @refund="openRefundDialog"
+    />
 
     <AdminRefundDialog :show="showRefundDialog" :order="selectedOrder" :submitting="refundSubmitting" @confirm="handleRefund" @cancel="showRefundDialog = false" />
   </AppLayout>
@@ -133,7 +89,6 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { adminPaymentAPI } from '@/api/admin/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
-import { formatOrderDateTime } from '@/components/payment/orderUtils'
 import type { PaymentOrder } from '@/types/payment'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -142,11 +97,7 @@ import OrderTable from '@/components/payment/OrderTable.vue'
 import OrdersFilterBar from './OrdersFilterBar.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
-import { ScrollArea } from '@/components/ui/scroll-area'
-
-interface AuditLog { id: number; action: string; detail: string | null; operator: string | null; created_at: string }
+import AdminOrderDetail from '@/components/admin/payment/AdminOrderDetail.vue'
 
 const { t } = useI18n()
 const appStore = useAppStore()
@@ -160,7 +111,6 @@ const selectedOrder = ref<PaymentOrder | null>(null)
 const showDetailDialog = ref(false)
 const showRefundDialog = ref(false)
 const refundSubmitting = ref(false)
-const orderAuditLogs = ref<AuditLog[]>([])
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 function debounceLoadOrders() {
@@ -187,14 +137,8 @@ function handleOrderPageChange(page: number) { orderPagination.page = page; load
 function handleOrderPageSizeChange(size: number) { orderPagination.page_size = size; orderPagination.page = 1; loadOrders() }
 function clearFilters() { orderSearch.value = ''; orderFilters.status = ''; orderFilters.payment_type = ''; orderFilters.order_type = ''; orderPagination.page = 1; loadOrders() }
 
-async function showOrderDetail(order: PaymentOrder) {
-  selectedOrder.value = order; orderAuditLogs.value = []; showDetailDialog.value = true
-  try {
-    const res = await adminPaymentAPI.getOrder(order.id)
-    const data = res.data as unknown as Record<string, unknown>
-    if (data.order) selectedOrder.value = data.order as PaymentOrder
-    orderAuditLogs.value = ((data.auditLogs || data.audit_logs || []) as unknown) as AuditLog[]
-  } catch { /* keep cached */ }
+function showOrderDetail(order: PaymentOrder) {
+  selectedOrder.value = order; showDetailDialog.value = true
 }
 
 async function handleCancelOrder(order: PaymentOrder) {
@@ -218,8 +162,6 @@ async function handleRefund(data: { amount: number; reason: string; deduct_balan
   } catch (err: unknown) { appStore.showError(extractI18nErrorMessage(err, t, 'payment.errors', t('common.error'))) }
   finally { refundSubmitting.value = false }
 }
-
-function formatDateTime(dateStr: string): string { return formatOrderDateTime(dateStr) }
 
 onMounted(() => loadOrders())
 </script>

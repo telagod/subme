@@ -14,6 +14,14 @@
 
   <!-- Default Home Page -->
   <div v-else class="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <!-- Background decorations -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden">
+      <div
+        class="absolute inset-0 bg-[linear-gradient(rgba(127,127,127,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(127,127,127,0.04)_1px,transparent_1px)] bg-[size:64px_64px]"
+      ></div>
+      <div class="absolute -top-40 -right-20 h-[420px] w-[420px] rounded-full bg-primary/8 blur-3xl"></div>
+      <div class="absolute top-1/2 -left-20 h-[360px] w-[360px] rounded-full bg-primary/5 blur-3xl"></div>
+    </div>
     <!-- Header -->
     <header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
       <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -49,6 +57,10 @@
           </Button>
           <Button as-child size="sm">
             <router-link :to="isAuthenticated ? dashboardPath : '/login'">
+              <span
+                v-if="isAuthenticated && userInitial"
+                class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] font-semibold"
+              >{{ userInitial }}</span>
               {{ isAuthenticated ? t('home.dashboard') : t('home.login') }}
               <ArrowRight :size="13" />
             </router-link>
@@ -154,6 +166,24 @@
                 </div>
               </div>
             </Card>
+          </div>
+        </section>
+
+        <!-- Feature Tags pills -->
+        <section class="pb-12 pt-2">
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <Badge variant="outline" class="gap-2 px-4 py-2 text-[12.5px]">
+              <ArrowLeftRight :size="13" />
+              {{ t('home.tags.subscriptionToApi') }}
+            </Badge>
+            <Badge variant="outline" class="gap-2 px-4 py-2 text-[12.5px]">
+              <ShieldCheck :size="13" />
+              {{ t('home.tags.stickySession') }}
+            </Badge>
+            <Badge variant="outline" class="gap-2 px-4 py-2 text-[12.5px]">
+              <BarChart3 :size="13" />
+              {{ t('home.tags.realtimeBilling') }}
+            </Badge>
           </div>
         </section>
 
@@ -271,6 +301,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
   ArrowRight,
+  ArrowLeftRight,
+  BarChart3,
   BookOpen,
   Github,
   Network,
@@ -305,6 +337,10 @@ const githubUrl = 'https://github.com/telagod/subme'
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const dashboardPath = computed(() => (isAdmin.value ? '/admin/dashboard' : '/dashboard'))
+const userInitial = computed(() => {
+  const email = authStore.user?.email
+  return email ? email.charAt(0).toUpperCase() : ''
+})
 
 // Capability grid: 接入 → 调度 → 计费 → 监控 → 风控 → 会话
 const capabilities = computed(() => [

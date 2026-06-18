@@ -57,6 +57,11 @@ export default {
     // CTA 区块
     footer: {
       allRightsReserved: '保留所有权利。'
+    },
+    tags: {
+      subscriptionToApi: '订阅转 API',
+      stickySession: '粘性会话',
+      realtimeBilling: '实时计费'
     }
   },
 
@@ -6924,6 +6929,8 @@ export default {
       statusInactive: '禁用',
       statusError: '错误',
       statusRateLimited: '限流',
+      statusTempUnschedulable: '临时不可调度',
+      statusUnschedulable: '不可调度',
       summaryTotal: '总计',
       summaryActive: '活跃',
       summaryInactive: '禁用',
@@ -6983,6 +6990,8 @@ export default {
       bulkSchedulableDisabled: '已禁用 {count} 个账号调度。',
       bulkSchedulablePartial: '调度切换部分失败：成功 {success}，失败 {failed}。',
       bulkSchedulableResultUnknown: '批量结果格式无法识别，已重新加载列表。',
+      exportSuccess: '导出成功',
+      exportError: '导出失败',
       autoRefresh: {
         persistentFailure: '自动刷新连续失败 3 次，已暂停。请手动重新启用。'
       },
