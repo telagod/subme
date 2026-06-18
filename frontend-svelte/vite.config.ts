@@ -56,13 +56,22 @@ export default defineConfig({
 					if (id.includes('/svelte-chartjs/')) return 'vendor-chart';
 					if (id.includes('/@kurkle/color/')) return 'vendor-chart';
 
+					// —— 支付 SDK 懒加载岛（M6 落地）——
+					// @stripe/stripe-js + airwallex-payment-elements 都是百 KB 级
+					// 重包，必须落独立 lazy chunk。两条规则必须早于下面的 vendor
+					// 兜底，否则会被吸进 eager set 触发 check-chunks 红线
+					// (memory: vendor-chunk-tdz-trap)。
+					//
+					// 接入方：src/lib/payments/{stripe,airwallex}.ts 用
+					// `await import(...)` 引用；上层路由（/payment/*）禁止顶层
+					// 静态 import 这两个包。
+					if (id.includes('/@stripe/stripe-js/')) return 'vendor-stripe';
+					if (id.includes('/airwallex-payment-elements/')) return 'vendor-airwallex';
+					if (id.includes('/@airwallex/')) return 'vendor-airwallex';
+
 					// —— 懒加载安全岛占位：依赖未落地，预留命名空间 ——
 					// xlsx：导出功能（~400KB）
 					// if (id.includes('/xlsx/')) return 'vendor-xlsx';
-
-					// 支付 SDK
-					// if (id.includes('/@stripe/')) return 'vendor-stripe';
-					// if (id.includes('/@airwallex/')) return 'vendor-airwallex';
 
 					// markdown / 净化
 					// if (id.includes('/marked/') || id.includes('/dompurify/')) return 'vendor-markdown';

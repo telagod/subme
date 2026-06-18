@@ -34,7 +34,9 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.21.0",
+		"@stripe/stripe-js": "^9.8.0",
 		"@tanstack/svelte-virtual": "^3.13.29",
+		"airwallex-payment-elements": "^1.160.0",
 		"bits-ui": "^2.18.1",
 		"chart.js": "^4.5.1",
 		"clsx": "^2.1.1",
