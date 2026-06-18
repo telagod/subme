@@ -13,7 +13,7 @@
       </div>
       <div class="flex min-w-0 flex-col">
         <span class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-bold tracking-[0.04em] text-foreground">{{ siteName }}</span>
-        <span class="font-mono text-[9.5px] tracking-[0.22em] text-muted-foreground">ADMIN</span>
+        <span v-if="brandLabel" class="font-mono text-[9.5px] tracking-[0.22em] text-muted-foreground">{{ brandLabel }}</span>
       </div>
     </div>
 
@@ -62,8 +62,17 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
-import { navGroups } from './nav'
+import type { NavGroup } from './nav'
 import { ScrollArea } from '@/components/ui/scroll-area'
+
+withDefaults(
+  defineProps<{
+    navGroups: NavGroup[]
+    /** Sidebar 顶端 brand 下方的小标（如 ADMIN）。空字符串则隐藏。 */
+    brandLabel?: string
+  }>(),
+  { brandLabel: '' }
+)
 
 const { t } = useI18n()
 const route = useRoute()
@@ -74,7 +83,8 @@ const siteLogo = computed(() => appStore.siteLogo)
 const siteVersion = computed(() => appStore.siteVersion)
 
 function isActive(path: string): boolean {
-  if (path === '/admin/dashboard') {
+  // 顶层 dashboard 路径要严格匹配（避免 /admin/dashboard 匹配到 /admin/dashboard-x），其余允许前缀匹配
+  if (path === '/admin/dashboard' || path === '/dashboard') {
     return route.path === path
   }
   return route.path === path || route.path.startsWith(path + '/')

@@ -1,15 +1,25 @@
 <template>
-  <!-- Admin routes: Quench Shell -->
-  <QuenchShell v-if="isAdminRoute">
+  <!-- Admin routes: AppShell (renamed from QuenchShell) -->
+  <AppShell
+    v-if="isAdminRoute"
+    :nav-groups="adminNavGroups"
+    brand-label="ADMIN"
+    show-command-palette
+  >
     <slot />
-  </QuenchShell>
+  </AppShell>
 
-  <!-- Non-admin routes: original layout preserved -->
+  <!-- User-side /dashboard: same AppShell, user nav, no ⌘K (admin-scoped in v.22) -->
+  <AppShell
+    v-else-if="isUserShellRoute"
+    :nav-groups="filteredUserNavGroups"
+  >
+    <slot />
+  </AppShell>
+
+  <!-- Other user routes: legacy AppSidebar + AppHeader (v.23 will migrate) -->
   <template v-else>
     <div class="min-h-screen bg-background">
-      <!-- Background Decoration -->
-      <div class="pointer-events-none fixed inset-0 bg-mesh-gradient"></div>
-
       <!-- Sidebar -->
       <AppSidebar />
 
@@ -40,7 +50,10 @@ import { useOnboardingTour } from '@/composables/useOnboardingTour'
 import { useOnboardingStore } from '@/stores/onboarding'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
-import QuenchShell from '@/components/shell/QuenchShell.vue'
+import AppShell from '@/components/shell/AppShell.vue'
+import { adminNavGroups, buildUserNavGroups } from '@/components/shell/nav'
+import { useNavFiltered } from '@/components/shell/useNavFiltered'
+import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
 
 const route = useRoute()
 const appStore = useAppStore()
@@ -48,10 +61,30 @@ const authStore = useAuthStore()
 const sidebarCollapsed = computed(() => appStore.sidebarCollapsed)
 const isAdmin = computed(() => authStore.user?.role === 'admin')
 
-// Route-based: admin paths get Quench Shell
+// Route-based: admin paths → AppShell with admin nav
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
-// admin_guide_quench：QUENCH 壳重写后的新引导，换 key 让旧用户重看一次
+// v.22 staged rollout: only /dashboard moves to AppShell; other user routes stay on legacy until v.23.
+const isUserShellRoute = computed(() => route.path === '/dashboard')
+
+// User-side feature flags — same registry as legacy AppSidebar so menu visibility stays consistent.
+const flagAvailableChannels = makeSidebarFlag(FeatureFlags.availableChannels)
+const flagChannelMonitor = makeSidebarFlag(FeatureFlags.channelMonitor)
+const flagPayment = makeSidebarFlag(FeatureFlags.payment)
+const flagAffiliate = makeSidebarFlag(FeatureFlags.affiliate)
+
+const userNavGroupsBuilt = computed(() =>
+  buildUserNavGroups({
+    flagAvailableChannels,
+    flagChannelMonitor,
+    flagPayment,
+    flagAffiliate,
+  })
+)
+const isSimpleMode = computed(() => authStore.isSimpleMode)
+const filteredUserNavGroups = useNavFiltered(userNavGroupsBuilt, isSimpleMode)
+
+// admin_guide_quench: 引导 key 保持 QUENCH 期遗留命名，避免老用户重看
 const { replayTour } = useOnboardingTour({
   storageKey: isAdmin.value ? 'admin_guide_quench' : 'user_guide',
   autoStart: true

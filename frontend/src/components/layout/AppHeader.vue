@@ -141,6 +141,17 @@
                   {{ t('nav.apiKeys') }}
                 </router-link>
 
+                <router-link
+                  v-if="authStore.isAdmin"
+                  to="/admin/dashboard"
+                  data-testid="header-switch-to-admin"
+                  @click="closeDropdown"
+                  class="px-4 py-2 text-sm text-foreground/85 hover:bg-accent hover:text-foreground flex cursor-pointer items-center gap-2 transition-colors"
+                >
+                  <Icon name="cog" size="sm" />
+                  {{ t('nav.switchToAdminView') }}
+                </router-link>
+
                 <a
                   v-if="authStore.isAdmin"
                   href="https://github.com/telagod/subme"

@@ -204,11 +204,12 @@ import { Card, CardContent } from '@/components/ui/card'
 const { t } = useI18n()
 const appStore = useAppStore()
 const { state, reset } = useTableUrlState('sq')
+// 快速视图直接映射成 advancedFilter 的 status，统一走 af_ 序列化链
 const QUICK_VIEWS = computed(() => [
-  { id: 'all',     label: t('admin.subscriptionsQuench.viewAll'),     filters: {} as Record<string,string> },
-  { id: 'active',  label: t('admin.subscriptionsQuench.viewActive'),  filters: { f_status: 'active' } },
-  { id: 'expired', label: t('admin.subscriptionsQuench.viewExpired'), filters: { f_status: 'expired' } },
-  { id: 'revoked', label: t('admin.subscriptionsQuench.viewRevoked'), filters: { f_status: 'revoked' } },
+  { id: 'all',     label: t('admin.subscriptionsQuench.viewAll'),     status: '' },
+  { id: 'active',  label: t('admin.subscriptionsQuench.viewActive'),  status: 'active' },
+  { id: 'expired', label: t('admin.subscriptionsQuench.viewExpired'), status: 'expired' },
+  { id: 'revoked', label: t('admin.subscriptionsQuench.viewRevoked'), status: 'revoked' },
 ])
 const COLUMNS = computed(() => [
   { key: 'user',       title: t('admin.subscriptionsQuench.colUser'),      width: '210px' },
@@ -223,7 +224,7 @@ const loading = ref(false)
 const pagination = reactive({ total: 0, pages: 0 })
 const density = ref<'comfortable' | 'compact'>('comfortable')
 const selected = ref<UserSubscription[]>([])
-const activeQuickView = ref('active')
+const activeQuickView = ref<string>('')
 const filterFields = computed<FilterFieldDef[]>(() => [
   { key: 'status',     label: t('admin.subscriptionsQuench.filterStatus'),    type: 'select', options: [
     { value: 'active',  label: t('admin.subscriptions.status.active') },
@@ -241,7 +242,17 @@ const filterFields = computed<FilterFieldDef[]>(() => [
   { key: 'q',          label: t('admin.subscriptionsQuench.filterSearch'),    type: 'text', placeholder: t('admin.subscriptionsQuench.searchPlaceholder') },
 ])
 
-const advFilters = ref<AdvancedFilterValues>(deserializeFilters(state.filters as any, filterFields.value))
+// AF 值统一存在 state.filters 的 af_ 命名空间中（与 UsersQuenchView 对齐）。
+// state.filters 由 useTableUrlState 序列化为 sq_f_<key>=<val> 写入 URL，
+// 所以这里从 state.filters 中筛出 af_ 开头的 key 再交给 deserializeFilters。
+function readAfFromState(): AdvancedFilterValues {
+  const afQuery: Record<string, string> = {}
+  for (const [k, v] of Object.entries(state.filters)) {
+    if (k.startsWith('af_') && typeof v === 'string') afQuery[k] = v
+  }
+  return deserializeFilters(afQuery, filterFields.value)
+}
+const advFilters = ref<AdvancedFilterValues>(readAfFromState())
 const showAssign = ref(false), showExtend = ref(false), showRevoke = ref(false), showResetQuota = ref(false)
 const extendingSub = ref<UserSubscription | null>(null), revokingSub = ref<UserSubscription | null>(null), resettingSub = ref<UserSubscription | null>(null)
 const savedViewState = computed(() => ({ page: state.page, pageSize: state.pageSize, sort: state.sort, order: state.order, q: state.q, filters: { ...state.filters } }))
@@ -270,7 +281,7 @@ async function loadSubs() {
     const af = advFilters.value
     const expiresRange = af.expires_at as { after?: string; before?: string } | undefined
     const res = await adminAPI.subscriptions.list(state.page, state.pageSize, {
-      status: (af.status as any) || (state.filters.f_status as any) || undefined,
+      status: (af.status as any) || undefined,
       group_id: af.group_id ? parseInt(af.group_id as string) : undefined,
       platform: (af.platform as string) || undefined,
       expires_after: expiresRange?.after || undefined,
@@ -291,24 +302,38 @@ async function loadSubs() {
 }
 
 async function loadGroups() { try { groups.value = await adminAPI.groups.getAll() } catch { /* ignore */ } }
+
+/** 把 AF 值序列化写入 state.filters（af_ 前缀），触发 URL 持久化 */
+function syncAfToState(vals: AdvancedFilterValues) {
+  const serialized = serializeFilters(vals, filterFields.value)
+  for (const k of Object.keys(state.filters)) {
+    if (k.startsWith('af_')) delete state.filters[k]
+  }
+  Object.assign(state.filters, serialized)
+  state.page = 1
+}
+
 function onFilterApply(vals: AdvancedFilterValues) {
   advFilters.value = vals
-  // 先清除旧的 af_ 前缀键（防止残留过期 filter），再写入新序列化值
-  const current = state.filters as Record<string, string>
-  Object.keys(current).forEach(k => { if (k.startsWith('af_')) delete current[k] })
-  Object.assign(state.filters, serializeFilters(vals, filterFields.value))
-  state.page = 1
+  syncAfToState(vals)
+  activeQuickView.value = ''
 }
 function onFilterClear() {
   advFilters.value = {}
-  state.filters = {}
+  for (const k of Object.keys(state.filters)) {
+    if (k.startsWith('af_')) delete state.filters[k]
+  }
   state.page = 1
   activeQuickView.value = 'all'
 }
 function applyQuickView(qv: typeof QUICK_VIEWS.value[0]) {
   activeQuickView.value = qv.id
-  advFilters.value = {}; state.q = ''; state.page = 1
-  state.filters = { ...qv.filters }
+  state.q = ''
+  // 快速视图只覆盖 status 维度，其它 AF 一并清空，保持行为可预测
+  const next: AdvancedFilterValues = {}
+  if (qv.status) next.status = qv.status
+  advFilters.value = next
+  syncAfToState(next)
 }
 function onApplyView(view: SavedView | null) {
   if (!view) { reset(); advFilters.value = {}; activeQuickView.value = 'all'; return }
@@ -316,8 +341,10 @@ function onApplyView(view: SavedView | null) {
   if (view.state.order)   state.order = view.state.order
   if (view.state.page)    state.page = view.state.page
   if (view.state.pageSize) state.pageSize = view.state.pageSize
-  if (view.state.filters) { Object.assign(state.filters, view.state.filters) }
-  advFilters.value = deserializeFilters(state.filters as any, filterFields.value)
+  if (view.state.filters) {
+    Object.assign(state.filters, view.state.filters)
+    advFilters.value = readAfFromState()
+  }
   activeQuickView.value = ''
 }
 function onSelectionChange(rows: Record<string, unknown>[]) { selected.value = rows as unknown as UserSubscription[] }
@@ -331,8 +358,17 @@ async function bulkRevoke() {
   appStore.showSuccess(t('admin.subscriptionsQuench.bulkRevokedSuccess', { n: targets.length }))
   selected.value = []; loadSubs()
 }
+// 根据初始 advFilters 同步 activeQuickView 高亮
+function syncActiveQuickViewFromAf() {
+  const s = (advFilters.value.status as string | undefined) || ''
+  const onlyStatus = Object.keys(advFilters.value).every(k => k === 'status' || advFilters.value[k] == null || advFilters.value[k] === '')
+  if (!onlyStatus) { activeQuickView.value = ''; return }
+  const match = QUICK_VIEWS.value.find(q => (q.status || '') === s)
+  activeQuickView.value = match ? match.id : ''
+}
+
 watch(() => [state.page, state.pageSize, state.sort, state.order, JSON.stringify(state.filters)], loadSubs, { flush: 'post' })
-onMounted(() => { loadGroups(); loadSubs() })
+onMounted(() => { syncActiveQuickViewFromAf(); loadGroups(); loadSubs() })
 onUnmounted(() => abortCtrl?.abort())
 </script>
 

@@ -4,12 +4,13 @@
 @tailwind utilities;
 
 /* ============================================================================
- * COLD STEEL · Vercel-inspired Design System
+ * shadcn-vue Design System (Stone light + Zinc dark)
  * 语义 token 走 HSL CSS 变量；shadcn-vue 组件与全局类共用同一套。
+ * 默认亮色（useTheme.ts:15），用户偏好切换持久化到 localStorage。
  * ==========================================================================*/
 @layer base {
   :root {
-    /* shadcn-vue Stone · 亮色（暖纸白底，护眼；暗色走 Zinc 冷灰） */
+    /* shadcn-vue Stone · 亮色（暖纸白底；暗色走 Zinc 冷灰） */
     --background: 60 9% 97.5%;
     --foreground: 20 14.3% 4.1%;
     --card: 60 9% 99.5%;
@@ -33,7 +34,7 @@
   }
 
   .dark {
-    /* shadcn-vue 官方 Zinc · 暗色（当前全站默认挂载，见 main.ts） */
+    /* shadcn-vue 官方 Zinc · 暗色（用户切换 .dark class 时启用） */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;

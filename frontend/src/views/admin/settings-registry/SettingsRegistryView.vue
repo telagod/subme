@@ -120,6 +120,19 @@ const searchQuery = ref('')
 const matchingSections = ref<Set<string>>(new Set())
 const activeTab = ref<TabId>('general')
 
+/**
+ * Dirty key tracker — replaces O(n) JSON.stringify deep-compare on every keystroke.
+ *
+ * Why: dirtyCount was iterating all ~200 settings keys and serializing each
+ * via JSON.stringify on every form mutation, quadrupling cost during typing.
+ *
+ * How: every onFieldUpdate adds the key to a Set. dirtyCount is just the set size.
+ * Save / discard reset the set. The JSON.stringify comparison still runs at
+ * save-time to filter no-op mutations (e.g., toggle on→off→on), but only over
+ * keys actually touched — bounded by user interactions, not by total schema size.
+ */
+const dirtyKeys = ref<Set<string>>(new Set())
+
 /** Semantic tab order (overrides glob discovery order); icons per tab */
 const TAB_ORDER: TabId[] = [
   'general', 'security', 'users', 'features',
@@ -146,10 +159,13 @@ const activeTabs = computed<TabId[]>(() => {
   return ordered
 })
 
-const sectionsByTab = computed(() => getSectionsByTab())
+// Memoized at module scope — sections are static (collected from import.meta.glob),
+// no need to recompute per render. Avoids re-running getSectionsByTab + filter
+// for every form mutation as the previous computed did.
+const SECTIONS_BY_TAB = getSectionsByTab()
 
 const currentSections = computed(() => {
-  const sections = sectionsByTab.value.get(activeTab.value) ?? []
+  const sections = SECTIONS_BY_TAB.get(activeTab.value) ?? []
   if (matchingSections.value.size === 0) return sections
   return sections.filter(s => matchingSections.value.has(s.id))
 })
@@ -160,6 +176,7 @@ async function loadSettings() {
     const data = await adminAPI.settings.getSettings() as unknown as Record<string, unknown>
     savedSettings.value = { ...data }
     form.value = { ...data }
+    dirtyKeys.value = new Set()
     const tabs = activeTabs.value
     if (tabs.length > 0) activeTab.value = tabs[0]
   } catch (err) {
@@ -171,16 +188,17 @@ async function loadSettings() {
 
 onMounted(loadSettings)
 
-const dirtyCount = computed(() => {
-  let count = 0
-  for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) count++
-  }
-  return count
-})
+const dirtyCount = computed(() => dirtyKeys.value.size)
 
 function onFieldUpdate(key: string, value: unknown) {
   form.value = { ...form.value, [key]: value }
+  if (!dirtyKeys.value.has(key)) {
+    // Cheap path: just record this key as touched. Save will re-verify against
+    // savedSettings to skip no-op patches (e.g., toggle on→off→on).
+    const next = new Set(dirtyKeys.value)
+    next.add(key)
+    dirtyKeys.value = next
+  }
 }
 
 function duplicateGroupId(list: unknown): unknown {
@@ -196,7 +214,10 @@ function duplicateGroupId(list: unknown): unknown {
 }
 
 async function saveChanges() {
-  for (const key of Object.keys(form.value)) {
+  // Only validate / diff keys actually touched by the user — bounded by
+  // dirtyKeys, not by total schema size.
+  const touchedKeys = Array.from(dirtyKeys.value)
+  for (const key of touchedKeys) {
     if (key === 'default_subscriptions' || key.endsWith('_subscriptions')) {
       const dup = duplicateGroupId(form.value[key])
       if (dup != null) {
@@ -206,13 +227,24 @@ async function saveChanges() {
     }
   }
   const patch: Record<string, unknown> = {}
-  for (const key of Object.keys(form.value)) {
-    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) patch[key] = form.value[key]
+  for (const key of touchedKeys) {
+    // Re-verify against savedSettings so toggle-and-revert sequences don't
+    // generate spurious patches.
+    if (JSON.stringify(form.value[key]) !== JSON.stringify(savedSettings.value[key])) {
+      patch[key] = form.value[key]
+    }
+  }
+  if (Object.keys(patch).length === 0) {
+    // All "dirty" keys reverted to original — nothing to save.
+    dirtyKeys.value = new Set()
+    appStore.showSuccess(t('common.saved'))
+    return
   }
   saving.value = true
   try {
     await adminAPI.settings.updateSettings(patch as Parameters<typeof adminAPI.settings.updateSettings>[0])
     savedSettings.value = { ...form.value }
+    dirtyKeys.value = new Set()
     appStore.showSuccess(t('common.saved'))
   } catch (err) {
     appStore.showError(String(err))
@@ -225,6 +257,7 @@ function discardChanges() {
   const snapshot = { ...savedSettings.value }
   savedSettings.value = snapshot
   form.value = snapshot
+  dirtyKeys.value = new Set()
 }
 
 function onSearch() {

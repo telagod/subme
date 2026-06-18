@@ -353,6 +353,8 @@ export default {
     expand: '展开',
     logout: '退出登录',
     github: 'GitHub',
+    switchToUserView: '切换到用户视图',
+    switchToAdminView: '返回管理后台',
     mySubscriptions: '我的订阅',
     buySubscription: '充值/订阅',
     docs: '文档',
@@ -365,6 +367,15 @@ export default {
     channelMonitor: '渠道监控',
     channelStatus: '渠道状态',
     riskControl: '风控中心',
+
+    // App Shell 用户端分组标签（v.22 用户端 AppShell）
+    app: {
+      group: {
+        workspace: '工作台',
+        billing: '账单',
+        account: '我的账号',
+      },
+    },
 
     // Quench Shell 导航
     quench: {

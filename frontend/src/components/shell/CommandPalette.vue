@@ -53,18 +53,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, withDefaults } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMagicKeys } from '@vueuse/core'
 import { Search } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { flatNavItems } from './nav'
+import { adminNavGroups, flatNavItems, type NavGroup } from './nav'
 
-const props = defineProps<{
-  modelValue: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    /** 可选 NavGroup 列表；省略时回退到 adminNavGroups，保留旧 admin shell 行为 */
+    navGroups?: NavGroup[]
+  }>(),
+  { navGroups: () => adminNavGroups }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -78,12 +83,12 @@ const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
 const listRef = ref<HTMLElement | null>(null)
 
-const allItems = flatNavItems()
+const allItems = computed(() => flatNavItems(props.navGroups))
 
 const filteredItems = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return allItems
-  return allItems.filter((item) => {
+  if (!q) return allItems.value
+  return allItems.value.filter((item) => {
     const label = t(item.labelKey).toLowerCase()
     const group = t(item.groupLabelKey).toLowerCase()
     return label.includes(q) || group.includes(q)

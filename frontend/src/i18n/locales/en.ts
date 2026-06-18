@@ -353,6 +353,8 @@ export default {
     expand: 'Expand',
     logout: 'Logout',
     github: 'GitHub',
+    switchToUserView: 'Switch to User View',
+    switchToAdminView: 'Back to Admin Panel',
     mySubscriptions: 'My Subscriptions',
     buySubscription: 'Recharge / Subscription',
     docs: 'Docs',
@@ -365,6 +367,15 @@ export default {
     channelMonitor: 'Channel Monitor',
     channelStatus: 'Channel Status',
     riskControl: 'Risk Control',
+
+    // App Shell user-side group labels (v.22 user-side AppShell)
+    app: {
+      group: {
+        workspace: 'Workspace',
+        billing: 'Billing',
+        account: 'Account',
+      },
+    },
 
     // Quench Shell navigation
     quench: {

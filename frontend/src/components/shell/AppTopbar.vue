@@ -13,8 +13,9 @@
       </span>
     </div>
 
-    <!-- ⌘K pill -->
+    <!-- ⌘K pill (admin only in v.22) -->
     <Button
+      v-if="showCommandPalette"
       variant="outline"
       class="ml-auto flex min-w-[220px] cursor-pointer items-center gap-2 rounded-[9px] bg-muted px-[11px] py-1.5 text-xs text-muted-foreground transition-colors hover:border-ring/40 hover:shadow-[0_0_14px_hsl(var(--ring)/0.12)]"
       data-tour="cmdk"
@@ -27,6 +28,8 @@
         class="ml-auto rounded border border-border bg-background px-1.5 py-[2px] font-mono text-[10px] text-muted-foreground"
       >⌘K</kbd>
     </Button>
+    <!-- Spacer when palette hidden: keep right cluster anchored to the right -->
+    <div v-else class="ml-auto"></div>
 
     <!-- Right section: theme + locale + user -->
     <div class="flex shrink-0 items-center gap-2">
@@ -84,6 +87,26 @@
                 <UserIcon class="h-[14px] w-[14px] shrink-0 opacity-85" />
                 {{ t('nav.profile') }}
               </router-link>
+              <router-link
+                v-if="showSwitchToUser"
+                to="/dashboard"
+                data-testid="topbar-switch-to-user"
+                class="flex w-full cursor-pointer items-center gap-[9px] rounded-[7px] border-none bg-transparent px-2.5 py-[7px] text-[12.5px] text-muted-foreground no-underline transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-inset focus-visible:ring-ring"
+                @click="closeDropdown"
+              >
+                <LayoutDashboard class="h-[14px] w-[14px] shrink-0 opacity-85" />
+                {{ t('nav.switchToUserView') }}
+              </router-link>
+              <router-link
+                v-if="showSwitchToAdmin"
+                to="/admin/dashboard"
+                data-testid="topbar-switch-to-admin"
+                class="flex w-full cursor-pointer items-center gap-[9px] rounded-[7px] border-none bg-transparent px-2.5 py-[7px] text-[12.5px] text-muted-foreground no-underline transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-[1.5px] focus-visible:ring-inset focus-visible:ring-ring"
+                @click="closeDropdown"
+              >
+                <ShieldCheck class="h-[14px] w-[14px] shrink-0 opacity-85" />
+                {{ t('nav.switchToAdminView') }}
+              </router-link>
             </div>
             <div class="border-t border-border p-[6px_4px]">
               <Button
@@ -106,12 +129,22 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Search, Sun, Moon, User as UserIcon, LogOut } from 'lucide-vue-next'
+import { Search, Sun, Moon, User as UserIcon, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
-import { resolveNavItem } from './nav'
+import { resolveNavItem, type NavGroup } from './nav'
 import { useTheme } from '@/composables/useTheme'
+
+const props = withDefaults(
+  defineProps<{
+    /** 当前 shell 的 NavGroup 列表，用于面包屑反查 */
+    navGroups: NavGroup[]
+    /** 是否在 topbar 渲染 ⌘K 按钮（与 AppShell 内部的 CommandPalette 联动） */
+    showCommandPalette?: boolean
+  }>(),
+  { showCommandPalette: false }
+)
 
 const emit = defineEmits<{
   openCommandPalette: []
@@ -126,9 +159,17 @@ const user = computed(() => authStore.user)
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const resolved = computed(() => resolveNavItem(route.path))
+const resolved = computed(() => resolveNavItem(route.path, props.navGroups))
 const currentGroup = computed(() => resolved.value?.group ?? null)
 const currentItem = computed(() => resolved.value?.item ?? null)
+
+// Admin <-> user view cross-link:
+// - admin on /admin/*  → show "Switch to user view" → /dashboard
+// - admin on user-side → show "Back to admin panel" → /admin/dashboard
+const isAdmin = computed(() => authStore.isAdmin)
+const isOnAdminRoute = computed(() => route.path.startsWith('/admin'))
+const showSwitchToUser = computed(() => isAdmin.value && isOnAdminRoute.value)
+const showSwitchToAdmin = computed(() => isAdmin.value && !isOnAdminRoute.value)
 
 const avatarUrl = computed(() => user.value?.avatar_url?.trim() || '')
 const userInitials = computed(() => {
