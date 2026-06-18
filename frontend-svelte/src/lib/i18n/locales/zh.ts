@@ -463,6 +463,137 @@ export default {
       noAccount: '还没有账户？',
       registerLink: '去注册'
     },
+    register: {
+      title: '创建账户',
+      subtitle: '几秒钟开始使用 sub2api。',
+      emailLabel: '邮箱',
+      emailPlaceholder: 'you@example.com',
+      passwordLabel: '密码',
+      passwordPlaceholder: '至少 8 位字符',
+      passwordHint: '至少 8 位字符，含字母与数字。',
+      confirmPasswordLabel: '确认密码',
+      confirmPasswordPlaceholder: '再次输入密码',
+      agreementPrefix: '我已阅读并同意',
+      termsLink: '服务条款',
+      privacyLink: '隐私政策',
+      and: '与',
+      show: '显示',
+      hide: '隐藏',
+      submit: '创建账户',
+      submitting: '创建中…',
+      alreadyHaveAccount: '已经有账户？',
+      signInLink: '去登录',
+      errors: {
+        PASSWORD_TOO_SHORT: '密码至少 8 位字符。',
+        PASSWORD_NEEDS_LETTER: '密码至少需要一个字母。',
+        PASSWORD_NEEDS_DIGIT: '密码至少需要一个数字。',
+        PASSWORD_MISMATCH: '两次输入的密码不一致。',
+        CONFIRM_REQUIRED: '请再次输入密码。',
+        EMAIL_IN_USE: '该邮箱已被注册。',
+        BAD_REQUEST: '注册失败，请检查填写内容。',
+        SERVER_ERROR: '服务器错误，请稍后重试。',
+        UNKNOWN: '注册失败，请重试。'
+      }
+    },
+    forgot: {
+      errors: {
+        BAD_REQUEST: '无法发送重置链接，请确认邮箱后重试。',
+        SERVER_ERROR: '服务器错误，请稍后重试。',
+        UNKNOWN: '发送重置链接失败，请重试。'
+      }
+    },
+    reset: {
+      errors: {
+        BAD_REQUEST: '重置密码失败，请重试。',
+        SERVER_ERROR: '服务器错误，请稍后重试。',
+        UNKNOWN: '重置密码失败，请重试。'
+      }
+    },
+    verifyEmail: {
+      title: '验证邮箱',
+      subtitle: '正在确认您的邮箱地址…',
+      pending: '正在验证您的邮箱…',
+      successTitle: '邮箱已验证',
+      successHint: '您的邮箱已验证，现在可以登录。',
+      alreadyTitle: '已验证',
+      alreadyHint: '该邮箱已经完成验证，请直接登录。',
+      expiredTitle: '链接已过期',
+      expiredHint: '该验证链接已过期，您可以重新申请。',
+      invalidTitle: '无效链接',
+      invalidHint: '该验证链接无效，请重新注册或联系客服。',
+      signIn: '去登录',
+      registerAgain: '返回注册',
+      resend: '重新发送验证邮件',
+      resending: '发送中…',
+      resendSuccess: '验证邮件已发送。',
+      errors: {
+        NEED_EMAIL: '缺少邮箱，请重新注册以获取新的验证链接。',
+        RESEND_FAILED: '重新发送验证邮件失败。'
+      }
+    },
+    verifyEmailSent: {
+      title: '验证您的邮箱',
+      subtitle: '我们已向您的邮箱发送验证链接。',
+      body: '我们已向 {email} 发送了验证链接。',
+      bodyNoEmail: '我们已向您的邮箱发送验证链接。',
+      checkSpam: '请查看收件箱或垃圾邮件文件夹。',
+      resend: '重新发送验证邮件'
+    },
+    callback: {
+      title: '正在通过 {provider} 登录',
+      subtitle: '正在完成登录…',
+      processing: '正在完成 {provider} 登录，请稍候…',
+      completed: '即将跳转…',
+      providerConnected: '已绑定 {provider}。',
+      totpSubtitle: '请输入 6 位验证码以继续。',
+      totpLabel: '两步验证码',
+      totpPlaceholder: '6 位验证码',
+      totpSubmit: '验证并继续',
+      totpSubmitting: '验证中…',
+      providerNames: {
+        linuxdo: 'Linux.do',
+        dingtalk: '钉钉',
+        oidc: 'OIDC',
+        wechat: '微信',
+        github: 'GitHub',
+        google: 'Google'
+      },
+      errors: {
+        ACCESS_DENIED: '您拒绝了登录请求。',
+        INVALID_STATE: '登录状态无效，请重试。',
+        PROVIDER_ERROR: '{provider} 登录失败，请重试。',
+        MISSING_PARAMS: '登录回调缺少必要参数。',
+        UNKNOWN_PROVIDER: '未知的 OAuth 提供方。',
+        UNSUPPORTED_EMAIL_COMPLETION: '该提供方不支持邮箱补全。',
+        MALFORMED: '登录响应格式异常。',
+        TOTP_FORMAT: '请输入 6 位验证码。',
+        TOTP_INVALID: '两步验证码不正确。',
+        TOTP_SESSION_LOST: '两步验证会话已过期，请重新登录。',
+        UNKNOWN: '登录失败，请重试。'
+      }
+    },
+    emailCompletion: {
+      title: '完成登录',
+      subtitle: '请确认邮箱以完成钉钉登录。',
+      loading: '加载中…',
+      invalidTitle: '会话已过期',
+      invalidHint: '请重新发起钉钉登录。',
+      sendCode: '发送验证码',
+      sending: '发送中…',
+      codeSent: '验证码已发送。',
+      codeLabel: '验证码',
+      codePlaceholder: '6 位验证码',
+      codeHintEmail: '验证码已发送至 {email}。',
+      submit: '完成登录',
+      submitting: '验证中…',
+      done: '登录成功，即将跳转…',
+      errors: {
+        SEND_FAILED: '发送验证码失败。',
+        CODE_FORMAT: '请输入 6 位验证码。',
+        SUBMIT_FAILED: '完成登录失败。',
+        MALFORMED: '登录响应格式异常。'
+      }
+    },
     errors: {
       USER_NOT_ACTIVE: '账号已被禁用',
       INVALID_CREDENTIALS: '邮箱或密码不正确。',

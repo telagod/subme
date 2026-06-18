@@ -463,6 +463,139 @@ export default {
       noAccount: "Don't have an account?",
       registerLink: 'Create one'
     },
+    register: {
+      title: 'Create account',
+      subtitle: 'Get started with sub2api in seconds.',
+      emailLabel: 'Email',
+      emailPlaceholder: 'you@example.com',
+      passwordLabel: 'Password',
+      passwordPlaceholder: 'At least 8 characters',
+      passwordHint: 'At least 8 chars, mix letters and numbers.',
+      confirmPasswordLabel: 'Confirm password',
+      confirmPasswordPlaceholder: 'Repeat the password',
+      agreementPrefix: 'I agree to the',
+      termsLink: 'Terms',
+      privacyLink: 'Privacy Policy',
+      and: 'and',
+      show: 'Show',
+      hide: 'Hide',
+      submit: 'Create account',
+      submitting: 'Creating account...',
+      alreadyHaveAccount: 'Already have an account?',
+      signInLink: 'Sign in',
+      errors: {
+        PASSWORD_TOO_SHORT: 'Password must be at least 8 characters.',
+        PASSWORD_NEEDS_LETTER: 'Password must contain at least one letter.',
+        PASSWORD_NEEDS_DIGIT: 'Password must contain at least one digit.',
+        PASSWORD_MISMATCH: 'Passwords do not match.',
+        CONFIRM_REQUIRED: 'Please confirm your password.',
+        EMAIL_IN_USE: 'This email is already registered.',
+        BAD_REQUEST: 'Registration failed — please check your details.',
+        SERVER_ERROR: 'Server error. Please try again later.',
+        UNKNOWN: 'Registration failed. Please try again.'
+      }
+    },
+    forgot: {
+      errors: {
+        BAD_REQUEST: 'Could not send reset link — please verify the email.',
+        SERVER_ERROR: 'Server error. Please try again later.',
+        UNKNOWN: 'Failed to send reset link. Please try again.'
+      }
+    },
+    reset: {
+      errors: {
+        BAD_REQUEST: 'Could not reset password — please retry.',
+        SERVER_ERROR: 'Server error. Please try again later.',
+        UNKNOWN: 'Failed to reset password. Please try again.'
+      }
+    },
+    verifyEmail: {
+      title: 'Verify email',
+      subtitle: 'Confirming your email address...',
+      pending: 'Verifying your email...',
+      successTitle: 'Email verified',
+      successHint: 'Your email has been verified. You can now sign in.',
+      alreadyTitle: 'Already verified',
+      alreadyHint: 'This email is already verified — please sign in.',
+      expiredTitle: 'Link expired',
+      expiredHint: 'This verification link has expired. You can request a new one.',
+      invalidTitle: 'Invalid link',
+      invalidHint: 'This verification link is invalid. Please register again or contact support.',
+      signIn: 'Sign in',
+      registerAgain: 'Back to register',
+      resend: 'Resend verification',
+      resending: 'Sending...',
+      resendSuccess: 'Verification email sent.',
+      errors: {
+        NEED_EMAIL:
+          'Email missing — please register again to receive a new verification link.',
+        RESEND_FAILED: 'Failed to resend verification email.'
+      }
+    },
+    verifyEmailSent: {
+      title: 'Verify your email',
+      subtitle: 'We sent a verification link to your email.',
+      body: "We've sent a verification link to {email}.",
+      bodyNoEmail: "We've sent a verification link to your email.",
+      checkSpam: 'Please check your inbox and spam folder.',
+      resend: 'Resend verification email'
+    },
+    callback: {
+      title: 'Signing you in with {provider}',
+      subtitle: 'Completing sign-in...',
+      processing: 'Completing {provider} sign-in, please wait...',
+      completed: 'Redirecting...',
+      providerConnected: '{provider} connected.',
+      totpSubtitle: 'Enter the 6-digit verification code to continue.',
+      totpLabel: 'Two-factor code',
+      totpPlaceholder: '6-digit code',
+      totpSubmit: 'Verify and continue',
+      totpSubmitting: 'Verifying...',
+      providerNames: {
+        linuxdo: 'Linux.do',
+        dingtalk: 'DingTalk',
+        oidc: 'OIDC',
+        wechat: 'WeChat',
+        github: 'GitHub',
+        google: 'Google'
+      },
+      errors: {
+        ACCESS_DENIED: 'You denied the sign-in request.',
+        INVALID_STATE: 'Sign-in state was invalid. Please try again.',
+        PROVIDER_ERROR: '{provider} sign-in failed. Please try again.',
+        MISSING_PARAMS: 'Sign-in callback was missing required parameters.',
+        UNKNOWN_PROVIDER: 'Unknown OAuth provider.',
+        UNSUPPORTED_EMAIL_COMPLETION:
+          'Email completion is not supported for this provider.',
+        MALFORMED: 'Sign-in response was malformed.',
+        TOTP_FORMAT: 'Enter the 6-digit code.',
+        TOTP_INVALID: 'Invalid 2FA code.',
+        TOTP_SESSION_LOST: '2FA session expired. Please sign in again.',
+        UNKNOWN: 'Sign-in failed. Please try again.'
+      }
+    },
+    emailCompletion: {
+      title: 'Complete sign-in',
+      subtitle: 'Confirm your email to finish DingTalk sign-in.',
+      loading: 'Loading...',
+      invalidTitle: 'Session expired',
+      invalidHint: 'Please start DingTalk sign-in again.',
+      sendCode: 'Send verification code',
+      sending: 'Sending...',
+      codeSent: 'Verification code sent.',
+      codeLabel: 'Verification code',
+      codePlaceholder: '6-digit code',
+      codeHintEmail: 'Code sent to {email}.',
+      submit: 'Complete sign-in',
+      submitting: 'Verifying...',
+      done: 'Signed in. Redirecting...',
+      errors: {
+        SEND_FAILED: 'Failed to send verification code.',
+        CODE_FORMAT: 'Enter the 6-digit code.',
+        SUBMIT_FAILED: 'Failed to complete sign-in.',
+        MALFORMED: 'Sign-in response was malformed.'
+      }
+    },
     errors: {
       USER_NOT_ACTIVE: 'Account has been disabled.',
       INVALID_CREDENTIALS: 'Incorrect email or password.',
