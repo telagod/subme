@@ -231,6 +231,8 @@ export default {
   common: {
     loading: '加载中...',
     submitting: '提交中...',
+    comingSoon: '即将上线',
+    discard: '放弃修改',
     save: '保存',
     saved: '保存成功',
     deleted: '删除成功',
@@ -5387,6 +5389,21 @@ export default {
         email: '邮件设置',
         backup: '数据备份',
         payment: '支付设置',
+      },
+      email: {
+        title: '邮件设置',
+        description: '配置 SMTP 与系统邮件发送行为。',
+        enabled: '启用邮件',
+        enabledHint: '关闭后所有系统邮件（验证、通知、营销）都不再发送。',
+      },
+      general: {
+        title: '通用设置',
+      },
+      security: {
+        title: '安全与认证',
+      },
+      gateway: {
+        title: '网关服务',
       },
       features: {
         channelMonitor: {

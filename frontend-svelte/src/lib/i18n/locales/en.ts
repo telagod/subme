@@ -231,6 +231,8 @@ export default {
   common: {
     loading: 'Loading...',
     submitting: 'Submitting...',
+    comingSoon: 'Coming soon',
+    discard: 'Discard changes',
     save: 'Save',
     saved: 'Saved successfully',
     deleted: 'Deleted successfully',
@@ -5410,6 +5412,21 @@ export default {
         email: 'Email',
         backup: 'Backup',
         payment: 'Payment',
+      },
+      email: {
+        title: 'Email Settings',
+        description: 'Configure SMTP and system email delivery behavior.',
+        enabled: 'Enable email',
+        enabledHint: 'Disabling stops all system emails (verification, notifications, marketing).',
+      },
+      general: {
+        title: 'General Settings',
+      },
+      security: {
+        title: 'Security & Auth',
+      },
+      gateway: {
+        title: 'Gateway Settings',
       },
       features: {
         channelMonitor: {
