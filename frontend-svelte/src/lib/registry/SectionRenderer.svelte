@@ -29,6 +29,14 @@
 	import OverloadCooldownSection from './special/OverloadCooldownSection.svelte';
 	import RateLimit429Section from './special/RateLimit429Section.svelte';
 	import PaymentProviderListSection from './special/PaymentProviderListSection.svelte';
+	import LoginAgreementDocumentsSection from './special/LoginAgreementDocumentsSection.svelte';
+	import BackupSection from './special/BackupSection.svelte';
+	import QuotaNotifySection from './special/QuotaNotifySection.svelte';
+	import StreamTimeoutSection from './special/StreamTimeoutSection.svelte';
+	import RectifierSection from './special/RectifierSection.svelte';
+	import BetaPolicySection from './special/BetaPolicySection.svelte';
+	import OpenaiFastPolicySection from './special/OpenaiFastPolicySection.svelte';
+	import WebSearchEmulationSection from './special/WebSearchEmulationSection.svelte';
 	import type { SectionDef } from './types';
 
 	type FieldUpdate = { key: string; value: unknown };
@@ -97,6 +105,22 @@
 		<RateLimit429Section {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'payment-provider-list'}
 		<PaymentProviderListSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'login-agreement-documents'}
+		<LoginAgreementDocumentsSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'backup'}
+		<BackupSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'quota-notify'}
+		<QuotaNotifySection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'stream-timeout'}
+		<StreamTimeoutSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'rectifier'}
+		<RectifierSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'beta-policy'}
+		<BetaPolicySection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'openai-fast-policy'}
+		<OpenaiFastPolicySection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'web-search-emulation'}
+		<WebSearchEmulationSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special}
 		<p class="text-xs text-destructive">[unknown special: {section.special}]</p>
 	{:else if section.fields && section.fields.length > 0}

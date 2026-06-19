@@ -58,6 +58,130 @@ export interface RateLimit429CooldownSettings {
 	cooldown_seconds: number;
 }
 
+// ── M10e gateway long-tail specials（端口自 Vue tree） ────────────────────────
+//
+// 全部走自管 GET/PUT lifecycle，与 patchSettings 流水线解耦（与 overload-cooldown
+// 同款）。openai_fast_policy_settings 例外：仍是 flat key，跟 form 同流水线。
+
+export interface StreamTimeoutSettings {
+	enabled: boolean;
+	action: 'temp_unsched' | 'error' | 'none';
+	temp_unsched_minutes: number;
+	threshold_count: number;
+	threshold_window_minutes: number;
+}
+
+export interface RectifierSettings {
+	enabled: boolean;
+	thinking_signature_enabled: boolean;
+	thinking_budget_enabled: boolean;
+	apikey_signature_enabled: boolean;
+	apikey_signature_patterns: string[];
+}
+
+export interface BetaPolicyRule {
+	beta_token: string;
+	action: 'pass' | 'filter' | 'block';
+	scope: 'all' | 'oauth' | 'apikey' | 'bedrock';
+	error_message?: string;
+	model_whitelist?: string[];
+	fallback_action?: 'pass' | 'filter' | 'block';
+	fallback_error_message?: string;
+}
+
+export interface BetaPolicySettings {
+	rules: BetaPolicyRule[];
+}
+
+export interface OpenAIFastPolicyRule {
+	service_tier: 'all' | 'priority' | 'flex';
+	action: 'pass' | 'filter' | 'block';
+	scope: 'all' | 'oauth' | 'apikey' | 'bedrock';
+	error_message?: string;
+	model_whitelist?: string[];
+	fallback_action?: 'pass' | 'filter' | 'block';
+	fallback_error_message?: string;
+}
+
+export interface OpenAIFastPolicySettings {
+	rules: OpenAIFastPolicyRule[];
+}
+
+export interface WebSearchProviderConfig {
+	type: 'brave' | 'tavily';
+	api_key: string;
+	api_key_configured: boolean;
+	quota_limit: number | null;
+	subscribed_at: number | null;
+	quota_used?: number;
+	proxy_id: number | null;
+	expires_at: number | null;
+}
+
+export interface WebSearchEmulationConfig {
+	enabled: boolean;
+	providers: WebSearchProviderConfig[];
+}
+
+export interface WebSearchTestResult {
+	provider: string;
+	query: string;
+	results: { url: string; title: string; snippet: string; page_age?: string }[];
+}
+
+// ── M10d backup lifecycle ────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/api/admin/backup.ts。后端路由组：admin.Group("/backups")。
+// 走 `/api/admin/backups/...`（前端 client.baseURL 默认空 + apiBase 拼接，与
+// 已落地的 affiliates / payment 同款）。
+//
+// 与 settings flat-form 完全解耦 —— 本 lifecycle 走 GET/PUT/POST/DELETE 自管，
+// 不进 patchSettings 流水线。BackupSection.svelte 独立 fetch + 自带保存按钮。
+
+export interface BackupS3Config {
+	endpoint: string;
+	region: string;
+	bucket: string;
+	access_key_id: string;
+	secret_access_key?: string;
+	prefix: string;
+	force_path_style: boolean;
+}
+
+export interface BackupScheduleConfig {
+	enabled: boolean;
+	cron_expr: string;
+	retain_days: number;
+	retain_count: number;
+}
+
+export interface BackupRecord {
+	id: string;
+	status: 'pending' | 'running' | 'completed' | 'failed';
+	backup_type?: string;
+	file_name?: string;
+	s3_key?: string;
+	size_bytes?: number;
+	triggered_by?: string;
+	error_message?: string;
+	started_at?: string;
+	finished_at?: string;
+	expires_at?: string;
+	progress?: string;
+	restore_status?: string;
+	restore_error?: string;
+	restored_at?: string;
+}
+
+export interface BackupTestS3Response {
+	ok: boolean;
+	message: string;
+}
+
+export interface BackupListResponse {
+	items: BackupRecord[];
+}
+
 export const settingsApi = {
 	/** 拉取后端全量 settings 快照。 */
 	getSettings(): Promise<SettingsMap> {
@@ -139,6 +263,95 @@ export const settingsApi = {
 		return apiClient.put<RateLimit429CooldownSettings>(
 			'/api/admin/settings/rate-limit-429-cooldown',
 			body
+		);
+	},
+
+	// ── M10e gateway long-tail self-managed endpoints ──────────────────────────
+
+	getStreamTimeoutSettings(): Promise<StreamTimeoutSettings> {
+		return apiClient.get<StreamTimeoutSettings>('/api/admin/settings/stream-timeout');
+	},
+	updateStreamTimeoutSettings(body: StreamTimeoutSettings): Promise<StreamTimeoutSettings> {
+		return apiClient.put<StreamTimeoutSettings>('/api/admin/settings/stream-timeout', body);
+	},
+
+	getRectifierSettings(): Promise<RectifierSettings> {
+		return apiClient.get<RectifierSettings>('/api/admin/settings/rectifier');
+	},
+	updateRectifierSettings(body: RectifierSettings): Promise<RectifierSettings> {
+		return apiClient.put<RectifierSettings>('/api/admin/settings/rectifier', body);
+	},
+
+	getBetaPolicySettings(): Promise<BetaPolicySettings> {
+		return apiClient.get<BetaPolicySettings>('/api/admin/settings/beta-policy');
+	},
+	updateBetaPolicySettings(body: BetaPolicySettings): Promise<BetaPolicySettings> {
+		return apiClient.put<BetaPolicySettings>('/api/admin/settings/beta-policy', body);
+	},
+
+	getWebSearchEmulationConfig(): Promise<WebSearchEmulationConfig> {
+		return apiClient.get<WebSearchEmulationConfig>(
+			'/api/admin/settings/web-search-emulation'
+		);
+	},
+	updateWebSearchEmulationConfig(
+		body: WebSearchEmulationConfig
+	): Promise<WebSearchEmulationConfig> {
+		return apiClient.put<WebSearchEmulationConfig>(
+			'/api/admin/settings/web-search-emulation',
+			body
+		);
+	},
+	testWebSearchEmulation(query: string): Promise<WebSearchTestResult> {
+		return apiClient.post<WebSearchTestResult>(
+			'/api/admin/settings/web-search-emulation/test',
+			{ query }
+		);
+	},
+	async resetWebSearchUsage(providerType: string): Promise<void> {
+		await apiClient.post('/api/admin/settings/web-search-emulation/reset-usage', {
+			provider_type: providerType
+		});
+	},
+
+	// ── M10d backup endpoints（独立 lifecycle，不进 patchSettings） ─────────────
+
+	getBackupS3Config(): Promise<BackupS3Config> {
+		return apiClient.get<BackupS3Config>('/api/admin/backups/s3-config');
+	},
+	updateBackupS3Config(body: BackupS3Config): Promise<BackupS3Config> {
+		return apiClient.put<BackupS3Config>('/api/admin/backups/s3-config', body);
+	},
+	testBackupS3Connection(body: BackupS3Config): Promise<BackupTestS3Response> {
+		return apiClient.post<BackupTestS3Response>('/api/admin/backups/s3-config/test', body);
+	},
+	getBackupSchedule(): Promise<BackupScheduleConfig> {
+		return apiClient.get<BackupScheduleConfig>('/api/admin/backups/schedule');
+	},
+	updateBackupSchedule(body: BackupScheduleConfig): Promise<BackupScheduleConfig> {
+		return apiClient.put<BackupScheduleConfig>('/api/admin/backups/schedule', body);
+	},
+	listBackups(): Promise<BackupListResponse> {
+		return apiClient.get<BackupListResponse>('/api/admin/backups');
+	},
+	createBackup(body: { expire_days?: number }): Promise<BackupRecord> {
+		return apiClient.post<BackupRecord>('/api/admin/backups', body ?? {});
+	},
+	getBackup(id: string): Promise<BackupRecord> {
+		return apiClient.get<BackupRecord>(`/api/admin/backups/${encodeURIComponent(id)}`);
+	},
+	async deleteBackup(id: string): Promise<void> {
+		await apiClient.delete(`/api/admin/backups/${encodeURIComponent(id)}`);
+	},
+	getBackupDownloadURL(id: string): Promise<{ url: string }> {
+		return apiClient.get<{ url: string }>(
+			`/api/admin/backups/${encodeURIComponent(id)}/download-url`
+		);
+	},
+	restoreBackup(id: string, password: string): Promise<BackupRecord> {
+		return apiClient.post<BackupRecord>(
+			`/api/admin/backups/${encodeURIComponent(id)}/restore`,
+			{ password }
 		);
 	}
 };

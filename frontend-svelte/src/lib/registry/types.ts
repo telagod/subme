@@ -90,6 +90,14 @@ export interface SectionDef {
 		| 'overload-cooldown'
 		| 'rate-limit-429'
 		| 'payment-provider-list'
+		| 'login-agreement-documents'
+		| 'backup'
+		| 'quota-notify'
+		| 'stream-timeout'
+		| 'rectifier'
+		| 'beta-policy'
+		| 'openai-fast-policy'
+		| 'web-search-emulation'
 		| string;
 }
 

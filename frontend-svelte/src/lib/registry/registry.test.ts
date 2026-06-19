@@ -21,6 +21,7 @@ import SectionRenderer from './SectionRenderer.svelte';
 import {
 	smtpSection,
 	emailGeneralSection,
+	emailQuotaNotifySection,
 	generalSiteSection,
 	generalTableSection,
 	generalCustomMenuSection,
@@ -49,14 +50,24 @@ import {
 	gatewayUsageRecordsSection,
 	gatewayOverloadCooldownSection,
 	gatewayRateLimit429Section,
+	gatewayStreamTimeoutSection,
+	gatewayRectifierSection,
+	gatewayBetaPolicySection,
+	gatewayOpenaiFastPolicySection,
+	gatewayWebSearchEmulationSection,
 	paymentConfigSection,
 	paymentProvidersSection,
+	agreementLoginSection,
+	agreementDocumentsSection,
+	backupViewSection,
 	generalSection,
 	securitySection,
 	usersSection,
 	featuresSection,
 	gatewaySection,
 	paymentSection,
+	agreementSection,
+	backupSection,
 	settingsTabs
 } from './settings.schema';
 import { buildZodSchema } from './zod';
@@ -85,6 +96,98 @@ vi.mock('$lib/api/admin/settingsRegistry', () => {
 			),
 			updateRateLimit429CooldownSettings: vi.fn(
 				(body: { enabled: boolean; cooldown_seconds: number }) => Promise.resolve(body)
+			),
+			// M10e gateway long-tail specials —— 默认返回固定 stub。
+			getStreamTimeoutSettings: vi.fn(() =>
+				Promise.resolve({
+					enabled: true,
+					action: 'temp_unsched',
+					temp_unsched_minutes: 5,
+					threshold_count: 3,
+					threshold_window_minutes: 10
+				})
+			),
+			updateStreamTimeoutSettings: vi.fn((body: Record<string, unknown>) =>
+				Promise.resolve(body)
+			),
+			getRectifierSettings: vi.fn(() =>
+				Promise.resolve({
+					enabled: true,
+					thinking_signature_enabled: true,
+					thinking_budget_enabled: true,
+					apikey_signature_enabled: false,
+					apikey_signature_patterns: []
+				})
+			),
+			updateRectifierSettings: vi.fn((body: Record<string, unknown>) => Promise.resolve(body)),
+			getBetaPolicySettings: vi.fn(() =>
+				Promise.resolve({
+					rules: [
+						{
+							beta_token: 'fast-mode-2026-02-01',
+							action: 'pass',
+							scope: 'all',
+							error_message: '',
+							model_whitelist: [],
+							fallback_action: 'pass',
+							fallback_error_message: ''
+						},
+						{
+							beta_token: 'context-1m-2025-08-07',
+							action: 'pass',
+							scope: 'all',
+							error_message: '',
+							model_whitelist: [],
+							fallback_action: 'pass',
+							fallback_error_message: ''
+						}
+					]
+				})
+			),
+			updateBetaPolicySettings: vi.fn((body: Record<string, unknown>) => Promise.resolve(body)),
+			getWebSearchEmulationConfig: vi.fn(() =>
+				Promise.resolve({ enabled: false, providers: [] })
+			),
+			updateWebSearchEmulationConfig: vi.fn((body: Record<string, unknown>) =>
+				Promise.resolve(body)
+			),
+			testWebSearchEmulation: vi.fn(() =>
+				Promise.resolve({ provider: 'brave', query: 'test', results: [] })
+			),
+			resetWebSearchUsage: vi.fn(() => Promise.resolve()),
+			// M10d backup lifecycle —— 全部 stub，组件 onMount 不真 fetch。
+			getBackupS3Config: vi.fn(() =>
+				Promise.resolve({
+					endpoint: '',
+					region: 'auto',
+					bucket: '',
+					access_key_id: '',
+					prefix: 'backups/',
+					force_path_style: false
+				})
+			),
+			updateBackupS3Config: vi.fn((body: Record<string, unknown>) => Promise.resolve(body)),
+			testBackupS3Connection: vi.fn(() => Promise.resolve({ ok: true, message: 'ok' })),
+			getBackupSchedule: vi.fn(() =>
+				Promise.resolve({
+					enabled: false,
+					cron_expr: '0 2 * * *',
+					retain_days: 14,
+					retain_count: 10
+				})
+			),
+			updateBackupSchedule: vi.fn((body: Record<string, unknown>) => Promise.resolve(body)),
+			listBackups: vi.fn(() => Promise.resolve({ items: [] })),
+			createBackup: vi.fn(() =>
+				Promise.resolve({ id: 'b1', status: 'running', progress: 'pending' })
+			),
+			getBackup: vi.fn((id: string) => Promise.resolve({ id, status: 'completed' })),
+			deleteBackup: vi.fn(() => Promise.resolve()),
+			getBackupDownloadURL: vi.fn(() =>
+				Promise.resolve({ url: 'https://example.com/dl' })
+			),
+			restoreBackup: vi.fn((id: string) =>
+				Promise.resolve({ id, status: 'completed', restore_status: 'running' })
 			)
 		}
 	};
@@ -1143,12 +1246,14 @@ describe('M10c · dirty-only PATCH payload · two-field flip in features sends O
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('M11 · gateway tab registration', () => {
-	it('settingsTabs registers gateway non-placeholder with 6 sections', () => {
+	it('settingsTabs registers gateway non-placeholder with the M11-baseline core sections', () => {
+		// M10e 后 gateway 长尾扩到 11 个 section（6 baseline + 5 long-tail specials）。
+		// 此处保留 ≥6 的宽断言以与 M11 时序对齐；精确数验证在 M10e 注册测试里做。
 		const gateway = settingsTabs.find((t) => t.id === 'gateway');
 		expect(gateway).toBeDefined();
 		expect(gateway?.placeholder).not.toBe(true);
-		expect(gateway?.sections.length).toBe(6);
-		expect(gatewaySection.length).toBe(6);
+		expect(gateway?.sections.length).toBeGreaterThanOrEqual(6);
+		expect(gatewaySection.length).toBeGreaterThanOrEqual(6);
 	});
 });
 
@@ -1802,5 +1907,1094 @@ describe('M12 · dirty-only PATCH payload · two-field flip in payment sends ONL
 		expect(payload).not.toHaveProperty('payment_max_amount');
 		expect(payload).not.toHaveProperty('payment_recharge_fee_rate');
 		expect(payload).not.toHaveProperty('payment_enabled_types');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M10d · Agreement + Backup tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M10d · agreement tab registration', () => {
+	it('settingsTabs registers agreement non-placeholder with 2 sections', () => {
+		const agreement = settingsTabs.find((t) => t.id === 'agreement');
+		expect(agreement).toBeDefined();
+		expect(agreement?.placeholder).not.toBe(true);
+		expect(agreement?.sections.length).toBe(2);
+		expect(agreementSection.length).toBe(2);
+	});
+});
+
+describe('M10d · agreement tab sections render without errors', () => {
+	it.each([
+		['agreement.config', agreementLoginSection],
+		['agreement.documents', agreementDocumentsSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('login_agreement_mode + updated_at hidden when login_agreement_enabled=false', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementLoginSection,
+				values: { login_agreement_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="login_agreement_enabled"]')).not.toBeNull();
+		expect(container.querySelector('[data-field-key="login_agreement_mode"]')).toBeNull();
+		expect(container.querySelector('[data-field-key="login_agreement_updated_at"]')).toBeNull();
+	});
+
+	it('login_agreement_mode + updated_at appear when login_agreement_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementLoginSection,
+				values: { login_agreement_enabled: true, login_agreement_mode: 'modal' },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="login_agreement_mode"]')).not.toBeNull();
+		expect(container.querySelector('[data-field-key="login_agreement_updated_at"]')).not.toBeNull();
+		// mode select 仅 2 个 sentinel-safe option，绝不出空 value。
+		const opts = container.querySelectorAll('[data-field-key="login_agreement_mode"] option');
+		const values = Array.from(opts).map((o) => o.getAttribute('value'));
+		expect(values).toEqual(['modal', 'checkbox']);
+	});
+});
+
+describe('M10d · LoginAgreementDocumentsSection special component', () => {
+	it('shows empty hint when login_agreement_documents is missing/empty', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementDocumentsSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="agreement-doc-empty"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="agreement-doc-row"]')).toBeNull();
+	});
+
+	it('renders one row per existing document', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementDocumentsSection,
+				values: {
+					login_agreement_documents: [
+						{ id: 'tos', title: 'Terms of Service', content_md: '# Hi' },
+						{ id: 'privacy', title: 'Privacy', content_md: '## md' }
+					]
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const rows = container.querySelectorAll('[data-testid="agreement-doc-row"]');
+		expect(rows.length).toBe(2);
+		expect(container.querySelector('[data-testid="agreement-doc-empty"]')).toBeNull();
+	});
+
+	it('Add button emits login_agreement_documents with new empty entry appended', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementDocumentsSection,
+				values: { login_agreement_documents: [] },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const addBtn = container.querySelector('[data-testid="agreement-doc-add"]') as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('login_agreement_documents');
+		expect(Array.isArray(last.value)).toBe(true);
+		expect((last.value as unknown[]).length).toBe(1);
+		const added = (last.value as Array<{ id: string; title: string; content_md: string }>)[0];
+		expect(added).toEqual({ id: '', title: '', content_md: '' });
+	});
+
+	it('editing a doc title emits updated array', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementDocumentsSection,
+				values: {
+					login_agreement_documents: [{ id: 'tos', title: 'Old', content_md: 'x' }]
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const titleInput = container.querySelector(
+			'[data-testid="agreement-doc-title"]'
+		) as HTMLInputElement;
+		expect(titleInput).not.toBeNull();
+		await fireEvent.input(titleInput, { target: { value: 'New Title' } });
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('login_agreement_documents');
+		const arr = last.value as Array<{ id: string; title: string; content_md: string }>;
+		expect(arr[0].title).toBe('New Title');
+		expect(arr[0].id).toBe('tos');
+		expect(arr[0].content_md).toBe('x');
+	});
+
+	it('remove button is disabled on last row when login_agreement_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: agreementDocumentsSection,
+				values: {
+					login_agreement_enabled: true,
+					login_agreement_documents: [{ id: 'tos', title: 'tos', content_md: 'x' }]
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const removeBtn = container.querySelector(
+			'[data-testid="agreement-doc-remove"]'
+		) as HTMLButtonElement;
+		expect(removeBtn).not.toBeNull();
+		expect(removeBtn.disabled).toBe(true);
+	});
+});
+
+describe('M10d · sentinel guard · no empty-string <option value=""> in agreement sections', () => {
+	const agreementForGuard: SectionDef[] = agreementSection.filter((s) => !s.special);
+
+	it.each(agreementForGuard.map((s) => [s.id, s]))(
+		'section %s exposes no empty option value',
+		(_id, section) => {
+			const values: Record<string, unknown> = {
+				login_agreement_enabled: true,
+				login_agreement_mode: 'modal',
+				login_agreement_updated_at: '2026-06-01'
+			};
+			const { container } = render(SectionRenderer, {
+				props: { section, values, dirtyKeys: new Set<string>() }
+			});
+			const html = container.innerHTML;
+			const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+			expect(offending).toBeNull();
+		}
+	);
+});
+
+describe('M10d · dirty-only PATCH payload · two-field flip in agreement sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			login_agreement_enabled: false,
+			login_agreement_mode: 'modal',
+			login_agreement_updated_at: '',
+			login_agreement_documents: []
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping login_agreement_enabled + login_agreement_documents → payload has exactly those two', async () => {
+		flip('login_agreement_enabled', true);
+		flip('login_agreement_documents', [
+			{ id: 'tos', title: 'Terms', content_md: '# Hi' }
+		]);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		const zod = buildZodSchema([agreementLoginSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual([
+			'login_agreement_documents',
+			'login_agreement_enabled'
+		]);
+		expect(payload.login_agreement_enabled).toBe(true);
+		expect(Array.isArray(payload.login_agreement_documents)).toBe(true);
+		// 未触碰
+		expect(payload).not.toHaveProperty('login_agreement_mode');
+		expect(payload).not.toHaveProperty('login_agreement_updated_at');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Backup tab — single-special section, lifecycle decoupled from patchSettings.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M10d · backup tab registration', () => {
+	it('settingsTabs registers backup non-placeholder with 1 section', () => {
+		const backup = settingsTabs.find((t) => t.id === 'backup');
+		expect(backup).toBeDefined();
+		expect(backup?.placeholder).not.toBe(true);
+		expect(backup?.sections.length).toBe(1);
+		expect(backupSection.length).toBe(1);
+	});
+});
+
+describe('M10d · backup tab BackupSection special component', () => {
+	it('renders without throwing and mounts the three sub-cards', async () => {
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector('[data-section-id="backup.view"]')).not.toBeNull();
+		// loading gate flips false after onMount resolves the 3 GETs.
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-s3-card"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="backup-schedule-card"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="backup-operations-card"]')).not.toBeNull();
+	});
+
+	it('list initially shows empty state', async () => {
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-empty"]')).not.toBeNull();
+		});
+	});
+
+	it('S3 Save click invokes updateBackupS3Config with current form', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi.updateBackupS3Config as unknown as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+
+		// wait for onMount fetch to settle so the form populates.
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-s3-save"]')).not.toBeNull();
+		});
+
+		const endpointInput = container.querySelector(
+			'[data-testid="backup-s3-endpoint"]'
+		) as HTMLInputElement;
+		await fireEvent.input(endpointInput, {
+			target: { value: 'https://r2.example.com' }
+		});
+
+		const saveBtn = container.querySelector('[data-testid="backup-s3-save"]') as HTMLElement;
+		await fireEvent.click(saveBtn);
+
+		expect(updateSpy).toHaveBeenCalled();
+		const arg = updateSpy.mock.calls[0][0] as { endpoint?: string };
+		expect(arg.endpoint).toBe('https://r2.example.com');
+	});
+
+	it('Schedule Save click invokes updateBackupSchedule with current form', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi.updateBackupSchedule as unknown as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-schedule-save"]')).not.toBeNull();
+		});
+
+		const cronInput = container.querySelector(
+			'[data-testid="backup-schedule-cron"]'
+		) as HTMLInputElement;
+		await fireEvent.input(cronInput, { target: { value: '0 3 * * *' } });
+
+		const saveBtn = container.querySelector(
+			'[data-testid="backup-schedule-save"]'
+		) as HTMLElement;
+		await fireEvent.click(saveBtn);
+
+		expect(updateSpy).toHaveBeenCalled();
+		const arg = updateSpy.mock.calls[0][0] as { cron_expr?: string };
+		expect(arg.cron_expr).toBe('0 3 * * *');
+	});
+
+	it('Refresh button invokes listBackups via the lifecycle API', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const listSpy = mod.settingsApi.listBackups as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-refresh"]')).not.toBeNull();
+		});
+
+		const refreshBtn = container.querySelector('[data-testid="backup-refresh"]') as HTMLElement;
+		await fireEvent.click(refreshBtn);
+		// onMount fires one + refresh click fires one → at least 2.
+		expect(listSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('Create button invokes createBackup with current expire_days', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const createSpy = mod.settingsApi.createBackup as unknown as ReturnType<typeof vi.fn>;
+		createSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-create"]')).not.toBeNull();
+		});
+
+		const expireInput = container.querySelector(
+			'[data-testid="backup-expire-days"]'
+		) as HTMLInputElement;
+		await fireEvent.input(expireInput, { target: { value: '7' } });
+		const createBtn = container.querySelector('[data-testid="backup-create"]') as HTMLElement;
+		await fireEvent.click(createBtn);
+
+		expect(createSpy).toHaveBeenCalled();
+		const arg = createSpy.mock.calls[0][0] as { expire_days?: number };
+		expect(arg.expire_days).toBe(7);
+	});
+});
+
+describe('M10d · backup section does NOT participate in flat-form patchSettings', () => {
+	it('mounting BackupSection does not touch patchSettings', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+
+		// 让 onMount 完成。
+		await vi.waitFor(() => {
+			expect(
+				(mod.settingsApi.listBackups as unknown as ReturnType<typeof vi.fn>).mock.calls.length
+			).toBeGreaterThanOrEqual(1);
+		});
+
+		expect(patchSpy).not.toHaveBeenCalled();
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M10e · Long-tail special sweep
+//   email.quotaNotify        (flat key: account_quota_notify_{enabled,emails})
+//   gateway.streamTimeout    (self-managed GET/PUT)
+//   gateway.rectifier        (self-managed GET/PUT)
+//   gateway.betaPolicy       (self-managed GET/PUT)
+//   gateway.openaiFastPolicy (flat key: openai_fast_policy_settings)
+//   gateway.webSearchEmulation (self-managed GET/PUT + test dialog)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M10e · long-tail special registration', () => {
+	it('email tab now exposes the quota-notify section', () => {
+		const email = settingsTabs.find((t) => t.id === 'email');
+		expect(email?.sections.length).toBe(4);
+		expect(email?.sections.some((s) => s.special === 'quota-notify')).toBe(true);
+	});
+
+	it('gateway tab now exposes 11 sections (6 existing + 5 long-tail specials)', () => {
+		const gateway = settingsTabs.find((t) => t.id === 'gateway');
+		expect(gateway?.sections.length).toBe(11);
+		const specials = (gateway?.sections ?? []).map((s) => s.special).filter(Boolean);
+		expect(specials).toEqual(
+			expect.arrayContaining([
+				'overload-cooldown',
+				'rate-limit-429',
+				'stream-timeout',
+				'rectifier',
+				'beta-policy',
+				'openai-fast-policy',
+				'web-search-emulation'
+			])
+		);
+	});
+});
+
+describe('M10e · QuotaNotifySection (flat-form pipeline)', () => {
+	it('renders the master enable switch and stays collapsed when disabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: emailQuotaNotifySection,
+				values: { account_quota_notify_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="quota-notify-enabled"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="quota-notify-add"]')).toBeNull();
+	});
+
+	it('exposes email rows + add button when enabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: emailQuotaNotifySection,
+				values: {
+					account_quota_notify_enabled: true,
+					account_quota_notify_emails: [
+						{ email: 'ops@example.com', disabled: false },
+						{ email: 'dev@example.com', disabled: true }
+					]
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const rows = container.querySelectorAll('[data-testid="quota-notify-row"]');
+		expect(rows.length).toBe(2);
+		expect(container.querySelector('[data-testid="quota-notify-add"]')).not.toBeNull();
+	});
+
+	it('Add click emits account_quota_notify_emails with new blank row appended', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: emailQuotaNotifySection,
+				values: {
+					account_quota_notify_enabled: true,
+					account_quota_notify_emails: []
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const addBtn = container.querySelector('[data-testid="quota-notify-add"]') as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('account_quota_notify_emails');
+		expect(Array.isArray(last.value)).toBe(true);
+		const arr = last.value as Array<{ email: string; disabled: boolean }>;
+		expect(arr.length).toBe(1);
+		expect(arr[0].email).toBe('');
+	});
+
+	it('toggling master switch emits account_quota_notify_enabled boolean', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: emailQuotaNotifySection,
+				values: { account_quota_notify_enabled: false },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const tgl = container.querySelector('[data-testid="quota-notify-enabled"]') as HTMLElement;
+		expect(tgl).not.toBeNull();
+		await fireEvent.click(tgl);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('account_quota_notify_enabled');
+		expect(last.value).toBe(true);
+	});
+});
+
+describe('M10e · StreamTimeoutSection (self-managed lifecycle)', () => {
+	it('mounts and shows the save button after load', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayStreamTimeoutSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-section-id="gateway.streamTimeout"]')
+		).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="stream-timeout-save"]')).not.toBeNull();
+		});
+	});
+
+	it('hides action select when enabled=false', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(mod.settingsApi.getStreamTimeoutSettings as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+			{
+				enabled: false,
+				action: 'none',
+				temp_unsched_minutes: 5,
+				threshold_count: 3,
+				threshold_window_minutes: 10
+			}
+		);
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayStreamTimeoutSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="stream-timeout-save"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="stream-timeout-action"]')).toBeNull();
+	});
+
+	it('action select carries only 3 sentinel-safe options', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayStreamTimeoutSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="stream-timeout-action"]')).not.toBeNull();
+		});
+		const opts = container.querySelectorAll(
+			'[data-testid="stream-timeout-action"] option'
+		);
+		const values = Array.from(opts).map((o) => o.getAttribute('value'));
+		expect(values).toEqual(['temp_unsched', 'error', 'none']);
+	});
+
+	it('save click invokes update API with current form payload', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi.updateStreamTimeoutSettings as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayStreamTimeoutSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="stream-timeout-save"]')).not.toBeNull();
+		});
+		const saveBtn = container.querySelector(
+			'[data-testid="stream-timeout-save"]'
+		) as HTMLElement;
+		await fireEvent.click(saveBtn);
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as { enabled: boolean; action: string };
+		expect(typeof arg.enabled).toBe('boolean');
+		expect(typeof arg.action).toBe('string');
+	});
+});
+
+describe('M10e · RectifierSection (self-managed lifecycle)', () => {
+	it('mounts and shows the master enable toggle + save button', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRectifierSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-section-id="gateway.rectifier"]')).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rectifier-enabled"]')).not.toBeNull();
+			expect(container.querySelector('[data-testid="rectifier-save"]')).not.toBeNull();
+		});
+	});
+
+	it('sub-toggles hidden when master is disabled', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(mod.settingsApi.getRectifierSettings as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			enabled: false,
+			thinking_signature_enabled: false,
+			thinking_budget_enabled: false,
+			apikey_signature_enabled: false,
+			apikey_signature_patterns: []
+		});
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRectifierSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rectifier-save"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="rectifier-thinking-signature"]')).toBeNull();
+	});
+
+	it('patterns block reveals when apikey_signature_enabled flips true', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(mod.settingsApi.getRectifierSettings as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			enabled: true,
+			thinking_signature_enabled: true,
+			thinking_budget_enabled: true,
+			apikey_signature_enabled: true,
+			apikey_signature_patterns: ['foo', 'bar']
+		});
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRectifierSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rectifier-patterns-block"]')).not.toBeNull();
+		});
+		const rows = container.querySelectorAll('[data-testid="rectifier-pattern-row"]');
+		expect(rows.length).toBe(2);
+	});
+
+	it('save click invokes update API with filtered patterns', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(mod.settingsApi.getRectifierSettings as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			enabled: true,
+			thinking_signature_enabled: true,
+			thinking_budget_enabled: true,
+			apikey_signature_enabled: true,
+			apikey_signature_patterns: ['foo', '   ', 'bar']
+		});
+		const updateSpy = mod.settingsApi.updateRectifierSettings as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRectifierSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rectifier-save"]')).not.toBeNull();
+		});
+		const saveBtn = container.querySelector('[data-testid="rectifier-save"]') as HTMLElement;
+		await fireEvent.click(saveBtn);
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as { apikey_signature_patterns: string[] };
+		// 空字符串过滤掉 —— 与 Vue tree 同语义。
+		expect(arg.apikey_signature_patterns).toEqual(['foo', 'bar']);
+	});
+});
+
+describe('M10e · BetaPolicySection (self-managed lifecycle)', () => {
+	it('mounts and shows save button + one rule card per beta token after load', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayBetaPolicySection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-section-id="gateway.betaPolicy"]')).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="beta-policy-save"]')).not.toBeNull();
+		});
+		const rules = container.querySelectorAll('[data-testid="beta-policy-rule"]');
+		expect(rules.length).toBe(2);
+	});
+
+	it('action select carries only 3 sentinel-safe options', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayBetaPolicySection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="beta-policy-action"]')).not.toBeNull();
+		});
+		const first = container.querySelector(
+			'[data-testid="beta-policy-action"]'
+		) as HTMLSelectElement;
+		const opts = first.querySelectorAll('option');
+		const values = Array.from(opts).map((o) => o.getAttribute('value'));
+		expect(values).toEqual(['pass', 'filter', 'block']);
+	});
+
+	it('save click invokes update API with cleaned rules', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi.updateBetaPolicySettings as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayBetaPolicySection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="beta-policy-save"]')).not.toBeNull();
+		});
+		const saveBtn = container.querySelector('[data-testid="beta-policy-save"]') as HTMLElement;
+		await fireEvent.click(saveBtn);
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as { rules: Array<{ beta_token: string }> };
+		expect(Array.isArray(arg.rules)).toBe(true);
+		expect(arg.rules.length).toBe(2);
+	});
+});
+
+describe('M10e · OpenaiFastPolicySection (flat-form pipeline)', () => {
+	it('shows empty hint when rules array is empty', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOpenaiFastPolicySection,
+				values: { openai_fast_policy_settings: { rules: [] } },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="openai-fast-policy-empty"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="openai-fast-policy-rule"]')).toBeNull();
+	});
+
+	it('renders one card per rule', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOpenaiFastPolicySection,
+				values: {
+					openai_fast_policy_settings: {
+						rules: [
+							{ service_tier: 'priority', action: 'pass', scope: 'all' },
+							{ service_tier: 'flex', action: 'filter', scope: 'oauth' }
+						]
+					}
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const cards = container.querySelectorAll('[data-testid="openai-fast-policy-rule"]');
+		expect(cards.length).toBe(2);
+	});
+
+	it('Add Rule emits openai_fast_policy_settings with a new rule appended', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOpenaiFastPolicySection,
+				values: { openai_fast_policy_settings: { rules: [] } },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const addBtn = container.querySelector(
+			'[data-testid="openai-fast-policy-add"]'
+		) as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('openai_fast_policy_settings');
+		const wrapped = last.value as { rules: unknown[] };
+		expect(Array.isArray(wrapped.rules)).toBe(true);
+		expect(wrapped.rules.length).toBe(1);
+	});
+
+	it('tier/action/scope selects all sentinel-safe (no empty value)', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOpenaiFastPolicySection,
+				values: {
+					openai_fast_policy_settings: {
+						rules: [{ service_tier: 'priority', action: 'pass', scope: 'all' }]
+					}
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const html = container.innerHTML;
+		const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+		expect(offending).toBeNull();
+	});
+});
+
+describe('M10e · WebSearchEmulationSection (self-managed lifecycle)', () => {
+	it('mounts and shows the global enable toggle after load', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-section-id="gateway.webSearchEmulation"]')
+		).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-enabled"]')).not.toBeNull();
+			expect(container.querySelector('[data-testid="web-search-save"]')).not.toBeNull();
+		});
+	});
+
+	it('providers list section hidden when global enable=false', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-enabled"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="web-search-add-provider"]')).toBeNull();
+	});
+
+	it('Add Provider creates an expanded card with a brave default', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(
+			mod.settingsApi.getWebSearchEmulationConfig as ReturnType<typeof vi.fn>
+		).mockResolvedValueOnce({ enabled: true, providers: [] });
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-add-provider"]')).not.toBeNull();
+		});
+		const addBtn = container.querySelector(
+			'[data-testid="web-search-add-provider"]'
+		) as HTMLElement;
+		await fireEvent.click(addBtn);
+		const providers = container.querySelectorAll('[data-testid="web-search-provider"]');
+		expect(providers.length).toBe(1);
+		expect(container.querySelector('[data-testid="web-search-provider-panel"]')).not.toBeNull();
+	});
+
+	it('save click invokes updateWebSearchEmulationConfig with current form', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi.updateWebSearchEmulationConfig as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-save"]')).not.toBeNull();
+		});
+		const saveBtn = container.querySelector('[data-testid="web-search-save"]') as HTMLElement;
+		await fireEvent.click(saveBtn);
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as { enabled: boolean; providers: unknown[] };
+		expect(typeof arg.enabled).toBe('boolean');
+		expect(Array.isArray(arg.providers)).toBe(true);
+	});
+
+	it('provider type select carries only sentinel-safe values', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(
+			mod.settingsApi.getWebSearchEmulationConfig as ReturnType<typeof vi.fn>
+		).mockResolvedValueOnce({
+			enabled: true,
+			providers: [
+				{
+					type: 'brave',
+					api_key: '',
+					api_key_configured: false,
+					quota_limit: 100,
+					subscribed_at: null,
+					proxy_id: null,
+					expires_at: null
+				}
+			]
+		});
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-provider-type"]')).not.toBeNull();
+		});
+		const sel = container.querySelector(
+			'[data-testid="web-search-provider-type"]'
+		) as HTMLSelectElement;
+		const opts = sel.querySelectorAll('option');
+		const values = Array.from(opts).map((o) => o.getAttribute('value'));
+		expect(values).toEqual(['brave', 'tavily']);
+	});
+});
+
+describe('M10e · sentinel guard · no empty-string <option value=""> in long-tail specials', () => {
+	// flat-form pipeline specials → 直接 stress 渲染
+	it('quota-notify section (expanded) exposes no empty option value', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: emailQuotaNotifySection,
+				values: {
+					account_quota_notify_enabled: true,
+					account_quota_notify_emails: [{ email: 'a@b.com', disabled: false }]
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const html = container.innerHTML;
+		const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+		expect(offending).toBeNull();
+	});
+
+	it('openai-fast-policy section (with rule) exposes no empty option value', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOpenaiFastPolicySection,
+				values: {
+					openai_fast_policy_settings: {
+						rules: [
+							{
+								service_tier: 'priority',
+								action: 'block',
+								scope: 'all',
+								error_message: 'nope',
+								model_whitelist: ['gpt-5.5'],
+								fallback_action: 'filter',
+								fallback_error_message: ''
+							}
+						]
+					}
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const html = container.innerHTML;
+		const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+		expect(offending).toBeNull();
+	});
+});
+
+describe('M10e · dirty-only PATCH payload · quota-notify flat keys feed the flat-form pipeline', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			account_quota_notify_enabled: false,
+			account_quota_notify_emails: [],
+			openai_fast_policy_settings: { rules: [] }
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping account_quota_notify_enabled + emails → payload has exactly those two', async () => {
+		flip('account_quota_notify_enabled', true);
+		flip('account_quota_notify_emails', [{ email: 'a@b.com', disabled: false }]);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual([
+			'account_quota_notify_emails',
+			'account_quota_notify_enabled'
+		]);
+		expect(payload).not.toHaveProperty('openai_fast_policy_settings');
+	});
+
+	it('changing openai_fast_policy_settings → payload contains only this nested object key', async () => {
+		flip('openai_fast_policy_settings', {
+			rules: [{ service_tier: 'priority', action: 'pass', scope: 'all' }]
+		});
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload)).toEqual(['openai_fast_policy_settings']);
+		expect(payload).not.toHaveProperty('account_quota_notify_enabled');
+	});
+});
+
+describe('M10e · self-managed specials do NOT touch flat-form patchSettings', () => {
+	it.each([
+		['stream-timeout', gatewayStreamTimeoutSection],
+		['rectifier', gatewayRectifierSection],
+		['beta-policy', gatewayBetaPolicySection],
+		['web-search-emulation', gatewayWebSearchEmulationSection]
+	])('mounting %s does not touch patchSettings', async (_id, section) => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+
+		// 等 onMount 完成 —— 至少触发对应的 GET。
+		await vi.waitFor(() => {
+			// 用任一 spy 计数器 > 0 来证明 onMount 已跑过
+			const anyCalls =
+				(mod.settingsApi.getStreamTimeoutSettings as unknown as ReturnType<typeof vi.fn>).mock
+					.calls.length +
+				(mod.settingsApi.getRectifierSettings as unknown as ReturnType<typeof vi.fn>).mock.calls
+					.length +
+				(mod.settingsApi.getBetaPolicySettings as unknown as ReturnType<typeof vi.fn>).mock.calls
+					.length +
+				(mod.settingsApi.getWebSearchEmulationConfig as unknown as ReturnType<typeof vi.fn>).mock
+					.calls.length;
+			expect(anyCalls).toBeGreaterThanOrEqual(1);
+		});
+
+		expect(patchSpy).not.toHaveBeenCalled();
 	});
 });

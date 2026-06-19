@@ -55,7 +55,25 @@ export const testEmailSection: SectionDef = {
 	special: 'test-email'
 };
 
-export const emailSection: SettingsSchema = [emailGeneralSection, smtpSection, testEmailSection];
+/**
+ * Quota notify special section（M10e · email tab）—— flat-form pipeline。
+ * 端口自 Vue special/QuotaNotifySection.vue。整组 emails 以 flat key
+ * `account_quota_notify_emails` 上抛 patch；主开关单独 flat key
+ * `account_quota_notify_enabled`。
+ */
+export const emailQuotaNotifySection: SectionDef = {
+	id: 'email.quotaNotify',
+	titleKey: 'admin.settings.quotaNotify.title',
+	descriptionKey: 'admin.settings.quotaNotify.description',
+	special: 'quota-notify'
+};
+
+export const emailSection: SettingsSchema = [
+	emailGeneralSection,
+	smtpSection,
+	testEmailSection,
+	emailQuotaNotifySection
+];
 
 // ── general tab ──────────────────────────────────────────────────────────────
 
@@ -812,13 +830,77 @@ export const gatewayRateLimit429Section: SectionDef = {
 	special: 'rate-limit-429'
 };
 
+/**
+ * Stream timeout —— 独立 GET/PUT lifecycle，不进 patchSettings。
+ * 端口自 Vue special/StreamTimeoutSection.vue + sections/streamTimeout.ts。
+ */
+export const gatewayStreamTimeoutSection: SectionDef = {
+	id: 'gateway.streamTimeout',
+	titleKey: 'admin.settings.streamTimeout.title',
+	descriptionKey: 'admin.settings.streamTimeout.description',
+	special: 'stream-timeout'
+};
+
+/**
+ * Rectifier —— 独立 GET/PUT lifecycle，不进 patchSettings。
+ * 端口自 Vue special/RectifierSection.vue + sections/rectifier.ts。
+ */
+export const gatewayRectifierSection: SectionDef = {
+	id: 'gateway.rectifier',
+	titleKey: 'admin.settings.rectifier.title',
+	descriptionKey: 'admin.settings.rectifier.description',
+	special: 'rectifier'
+};
+
+/**
+ * Beta policy —— 独立 GET/PUT lifecycle，不进 patchSettings。
+ * 端口自 Vue special/BetaPolicySection.vue + sections/betaPolicy.ts。
+ * 服务端返回 rules: BetaPolicyRule[]；卡片化策略矩阵。
+ */
+export const gatewayBetaPolicySection: SectionDef = {
+	id: 'gateway.betaPolicy',
+	titleKey: 'admin.settings.betaPolicy.title',
+	descriptionKey: 'admin.settings.betaPolicy.description',
+	special: 'beta-policy'
+};
+
+/**
+ * OpenAI fast/flex policy —— flat key special section。
+ * 端口自 Vue special/OpenaiFastPolicySection.vue + sections/openaiFastPolicy.ts。
+ * 整组 rules 以 flat key `openai_fast_policy_settings = { rules: [...] }` 上抛 patch。
+ */
+export const gatewayOpenaiFastPolicySection: SectionDef = {
+	id: 'gateway.openaiFastPolicy',
+	titleKey: 'admin.settings.openaiFastPolicy.title',
+	descriptionKey: 'admin.settings.openaiFastPolicy.description',
+	special: 'openai-fast-policy'
+};
+
+/**
+ * Web search emulation —— 独立 GET/PUT lifecycle，不进 patchSettings。
+ * 端口自 Vue special/WebSearchEmulationSection.vue + sections/webSearchEmulation.ts。
+ *
+ * 与 Vue tree 差异：proxy_id 退化为 number input（Svelte 仓库尚未端口 /admin/proxies API）。
+ */
+export const gatewayWebSearchEmulationSection: SectionDef = {
+	id: 'gateway.webSearchEmulation',
+	titleKey: 'admin.settings.webSearchEmulation.title',
+	descriptionKey: 'admin.settings.webSearchEmulation.description',
+	special: 'web-search-emulation'
+};
+
 export const gatewaySection: SettingsSchema = [
 	gatewayClaudeCodeSection,
 	gatewaySchedulingSection,
 	gatewayForwardingSection,
 	gatewayUsageRecordsSection,
 	gatewayOverloadCooldownSection,
-	gatewayRateLimit429Section
+	gatewayRateLimit429Section,
+	gatewayStreamTimeoutSection,
+	gatewayRectifierSection,
+	gatewayBetaPolicySection,
+	gatewayOpenaiFastPolicySection,
+	gatewayWebSearchEmulationSection
 ];
 
 // ── payment tab ──────────────────────────────────────────────────────────────
@@ -1016,6 +1098,85 @@ export const paymentProvidersSection: SectionDef = {
 
 export const paymentSection: SettingsSchema = [paymentConfigSection, paymentProvidersSection];
 
+// ── agreement tab ────────────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/views/admin/settings-registry/sections/agreement.ts +
+// special/AgreementDocumentsSection.vue。共 2 section：
+//   - login_agreement   总开关 + 展示模式 + 更新日期（3 flat key + showWhen 联动）
+//   - documents         special：[{id,title,content_md}] 多文档 Markdown 编辑器
+//
+// 字段 key 与后端 SystemSettings flat key 拍齐（login_agreement_*）。
+// mode select 走 'modal' | 'checkbox'，绝不出空 value（sentinel 契约）。
+
+/** 登录条款开关 + 展示模式 + 更新日期 —— 3 flat fields + cascading showWhen。 */
+export const agreementLoginSection: SectionDef = {
+	id: 'agreement.config',
+	titleKey: 'admin.settings.agreement.configTitle',
+	descriptionKey: 'admin.settings.agreement.configDescription',
+	fields: [
+		{
+			key: 'login_agreement_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.agreement.enabledLabel',
+			descriptionKey: 'admin.settings.agreement.enabledHint'
+		},
+		{
+			key: 'login_agreement_mode',
+			type: 'select',
+			labelKey: 'admin.settings.agreement.modeLabel',
+			descriptionKey: 'admin.settings.agreement.modeHint',
+			options: [
+				{ value: 'modal', labelKey: 'admin.settings.agreement.modeModal' },
+				{ value: 'checkbox', labelKey: 'admin.settings.agreement.modeCheckbox' }
+			],
+			showWhen: (v) => !!v['login_agreement_enabled']
+		},
+		{
+			key: 'login_agreement_updated_at',
+			type: 'text',
+			labelKey: 'admin.settings.agreement.updatedAtLabel',
+			descriptionKey: 'admin.settings.agreement.updatedAtHint',
+			placeholder: 'YYYY-MM-DD',
+			showWhen: (v) => !!v['login_agreement_enabled']
+		}
+	]
+};
+
+/**
+ * 登录条款 Markdown 文档列表 —— special section。
+ * 端口自 special/AgreementDocumentsSection.vue。整组 docs 作为单一 flat key
+ * `login_agreement_documents` 上抛 patch（与 form 同流水线）。
+ */
+export const agreementDocumentsSection: SectionDef = {
+	id: 'agreement.documents',
+	titleKey: 'admin.settings.agreement.documentsTitle',
+	descriptionKey: 'admin.settings.agreement.documentsDescription',
+	special: 'login-agreement-documents'
+};
+
+export const agreementSection: SettingsSchema = [
+	agreementLoginSection,
+	agreementDocumentsSection
+];
+
+// ── backup tab ───────────────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/views/admin/settings-registry/sections/backup.ts +
+// BackupView.vue（整张面板）。共 1 section（special）：
+//   - backup.view  独立 lifecycle GET/PUT/POST/DELETE，与 patchSettings 解耦。
+//
+// 单一 special 包住三张子卡：S3 配置 / 定时备份 / 备份记录 + Restore。
+// 后端路由组：admin.Group("/backups")（见 backend/internal/server/routes/admin.go）。
+
+export const backupViewSection: SectionDef = {
+	id: 'backup.view',
+	titleKey: 'admin.backup.sectionTitle',
+	descriptionKey: 'admin.backup.sectionDescription',
+	special: 'backup'
+};
+
+export const backupSection: SettingsSchema = [backupViewSection];
+
 // ── 顶层 tab 注册 ──────────────────────────────────────────────────────────
 
 export interface SettingsTab {
@@ -1032,5 +1193,7 @@ export const settingsTabs: SettingsTab[] = [
 	{ id: 'users', labelKey: 'admin.settings.users.title', sections: usersSection },
 	{ id: 'features', labelKey: 'admin.settings.features.title', sections: featuresSection },
 	{ id: 'gateway', labelKey: 'admin.settings.gateway.title', sections: gatewaySection },
-	{ id: 'payment', labelKey: 'admin.settings.payment.title', sections: paymentSection }
+	{ id: 'payment', labelKey: 'admin.settings.payment.title', sections: paymentSection },
+	{ id: 'agreement', labelKey: 'admin.settings.tabs.agreement', sections: agreementSection },
+	{ id: 'backup', labelKey: 'admin.settings.tabs.backup', sections: backupSection }
 ];
