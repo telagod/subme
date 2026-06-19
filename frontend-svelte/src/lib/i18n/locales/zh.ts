@@ -5555,6 +5555,9 @@ export default {
       general: {
         title: '通用设置',
       },
+      users: {
+        title: '用户设置',
+      },
       gateway: {
         title: '网关服务',
       },

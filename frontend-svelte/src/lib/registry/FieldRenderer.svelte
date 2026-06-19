@@ -55,6 +55,32 @@
 		return field.placeholder ?? '';
 	});
 
+	// showWhen 谓词 —— 端口自 Vue tree FieldRenderer.vue:visible computed。
+	const visible = $derived.by(() => {
+		if (typeof field.showWhen !== 'function') return true;
+		try {
+			return !!field.showWhen(formValues);
+		} catch {
+			return true;
+		}
+	});
+
+	// json/textarea 展示串 —— 与 Vue jsonDisplay computed 同步：
+	// 非字符串 → JSON.stringify(..., 2)。
+	const jsonDisplay = $derived.by(() => {
+		if (field.type !== 'json') return '';
+		const v = value;
+		if (v === undefined || v === null) return '';
+		if (typeof v === 'string') return v;
+		try {
+			return JSON.stringify(v, null, 2);
+		} catch {
+			return '';
+		}
+	});
+
+	let jsonError = $state('');
+
 	function emit(v: unknown) {
 		onUpdate?.(v);
 	}
@@ -85,8 +111,42 @@
 	function onTextarea(e: Event) {
 		emit((e.target as HTMLTextAreaElement).value);
 	}
+
+	function onJson(e: Event) {
+		const raw = (e.target as HTMLTextAreaElement).value;
+		jsonError = '';
+		if (!raw.trim()) {
+			emit(raw);
+			return;
+		}
+		try {
+			emit(JSON.parse(raw));
+		} catch {
+			jsonError = 'Invalid JSON';
+			emit(raw);
+		}
+	}
+
+	// image 类型：最小可用 —— 接受 data URL / http(s) URL；展示当前值 + clear 按钮。
+	// Vue tree 用 ImageUpload 组件管 base64 编码，此处保留同接口契约（值是 string）。
+	function onImageInput(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			const result = reader.result;
+			if (typeof result === 'string') emit(result);
+		};
+		reader.readAsDataURL(file);
+	}
+
+	function onImageClear() {
+		emit('');
+	}
 </script>
 
+{#if visible}
 <div class="settings-field" data-field-key={field.key} data-field-type={field.type} data-dirty={dirty}>
 	{#if field.type === 'switch' || field.type === 'checkbox'}
 		<div class="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2">
@@ -157,6 +217,50 @@
 				value={(value as string) ?? ''}
 				oninput={onTextarea}
 			></textarea>
+		{:else if field.type === 'json'}
+			<textarea
+				id={`f-${field.key}`}
+				rows="4"
+				class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+				placeholder={field.placeholder ?? ''}
+				value={jsonDisplay}
+				oninput={onJson}
+			></textarea>
+			{#if jsonError}
+				<p class="mt-0.5 text-xs text-destructive">{jsonError}</p>
+			{/if}
+		{:else if field.type === 'image'}
+			<div class="mt-1 flex items-center gap-3">
+				{#if value && typeof value === 'string'}
+					<img src={value} alt={label} class="h-12 w-12 rounded-md border border-border object-cover" />
+				{:else}
+					<div class="flex h-12 w-12 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground">
+						—
+					</div>
+				{/if}
+				<label
+					for={`f-${field.key}`}
+					class="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+				>
+					{$_('admin.settings.site.uploadImage')}
+				</label>
+				<input
+					id={`f-${field.key}`}
+					type="file"
+					accept="image/*"
+					class="sr-only"
+					onchange={onImageInput}
+				/>
+				{#if value}
+					<button
+						type="button"
+						class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+						onclick={onImageClear}
+					>
+						{$_('admin.settings.site.remove')}
+					</button>
+				{/if}
+			</div>
 		{:else if field.type === 'select'}
 			<select
 				id={`f-${field.key}`}
@@ -180,3 +284,4 @@
 		{/if}
 	{/if}
 </div>
+{/if}

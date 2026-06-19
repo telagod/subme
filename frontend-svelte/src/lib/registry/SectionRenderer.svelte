@@ -17,6 +17,14 @@
 	import FieldRenderer from './FieldRenderer.svelte';
 	import SmtpSection from './special/SmtpSection.svelte';
 	import TestEmailSection from './special/TestEmailSection.svelte';
+	import AdminApiKeySection from './special/AdminApiKeySection.svelte';
+	import EmailSuffixWhitelistSection from './special/EmailSuffixWhitelistSection.svelte';
+	import CustomMenuSection from './special/CustomMenuSection.svelte';
+	import DingtalkConnectSection from './special/DingtalkConnectSection.svelte';
+	import OidcConnectSection from './special/OidcConnectSection.svelte';
+	import WechatConnectSection from './special/WechatConnectSection.svelte';
+	import UserDefaultsSection from './special/UserDefaultsSection.svelte';
+	import AuthSourceDefaultsSection from './special/AuthSourceDefaultsSection.svelte';
 	import type { SectionDef } from './types';
 
 	type FieldUpdate = { key: string; value: unknown };
@@ -61,6 +69,22 @@
 		<SmtpSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'test-email'}
 		<TestEmailSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'admin-api-key'}
+		<AdminApiKeySection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'email-suffix-whitelist'}
+		<EmailSuffixWhitelistSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'custom-menu'}
+		<CustomMenuSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'dingtalk-connect'}
+		<DingtalkConnectSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'oidc-connect'}
+		<OidcConnectSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'wechat-connect'}
+		<WechatConnectSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'user-defaults'}
+		<UserDefaultsSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'auth-source-defaults'}
+		<AuthSourceDefaultsSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special}
 		<p class="text-xs text-destructive">[unknown special: {section.special}]</p>
 	{:else if section.fields && section.fields.length > 0}

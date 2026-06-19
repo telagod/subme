@@ -35,6 +35,17 @@ export interface ApiActionResult {
 	message?: string;
 }
 
+/** Admin API Key 状态 —— GET /api/admin/settings/admin-api-key 返回。 */
+export interface AdminApiKeyStatus {
+	exists: boolean;
+	masked_key: string;
+}
+
+/** Admin API Key 回执 —— POST regenerate / 新建时返回明文一次（前端必须立刻显示）。 */
+export interface AdminApiKeyResult {
+	key: string;
+}
+
 export const settingsApi = {
 	/** 拉取后端全量 settings 快照。 */
 	getSettings(): Promise<SettingsMap> {
@@ -66,5 +77,22 @@ export const settingsApi = {
 			body
 		);
 		return { success: true, message: res?.message };
+	},
+
+	// ── Admin API Key CRUD（独立 lifecycle，不进 patchSettings 流水线） ────────────
+
+	/** GET 当前 admin API key 状态（masked）。 */
+	getAdminApiKey(): Promise<AdminApiKeyStatus> {
+		return apiClient.get<AdminApiKeyStatus>('/api/admin/settings/admin-api-key');
+	},
+
+	/** POST 重新生成 admin API key —— 返回一次性明文，前端必须立刻显示给管理员。 */
+	regenerateAdminApiKey(): Promise<AdminApiKeyResult> {
+		return apiClient.post<AdminApiKeyResult>('/api/admin/settings/admin-api-key/regenerate', {});
+	},
+
+	/** DELETE 当前 admin API key。 */
+	async deleteAdminApiKey(): Promise<void> {
+		await apiClient.delete('/api/admin/settings/admin-api-key');
 	}
 };

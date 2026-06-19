@@ -17,7 +17,16 @@
  */
 
 /** 字段渲染类型 —— 与 SectionRenderer 的 dispatch 分支严格对齐。 */
-export type FieldType = 'text' | 'password' | 'number' | 'switch' | 'checkbox' | 'textarea' | 'select';
+export type FieldType =
+	| 'text'
+	| 'password'
+	| 'number'
+	| 'switch'
+	| 'checkbox'
+	| 'textarea'
+	| 'select'
+	| 'image'
+	| 'json';
 
 /** select 字段的选项 —— value 不能为空字符串。 */
 export interface SelectOption {
@@ -44,6 +53,12 @@ export interface Field {
 	max?: number;
 	/** sensitive=true 触发 *_configured 占位策略（密码已配置时的提示）。 */
 	sensitive?: boolean;
+	/**
+	 * 条件渲染谓词 —— Vue tree showWhen 同语义。
+	 * 返回 false 时整个 field 不出现（FieldRenderer 自身判定）。
+	 * 注意：与 Vue 不同的是不持有引用 —— 序列化场景慎用。
+	 */
+	showWhen?: (values: Record<string, unknown>) => boolean;
 }
 
 /** 单 Section 定义。fields 与 special 至少一个非空。 */
@@ -56,9 +71,22 @@ export interface SectionDef {
 	fields?: Field[];
 	/**
 	 * Escape hatch：指明该 section 由特定 special 组件接管。
-	 * 当前注册：'smtp' | 'test-email'。未知 special 值由 SectionRenderer 兜底告警。
+	 * 当前注册：'smtp' | 'test-email' | 'admin-api-key' | 'email-suffix-whitelist'
+	 * | 'custom-menu' | 'dingtalk-connect' | 'oidc-connect' | 'wechat-connect'.
+	 * 未知 special 值由 SectionRenderer 兜底告警。
 	 */
-	special?: 'smtp' | 'test-email' | string;
+	special?:
+		| 'smtp'
+		| 'test-email'
+		| 'admin-api-key'
+		| 'email-suffix-whitelist'
+		| 'custom-menu'
+		| 'dingtalk-connect'
+		| 'oidc-connect'
+		| 'wechat-connect'
+		| 'user-defaults'
+		| 'auth-source-defaults'
+		| string;
 }
 
 /** 顶层 schema —— 即一组 SectionDef。 */

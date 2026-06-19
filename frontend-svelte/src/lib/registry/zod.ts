@@ -28,6 +28,12 @@ function fieldSchema(field: Field): ZodTypeAny {
 			s = ns;
 			break;
 		}
+		case 'json':
+			// json 字段：值可能是 string（原 textarea）或解析后的 object/array。
+			// patch 语义下 passthrough，不强类型。
+			s = z.unknown();
+			break;
+		case 'image':
 		case 'select':
 		case 'text':
 		case 'password':

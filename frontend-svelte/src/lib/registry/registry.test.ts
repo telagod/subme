@@ -18,7 +18,31 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import SectionRenderer from './SectionRenderer.svelte';
-import { smtpSection, emailGeneralSection } from './settings.schema';
+import {
+	smtpSection,
+	emailGeneralSection,
+	generalSiteSection,
+	generalTableSection,
+	generalCustomMenuSection,
+	securityRegistrationSection,
+	securityTurnstileSection,
+	securityGithubSection,
+	securityGoogleSection,
+	securityLinuxdoSection,
+	securityApiKeyAclSection,
+	securityAdminApiKeySection,
+	securityEmailWhitelistSection,
+	securityDingtalkSection,
+	securityOidcSection,
+	securityWechatSection,
+	usersDefaultsSection,
+	usersSubscriptionsQuotasSection,
+	usersAuthSourceDefaultsSection,
+	generalSection,
+	securitySection,
+	usersSection,
+	settingsTabs
+} from './settings.schema';
 import { buildZodSchema } from './zod';
 import type { SectionDef } from './types';
 
@@ -29,7 +53,10 @@ vi.mock('$lib/api/admin/settingsRegistry', () => {
 			getSettings: vi.fn(),
 			patchSettings: vi.fn(),
 			testSmtpConnection: vi.fn(),
-			sendTestEmail: vi.fn()
+			sendTestEmail: vi.fn(),
+			getAdminApiKey: vi.fn(() => Promise.resolve({ exists: false, masked_key: '' })),
+			regenerateAdminApiKey: vi.fn(() => Promise.resolve({ key: 'sk-test-1234567890abcdef' })),
+			deleteAdminApiKey: vi.fn(() => Promise.resolve())
 		}
 	};
 });
@@ -220,5 +247,588 @@ describe('Patch flow · only dirty keys in payload', () => {
 		const arg = handler.mock.calls[0][0] as { key: string; value: unknown };
 		expect(arg.key).toBe('email_enabled');
 		expect(arg.value).toBe(true);
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M10 · General + Security tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M10 · general tab sections render without errors', () => {
+	it('settingsTabs registers general + security non-placeholder', () => {
+		const general = settingsTabs.find((t) => t.id === 'general');
+		const security = settingsTabs.find((t) => t.id === 'security');
+		expect(general?.placeholder).not.toBe(true);
+		expect(security?.placeholder).not.toBe(true);
+		expect(general?.sections.length).toBeGreaterThan(0);
+		expect(security?.sections.length).toBeGreaterThan(0);
+	});
+
+	it.each([
+		['general.site', generalSiteSection],
+		['general.table', generalTableSection],
+		['general.customMenu', generalCustomMenuSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('site_logo image field renders an upload trigger', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: generalSiteSection,
+				values: { site_logo: '' },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const wrap = container.querySelector('[data-field-key="site_logo"]');
+		expect(wrap).not.toBeNull();
+		expect(wrap!.getAttribute('data-field-type')).toBe('image');
+		// 隐藏 file input + 可见 label
+		expect(wrap!.querySelector('input[type="file"]')).not.toBeNull();
+	});
+});
+
+describe('M10 · security tab sections render without errors', () => {
+	it.each([
+		['security.registration', securityRegistrationSection],
+		['security.apiKeyAcl', securityApiKeyAclSection],
+		['security.turnstile', securityTurnstileSection],
+		['security.linuxdo', securityLinuxdoSection],
+		['security.github', securityGithubSection],
+		['security.google', securityGoogleSection],
+		['security.adminApiKey', securityAdminApiKeySection],
+		['security.emailWhitelist', securityEmailWhitelistSection],
+		['security.dingtalk', securityDingtalkSection],
+		['security.oidc', securityOidcSection],
+		['security.wechat_connect', securityWechatSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('turnstile_site_key is hidden when turnstile_enabled is false (showWhen)', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityTurnstileSection,
+				values: { turnstile_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="turnstile_enabled"]')).not.toBeNull();
+		expect(container.querySelector('[data-field-key="turnstile_site_key"]')).toBeNull();
+		expect(container.querySelector('[data-field-key="turnstile_secret_key"]')).toBeNull();
+	});
+
+	it('turnstile_site_key + secret appear when turnstile_enabled flips true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityTurnstileSection,
+				values: { turnstile_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="turnstile_site_key"]')).not.toBeNull();
+		expect(container.querySelector('[data-field-key="turnstile_secret_key"]')).not.toBeNull();
+	});
+
+	it('password_reset_enabled is hidden until email_verify_enabled is true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityRegistrationSection,
+				values: { email_verify_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="password_reset_enabled"]')).toBeNull();
+	});
+});
+
+describe('M10 · special components honour props contract + emit fires', () => {
+	it('EmailSuffixWhitelist renders existing tags and emits canonical form on add', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityEmailWhitelistSection,
+				values: { registration_email_suffix_whitelist: ['@example.com'] },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+
+		// 已渲染一个 chip
+		const tags = container.querySelectorAll('[data-testid="email-suffix-tag"]');
+		expect(tags.length).toBe(1);
+		expect(tags[0].getAttribute('data-tag')).toBe('example.com');
+
+		// 在 input 中输入新域名并按 Enter
+		const input = container.querySelector('[data-testid="email-suffix-input"]') as HTMLInputElement;
+		expect(input).not.toBeNull();
+		await fireEvent.input(input, { target: { value: 'foo.com' } });
+		await fireEvent.keyDown(input, { key: 'Enter' });
+
+		expect(handler).toHaveBeenCalled();
+		const call = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(call.key).toBe('registration_email_suffix_whitelist');
+		expect(Array.isArray(call.value)).toBe(true);
+		// canonical：纯域名加 @ 前缀
+		expect(call.value).toEqual(['@example.com', '@foo.com']);
+	});
+
+	it('CustomMenuSection allows adding a new endpoint via emit', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: generalCustomMenuSection,
+				values: { custom_endpoints: [], custom_menu_items: [] },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const addBtn = container.querySelector('[data-testid="custom-endpoint-add"]') as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+		expect(handler).toHaveBeenCalled();
+		const call = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(call.key).toBe('custom_endpoints');
+		expect(Array.isArray(call.value)).toBe(true);
+		expect((call.value as unknown[]).length).toBe(1);
+	});
+
+	it('AdminApiKeySection mounts and renders create button when not configured', async () => {
+		const { container, findByTestId } = render(SectionRenderer, {
+			props: {
+				section: securityAdminApiKeySection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-section-id="security.adminApiKey"]')).not.toBeNull();
+		// onMount 异步 —— 等待 create 按钮出现
+		const btn = await findByTestId('admin-api-key-create');
+		expect(btn).not.toBeNull();
+	});
+
+	it('OidcConnectSection respects oidc_connect_enabled = false → only top switch visible', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityOidcSection,
+				values: { oidc_connect_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="oidc_connect_enabled"]')).not.toBeNull();
+		// 其他字段应该隐藏
+		expect(container.querySelector('[data-field-key="oidc_connect_client_id"]')).toBeNull();
+		expect(container.querySelector('[data-field-key="oidc_connect_token_auth_method"]')).toBeNull();
+	});
+
+	it('DingtalkConnectSection emits corp_restriction_policy on radio change', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityDingtalkSection,
+				values: {
+					dingtalk_connect_enabled: true,
+					dingtalk_connect_corp_restriction_policy: 'none'
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const internalRadio = container.querySelector(
+			'input[type="radio"][value="internal_only"]'
+		) as HTMLInputElement;
+		expect(internalRadio).not.toBeNull();
+		await fireEvent.change(internalRadio, { target: { checked: true } });
+		const call = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(call.key).toBe('dingtalk_connect_corp_restriction_policy');
+		expect(call.value).toBe('internal_only');
+	});
+
+	it('WechatConnectSection top switch is the only visible field when disabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityWechatSection,
+				values: { wechat_connect_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="wechat_connect_enabled"]')).not.toBeNull();
+		expect(container.querySelector('[data-field-key="wechat_connect_mode"]')).toBeNull();
+		expect(container.querySelector('[data-field-key="wechat_connect_open_app_id"]')).toBeNull();
+	});
+});
+
+describe('M10 · sentinel guard · no empty-string <option value=""> in any new section', () => {
+	const allM10Sections: SectionDef[] = [
+		...generalSection,
+		...securitySection.filter((s) => s.special !== 'admin-api-key') // admin-api-key uses async fetch; skipped
+	];
+
+	it.each(allM10Sections.map((s) => [s.id, s]))('section %s exposes no empty option value', (_id, section) => {
+		// 给最大值场景 —— 所有开关都 true，确保 cascading fields 都展开。
+		const values: Record<string, unknown> = {};
+		// 展开常见 enabled key 以 stress test cascading
+		for (const k of [
+			'turnstile_enabled',
+			'linuxdo_connect_enabled',
+			'github_oauth_enabled',
+			'google_oauth_enabled',
+			'oidc_connect_enabled',
+			'wechat_connect_enabled',
+			'wechat_connect_open_enabled',
+			'wechat_connect_mp_enabled',
+			'wechat_connect_mobile_enabled',
+			'dingtalk_connect_enabled',
+			'email_verify_enabled'
+		]) {
+			values[k] = true;
+		}
+		values['dingtalk_connect_corp_restriction_policy'] = 'internal_only';
+		values['dingtalk_connect_sync_display_name'] = true;
+		values['dingtalk_connect_sync_corp_email'] = true;
+		values['dingtalk_connect_sync_dept'] = true;
+
+		const { container } = render(SectionRenderer, {
+			props: { section, values, dirtyKeys: new Set<string>() }
+		});
+		const html = container.innerHTML;
+		const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+		expect(offending).toBeNull();
+	});
+});
+
+describe('M10 · dirty-only PATCH payload · two-field flip in general/security sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			site_name: 'old',
+			site_subtitle: 'old subtitle',
+			turnstile_enabled: false,
+			github_oauth_enabled: false,
+			frontend_url: 'https://old.example.com'
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('two distinct keys across general + security → payload has exactly those two', async () => {
+		flip('site_name', 'new site');
+		flip('turnstile_enabled', true);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		// zod 校验 —— 仅 fields，passthrough 其余。
+		const zod = buildZodSchema([generalSiteSection, securityTurnstileSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual(['site_name', 'turnstile_enabled']);
+		expect(payload.site_name).toBe('new site');
+		expect(payload.turnstile_enabled).toBe(true);
+		// 未触碰
+		expect(payload).not.toHaveProperty('site_subtitle');
+		expect(payload).not.toHaveProperty('github_oauth_enabled');
+		expect(payload).not.toHaveProperty('frontend_url');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M11 · Users tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M11 · users tab registration', () => {
+	it('settingsTabs registers users non-placeholder with 3 sections', () => {
+		const users = settingsTabs.find((t) => t.id === 'users');
+		expect(users).toBeDefined();
+		expect(users?.placeholder).not.toBe(true);
+		expect(users?.sections.length).toBe(3);
+		expect(usersSection.length).toBe(3);
+	});
+});
+
+describe('M11 · users tab sections render without errors', () => {
+	it.each([
+		['users.defaults', usersDefaultsSection],
+		['users.defaultSubscriptionsAndQuotas', usersSubscriptionsQuotasSection],
+		['users.authSourceDefaults', usersAuthSourceDefaultsSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('users.defaults exposes 3 flat number fields', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersDefaultsSection,
+				values: { default_balance: 0, default_concurrency: 1, default_user_rpm_limit: 0 },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of ['default_balance', 'default_concurrency', 'default_user_rpm_limit']) {
+			const el = container.querySelector(`[data-field-key="${key}"] input`);
+			expect(el, `field ${key} missing`).not.toBeNull();
+			expect(el!.getAttribute('type')).toBe('number');
+		}
+	});
+});
+
+describe('M11 · users special components honour props contract + emit fires', () => {
+	it('UserDefaultsSection adds a subscription row on Add click (no emit until valid group)', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersSubscriptionsQuotasSection,
+				values: { default_subscriptions: [], default_platform_quotas: {} },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+
+		// Initially empty hint visible
+		expect(container.querySelector('[data-testid="default-subscription-empty"]')).not.toBeNull();
+
+		const addBtn = container.querySelector(
+			'[data-testid="default-subscription-add"]'
+		) as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+
+		const rows = container.querySelectorAll('[data-testid="default-subscription-row"]');
+		expect(rows.length).toBe(1);
+	});
+
+	it('UserDefaultsSection emits sanitized default_platform_quotas on quota input', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersSubscriptionsQuotasSection,
+				values: { default_subscriptions: [], default_platform_quotas: {} },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+
+		const dailyAnthropic = container.querySelector(
+			'[data-testid="quota-anthropic-daily"]'
+		) as HTMLInputElement;
+		expect(dailyAnthropic).not.toBeNull();
+		await fireEvent.input(dailyAnthropic, { target: { value: '12.5' } });
+
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('default_platform_quotas');
+		const v = last.value as Record<string, { daily: number | null }>;
+		expect(v.anthropic.daily).toBe(12.5);
+		// Other platforms still null (unset).
+		expect(v.openai.daily).toBeNull();
+	});
+
+	it('AuthSourceDefaultsSection renders force_email toggle + 7 source cards', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersAuthSourceDefaultsSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="force-email-toggle"]')).not.toBeNull();
+		expect(
+			container.querySelectorAll('[data-testid="auth-source-card"]').length
+		).toBe(7);
+		// Panels collapsed by default → grant_on_signup false everywhere
+		expect(container.querySelector('[data-testid="auth-source-email-panel"]')).toBeNull();
+	});
+
+	it('AuthSourceDefaultsSection emits force_email_on_third_party_signup boolean on toggle', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersAuthSourceDefaultsSection,
+				values: { force_email_on_third_party_signup: false },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const tgl = container.querySelector('[data-testid="force-email-toggle"]') as HTMLElement;
+		expect(tgl).not.toBeNull();
+		await fireEvent.click(tgl);
+
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('force_email_on_third_party_signup');
+		expect(last.value).toBe(true);
+	});
+
+	it('AuthSourceDefaultsSection emits 6 keys for source when grant_on_signup toggled', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersAuthSourceDefaultsSection,
+				values: {},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const enabledBtn = container.querySelector(
+			'[data-testid="auth-source-email-enabled"]'
+		) as HTMLElement;
+		expect(enabledBtn).not.toBeNull();
+		await fireEvent.click(enabledBtn);
+
+		// Expanded panel now visible
+		expect(container.querySelector('[data-testid="auth-source-email-panel"]')).not.toBeNull();
+
+		// All 6 keys for `email` source should have been emitted.
+		const keys = new Set(
+			handler.mock.calls.map((c) => (c[0] as { key: string }).key).filter((k) => k.includes('email_'))
+		);
+		for (const suffix of [
+			'balance',
+			'concurrency',
+			'grant_on_signup',
+			'grant_on_first_bind',
+			'subscriptions',
+			'platform_quotas'
+		]) {
+			expect(keys.has(`auth_source_default_email_${suffix}`)).toBe(true);
+		}
+	});
+});
+
+describe('M11 · sentinel guard · no empty-string <option value=""> in users sections', () => {
+	const usersSectionsForGuard: SectionDef[] = [...usersSection];
+
+	it.each(usersSectionsForGuard.map((s) => [s.id, s]))(
+		'section %s exposes no empty option value',
+		(_id, section) => {
+			// 把 force_email + 所有 source grant_on_signup 都打开，触发完整面板。
+			const values: Record<string, unknown> = {
+				force_email_on_third_party_signup: true,
+				default_subscriptions: [{ group_id: 1, validity_days: 30 }],
+				default_platform_quotas: {
+					anthropic: { daily: 10, weekly: 50, monthly: 200 }
+				}
+			};
+			for (const src of ['email', 'linuxdo', 'oidc', 'wechat', 'github', 'google', 'dingtalk']) {
+				values[`auth_source_default_${src}_grant_on_signup`] = true;
+				values[`auth_source_default_${src}_grant_on_first_bind`] = true;
+				values[`auth_source_default_${src}_balance`] = 5;
+				values[`auth_source_default_${src}_concurrency`] = 2;
+				values[`auth_source_default_${src}_subscriptions`] = [];
+				values[`auth_source_default_${src}_platform_quotas`] = {};
+			}
+
+			const { container } = render(SectionRenderer, {
+				props: { section, values, dirtyKeys: new Set<string>() }
+			});
+			const html = container.innerHTML;
+			const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+			expect(offending).toBeNull();
+		}
+	);
+});
+
+describe('M11 · dirty-only PATCH payload · two-field flip in users sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			default_balance: 0,
+			default_concurrency: 1,
+			default_user_rpm_limit: 0,
+			force_email_on_third_party_signup: false
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping default_balance + force_email_on_third_party_signup → payload has exactly those two', async () => {
+		flip('default_balance', 25);
+		flip('force_email_on_third_party_signup', true);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		// zod 校验 —— users.defaults 三键 fields，passthrough 余下。
+		const zod = buildZodSchema([usersDefaultsSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual([
+			'default_balance',
+			'force_email_on_third_party_signup'
+		]);
+		expect(payload.default_balance).toBe(25);
+		expect(payload.force_email_on_third_party_signup).toBe(true);
+		// 未触碰
+		expect(payload).not.toHaveProperty('default_concurrency');
+		expect(payload).not.toHaveProperty('default_user_rpm_limit');
 	});
 });

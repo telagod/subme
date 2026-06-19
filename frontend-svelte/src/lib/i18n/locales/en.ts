@@ -5580,6 +5580,9 @@ export default {
       general: {
         title: 'General Settings',
       },
+      users: {
+        title: 'User Settings',
+      },
       gateway: {
         title: 'Gateway Settings',
       },
