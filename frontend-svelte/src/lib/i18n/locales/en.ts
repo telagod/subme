@@ -3214,6 +3214,168 @@ export default {
       errorReasonRequired: 'Reason is required (≥ 4 characters)',
     },
 
+    // M12 · /(admin)/orders/list admin surface
+    orders: {
+      title: 'Orders',
+      desc: 'Order ledger · review payments, refunds, retries and cancellations',
+      statRevenue: 'Revenue',
+      statRefunds: 'Refunds',
+      statCancellations: 'Cancelled',
+      searchPlaceholder: 'Search out_trade_no / user email / ID…',
+      statusAll: 'All statuses',
+      providerLabel: 'Provider',
+      providerAll: 'All providers',
+      planLabel: 'Plan',
+      planAll: 'All plans',
+      startDate: 'From',
+      endDate: 'To',
+      colOrderNo: 'Order #',
+      colUser: 'User',
+      colPlanType: 'Plan / Type',
+      colAmount: 'Amount',
+      colStatus: 'Status',
+      colProvider: 'Provider',
+      colCreated: 'Created',
+      emptyText: 'No orders match the current filters.',
+      refundQuick: 'Refund',
+      selectedCount: '{n} selected',
+      selectRow: 'Select row',
+      detailTitle: 'Order detail',
+      userBlock: 'Customer',
+      userId: 'User ID',
+      userEmail: 'Email',
+      planBlock: 'Plan / Type',
+      planName: 'Plan',
+      orderType: 'Order type',
+      paymentBlock: 'Payment',
+      baseAmount: 'Base amount',
+      fee: 'Fee',
+      payAmount: 'Pay amount',
+      creditedAmount: 'Credited',
+      refunded: 'Refunded',
+      timelineBlock: 'Timeline',
+      createdAt: 'Created',
+      expiresAt: 'Expires',
+      paidAt: 'Paid',
+      completedAt: 'Completed',
+      refundAt: 'Refunded at',
+      auditLog: 'Audit log',
+      auditEmpty: 'No audit entries yet.',
+      auditActor: 'By',
+      retryBtn: 'Retry',
+      retrySuccess: 'Order retry queued',
+      retryError: 'Retry failed: {error}',
+      cancelBtn: 'Cancel order',
+      cancelSuccess: 'Order cancelled',
+      cancelError: 'Cancel failed: {error}',
+      refundBtn: 'Refund',
+      status: {
+        PENDING: 'Pending',
+        PAID: 'Paid',
+        RECHARGING: 'Recharging',
+        COMPLETED: 'Completed',
+        EXPIRED: 'Expired',
+        CANCELLED: 'Cancelled',
+        FAILED: 'Failed',
+        REFUND_REQUESTED: 'Refund requested',
+        REFUNDING: 'Refunding',
+        PARTIALLY_REFUNDED: 'Partially refunded',
+        REFUNDED: 'Refunded',
+        REFUND_FAILED: 'Refund failed'
+      }
+    },
+
+    // M12 · /(admin)/orders/dashboard payment dashboard
+    orderDashboard: {
+      title: 'Payment Dashboard',
+      desc: 'Revenue ledger · live KPIs · provider breakdown',
+      daySuffix: 'd',
+      stat: {
+        todayRevenue: 'Today revenue',
+        todayOrders: 'Today orders',
+        todayRefunds: 'Today refunds',
+        mtdRevenue: 'MTD revenue',
+        activeSubs: 'Active subs',
+        churn: 'Churn rate'
+      },
+      chart: {
+        title: 'Revenue trend',
+        legendRevenue: 'Revenue ($)',
+        legendCount: 'Orders',
+        loading: 'Loading chart…',
+        failed: 'Failed to load chart',
+        empty: 'No revenue in this range'
+      },
+      provider: {
+        title: 'Provider breakdown',
+        colName: 'Provider',
+        colRevenue: 'Revenue',
+        colCount: 'Orders',
+        colSuccess: 'Success rate',
+        colAvg: 'Avg ticket',
+        empty: 'No provider activity in this range'
+      }
+    },
+
+    // M12 · /(admin)/orders/payments redirect / consolidation notice
+    orderPayments: {
+      title: 'Payment Plans',
+      desc: 'This surface has consolidated with the Plan Catalog',
+      noticeTitle: 'Plan editing has moved',
+      noticeBody:
+        'Payment plans and subscription plans share the same backend table (/admin/payment/plans). To avoid drift, all plan CRUD is now managed in one place — the Plan Catalog under Monetization.',
+      gotoPlans: 'Open Plan Catalog',
+      gotoSettings: 'Payment provider settings',
+      docTitle: 'What moved where',
+      docPlans:
+        'Subscription / top-up plan CRUD (create, edit, archive, duplicate, sort) → Monetization · Plan Catalog',
+      docProviders:
+        'Payment provider instances and global payment config → Platform · Settings (payment section)',
+      docDashboard: 'Revenue / refund / churn KPIs → Orders · Payment Dashboard'
+    },
+
+    // /(admin)/orders/refunds refund queue
+    refunds: {
+      title: 'Refund queue',
+      desc: 'Review pending refund requests · approve / reject with reason',
+      statPending: 'Pending',
+      statAmount: 'Requested',
+      statusAll: 'All statuses',
+      searchPlaceholder: 'Search order / user…',
+      startDate: 'From',
+      endDate: 'To',
+      colOrderNo: 'Order #',
+      colUser: 'User',
+      colAmount: 'Amount',
+      colReason: 'Reason',
+      colRequestedAt: 'Requested at',
+      colStatus: 'Status',
+      emptyText: 'No refund requests match the current filters.',
+      view: 'View',
+      approve: 'Approve',
+      reject: 'Reject',
+      approveSuccess: 'Refund approved',
+      approveError: 'Approve failed: {error}',
+      rejectTitle: 'Reject refund request',
+      rejectDescription: 'The user will see this reason in their order history.',
+      rejectReason: 'Reason',
+      rejectReasonPlaceholder: 'Why is this refund being rejected?',
+      rejectReasonRequired: 'Reason is required (≥ 4 characters)',
+      rejectSubmitting: 'Rejecting…',
+      rejectSuccess: 'Refund rejected',
+      rejectError: 'Reject failed: {error}',
+      detailTitle: 'Refund request detail',
+      reviewer: 'Reviewer',
+      reviewerNote: 'Reviewer note',
+      status: {
+        pending: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        completed: 'Completed',
+        failed: 'Failed'
+      }
+    },
+
     // Accounts
     accounts: {
       title: 'Account Management',
