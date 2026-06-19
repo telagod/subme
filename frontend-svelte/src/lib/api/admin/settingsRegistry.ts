@@ -46,6 +46,18 @@ export interface AdminApiKeyResult {
 	key: string;
 }
 
+/** 529 Overload cooldown settings —— 独立 GET/PUT，不入 patchSettings 流水线。 */
+export interface OverloadCooldownSettings {
+	enabled: boolean;
+	cooldown_minutes: number;
+}
+
+/** 429 default cooldown settings —— 独立 GET/PUT，不入 patchSettings 流水线。 */
+export interface RateLimit429CooldownSettings {
+	enabled: boolean;
+	cooldown_seconds: number;
+}
+
 export const settingsApi = {
 	/** 拉取后端全量 settings 快照。 */
 	getSettings(): Promise<SettingsMap> {
@@ -94,5 +106,39 @@ export const settingsApi = {
 	/** DELETE 当前 admin API key。 */
 	async deleteAdminApiKey(): Promise<void> {
 		await apiClient.delete('/api/admin/settings/admin-api-key');
+	},
+
+	// ── M11 gateway 自管理 endpoints ──────────────────────────────────────────────
+
+	/** GET 当前 529 overload cooldown 设置。 */
+	getOverloadCooldownSettings(): Promise<OverloadCooldownSettings> {
+		return apiClient.get<OverloadCooldownSettings>('/api/admin/settings/overload-cooldown');
+	},
+
+	/** PUT 完整 529 overload cooldown 配置 —— 不是 patch，整体替换。 */
+	updateOverloadCooldownSettings(
+		body: OverloadCooldownSettings
+	): Promise<OverloadCooldownSettings> {
+		return apiClient.put<OverloadCooldownSettings>(
+			'/api/admin/settings/overload-cooldown',
+			body
+		);
+	},
+
+	/** GET 当前 429 default cooldown 设置。 */
+	getRateLimit429CooldownSettings(): Promise<RateLimit429CooldownSettings> {
+		return apiClient.get<RateLimit429CooldownSettings>(
+			'/api/admin/settings/rate-limit-429-cooldown'
+		);
+	},
+
+	/** PUT 完整 429 default cooldown 配置 —— 不是 patch，整体替换。 */
+	updateRateLimit429CooldownSettings(
+		body: RateLimit429CooldownSettings
+	): Promise<RateLimit429CooldownSettings> {
+		return apiClient.put<RateLimit429CooldownSettings>(
+			'/api/admin/settings/rate-limit-429-cooldown',
+			body
+		);
 	}
 };

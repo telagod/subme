@@ -25,6 +25,10 @@
 	import WechatConnectSection from './special/WechatConnectSection.svelte';
 	import UserDefaultsSection from './special/UserDefaultsSection.svelte';
 	import AuthSourceDefaultsSection from './special/AuthSourceDefaultsSection.svelte';
+	import AffiliateCustomUsersSection from './special/AffiliateCustomUsersSection.svelte';
+	import OverloadCooldownSection from './special/OverloadCooldownSection.svelte';
+	import RateLimit429Section from './special/RateLimit429Section.svelte';
+	import PaymentProviderListSection from './special/PaymentProviderListSection.svelte';
 	import type { SectionDef } from './types';
 
 	type FieldUpdate = { key: string; value: unknown };
@@ -85,6 +89,14 @@
 		<UserDefaultsSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'auth-source-defaults'}
 		<AuthSourceDefaultsSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'affiliate-custom-users'}
+		<AffiliateCustomUsersSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'overload-cooldown'}
+		<OverloadCooldownSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'rate-limit-429'}
+		<RateLimit429Section {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'payment-provider-list'}
+		<PaymentProviderListSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special}
 		<p class="text-xs text-destructive">[unknown special: {section.special}]</p>
 	{:else if section.fields && section.fields.length > 0}

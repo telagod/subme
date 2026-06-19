@@ -38,9 +38,25 @@ import {
 	usersDefaultsSection,
 	usersSubscriptionsQuotasSection,
 	usersAuthSourceDefaultsSection,
+	featuresChannelMonitorSection,
+	featuresAvailableChannelsSection,
+	featuresRiskControlSection,
+	featuresAffiliateSection,
+	featuresAffiliateCustomUsersSection,
+	gatewayClaudeCodeSection,
+	gatewaySchedulingSection,
+	gatewayForwardingSection,
+	gatewayUsageRecordsSection,
+	gatewayOverloadCooldownSection,
+	gatewayRateLimit429Section,
+	paymentConfigSection,
+	paymentProvidersSection,
 	generalSection,
 	securitySection,
 	usersSection,
+	featuresSection,
+	gatewaySection,
+	paymentSection,
 	settingsTabs
 } from './settings.schema';
 import { buildZodSchema } from './zod';
@@ -56,8 +72,70 @@ vi.mock('$lib/api/admin/settingsRegistry', () => {
 			sendTestEmail: vi.fn(),
 			getAdminApiKey: vi.fn(() => Promise.resolve({ exists: false, masked_key: '' })),
 			regenerateAdminApiKey: vi.fn(() => Promise.resolve({ key: 'sk-test-1234567890abcdef' })),
-			deleteAdminApiKey: vi.fn(() => Promise.resolve())
+			deleteAdminApiKey: vi.fn(() => Promise.resolve()),
+			// M11 gateway specials —— 默认返回固定 stub，组件 onMount 不会真正 fetch。
+			getOverloadCooldownSettings: vi.fn(() =>
+				Promise.resolve({ enabled: true, cooldown_minutes: 10 })
+			),
+			updateOverloadCooldownSettings: vi.fn((body: { enabled: boolean; cooldown_minutes: number }) =>
+				Promise.resolve(body)
+			),
+			getRateLimit429CooldownSettings: vi.fn(() =>
+				Promise.resolve({ enabled: true, cooldown_seconds: 5 })
+			),
+			updateRateLimit429CooldownSettings: vi.fn(
+				(body: { enabled: boolean; cooldown_seconds: number }) => Promise.resolve(body)
+			)
 		}
+	};
+});
+
+// -- mock admin payment API（M12 payment tab special section）
+vi.mock('$lib/api/admin/payment', () => {
+	const listProviders = vi.fn(() => Promise.resolve([]));
+	const createProvider = vi.fn(() => Promise.resolve({ id: 1 }));
+	const updateProvider = vi.fn((id: number, body: Record<string, unknown>) =>
+		Promise.resolve({ id, ...body })
+	);
+	const deleteProvider = vi.fn(() => Promise.resolve());
+	const adminPaymentApi = {
+		listProviders,
+		createProvider,
+		updateProvider,
+		deleteProvider
+	};
+	return {
+		adminPaymentApi,
+		default: adminPaymentApi,
+		listProviders,
+		createProvider,
+		updateProvider,
+		deleteProvider
+	};
+});
+
+// -- mock admin affiliates API（M10c features tab special section）
+vi.mock('$lib/api/admin/affiliates', () => {
+	const listUsers = vi.fn(() => Promise.resolve({ items: [], total: 0, pages: 0 }));
+	const lookupUsers = vi.fn(() => Promise.resolve([]));
+	const updateUserSettings = vi.fn(() => Promise.resolve({ user_id: 0 }));
+	const clearUserSettings = vi.fn(() => Promise.resolve({ user_id: 0 }));
+	const batchSetRate = vi.fn(() => Promise.resolve({ affected: 0 }));
+	const adminAffiliatesApi = {
+		listUsers,
+		lookupUsers,
+		updateUserSettings,
+		clearUserSettings,
+		batchSetRate
+	};
+	return {
+		adminAffiliatesApi,
+		default: adminAffiliatesApi,
+		listUsers,
+		lookupUsers,
+		updateUserSettings,
+		clearUserSettings,
+		batchSetRate
 	};
 });
 
@@ -830,5 +908,899 @@ describe('M11 · dirty-only PATCH payload · two-field flip in users sends ONLY 
 		// 未触碰
 		expect(payload).not.toHaveProperty('default_concurrency');
 		expect(payload).not.toHaveProperty('default_user_rpm_limit');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M10c · Features tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M10c · features tab registration', () => {
+	it('settingsTabs registers features non-placeholder with 5 sections', () => {
+		const features = settingsTabs.find((t) => t.id === 'features');
+		expect(features).toBeDefined();
+		expect(features?.placeholder).not.toBe(true);
+		expect(features?.sections.length).toBe(5);
+		expect(featuresSection.length).toBe(5);
+	});
+});
+
+describe('M10c · features tab sections render without errors', () => {
+	it.each([
+		['features.channelMonitor', featuresChannelMonitorSection],
+		['features.availableChannels', featuresAvailableChannelsSection],
+		['features.riskControl', featuresRiskControlSection],
+		['features.affiliate', featuresAffiliateSection],
+		['features.affiliateCustomUsers', featuresAffiliateCustomUsersSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section,
+				values: { affiliate_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('channel_monitor_default_interval_seconds hidden when channel_monitor_enabled=false', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresChannelMonitorSection,
+				values: { channel_monitor_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="channel_monitor_enabled"]')).not.toBeNull();
+		expect(
+			container.querySelector('[data-field-key="channel_monitor_default_interval_seconds"]')
+		).toBeNull();
+	});
+
+	it('channel_monitor_default_interval_seconds shows when channel_monitor_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresChannelMonitorSection,
+				values: { channel_monitor_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-field-key="channel_monitor_default_interval_seconds"]')
+		).not.toBeNull();
+	});
+
+	it('affiliate sub-fields hidden when affiliate_enabled=false', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateSection,
+				values: { affiliate_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="affiliate_enabled"]')).not.toBeNull();
+		for (const key of [
+			'affiliate_rebate_rate',
+			'affiliate_rebate_freeze_hours',
+			'affiliate_rebate_duration_days',
+			'affiliate_rebate_per_invitee_cap'
+		]) {
+			expect(container.querySelector(`[data-field-key="${key}"]`)).toBeNull();
+		}
+	});
+
+	it('affiliate sub-fields all appear when affiliate_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateSection,
+				values: { affiliate_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of [
+			'affiliate_enabled',
+			'affiliate_rebate_rate',
+			'affiliate_rebate_freeze_hours',
+			'affiliate_rebate_duration_days',
+			'affiliate_rebate_per_invitee_cap'
+		]) {
+			expect(container.querySelector(`[data-field-key="${key}"]`)).not.toBeNull();
+		}
+	});
+});
+
+describe('M10c · AffiliateCustomUsersSection special component', () => {
+	it('shows disabled hint when affiliate_enabled=false (no toolbar)', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateCustomUsersSection,
+				values: { affiliate_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="affiliate-custom-users-disabled"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="affiliate-custom-users-add"]')).toBeNull();
+	});
+
+	it('shows toolbar (search + add button) when affiliate_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateCustomUsersSection,
+				values: { affiliate_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-testid="affiliate-custom-users-disabled"]')).toBeNull();
+		expect(container.querySelector('[data-testid="affiliate-custom-users-search"]')).not.toBeNull();
+		expect(container.querySelector('[data-testid="affiliate-custom-users-add"]')).not.toBeNull();
+	});
+
+	it('Add button opens modal with user picker', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateCustomUsersSection,
+				values: { affiliate_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const addBtn = container.querySelector('[data-testid="affiliate-custom-users-add"]') as HTMLElement;
+		expect(addBtn).not.toBeNull();
+		await fireEvent.click(addBtn);
+		expect(container.querySelector('[data-testid="affiliate-custom-users-modal"]')).not.toBeNull();
+		// add 模式：modalCanSubmit=false（无 selectedUser），save 按钮禁用
+		const saveBtn = container.querySelector(
+			'[data-testid="affiliate-custom-users-modal-save"]'
+		) as HTMLButtonElement;
+		expect(saveBtn).not.toBeNull();
+		expect(saveBtn.disabled).toBe(true);
+	});
+});
+
+describe('M10c · sentinel guard · no empty-string <option value=""> in features sections', () => {
+	const featuresForGuard: SectionDef[] = featuresSection.filter(
+		(s) => s.special !== 'affiliate-custom-users'
+	); // special section 涉及异步 fetch；不展开 sentinel 自动 PASS
+
+	it.each(featuresForGuard.map((s) => [s.id, s]))(
+		'section %s exposes no empty option value',
+		(_id, section) => {
+			const values: Record<string, unknown> = {
+				channel_monitor_enabled: true,
+				available_channels_enabled: true,
+				risk_control_enabled: true,
+				affiliate_enabled: true
+			};
+			const { container } = render(SectionRenderer, {
+				props: { section, values, dirtyKeys: new Set<string>() }
+			});
+			const html = container.innerHTML;
+			const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+			expect(offending).toBeNull();
+		}
+	);
+});
+
+describe('M10c · dirty-only PATCH payload · two-field flip in features sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			channel_monitor_enabled: false,
+			available_channels_enabled: false,
+			risk_control_enabled: false,
+			affiliate_enabled: false,
+			affiliate_rebate_rate: 0
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping affiliate_enabled + affiliate_rebate_rate → payload has exactly those two', async () => {
+		flip('affiliate_enabled', true);
+		flip('affiliate_rebate_rate', 12.5);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		const zod = buildZodSchema([featuresAffiliateSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual(['affiliate_enabled', 'affiliate_rebate_rate']);
+		expect(payload.affiliate_enabled).toBe(true);
+		expect(payload.affiliate_rebate_rate).toBe(12.5);
+		// 未触碰
+		expect(payload).not.toHaveProperty('channel_monitor_enabled');
+		expect(payload).not.toHaveProperty('available_channels_enabled');
+		expect(payload).not.toHaveProperty('risk_control_enabled');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M11 · Gateway tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M11 · gateway tab registration', () => {
+	it('settingsTabs registers gateway non-placeholder with 6 sections', () => {
+		const gateway = settingsTabs.find((t) => t.id === 'gateway');
+		expect(gateway).toBeDefined();
+		expect(gateway?.placeholder).not.toBe(true);
+		expect(gateway?.sections.length).toBe(6);
+		expect(gatewaySection.length).toBe(6);
+	});
+});
+
+describe('M11 · gateway tab sections render without errors', () => {
+	it.each([
+		['gateway.claudeCode', gatewayClaudeCodeSection],
+		['gateway.scheduling', gatewaySchedulingSection],
+		['gateway.forwarding', gatewayForwardingSection],
+		['gateway.usageRecords', gatewayUsageRecordsSection],
+		['gateway.overloadCooldown', gatewayOverloadCooldownSection],
+		['gateway.rateLimit429', gatewayRateLimit429Section]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: { section, values: {}, dirtyKeys: new Set<string>() }
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('claudeCode exposes 2 text fields for min/max version', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayClaudeCodeSection,
+				values: { min_claude_code_version: '', max_claude_code_version: '' },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of ['min_claude_code_version', 'max_claude_code_version']) {
+			const el = container.querySelector(`[data-field-key="${key}"] input`);
+			expect(el, `field ${key} missing`).not.toBeNull();
+			expect(el!.getAttribute('type')).toBe('text');
+		}
+	});
+
+	it('scheduling exposes 2 switch fields', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewaySchedulingSection,
+				values: {
+					allow_ungrouped_key_scheduling: false,
+					openai_advanced_scheduler_enabled: false
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of ['allow_ungrouped_key_scheduling', 'openai_advanced_scheduler_enabled']) {
+			const el = container.querySelector(`[data-field-key="${key}"] [role="switch"]`);
+			expect(el, `switch ${key} missing`).not.toBeNull();
+		}
+	});
+
+	it('forwarding renders all 9 fields when injection enabled (default)', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayForwardingSection,
+				// undefined → showWhen returns true (!== false)
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of [
+			'enable_fingerprint_unification',
+			'enable_metadata_passthrough',
+			'enable_cch_signing',
+			'enable_claude_oauth_system_prompt_injection',
+			'claude_oauth_system_prompt',
+			'claude_oauth_system_prompt_blocks',
+			'enable_anthropic_cache_ttl_1h_injection',
+			'rewrite_message_cache_control',
+			'antigravity_user_agent_version',
+			'openai_codex_user_agent',
+			'openai_allow_claude_code_codex_plugin'
+		]) {
+			expect(
+				container.querySelector(`[data-field-key="${key}"]`),
+				`field ${key} missing`
+			).not.toBeNull();
+		}
+	});
+
+	it('claude_oauth_system_prompt + blocks hidden when injection explicitly disabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayForwardingSection,
+				values: { enable_claude_oauth_system_prompt_injection: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-field-key="enable_claude_oauth_system_prompt_injection"]')
+		).not.toBeNull();
+		expect(container.querySelector('[data-field-key="claude_oauth_system_prompt"]')).toBeNull();
+		expect(
+			container.querySelector('[data-field-key="claude_oauth_system_prompt_blocks"]')
+		).toBeNull();
+	});
+
+	it('claude_oauth_system_prompt textarea + blocks json visible when injection enabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayForwardingSection,
+				values: { enable_claude_oauth_system_prompt_injection: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const prompt = container.querySelector('[data-field-key="claude_oauth_system_prompt"]');
+		expect(prompt).not.toBeNull();
+		expect(prompt!.getAttribute('data-field-type')).toBe('textarea');
+		const blocks = container.querySelector('[data-field-key="claude_oauth_system_prompt_blocks"]');
+		expect(blocks).not.toBeNull();
+		expect(blocks!.getAttribute('data-field-type')).toBe('json');
+	});
+
+	it('usageRecords exposes single allow_user_view_error_requests switch', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayUsageRecordsSection,
+				values: { allow_user_view_error_requests: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const el = container.querySelector(
+			'[data-field-key="allow_user_view_error_requests"] [role="switch"]'
+		);
+		expect(el).not.toBeNull();
+	});
+});
+
+describe('M11 · gateway special components honour props contract + emit fires', () => {
+	it('OverloadCooldownSection mounts and shows the save button after load', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOverloadCooldownSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-section-id="gateway.overloadCooldown"]')
+		).not.toBeNull();
+		// onMount async — 容器局部轮询，避免被同一 jsdom 内残留节点干扰。
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="overload-cooldown-save"]')).not.toBeNull();
+		});
+	});
+
+	it('OverloadCooldownSection toggle hides cooldown_minutes input when disabled', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(mod.settingsApi.getOverloadCooldownSettings as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+			enabled: false,
+			cooldown_minutes: 10
+		});
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayOverloadCooldownSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		// 等待 mount 完成 —— 容器范围内轮询 save 按钮。
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="overload-cooldown-save"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="overload-cooldown-minutes"]')).toBeNull();
+	});
+
+	it('RateLimit429Section mounts and shows the save button after load', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRateLimit429Section,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-section-id="gateway.rateLimit429"]')
+		).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rate-limit-429-save"]')).not.toBeNull();
+		});
+	});
+
+	it('RateLimit429Section save click invokes update API with form payload', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const updateSpy = mod.settingsApi
+			.updateRateLimit429CooldownSettings as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayRateLimit429Section,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="rate-limit-429-save"]')).not.toBeNull();
+		});
+		const saveBtn = container.querySelector(
+			'[data-testid="rate-limit-429-save"]'
+		) as HTMLElement;
+		await fireEvent.click(saveBtn);
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as { enabled: boolean; cooldown_seconds: number };
+		expect(typeof arg.enabled).toBe('boolean');
+		expect(typeof arg.cooldown_seconds).toBe('number');
+	});
+});
+
+describe('M11 · sentinel guard · no empty-string <option value=""> in gateway sections', () => {
+	const gatewayForGuard: SectionDef[] = gatewaySection.filter(
+		(s) => !s.special // special section 涉及异步 onMount，不进 sentinel sweep
+	);
+
+	it.each(gatewayForGuard.map((s) => [s.id, s]))(
+		'section %s exposes no empty option value',
+		(_id, section) => {
+			// 展开所有联动开关到 true，覆盖 forwarding 的 cascading 子字段。
+			const values: Record<string, unknown> = {
+				enable_claude_oauth_system_prompt_injection: true,
+				allow_ungrouped_key_scheduling: true,
+				openai_advanced_scheduler_enabled: true,
+				allow_user_view_error_requests: true
+			};
+			const { container } = render(SectionRenderer, {
+				props: { section, values, dirtyKeys: new Set<string>() }
+			});
+			const html = container.innerHTML;
+			const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+			expect(offending).toBeNull();
+		}
+	);
+});
+
+describe('M11 · dirty-only PATCH payload · two-field flip in gateway sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			min_claude_code_version: '',
+			max_claude_code_version: '',
+			allow_ungrouped_key_scheduling: false,
+			openai_advanced_scheduler_enabled: false,
+			enable_fingerprint_unification: false,
+			allow_user_view_error_requests: false
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping enable_fingerprint_unification + min_claude_code_version → payload has exactly those two', async () => {
+		flip('enable_fingerprint_unification', true);
+		flip('min_claude_code_version', '2.1.63');
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		// zod 校验 —— claudeCode + forwarding fields，passthrough 余下。
+		const zod = buildZodSchema([gatewayClaudeCodeSection, gatewayForwardingSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual([
+			'enable_fingerprint_unification',
+			'min_claude_code_version'
+		]);
+		expect(payload.enable_fingerprint_unification).toBe(true);
+		expect(payload.min_claude_code_version).toBe('2.1.63');
+		// 未触碰的 gateway flat keys 不应出现。
+		expect(payload).not.toHaveProperty('max_claude_code_version');
+		expect(payload).not.toHaveProperty('allow_ungrouped_key_scheduling');
+		expect(payload).not.toHaveProperty('openai_advanced_scheduler_enabled');
+		expect(payload).not.toHaveProperty('allow_user_view_error_requests');
+	});
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// M12 · Payment tab section coverage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('M12 · payment tab registration', () => {
+	it('settingsTabs registers payment non-placeholder with 2 sections', () => {
+		const payment = settingsTabs.find((t) => t.id === 'payment');
+		expect(payment).toBeDefined();
+		expect(payment?.placeholder).not.toBe(true);
+		expect(payment?.sections.length).toBe(2);
+		expect(paymentSection.length).toBe(2);
+	});
+});
+
+describe('M12 · payment tab sections render without errors', () => {
+	it.each([
+		['payment.config', paymentConfigSection],
+		['payment.providers', paymentProvidersSection]
+	])('renders %s without throwing', (_id, section) => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section,
+				values: { payment_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector(`[data-section-id="${section.id}"]`)).not.toBeNull();
+	});
+
+	it('config: only payment_enabled visible when payment_enabled=false (showWhen cascading)', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: { payment_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(container.querySelector('[data-field-key="payment_enabled"]')).not.toBeNull();
+		for (const key of [
+			'payment_product_name_prefix',
+			'payment_min_amount',
+			'payment_balance_recharge_multiplier',
+			'payment_recharge_fee_rate',
+			'payment_order_timeout_minutes',
+			'payment_load_balance_strategy',
+			'payment_cancel_rate_limit_enabled',
+			'payment_alipay_force_qrcode',
+			'payment_help_image_url',
+			'payment_help_text'
+		]) {
+			expect(container.querySelector(`[data-field-key="${key}"]`), `${key} should be hidden`).toBeNull();
+		}
+	});
+
+	it('config: cascading subfields appear when payment_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: { payment_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of [
+			'payment_enabled',
+			'payment_product_name_prefix',
+			'payment_product_name_suffix',
+			'payment_min_amount',
+			'payment_max_amount',
+			'payment_daily_limit',
+			'payment_balance_recharge_multiplier',
+			'payment_recharge_fee_rate',
+			'payment_order_timeout_minutes',
+			'payment_max_pending_orders',
+			'payment_load_balance_strategy',
+			'payment_cancel_rate_limit_enabled',
+			'payment_alipay_force_qrcode',
+			'payment_help_image_url',
+			'payment_help_text'
+		]) {
+			expect(container.querySelector(`[data-field-key="${key}"]`), `${key} should be visible`).not.toBeNull();
+		}
+	});
+
+	it('config: cancel rate-limit subfields only appear when both gates true', () => {
+		const { container: noCancel } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: {
+					payment_enabled: true,
+					payment_cancel_rate_limit_enabled: false
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of [
+			'payment_cancel_rate_limit_window_mode',
+			'payment_cancel_rate_limit_window',
+			'payment_cancel_rate_limit_unit',
+			'payment_cancel_rate_limit_max'
+		]) {
+			expect(noCancel.querySelector(`[data-field-key="${key}"]`)).toBeNull();
+		}
+
+		const { container: withCancel } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: {
+					payment_enabled: true,
+					payment_cancel_rate_limit_enabled: true
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		for (const key of [
+			'payment_cancel_rate_limit_window_mode',
+			'payment_cancel_rate_limit_window',
+			'payment_cancel_rate_limit_unit',
+			'payment_cancel_rate_limit_max'
+		]) {
+			expect(withCancel.querySelector(`[data-field-key="${key}"]`)).not.toBeNull();
+		}
+	});
+
+	it('config: load_balance_strategy renders 3 sentinel-compliant options', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: { payment_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const select = container.querySelector(
+			'[data-field-key="payment_load_balance_strategy"] select'
+		);
+		expect(select).not.toBeNull();
+		const opts = container.querySelectorAll(
+			'[data-field-key="payment_load_balance_strategy"] option'
+		);
+		expect(opts.length).toBe(3);
+		const values = Array.from(opts).map((o) => o.getAttribute('value'));
+		expect(values).toEqual(['random', 'round_robin', 'least_conn']);
+	});
+
+	it('config: help_image_url renders image upload trigger when enabled', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentConfigSection,
+				values: { payment_enabled: true, payment_help_image_url: '' },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const wrap = container.querySelector('[data-field-key="payment_help_image_url"]');
+		expect(wrap).not.toBeNull();
+		expect(wrap!.getAttribute('data-field-type')).toBe('image');
+		expect(wrap!.querySelector('input[type="file"]')).not.toBeNull();
+	});
+});
+
+describe('M12 · PaymentProviderListSection special component', () => {
+	it('shows disabled hint when payment_enabled=false', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: false },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		expect(
+			container.querySelector('[data-testid="payment-provider-list-disabled"]')
+		).not.toBeNull();
+		expect(container.querySelector('[data-testid="payment-provider-badges"]')).toBeNull();
+	});
+
+	it('renders 5 enabledPaymentTypes badges when payment_enabled=true', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: [] },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const badges = container.querySelectorAll('[data-testid^="payment-provider-badge-"]');
+		expect(badges.length).toBe(5);
+		for (const v of ['sub2apipay', 'epay', 'stripe', 'alipay', 'wechat']) {
+			expect(
+				container.querySelector(`[data-testid="payment-provider-badge-${v}"]`),
+				`badge ${v} missing`
+			).not.toBeNull();
+		}
+	});
+
+	it('toggling a badge emits payment_enabled_types[] addition to flat-form pipeline', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: [] },
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const stripe = container.querySelector(
+			'[data-testid="payment-provider-badge-stripe"]'
+		) as HTMLElement;
+		expect(stripe).not.toBeNull();
+		await fireEvent.click(stripe);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('payment_enabled_types');
+		expect(Array.isArray(last.value)).toBe(true);
+		expect(last.value).toEqual(['stripe']);
+	});
+
+	it('toggling an already-enabled badge removes it from the array', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: {
+					payment_enabled: true,
+					payment_enabled_types: ['stripe', 'alipay']
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+		const alipay = container.querySelector(
+			'[data-testid="payment-provider-badge-alipay"]'
+		) as HTMLElement;
+		expect(alipay).not.toBeNull();
+		await fireEvent.click(alipay);
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: unknown;
+		};
+		expect(last.key).toBe('payment_enabled_types');
+		expect(last.value).toEqual(['stripe']);
+	});
+
+	it('provider list shows empty state when listProviders resolves []', async () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="payment-provider-empty"]')).not.toBeNull();
+		});
+	});
+
+	it('parses comma-separated payment_enabled_types string into badge state', () => {
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: {
+					payment_enabled: true,
+					payment_enabled_types: 'stripe,wechat'
+				},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const stripe = container.querySelector('[data-testid="payment-provider-badge-stripe"]');
+		const wechat = container.querySelector('[data-testid="payment-provider-badge-wechat"]');
+		const epay = container.querySelector('[data-testid="payment-provider-badge-epay"]');
+		expect(stripe?.getAttribute('data-checked')).toBe('true');
+		expect(wechat?.getAttribute('data-checked')).toBe('true');
+		expect(epay?.getAttribute('data-checked')).toBe('false');
+	});
+});
+
+describe('M12 · sentinel guard · no empty-string <option value=""> in payment sections', () => {
+	const paymentForGuard: SectionDef[] = paymentSection.filter((s) => !s.special);
+
+	it.each(paymentForGuard.map((s) => [s.id, s]))(
+		'section %s exposes no empty option value',
+		(_id, section) => {
+			const values: Record<string, unknown> = {
+				payment_enabled: true,
+				payment_cancel_rate_limit_enabled: true,
+				payment_load_balance_strategy: 'round_robin',
+				payment_cancel_rate_limit_window_mode: 'rolling',
+				payment_cancel_rate_limit_unit: 'minute'
+			};
+			const { container } = render(SectionRenderer, {
+				props: { section, values, dirtyKeys: new Set<string>() }
+			});
+			const html = container.innerHTML;
+			const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+			expect(offending).toBeNull();
+		}
+	);
+});
+
+describe('M12 · dirty-only PATCH payload · two-field flip in payment sends ONLY those two', () => {
+	let patchSpy: ReturnType<typeof vi.fn>;
+	let savedSettings: Record<string, unknown>;
+	let form: Record<string, unknown>;
+	let dirtyKeys: Set<string>;
+
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		patchSpy = mod.settingsApi.patchSettings as unknown as ReturnType<typeof vi.fn>;
+		patchSpy.mockReset();
+		patchSpy.mockResolvedValue(undefined);
+
+		savedSettings = {
+			payment_enabled: false,
+			payment_min_amount: 0,
+			payment_max_amount: 0,
+			payment_balance_recharge_multiplier: 1,
+			payment_recharge_fee_rate: 0,
+			payment_enabled_types: []
+		};
+		form = { ...savedSettings };
+		dirtyKeys = new Set();
+	});
+
+	function flip(key: string, value: unknown) {
+		form = { ...form, [key]: value };
+		dirtyKeys.add(key);
+	}
+
+	it('flipping payment_enabled + payment_balance_recharge_multiplier → payload has exactly those two', async () => {
+		flip('payment_enabled', true);
+		flip('payment_balance_recharge_multiplier', 0.14);
+
+		const patch: Record<string, unknown> = {};
+		for (const k of dirtyKeys) {
+			if (JSON.stringify(form[k]) === JSON.stringify(savedSettings[k])) continue;
+			if (form[k] === undefined) continue;
+			patch[k] = form[k];
+		}
+
+		const zod = buildZodSchema([paymentConfigSection]);
+		const parsed = zod.safeParse({ ...savedSettings, ...form });
+		expect(parsed.success).toBe(true);
+
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		await mod.settingsApi.patchSettings(patch);
+
+		expect(patchSpy).toHaveBeenCalledOnce();
+		const payload = patchSpy.mock.calls[0][0] as Record<string, unknown>;
+		expect(Object.keys(payload).sort()).toEqual([
+			'payment_balance_recharge_multiplier',
+			'payment_enabled'
+		]);
+		expect(payload.payment_enabled).toBe(true);
+		expect(payload.payment_balance_recharge_multiplier).toBe(0.14);
+		// 未触碰的 payment_* flat key 不应出现。
+		expect(payload).not.toHaveProperty('payment_min_amount');
+		expect(payload).not.toHaveProperty('payment_max_amount');
+		expect(payload).not.toHaveProperty('payment_recharge_fee_rate');
+		expect(payload).not.toHaveProperty('payment_enabled_types');
 	});
 });

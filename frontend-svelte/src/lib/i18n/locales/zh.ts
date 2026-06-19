@@ -5562,6 +5562,7 @@ export default {
         title: '网关服务',
       },
       features: {
+        title: '功能开关',
         channelMonitor: {
           title: '渠道监控',
           description: '定期对配置的渠道发起健康检查，向用户展示可用性与延迟。关闭后调度器停止扫描，用户端列表为空。',
@@ -6166,7 +6167,9 @@ export default {
         productNameSuffix: '商品名后缀',
         preview: '预览',
         loadBalanceStrategy: '负载均衡策略',
+        strategyRandom: '随机',
         strategyRoundRobin: '轮询',
+        strategyLeastConn: '最少连接',
         strategyLeastAmount: '最少金额',
         providerManagement: '服务商管理',
         providerManagementDesc: '管理支付服务商实例',

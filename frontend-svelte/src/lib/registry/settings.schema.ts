@@ -10,7 +10,10 @@
  *                / google / adminApiKey / emailWhitelist / dingtalk / oidc
  *                / wechat_connect  (M10 落地)
  *   - users   →  defaults / defaultSubscriptionsAndQuotas / authSourceDefaults  (M10 落地)
- *   - gateway → 仍 placeholder（M11+）
+ *   - features → channelMonitor / availableChannels / riskControl / affiliate
+ *                / affiliateCustomUsers  (M10c 落地)
+ *   - gateway → claudeCode / scheduling / forwarding / usageRecords
+ *                / overloadCooldown (special) / rateLimit429 (special)  (M11 落地)
  *
  * 排序：与 Vue tree `registry.ts` import 顺序严格同步，避免视觉漂移。
  *
@@ -484,6 +487,535 @@ export const usersSection: SettingsSchema = [
 	usersAuthSourceDefaultsSection
 ];
 
+// ── features tab ─────────────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/views/admin/settings-registry/sections/features.ts +
+// affiliateCustomUsers.ts。共 5 section：
+//   - channelMonitor         enabled + 默认间隔 (showWhen)
+//   - availableChannels      单字段开关
+//   - riskControl            单字段开关
+//   - affiliate              全局返利配置（rate/freeze/duration/cap，全部 showWhen）
+//   - affiliateCustomUsers   special：per-user override CRUD（独立 lifecycle）
+//
+// 与 Vue tree 差异：none —— flat key + showWhen 直接复刻；special 独立组件承载
+// 表格 + 模态框 + 批量编辑流程。
+
+/** 渠道监控总开关 + 默认检测间隔。 */
+export const featuresChannelMonitorSection: SectionDef = {
+	id: 'features.channelMonitor',
+	titleKey: 'admin.settings.features.channelMonitor.title',
+	descriptionKey: 'admin.settings.features.channelMonitor.description',
+	fields: [
+		{
+			key: 'channel_monitor_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.features.channelMonitor.enabled',
+			descriptionKey: 'admin.settings.features.channelMonitor.enabledHint'
+		},
+		{
+			key: 'channel_monitor_default_interval_seconds',
+			type: 'number',
+			labelKey: 'admin.settings.features.channelMonitor.defaultInterval',
+			descriptionKey: 'admin.settings.features.channelMonitor.defaultIntervalHint',
+			min: 15,
+			max: 3600,
+			showWhen: (v) => !!v['channel_monitor_enabled']
+		}
+	]
+};
+
+/** 可用渠道总开关。 */
+export const featuresAvailableChannelsSection: SectionDef = {
+	id: 'features.availableChannels',
+	titleKey: 'admin.settings.features.availableChannels.title',
+	descriptionKey: 'admin.settings.features.availableChannels.description',
+	fields: [
+		{
+			key: 'available_channels_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.features.availableChannels.enabled',
+			descriptionKey: 'admin.settings.features.availableChannels.enabledHint'
+		}
+	]
+};
+
+/** 风控中心总开关。 */
+export const featuresRiskControlSection: SectionDef = {
+	id: 'features.riskControl',
+	titleKey: 'admin.settings.features.riskControl.title',
+	descriptionKey: 'admin.settings.features.riskControl.description',
+	fields: [
+		{
+			key: 'risk_control_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.features.riskControl.enabled',
+			descriptionKey: 'admin.settings.features.riskControl.enabledHint'
+		}
+	]
+};
+
+/**
+ * Affiliate 全局返利配置 —— flat keys，所有 sub-field showWhen 联动 affiliate_enabled。
+ * 0 = 特殊语义（不冻结 / 永久有效 / 无上限），故 min 不显式约束 0 以避免 zod 拒绝。
+ */
+export const featuresAffiliateSection: SectionDef = {
+	id: 'features.affiliate',
+	titleKey: 'admin.settings.features.affiliate.title',
+	descriptionKey: 'admin.settings.features.affiliate.description',
+	fields: [
+		{
+			key: 'affiliate_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.features.affiliate.enabled',
+			descriptionKey: 'admin.settings.features.affiliate.enabledHint'
+		},
+		{
+			key: 'affiliate_rebate_rate',
+			type: 'number',
+			labelKey: 'admin.settings.features.affiliate.rebateRate',
+			descriptionKey: 'admin.settings.features.affiliate.rebateRateHint',
+			min: 0,
+			max: 100,
+			showWhen: (v) => !!v['affiliate_enabled']
+		},
+		{
+			key: 'affiliate_rebate_freeze_hours',
+			type: 'number',
+			labelKey: 'admin.settings.features.affiliate.freezeHours',
+			descriptionKey: 'admin.settings.features.affiliate.freezeHoursDesc',
+			min: 0,
+			showWhen: (v) => !!v['affiliate_enabled']
+		},
+		{
+			key: 'affiliate_rebate_duration_days',
+			type: 'number',
+			labelKey: 'admin.settings.features.affiliate.durationDays',
+			descriptionKey: 'admin.settings.features.affiliate.durationDaysDesc',
+			min: 0,
+			showWhen: (v) => !!v['affiliate_enabled']
+		},
+		{
+			key: 'affiliate_rebate_per_invitee_cap',
+			type: 'number',
+			labelKey: 'admin.settings.features.affiliate.perInviteeCap',
+			descriptionKey: 'admin.settings.features.affiliate.perInviteeCapDesc',
+			min: 0,
+			showWhen: (v) => !!v['affiliate_enabled']
+		}
+	]
+};
+
+/**
+ * Affiliate per-user override CRUD（special section）—— 独立 lifecycle，不进 flat-form patch。
+ * 端口自 Vue special/AffiliateCustomUsersSection.vue：搜索 / 分页 / Add+Edit modal / 批量
+ * 设置比例 / 重置。当 affiliate_enabled=false 时仅展示 disabledHint，避免误操作。
+ */
+export const featuresAffiliateCustomUsersSection: SectionDef = {
+	id: 'features.affiliateCustomUsers',
+	titleKey: 'admin.settings.features.affiliate.customUsers.title',
+	descriptionKey: 'admin.settings.features.affiliate.customUsers.description',
+	special: 'affiliate-custom-users'
+};
+
+export const featuresSection: SettingsSchema = [
+	featuresChannelMonitorSection,
+	featuresAvailableChannelsSection,
+	featuresRiskControlSection,
+	featuresAffiliateSection,
+	featuresAffiliateCustomUsersSection
+];
+
+// ── gateway tab ──────────────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/views/admin/settings-registry/sections/gateway.ts +
+// overloadCooldown.ts + rateLimit429.ts。共 6 section：
+//
+//   - claudeCode          min/max Claude Code 客户端版本闸（2 text fields）
+//   - scheduling          Allow ungrouped key + OpenAI experimental scheduler 双开关
+//   - forwarding          gateway 转发行为（9 字段，含 claude_oauth_system_prompt
+//                          textarea + structured blocks JSON，由 enable_claude_oauth_system_prompt_injection
+//                          联动 showWhen）
+//   - usageRecords        允许用户查看自己的错误请求（1 switch）
+//   - overloadCooldown    special：529 cooldown 独立 GET/PUT lifecycle
+//   - rateLimit429        special：429 default cooldown 独立 GET/PUT lifecycle
+//
+// 复刻 Vue tree 的 16 个 flat key + 2 个 special section（剩下的
+// webSearchConfig / streamTimeout / rectifier / betaPolicy / openaiFastPolicy
+// 是 backlog，Vue tree 本身的 sections/gateway.ts 也尚未沉淀这些 special）。
+
+/** Claude Code 客户端版本闸（min/max semver）。 */
+export const gatewayClaudeCodeSection: SectionDef = {
+	id: 'gateway.claudeCode',
+	titleKey: 'admin.settings.claudeCode.title',
+	descriptionKey: 'admin.settings.claudeCode.description',
+	fields: [
+		{
+			key: 'min_claude_code_version',
+			type: 'text',
+			labelKey: 'admin.settings.claudeCode.minVersion',
+			placeholder: 'e.g. 2.1.63',
+			descriptionKey: 'admin.settings.claudeCode.minVersionHint'
+		},
+		{
+			key: 'max_claude_code_version',
+			type: 'text',
+			labelKey: 'admin.settings.claudeCode.maxVersion',
+			placeholder: 'e.g. 2.5.0',
+			descriptionKey: 'admin.settings.claudeCode.maxVersionHint'
+		}
+	]
+};
+
+/**
+ * Gateway 调度策略：未分组 Key 是否允许调度 + OpenAI 实验性调度策略总开关。
+ * 两个独立 switch，无 cascading subfield。
+ */
+export const gatewaySchedulingSection: SectionDef = {
+	id: 'gateway.scheduling',
+	titleKey: 'admin.settings.scheduling.title',
+	descriptionKey: 'admin.settings.scheduling.description',
+	fields: [
+		{
+			key: 'allow_ungrouped_key_scheduling',
+			type: 'switch',
+			labelKey: 'admin.settings.scheduling.allowUngroupedKey',
+			descriptionKey: 'admin.settings.scheduling.allowUngroupedKeyHint'
+		},
+		{
+			key: 'openai_advanced_scheduler_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.openaiExperimentalScheduler.title',
+			descriptionKey: 'admin.settings.openaiExperimentalScheduler.description'
+		}
+	]
+};
+
+/**
+ * Gateway 转发行为（9 字段）：
+ *   - fingerprint / metadata / cch_signing / oauth_system_prompt 4 switches
+ *   - claude_oauth_system_prompt textarea + claude_oauth_system_prompt_blocks json
+ *     （两者均 showWhen enable_claude_oauth_system_prompt_injection !== false，
+ *      与 Vue tree 同语义 —— 默认开启即露面）
+ *   - anthropic_cache_ttl_1h_injection / rewrite_message_cache_control 2 switches
+ *   - antigravity_user_agent_version / openai_codex_user_agent 2 text
+ *   - openai_allow_claude_code_codex_plugin 1 switch
+ */
+export const gatewayForwardingSection: SectionDef = {
+	id: 'gateway.forwarding',
+	titleKey: 'admin.settings.gatewayForwarding.title',
+	descriptionKey: 'admin.settings.gatewayForwarding.description',
+	fields: [
+		{
+			key: 'enable_fingerprint_unification',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.fingerprintUnification',
+			descriptionKey: 'admin.settings.gatewayForwarding.fingerprintUnificationHint'
+		},
+		{
+			key: 'enable_metadata_passthrough',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.metadataPassthrough',
+			descriptionKey: 'admin.settings.gatewayForwarding.metadataPassthroughHint'
+		},
+		{
+			key: 'enable_cch_signing',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.cchSigning',
+			descriptionKey: 'admin.settings.gatewayForwarding.cchSigningHint'
+		},
+		{
+			key: 'enable_claude_oauth_system_prompt_injection',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptInjection',
+			descriptionKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptInjectionHint'
+		},
+		{
+			key: 'claude_oauth_system_prompt',
+			type: 'textarea',
+			labelKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPrompt',
+			placeholder: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptPlaceholder',
+			descriptionKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptHint',
+			// 默认开启 —— enable_claude_oauth_system_prompt_injection 未设置时也露面。
+			showWhen: (v) => v['enable_claude_oauth_system_prompt_injection'] !== false
+		},
+		{
+			key: 'claude_oauth_system_prompt_blocks',
+			type: 'json',
+			labelKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocks',
+			placeholder: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocksPlaceholder',
+			descriptionKey: 'admin.settings.gatewayForwarding.claudeOAuthSystemPromptBlocksHint',
+			showWhen: (v) => v['enable_claude_oauth_system_prompt_injection'] !== false
+		},
+		{
+			key: 'enable_anthropic_cache_ttl_1h_injection',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.anthropicCacheTTL1hInjection',
+			descriptionKey: 'admin.settings.gatewayForwarding.anthropicCacheTTL1hInjectionHint'
+		},
+		{
+			key: 'rewrite_message_cache_control',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.rewriteMessageCacheControl',
+			descriptionKey: 'admin.settings.gatewayForwarding.rewriteMessageCacheControlHint'
+		},
+		{
+			key: 'antigravity_user_agent_version',
+			type: 'text',
+			labelKey: 'admin.settings.gatewayForwarding.antigravityUserAgentVersion',
+			placeholder: 'admin.settings.gatewayForwarding.antigravityUserAgentVersionPlaceholder',
+			descriptionKey: 'admin.settings.gatewayForwarding.antigravityUserAgentVersionHint'
+		},
+		{
+			key: 'openai_codex_user_agent',
+			type: 'text',
+			labelKey: 'admin.settings.gatewayForwarding.openaiCodexUserAgent',
+			placeholder: 'admin.settings.gatewayForwarding.openaiCodexUserAgentPlaceholder',
+			descriptionKey: 'admin.settings.gatewayForwarding.openaiCodexUserAgentHint'
+		},
+		{
+			key: 'openai_allow_claude_code_codex_plugin',
+			type: 'switch',
+			labelKey: 'admin.settings.gatewayForwarding.openaiAllowClaudeCodeCodexPlugin',
+			descriptionKey: 'admin.settings.gatewayForwarding.openaiAllowClaudeCodeCodexPluginDesc'
+		}
+	]
+};
+
+/** 用户可见错误请求 —— 单 switch。 */
+export const gatewayUsageRecordsSection: SectionDef = {
+	id: 'gateway.usageRecords',
+	titleKey: 'admin.settings.usageRecords.title',
+	descriptionKey: 'admin.settings.usageRecords.description',
+	fields: [
+		{
+			key: 'allow_user_view_error_requests',
+			type: 'switch',
+			labelKey: 'admin.settings.user_error_view.label',
+			descriptionKey: 'admin.settings.user_error_view.description'
+		}
+	]
+};
+
+/** 529 overload cooldown —— 独立 GET/PUT lifecycle，不进 patchSettings。 */
+export const gatewayOverloadCooldownSection: SectionDef = {
+	id: 'gateway.overloadCooldown',
+	titleKey: 'admin.settings.overloadCooldown.title',
+	descriptionKey: 'admin.settings.overloadCooldown.description',
+	special: 'overload-cooldown'
+};
+
+/** 429 default cooldown —— 独立 GET/PUT lifecycle，不进 patchSettings。 */
+export const gatewayRateLimit429Section: SectionDef = {
+	id: 'gateway.rateLimit429',
+	titleKey: 'admin.settings.rateLimit429Cooldown.title',
+	descriptionKey: 'admin.settings.rateLimit429Cooldown.description',
+	special: 'rate-limit-429'
+};
+
+export const gatewaySection: SettingsSchema = [
+	gatewayClaudeCodeSection,
+	gatewaySchedulingSection,
+	gatewayForwardingSection,
+	gatewayUsageRecordsSection,
+	gatewayOverloadCooldownSection,
+	gatewayRateLimit429Section
+];
+
+// ── payment tab ──────────────────────────────────────────────────────────────
+//
+// 端口自 frontend/src/views/admin/settings-registry/sections/payment.ts
+// + special/PaymentProviderListSection.vue。共 2 section：
+//   - paymentConfig    18 flat 字段（payment_enabled 主开关 + 17 cascading subfield）
+//   - paymentProviders special：payment_enabled_types 徽章 + provider 实例 CRUD
+//                       (lifecycle 独立于 patchSettings，仅 enabled toggle 与 delete
+//                        通过 admin/payment/providers 落库)
+//
+// 字段 key 与后端 SystemSettings 严格对齐（payment_* flat key）。
+// 所有 subfield showWhen 联动 payment_enabled —— 主开关关闭时整 tab 折叠成单 toggle。
+//
+// 红线：本 tab 不引用 backend billing_service.GetModelPricing /
+// /admin/channels/model-pricing；payment 配置与 model pricing 是两套独立表面。
+
+/** Payment 全局配置 —— 18 flat 字段，全部 showWhen 联动 payment_enabled。 */
+export const paymentConfigSection: SectionDef = {
+	id: 'payment.config',
+	titleKey: 'admin.settings.payment.title',
+	descriptionKey: 'admin.settings.payment.description',
+	fields: [
+		{
+			key: 'payment_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.payment.enabled',
+			descriptionKey: 'admin.settings.payment.enabledHint'
+		},
+		{
+			key: 'payment_product_name_prefix',
+			type: 'text',
+			labelKey: 'admin.settings.payment.productNamePrefix',
+			placeholder: 'subme',
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_product_name_suffix',
+			type: 'text',
+			labelKey: 'admin.settings.payment.productNameSuffix',
+			placeholder: 'CNY',
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_min_amount',
+			type: 'number',
+			labelKey: 'admin.settings.payment.minAmount',
+			placeholder: 'admin.settings.payment.noLimit',
+			min: 0,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_max_amount',
+			type: 'number',
+			labelKey: 'admin.settings.payment.maxAmount',
+			placeholder: 'admin.settings.payment.noLimit',
+			min: 0,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_daily_limit',
+			type: 'number',
+			labelKey: 'admin.settings.payment.dailyLimit',
+			placeholder: 'admin.settings.payment.noLimit',
+			min: 0,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_balance_recharge_multiplier',
+			type: 'number',
+			labelKey: 'admin.settings.payment.balanceRechargeMultiplier',
+			descriptionKey: 'admin.settings.payment.balanceRechargeMultiplierHint',
+			min: 0,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_recharge_fee_rate',
+			type: 'number',
+			labelKey: 'admin.settings.payment.rechargeFeeRate',
+			descriptionKey: 'admin.settings.payment.rechargeFeeRateHint',
+			min: 0,
+			max: 100,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_order_timeout_minutes',
+			type: 'number',
+			labelKey: 'admin.settings.payment.orderTimeout',
+			descriptionKey: 'admin.settings.payment.orderTimeoutHint',
+			min: 1,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_max_pending_orders',
+			type: 'number',
+			labelKey: 'admin.settings.payment.maxPendingOrders',
+			min: 0,
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_load_balance_strategy',
+			type: 'select',
+			labelKey: 'admin.settings.payment.loadBalanceStrategy',
+			options: [
+				{ value: 'random', labelKey: 'admin.settings.payment.strategyRandom' },
+				{ value: 'round_robin', labelKey: 'admin.settings.payment.strategyRoundRobin' },
+				{ value: 'least_conn', labelKey: 'admin.settings.payment.strategyLeastConn' }
+			],
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_cancel_rate_limit_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.payment.cancelRateLimit',
+			descriptionKey: 'admin.settings.payment.cancelRateLimitHint',
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_cancel_rate_limit_window_mode',
+			type: 'select',
+			labelKey: 'admin.settings.payment.cancelRateLimitWindowMode',
+			options: [
+				{
+					value: 'rolling',
+					labelKey: 'admin.settings.payment.cancelRateLimitWindowModeRolling'
+				},
+				{ value: 'fixed', labelKey: 'admin.settings.payment.cancelRateLimitWindowModeFixed' }
+			],
+			showWhen: (v) =>
+				!!v['payment_enabled'] && !!v['payment_cancel_rate_limit_enabled']
+		},
+		{
+			key: 'payment_cancel_rate_limit_window',
+			type: 'number',
+			labelKey: 'admin.settings.payment.cancelRateLimitWindow',
+			min: 1,
+			showWhen: (v) =>
+				!!v['payment_enabled'] && !!v['payment_cancel_rate_limit_enabled']
+		},
+		{
+			key: 'payment_cancel_rate_limit_unit',
+			type: 'select',
+			labelKey: 'admin.settings.payment.cancelRateLimitUnit',
+			options: [
+				{ value: 'minute', labelKey: 'admin.settings.payment.cancelRateLimitUnitMinute' },
+				{ value: 'hour', labelKey: 'admin.settings.payment.cancelRateLimitUnitHour' },
+				{ value: 'day', labelKey: 'admin.settings.payment.cancelRateLimitUnitDay' }
+			],
+			showWhen: (v) =>
+				!!v['payment_enabled'] && !!v['payment_cancel_rate_limit_enabled']
+		},
+		{
+			key: 'payment_cancel_rate_limit_max',
+			type: 'number',
+			labelKey: 'admin.settings.payment.cancelRateLimitMax',
+			min: 1,
+			showWhen: (v) =>
+				!!v['payment_enabled'] && !!v['payment_cancel_rate_limit_enabled']
+		},
+		{
+			key: 'payment_alipay_force_qrcode',
+			type: 'switch',
+			labelKey: 'admin.settings.payment.alipayForceQRCode',
+			descriptionKey: 'admin.settings.payment.alipayForceQRCodeHint',
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_help_image_url',
+			type: 'image',
+			labelKey: 'admin.settings.payment.helpImage',
+			showWhen: (v) => !!v['payment_enabled']
+		},
+		{
+			key: 'payment_help_text',
+			type: 'textarea',
+			labelKey: 'admin.settings.payment.helpText',
+			placeholder: 'admin.settings.payment.helpTextPlaceholder',
+			showWhen: (v) => !!v['payment_enabled']
+		}
+	]
+};
+
+/**
+ * Payment 服务商列表 —— special section。
+ * 覆盖 payment_enabled_types 徽章切换 + provider 实例最小可用 CRUD（read + toggle + delete）。
+ * 完整 dialog/create/edit/reorder 是 backlog（Vue tree 依赖 PaymentProviderList +
+ * PaymentProviderDialog 大组件树，Svelte 仓库尚未端口）。
+ */
+export const paymentProvidersSection: SectionDef = {
+	id: 'payment.providers',
+	titleKey: 'admin.settings.payment.enabledPaymentTypes',
+	descriptionKey: 'admin.settings.payment.enabledPaymentTypesHint',
+	special: 'payment-provider-list'
+};
+
+export const paymentSection: SettingsSchema = [paymentConfigSection, paymentProvidersSection];
+
 // ── 顶层 tab 注册 ──────────────────────────────────────────────────────────
 
 export interface SettingsTab {
@@ -498,5 +1030,7 @@ export const settingsTabs: SettingsTab[] = [
 	{ id: 'general', labelKey: 'admin.settings.general.title', sections: generalSection },
 	{ id: 'security', labelKey: 'admin.settings.security.title', sections: securitySection },
 	{ id: 'users', labelKey: 'admin.settings.users.title', sections: usersSection },
-	{ id: 'gateway', labelKey: 'admin.settings.gateway.title', sections: [], placeholder: true }
+	{ id: 'features', labelKey: 'admin.settings.features.title', sections: featuresSection },
+	{ id: 'gateway', labelKey: 'admin.settings.gateway.title', sections: gatewaySection },
+	{ id: 'payment', labelKey: 'admin.settings.payment.title', sections: paymentSection }
 ];

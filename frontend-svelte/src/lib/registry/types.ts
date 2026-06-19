@@ -86,6 +86,10 @@ export interface SectionDef {
 		| 'wechat-connect'
 		| 'user-defaults'
 		| 'auth-source-defaults'
+		| 'affiliate-custom-users'
+		| 'overload-cooldown'
+		| 'rate-limit-429'
+		| 'payment-provider-list'
 		| string;
 }
 

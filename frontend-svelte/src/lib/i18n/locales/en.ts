@@ -5587,6 +5587,7 @@ export default {
         title: 'Gateway Settings',
       },
       features: {
+        title: 'Feature Switches',
         channelMonitor: {
           title: 'Channel Monitor',
           description: 'Periodically probe configured channels and surface availability / latency to users. Turning it off stops the scheduler and returns an empty list on the user page.',
@@ -6195,7 +6196,9 @@ export default {
         productNameSuffix: 'Product Name Suffix',
         preview: 'Preview',
         loadBalanceStrategy: 'Load Balance Strategy',
+        strategyRandom: 'Random',
         strategyRoundRobin: 'Round Robin',
+        strategyLeastConn: 'Least Connections',
         strategyLeastAmount: 'Least Daily Amount',
         providerManagement: 'Provider Management',
         providerManagementDesc: 'Manage payment provider instances',
