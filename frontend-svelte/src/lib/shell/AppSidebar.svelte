@@ -47,11 +47,7 @@
 >
 	<!-- 品牌块 -->
 	<div class="flex items-center gap-2 border-b px-3 py-3" style="min-height: 64px;">
-		<div
-			class="flex h-[30px] w-[30px] items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-bold"
-		>
-			{(siteName || 'S').slice(0, 1).toUpperCase()}
-		</div>
+		<img src="/logo.svg" alt={siteName} class="h-[30px] w-[30px] rounded-md" />
 		{#if !collapsed}
 			<div class="flex min-w-0 flex-col">
 				<span class="truncate text-sm font-semibold tracking-[0.02em]">{siteName}</span>

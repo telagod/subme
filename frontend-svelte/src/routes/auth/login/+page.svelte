@@ -239,7 +239,7 @@
 <main class="flex min-h-screen items-center justify-center bg-background px-4 py-12">
 	<div class="w-full max-w-[360px] space-y-6">
 		<header class="space-y-2 text-center">
-			<div class="mx-auto h-10 w-10 rounded-md bg-foreground/90"></div>
+			<img src="/logo.svg" alt="Logo" class="mx-auto h-10 w-10 rounded-md" />
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
 				{$_('auth.login.title', { default: 'Sign in' })}
 			</h1>
