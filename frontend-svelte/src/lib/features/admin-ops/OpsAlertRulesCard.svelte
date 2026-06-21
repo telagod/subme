@@ -29,9 +29,11 @@
 	import {
 		listOpsAlertRules,
 		deleteOpsAlertRule,
+		updateOpsAlertRule,
 		type AlertRule,
 		type OpsSeverity
 	} from '$lib/api/admin/ops';
+	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -88,6 +90,36 @@
 	}
 
 	onMount(load);
+
+	// ── inline enable/disable toggle ────────────────────────────────────
+	let togglingIds = $state(new Set<number>());
+
+	async function toggleEnabled(rule: AlertRule) {
+		const id = rule.id;
+		if (id == null) return;
+		togglingIds.add(id);
+		togglingIds = new Set(togglingIds);
+		const nextEnabled = !rule.enabled;
+		try {
+			await updateOpsAlertRule(id, { enabled: nextEnabled });
+			// Optimistic update in-place.
+			rule.enabled = nextEnabled;
+			rules = [...rules];
+			showSuccess(
+				nextEnabled
+					? $_('admin.ops.alertRules.enabled', { default: 'Alert rule enabled.' })
+					: $_('admin.ops.alertRules.disabled', { default: 'Alert rule disabled.' })
+			);
+		} catch (err) {
+			showError(
+				(err as { message?: string })?.message ??
+					$_('admin.ops.alertRules.toggleFailed', { default: 'Failed to toggle alert rule.' })
+			);
+		} finally {
+			togglingIds.delete(id);
+			togglingIds = new Set(togglingIds);
+		}
+	}
 
 	// ── editor (delegated to shared OpsAlertRuleEditDialog) ──────────────
 	let editorOpen = $state(false);
@@ -238,8 +270,10 @@
 							<td class="whitespace-nowrap px-3.5 py-2.5">
 								<Checkbox
 									checked={row.enabled}
-									disabled
+									disabled={togglingIds.has(row.id ?? -1)}
 									aria-label={$_('admin.ops.alertRules.table.enabled', { default: 'Enabled' })}
+									data-testid="ops-alert-rule-toggle"
+									onchange={() => toggleEnabled(row)}
 								/>
 							</td>
 							<td class="whitespace-nowrap px-3.5 py-2.5 text-xs text-muted-foreground tabular-nums">

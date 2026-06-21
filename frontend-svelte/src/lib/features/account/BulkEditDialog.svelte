@@ -120,7 +120,7 @@
 	async function submit() {
 		busy = true; error = null;
 		try {
-			const ids = mode === 'selected' ? selectedIds : await filteredIds();
+			const ids = selectedIds.length > 0 ? selectedIds : await filteredIds();
 			if (!ids.length) { error = 'No accounts to update'; busy = false; return; }
 
 			if (rawMode) {

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { listRiskLogs, type ContentModerationLog } from '$lib/api/admin/riskControl';
 	import type { AdminUser } from '$lib/api/admin/users';
@@ -29,11 +28,10 @@
 		finally { loading = false; }
 	}
 
-	$effect(() => { if (active) load(); });
-	onMount(() => { if (active) load(); });
+	$effect(() => { if (active && !loaded) load(); });
 </script>
 
-<div class="flex flex-col gap-2.5 p-1">
+<div class="flex flex-col gap-2.5">
 	{#if loading}
 		<div class="py-5 text-center text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</div>
 	{:else if error}

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { getUserUsage, type AdminUser, type UserUsageStats } from '$lib/api/admin/users';
 	import Card from '$lib/ui/Card.svelte';
@@ -9,12 +8,21 @@
 
 	let stats = $state<UserUsageStats | null>(null);
 	let loading = $state(true);
+	let prevUserId = $state<number | null>(null);
 
 	function fmtTok(v: number): string {
 		if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
 		if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
 		if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
 		return Math.round(v).toLocaleString();
+	}
+
+	function fmtCost(v: number): string {
+		const s = v.toFixed(8).replace(/\.?0+$/, '');
+		const parts = s.split('.');
+		if (parts.length === 1) return s + '.00';
+		if (parts[1].length < 2) return s + '0';
+		return s;
 	}
 
 	function fmt(iso: string | null | undefined): string {
@@ -29,18 +37,31 @@
 		finally { loading = false; }
 	}
 
-	onMount(load);
-	$effect(() => { void user.id; load(); });
+	$effect(() => {
+		if (user.id !== prevUserId) {
+			prevUserId = user.id;
+			load();
+		}
+	});
 </script>
 
-<div class="flex flex-col gap-5 p-1">
-	<div class="grid grid-cols-3 gap-2.5">
+<div class="flex flex-col gap-5">
+	<!-- KPI cards: Month Requests / Month Cost / Month Tokens / Concurrency -->
+	<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
 			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
 				{$_('admin.users.kpiRequests', { default: 'Month Requests' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
-				{loading ? '…' : (stats?.total_requests ?? 0).toLocaleString()}
+				{loading ? '...' : (stats?.total_requests ?? 0).toLocaleString()}
+			</span>
+		</Card>
+		<Card class="flex flex-col gap-1 px-4 py-3.5">
+			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.kpiMonthCost', { default: 'Month Cost' })}
+			</span>
+			<span class="font-mono text-lg font-bold tabular-nums text-emerald-500">
+				{loading ? '...' : `$${fmtCost(stats?.total_cost ?? 0)}`}
 			</span>
 		</Card>
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
@@ -48,7 +69,7 @@
 				{$_('admin.users.kpiTokens', { default: 'Month Tokens' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
-				{loading ? '…' : fmtTok(stats?.total_tokens ?? 0)}
+				{loading ? '...' : fmtTok(stats?.total_tokens ?? 0)}
 			</span>
 		</Card>
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
@@ -61,6 +82,7 @@
 		</Card>
 	</div>
 
+	<!-- User info rows -->
 	<div class="flex flex-col">
 		{#each [
 			{ label: $_('admin.users.infoId', { default: 'User ID' }), value: `#${user.id}`, mono: true },

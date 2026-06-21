@@ -19,8 +19,15 @@ describe('OpsAlertRulesCard · hard rules', () => {
 	it('delegates create/edit to the shared OpsAlertRuleEditDialog (no duplicated editor)', () => {
 		expect(cardSrc).toMatch(/from '\.\/OpsAlertRuleEditDialog\.svelte'/);
 		expect(cardSrc).toMatch(/<OpsAlertRuleEditDialog/);
-		// must NOT call the create/update endpoints itself — that's the dialog's job.
-		expect(cardSrc).not.toMatch(/createOpsAlertRule|updateOpsAlertRule/);
+		// must NOT call createOpsAlertRule itself — that's the dialog's job.
+		expect(cardSrc).not.toMatch(/createOpsAlertRule/);
+	});
+
+	it('supports inline enable/disable toggle via updateOpsAlertRule', () => {
+		expect(cardSrc).toMatch(/updateOpsAlertRule/);
+		expect(cardSrc).toMatch(/toggleEnabled/);
+		expect(cardSrc).toMatch(/ops-alert-rule-toggle/);
+		expect(cardSrc).toMatch(/togglingIds/);
 	});
 
 	it('owns a delete-confirm StandardDialog gated behind an explicit confirm action', () => {

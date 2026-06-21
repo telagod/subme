@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { getUser, toggleUserStatus, type AdminUser } from '$lib/api/admin/users';
+	import { getUser, getUserUsage, toggleUserStatus, type AdminUser, type UserUsageStats } from '$lib/api/admin/users';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -37,6 +37,8 @@
 	let loadError = $state<string | null>(null);
 	let activeTab = $state<TabKey>('overview');
 	let showBalanceAdj = $state(false);
+	let monthCost = $state<number | null>(null);
+	let monthCostLoading = $state(false);
 
 	function fmtBal(v: number | null | undefined): string {
 		if (v == null) return '0.00';
@@ -55,14 +57,27 @@
 	async function loadUser() {
 		if (!userId) return;
 		loading = true; loadError = null;
-		try { user = await getUser(userId); }
+		try {
+			user = await getUser(userId);
+			loadMonthCost();
+		}
 		catch { loadError = $_('admin.users.loadFailed', { default: 'Failed to load user' }); }
 		finally { loading = false; }
 	}
 
+	async function loadMonthCost() {
+		if (!userId) return;
+		monthCostLoading = true;
+		try {
+			const stats = await getUserUsage(userId, 'month');
+			monthCost = stats?.total_cost ?? 0;
+		} catch { monthCost = null; }
+		finally { monthCostLoading = false; }
+	}
+
 	$effect(() => {
 		if (open && userId) { activeTab = 'overview'; loadUser(); }
-		else { user = null; }
+		else { user = null; monthCost = null; }
 	});
 
 	async function handleToggleStatus() {
@@ -85,8 +100,9 @@
 	}
 </script>
 
-<StandardDrawer bind:open
+<StandardDrawer bind:open width="lg"
 	title={user?.email ?? $_('admin.users.userDetail', { default: 'User Detail' })}
+	showHeader={false}
 	data-testid="user-detail-drawer">
 
 	{#if loading}
@@ -100,17 +116,18 @@
 		</div>
 	{:else if user}
 		<!-- Header: avatar + name + badges -->
-		<div class="flex items-center gap-3 border-b border-border px-1 pb-4">
+		<div class="flex items-center gap-3 border-b border-border px-5 py-4">
 			<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-lg font-bold text-primary">
 				{user.email.charAt(0).toUpperCase()}
 			</div>
 			<div class="min-w-0 flex-1">
 				<div class="truncate text-sm font-semibold text-foreground">{user.email}</div>
-				<div class="mt-0.5 text-xs text-muted-foreground">
-					{$_('admin.users.registered', { default: 'Registered' })} {fmt(user.created_at)}
+				<div class="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+					{#if user.username}<span>@{user.username}</span><span>·</span>{/if}
+					<span>{$_('admin.users.registered', { default: 'Registered' })} {fmt(user.created_at)}</span>
 				</div>
 			</div>
-			<div class="flex shrink-0 gap-1.5">
+			<div class="flex shrink-0 items-center gap-1.5">
 				<Badge class={user.role === 'admin' ? '' : 'bg-muted text-muted-foreground'}>
 					{user.role === 'admin' ? $_('admin.users.roleAdmin', { default: 'Admin' }) : $_('admin.users.roleUser', { default: 'User' })}
 				</Badge>
@@ -123,15 +140,17 @@
 		</div>
 
 		<!-- KPI bar -->
-		<div class="flex items-stretch border-b border-border bg-muted/40 px-1 py-3">
+		<div class="flex items-stretch border-b border-border bg-muted/40 px-5 py-3">
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
 				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiBalance', { default: 'Balance' })}</span>
 				<span class="text-base font-bold text-foreground">${fmtBal(user.balance)}</span>
 			</div>
 			<div class="my-0.5 w-px bg-border"></div>
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiConcurrency', { default: 'Concurrency' })}</span>
-				<span class="text-base font-bold text-foreground">{user.current_concurrency ?? 0}<span class="ml-0.5 text-xs font-normal text-muted-foreground">/{user.concurrency ?? '∞'}</span></span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiMonthCost', { default: 'Month Cost' })}</span>
+				<span class="text-base font-bold text-foreground">
+					{monthCostLoading ? '...' : monthCost != null ? `$${fmtBal(monthCost)}` : '—'}
+				</span>
 			</div>
 			<div class="my-0.5 w-px bg-border"></div>
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
@@ -147,7 +166,7 @@
 		</div>
 
 		<!-- Tabs bar -->
-		<div class="flex gap-0 overflow-x-auto border-b border-border px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
+		<div class="flex gap-0 overflow-x-auto border-b border-border px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
 			{#each TABS as tab}
 				<button type="button" role="tab" aria-selected={activeTab === tab.key}
 					class="whitespace-nowrap px-3.5 py-2.5 text-xs font-medium text-muted-foreground transition-colors -mb-px border-b-2 border-transparent hover:text-foreground"
@@ -160,7 +179,7 @@
 		</div>
 
 		<!-- Tab content -->
-		<div class="flex-1 overflow-y-auto p-2" role="tabpanel">
+		<div class="flex-1 overflow-y-auto px-5 py-4" role="tabpanel">
 			{#if activeTab === 'overview'}
 				<UserOverviewTab {user} />
 			{:else if activeTab === 'subscriptions'}
@@ -177,7 +196,7 @@
 		</div>
 
 		<!-- Footer actions -->
-		<div class="flex items-center gap-2.5 border-t border-border px-1 py-3.5">
+		<div class="flex items-center gap-2.5 border-t border-border px-5 py-3.5">
 			<Button variant="outline" size="sm" onclick={() => (showBalanceAdj = true)}>
 				{$_('admin.users.adjustBalance', { default: 'Adjust Balance' })}
 			</Button>

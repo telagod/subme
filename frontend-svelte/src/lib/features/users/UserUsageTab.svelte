@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { listAdminUsage, getAdminUsageStats } from '$lib/api/admin/usage';
 	import type { AdminUser } from '$lib/api/admin/users';
@@ -22,6 +21,13 @@
 		return new Date(iso).toLocaleString();
 	}
 
+	function fmtTok(v: number): string {
+		if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+		if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+		if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+		return Math.round(v).toLocaleString();
+	}
+
 	async function load() {
 		if (loaded) return;
 		loading = true; error = null;
@@ -42,12 +48,11 @@
 		finally { loading = false; }
 	}
 
-	$effect(() => { if (active) load(); });
-	onMount(() => { if (active) load(); });
+	$effect(() => { if (active && !loaded) load(); });
 </script>
 
-<div class="flex flex-col gap-3.5 p-1">
-	{#if !loading}
+<div class="flex flex-col gap-3.5">
+	{#if !loading && loaded}
 		<div class="grid grid-cols-3 gap-2">
 			<Card class="flex flex-col gap-1 px-3.5 py-3 shadow-none">
 				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageRequests', { default: 'Total Requests' })}</span>
@@ -59,7 +64,7 @@
 			</Card>
 			<Card class="flex flex-col gap-1 px-3.5 py-3 shadow-none">
 				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageTokens', { default: 'Total Tokens' })}</span>
-				<span class="text-sm font-bold text-foreground">{stats.total_tokens.toLocaleString()}</span>
+				<span class="text-sm font-bold text-foreground">{fmtTok(stats.total_tokens)}</span>
 			</Card>
 		</div>
 	{/if}

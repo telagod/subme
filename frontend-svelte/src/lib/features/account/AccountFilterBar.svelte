@@ -70,7 +70,7 @@
 	<div class="grid gap-3 lg:grid-cols-[minmax(220px,1.5fr)_150px_150px_150px_160px_150px_150px_150px_auto]">
 		<label class="relative">
 			<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
-			<Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: 'Search name, email, note' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} />
+			<Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: 'Search name, email, note' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-search" />
 		</label>
 		<NativeSelect bind:value={platform} options={platformOptions} onchange={onApply} data-testid="accounts-platform-filter" />
 		<NativeSelect bind:value={type} options={typeOptions} onchange={onApply} data-testid="accounts-type-filter" />
