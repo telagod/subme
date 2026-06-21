@@ -135,7 +135,7 @@
 	<title>{$_('admin.users.title', { default: 'User Management' })}</title>
 </svelte:head>
 
-<div class="mx-auto max-w-screen-xl space-y-4 p-4 lg:p-6">
+<div class="space-y-4 p-4 lg:p-6">
 	<div class="flex items-end justify-between">
 		<div>
 			<h1 class="text-xl font-bold tracking-tight text-foreground">{$_('admin.users.title', { default: 'User Management' })}</h1>
