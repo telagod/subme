@@ -12,8 +12,16 @@ import proxiesApiSrc from '$lib/api/admin/proxies.ts?raw';
 import channelsPageSrc from '../../../routes/admin/channels/+page.svelte?raw';
 import channelPricingPageSrc from '../../../routes/admin/channels/pricing/+page.svelte?raw';
 import accountsPageSrc from '../../../routes/admin/accounts/+page.svelte?raw';
-import groupsPageSrc from '../../../routes/admin/groups/+page.svelte?raw';
-import proxiesPageSrc from '../../../routes/admin/proxies/+page.svelte?raw';
+import groupsPageSrcRaw from '../../../routes/admin/groups/+page.svelte?raw';
+import proxiesPageSrcRaw from '../../../routes/admin/proxies/+page.svelte?raw';
+import groupFilterBarSrc from '$lib/features/groups/GroupFilterBar.svelte?raw';
+import groupEditDialogSrc from '$lib/features/groups/GroupEditDialog.svelte?raw';
+import proxiesTableSrc from '$lib/features/proxies/ProxiesTable.svelte?raw';
+import proxyEditDialogSrc from '$lib/features/proxies/ProxyEditDialog.svelte?raw';
+
+const groupsPageSrc = [groupsPageSrcRaw, groupFilterBarSrc, groupEditDialogSrc].join('\n');
+const proxiesPageSrc = [proxiesPageSrcRaw, proxiesTableSrc, proxyEditDialogSrc].join('\n');
+
 import {
 	accountIsSchedulable,
 	accountPoolMode,

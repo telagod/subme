@@ -20,8 +20,11 @@ import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 
 // 红线 grep：?raw 把源码字符串带进测试
-import pageSrc from '../../../routes/admin/orders/refunds/+page.svelte?raw';
+import pageSrcRaw from '../../../routes/admin/orders/refunds/+page.svelte?raw';
+import refundDetailDrawerSrc from '$lib/features/refunds/RefundDetailDrawer.svelte?raw';
 import apiSrc from '$lib/api/admin/refunds.ts?raw';
+
+const pageSrc = [pageSrcRaw, refundDetailDrawerSrc].join('\n');
 
 import type { AdminRefundRequest } from '$lib/api/admin/refunds';
 

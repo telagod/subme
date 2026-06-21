@@ -1,24 +1,17 @@
 <script lang="ts">
 	/**
-	 * /(user)/usage · M7+ usage analytics page
+	 * /(user)/usage · M7+ usage analytics page (thin orchestrator)
 	 *
-	 * 设计：
-	 *   - 顶部 filter bar：日期范围（startDate / endDate）+ models 多选（'__all__' sentinel）
-	 *     + endpoint Select（'__all__' sentinel）+ groupBy Select（day / hour / model / endpoint）。
-	 *   - 中部 3 张 summary cards：total requests / total tokens / total cost。
-	 *   - 图表：TimeseriesChart（lazy chart.js island，与 dashboard UsageChart 同款策略）。
-	 *   - 底部分页流水 table：timestamp / model / endpoint / input / output / cost / status / latency。
-	 *   - Export CSV 按钮 → exportCsv(filter)（客户端 loop + Blob 下载）。
+	 * Components:
+	 *   - UsageFilterBar: date range, models, endpoint, groupBy selects
+	 *   - UsageStatsCards: 3 summary cards (requests / tokens / cost) + error retry
+	 *   - TimeseriesChart: lazy chart.js island for usage trend
+	 *   - UsageModelTable: paginated usage entries table with loading/empty/error states
 	 *
-	 * RED LINE：
+	 * RED LINE:
 	 *   - 不在此层处理 401（apiClient 已统一）。错误 message='unauthorized' 时静默返回。
 	 *   - reshadcn-migration: 所有 Select 必须用 sentinel，严禁 <option value="">。
 	 *   - 不静态 import chart.js / svelte-chartjs —— TimeseriesChart 内部 dynamic import。
-	 *
-	 * Vue UsageView parity：
-	 *   - 默认 last-7-days 日期范围（与 dashboard / billing 体感一致）。
-	 *   - sortBy=created_at, sortOrder=desc 默认；本 POC 不暴露 column-sort（M8 增量）。
-	 *   - 表格分页 PAGE_SIZE=20 与 billing 一致；> PAGE_SIZE 触发分页控件。
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -36,11 +29,11 @@
 		type UsageGranularity
 	} from '$lib/api/user/usage';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import UsageFilterBar from '$lib/features/usage/UsageFilterBar.svelte';
+	import UsageStatsCards from '$lib/features/usage/UsageStatsCards.svelte';
 	import TimeseriesChart from '$lib/features/usage/TimeseriesChart.svelte';
-	import Alert from '$lib/ui/Alert.svelte';
+	import UsageModelTable from '$lib/features/usage/UsageModelTable.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	const MODELS_ALL = '__all__' as const;
 	const ENDPOINT_ALL = '__all__' as const;
@@ -234,30 +227,6 @@
 			exporting = false;
 		}
 	}
-
-	// ── format helpers ─────────────────────────────────────────────────
-
-	function fmtMoney(v: number | null | undefined): string {
-		if (v === null || v === undefined || !Number.isFinite(v)) return '—';
-		return `$${v.toFixed(4)}`;
-	}
-	function fmtInt(v: number | null | undefined): string {
-		if (v === null || v === undefined || !Number.isFinite(v)) return '—';
-		return Math.round(v).toLocaleString();
-	}
-	function fmtDate(s: string | null | undefined): string {
-		if (!s) return '—';
-		try {
-			return new Date(s).toLocaleString();
-		} catch {
-			return s;
-		}
-	}
-	function fmtLatency(v: number): string {
-		if (!Number.isFinite(v)) return '—';
-		if (v < 1000) return `${Math.round(v)} ms`;
-		return `${(v / 1000).toFixed(2)} s`;
-	}
 </script>
 
 <svelte:head>
@@ -305,198 +274,28 @@
 	</header>
 
 	<!-- Filters -->
-	<section class="flex flex-wrap items-end gap-3" data-testid="usage-filters">
-		<div class="space-y-1.5">
-			<label
-				class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-				for="usage-start-date"
-			>
-				{$_('user.usage.startDate', { default: 'From' })}
-			</label>
-			<Input
-				id="usage-start-date"
-				data-testid="usage-start-date"
-				type="date"
-				value={startDate}
-				onchange={handleStartDateChange}
-				class="h-9 w-auto"
-			/>
-		</div>
-		<div class="space-y-1.5">
-			<label
-				class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-				for="usage-end-date"
-			>
-				{$_('user.usage.endDate', { default: 'To' })}
-			</label>
-			<Input
-				id="usage-end-date"
-				data-testid="usage-end-date"
-				type="date"
-				value={endDate}
-				onchange={handleEndDateChange}
-				class="h-9 w-auto"
-			/>
-		</div>
-		<div class="space-y-1.5">
-			<label
-				class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-				for="usage-models-filter"
-			>
-				{$_('user.usage.modelsFilter', { default: 'Models' })}
-			</label>
-			<NativeSelect
-				id="usage-models-filter"
-				data-testid="usage-models-filter"
-				value={MODELS_ALL}
-				multiple
-				size={3}
-				onchange={handleModelsChange}
-				class="min-w-[180px] rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-			>
-				<option
-					value={MODELS_ALL}
-					selected={modelsFilter === MODELS_ALL}
-				>
-					{$_('user.usage.allModels', { default: 'All models' })}
-				</option>
-				{#each knownModels as m (m)}
-					<option
-						value={m}
-						selected={modelsFilter !== MODELS_ALL && modelsFilter.includes(m)}
-					>
-						{m}
-					</option>
-				{/each}
-			</NativeSelect>
-		</div>
-		<div class="space-y-1.5">
-			<label
-				class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-				for="usage-endpoint-filter"
-			>
-				{$_('user.usage.endpointFilter', { default: 'Endpoint' })}
-			</label>
-			<NativeSelect
-				id="usage-endpoint-filter"
-				data-testid="usage-endpoint-filter"
-				value={endpointFilter}
-				onchange={handleEndpointChange}
-				class="h-9"
-			>
-				<option value={ENDPOINT_ALL}>
-					{$_('user.usage.allEndpoints', { default: 'All endpoints' })}
-				</option>
-				{#each knownEndpoints as ep (ep)}
-					<option value={ep}>{ep}</option>
-				{/each}
-			</NativeSelect>
-		</div>
-		<div class="space-y-1.5">
-			<label
-				class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-				for="usage-groupby"
-			>
-				{$_('user.usage.groupBy', { default: 'Group by' })}
-			</label>
-			<NativeSelect
-				id="usage-groupby"
-				data-testid="usage-groupby"
-				value={groupBy}
-				onchange={handleGroupByChange}
-				class="h-9"
-			>
-				<option value="day">{$_('user.usage.groupDay', { default: 'Day' })}</option>
-				<option value="hour">{$_('user.usage.groupHour', { default: 'Hour' })}</option>
-				<option value="model">{$_('user.usage.groupModel', { default: 'Model' })}</option>
-				<option value="endpoint">
-					{$_('user.usage.groupEndpoint', { default: 'Endpoint' })}
-				</option>
-			</NativeSelect>
-		</div>
-	</section>
+	<UsageFilterBar
+		{startDate}
+		{endDate}
+		{modelsFilter}
+		{endpointFilter}
+		{groupBy}
+		{knownModels}
+		{knownEndpoints}
+		onStartDateChange={handleStartDateChange}
+		onEndDateChange={handleEndDateChange}
+		onModelsChange={handleModelsChange}
+		onEndpointChange={handleEndpointChange}
+		onGroupByChange={handleGroupByChange}
+	/>
 
 	<!-- Summary cards -->
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-3" data-testid="usage-summary-row">
-		<article
-			class="rounded-lg border border-border bg-card p-4 shadow-sm"
-			data-testid="usage-card-requests"
-		>
-			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.usage.totalRequests', { default: 'Total requests' })}
-			</h2>
-			{#if loadingSummary}
-				<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
-			{:else if summary}
-				<p
-					class="mt-2 text-3xl font-semibold text-foreground"
-					data-testid="usage-requests-value"
-				>
-					{fmtInt(summary.totalRequests)}
-				</p>
-			{:else}
-				<p class="mt-2 text-3xl font-semibold text-muted-foreground">—</p>
-			{/if}
-		</article>
-		<article
-			class="rounded-lg border border-border bg-card p-4 shadow-sm"
-			data-testid="usage-card-tokens"
-		>
-			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.usage.totalTokens', { default: 'Total tokens' })}
-			</h2>
-			{#if loadingSummary}
-				<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
-			{:else if summary}
-				<p
-					class="mt-2 text-3xl font-semibold text-foreground"
-					data-testid="usage-tokens-value"
-				>
-					{fmtInt(summary.totalTokens)}
-				</p>
-			{:else}
-				<p class="mt-2 text-3xl font-semibold text-muted-foreground">—</p>
-			{/if}
-		</article>
-		<article
-			class="rounded-lg border border-border bg-card p-4 shadow-sm"
-			data-testid="usage-card-cost"
-		>
-			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.usage.totalCost', { default: 'Total cost' })}
-			</h2>
-			{#if loadingSummary}
-				<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
-			{:else if summary}
-				<p
-					class="mt-2 text-3xl font-semibold text-foreground"
-					data-testid="usage-cost-value"
-				>
-					{fmtMoney(summary.totalCost)}
-				</p>
-			{:else}
-				<p class="mt-2 text-3xl font-semibold text-muted-foreground">—</p>
-			{/if}
-		</article>
-	</div>
-
-	{#if summaryError}
-		<Alert variant="destructive" class="flex items-center justify-between" data-testid="usage-summary-error">
-			<span>
-				{$_('user.usage.errors.summaryFailed', { default: 'Failed to load summary' })}
-			</span>
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				class="border-destructive/40 hover:bg-destructive/20"
-				onclick={() => loadSummary()}
-				data-testid="usage-summary-retry"
-			>
-				{$_('user.usage.retry', { default: 'Retry' })}
-			</Button>
-		</Alert>
-	{/if}
+	<UsageStatsCards
+		{summary}
+		loading={loadingSummary}
+		error={summaryError}
+		onRetry={() => loadSummary()}
+	/>
 
 	<!-- Chart -->
 	<article
@@ -523,142 +322,16 @@
 	</article>
 
 	<!-- Entries table -->
-	{#if loadingList}
-		<div class="space-y-2" data-testid="usage-list-loading">
-			{#each Array.from({ length: 5 }) as _placeholder, i (i)}
-				<div class="h-10 w-full animate-pulse rounded bg-muted"></div>
-			{/each}
-		</div>
-	{:else if listError && entries.length === 0}
-		<div
-			class="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"
-			data-testid="usage-list-error"
-		>
-			<p class="text-sm font-medium text-destructive">
-				{$_('user.usage.errors.listFailed', { default: 'Failed to load usage entries' })}
-			</p>
-			<p class="mt-1 text-xs text-muted-foreground">{listError}</p>
-			<Button
-				type="button"
-				onclick={() => loadList()}
-				data-testid="usage-list-retry"
-				variant="outline"
-				size="sm"
-				class="mt-4"
-			>
-				{$_('user.usage.retry', { default: 'Retry' })}
-			</Button>
-		</div>
-	{:else if entries.length === 0}
-		<div
-			class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12 text-center"
-			data-testid="usage-list-empty"
-		>
-			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.usage.emptyTitle', { default: 'No usage in this range' })}
-			</h2>
-			<p class="max-w-sm text-sm text-muted-foreground">
-				{$_('user.usage.emptyDescription', {
-					default: 'Try widening the date range or clearing filters.'
-				})}
-			</p>
-		</div>
-	{:else}
-		<div
-			class="overflow-hidden rounded-lg border border-border bg-card"
-			data-testid="usage-list-wrap"
-		>
-			<table class="w-full text-sm" data-testid="usage-list-table">
-				<thead>
-					<tr
-						class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground"
-					>
-						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.usage.colTimestamp', { default: 'Time' })}
-						</th>
-						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.usage.colModel', { default: 'Model' })}
-						</th>
-						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.usage.colEndpoint', { default: 'Endpoint' })}
-						</th>
-						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.usage.colInputTokens', { default: 'Input' })}
-						</th>
-						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.usage.colOutputTokens', { default: 'Output' })}
-						</th>
-						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.usage.colCost', { default: 'Cost' })}
-						</th>
-						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.usage.colStatus', { default: 'Status' })}
-						</th>
-						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.usage.colLatency', { default: 'Latency' })}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each entries as row (row.id)}
-						<tr
-							data-testid="usage-list-row"
-							data-row-id={row.id}
-							class="border-b border-border last:border-b-0 hover:bg-accent/40"
-						>
-							<td class="px-4 py-3 text-muted-foreground">{fmtDate(row.timestamp)}</td>
-							<td class="px-4 py-3 font-mono text-xs">{row.model || '—'}</td>
-							<td class="px-4 py-3 font-mono text-xs">{row.endpoint || '—'}</td>
-							<td class="px-4 py-3 text-right tabular-nums">{fmtInt(row.inputTokens)}</td>
-							<td class="px-4 py-3 text-right tabular-nums">{fmtInt(row.outputTokens)}</td>
-							<td class="px-4 py-3 text-right tabular-nums font-medium text-foreground">
-								{fmtMoney(row.cost)}
-							</td>
-							<td class="px-4 py-3 text-xs text-muted-foreground">{row.status}</td>
-							<td class="px-4 py-3 text-right tabular-nums text-xs text-muted-foreground">
-								{fmtLatency(row.latencyMs)}
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-
-		<!-- Pagination —— total > pageSize 时显示 -->
-		{#if totalRows > PAGE_SIZE || totalPages > 1}
-			<div
-				class="flex items-center justify-between text-sm text-muted-foreground"
-				data-testid="usage-pagination"
-			>
-				<span>
-					{$_('user.usage.pageOf', {
-						default: 'Page {page} of {pages}',
-						values: { page, pages: Math.max(totalPages, 1) }
-					})}
-				</span>
-				<div class="flex items-center gap-2">
-					<Button
-						type="button"
-						data-testid="usage-page-prev"
-						disabled={page <= 1}
-						onclick={gotoPrev}
-						variant="outline"
-						size="sm"
-					>
-						{$_('user.usage.prevPage', { default: 'Previous' })}
-					</Button>
-					<Button
-						type="button"
-						data-testid="usage-page-next"
-						disabled={totalPages > 0 && page >= totalPages}
-						onclick={gotoNext}
-						variant="outline"
-						size="sm"
-					>
-						{$_('user.usage.nextPage', { default: 'Next' })}
-					</Button>
-				</div>
-			</div>
-		{/if}
-	{/if}
+	<UsageModelTable
+		{entries}
+		loading={loadingList}
+		error={listError}
+		{page}
+		{totalRows}
+		{totalPages}
+		pageSize={PAGE_SIZE}
+		onRetry={() => loadList()}
+		onPrev={gotoPrev}
+		onNext={gotoNext}
+	/>
 </section>

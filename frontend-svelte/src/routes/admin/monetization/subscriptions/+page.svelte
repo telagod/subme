@@ -2,13 +2,12 @@
 	/**
 	 * Admin · Monetization · Subscriptions（M22）
 	 *
-	 * 设计：
-	 *   - Header: title + 三个汇总指标（active count / cancelled count / total revenue MTD rollup）。
-	 *   - Filters: status Select（'__all__' 哨兵）+ plan Select + user search + 日期范围。
-	 *   - Table: > 50 行启 VirtualTable；否则平铺。列：
-	 *       User (email masked) | Plan | Status | Started | Renews/Expires | MTD Cost | Actions
-	 *   - 行点击 → SubscriptionDetailDrawer（懒拉详情 + audit log）。
-	 *   - 分页。
+	 * Thin orchestrator — data fetching + page-level state.
+	 * UI delegated to feature components:
+	 *   - SubscriptionStatsCards
+	 *   - SubscriptionFilterBar
+	 *   - SubscriptionTable
+	 *   - SubscriptionDetailDrawer
 	 *
 	 * 红线（subscription surface only）：
 	 *   - subscription management only —— 严禁引用计费核心、渠道定价、价格查询 service。
@@ -18,22 +17,12 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import {
-		Search,
-		RefreshCw,
-		AlertTriangle,
-		ChevronLeft,
-		ChevronRight,
-		PackageSearch
-	} from '@lucide/svelte';
+	import { RefreshCw, AlertTriangle } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
-	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import Card from '$lib/ui/Card.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import InteractiveRow from '$lib/ui/InteractiveRow.svelte';
-	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
+	import SubscriptionStatsCards from '$lib/features/monetization/subscriptions-admin/SubscriptionStatsCards.svelte';
+	import SubscriptionFilterBar from '$lib/features/monetization/subscriptions-admin/SubscriptionFilterBar.svelte';
+	import SubscriptionTable from '$lib/features/monetization/subscriptions-admin/SubscriptionTable.svelte';
 	import SubscriptionDetailDrawer from '$lib/features/monetization/subscriptions-admin/SubscriptionDetailDrawer.svelte';
 	import {
 		listAdminSubs,
@@ -44,13 +33,6 @@
 
 	const STATUS_ALL = '__all__';
 	const PLAN_ALL = '__all__';
-	const VIRTUAL_THRESHOLD = 50;
-	const statusOptions = $derived([
-		{ value: STATUS_ALL, label: $_('admin.subscriptions.statusAll', { default: 'All statuses' }) },
-		{ value: 'active', label: $_('admin.subscriptions.statusActive', { default: 'Active' }) },
-		{ value: 'cancelled', label: $_('admin.subscriptions.statusCancelled', { default: 'Cancelled' }) },
-		{ value: 'expired', label: $_('admin.subscriptions.statusExpired', { default: 'Expired' }) }
-	]);
 
 	let rows = $state<AdminSubscription[]>([]);
 	let total = $state(0);
@@ -134,15 +116,6 @@
 		rows.reduce((sum, r) => sum + (Number(r.mtd_cost) || 0), 0)
 	);
 
-	const useVirtual = $derived(rows.length > VIRTUAL_THRESHOLD);
-
-	const planOptions = $derived.by<Array<{ value: string; label: string }>>(() => {
-		return [
-			{ value: PLAN_ALL, label: $_('admin.subscriptions.planAll', { default: 'All plans' }) },
-			...plans.map((p) => ({ value: String(p.id), label: p.name }))
-		];
-	});
-
 	function openDrawer(sub: AdminSubscription) {
 		drawerSub = sub;
 		drawerOpen = true;
@@ -152,53 +125,38 @@
 		void loadSubs();
 	}
 
-	function maskEmail(email?: string): string {
-		if (!email) return '—';
-		const at = email.indexOf('@');
-		if (at <= 1) return email;
-		const local = email.slice(0, at);
-		const masked = local.length <= 2 ? local : local[0] + '***' + local[local.length - 1];
-		return masked + email.slice(at);
+	function handleStatusChange(v: string) {
+		statusFilter = v;
+		void loadSubs();
 	}
 
-	function fmtDate(s?: string | null): string {
-		if (!s) return '—';
-		try {
-			return new Date(s).toLocaleDateString();
-		} catch {
-			return s;
-		}
+	function handlePlanChange(v: string) {
+		planFilter = v;
+		void loadSubs();
 	}
 
-	function fmtMoney(v?: number | null, currency = 'USD'): string {
-		if (v == null || !Number.isFinite(v)) return '—';
-		return `${currency === 'USD' ? '$' : ''}${v.toFixed(2)}`;
+	function handleSearchChange(v: string) {
+		searchInput = v;
 	}
 
-	function statusClass(s: string): string {
-		switch (s) {
-			case 'active':
-				return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
-			case 'cancelled':
-				return 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400';
-			case 'expired':
-				return 'border-zinc-400/40 bg-zinc-400/10 text-muted-foreground';
-			case 'revoked':
-				return 'border-destructive/40 bg-destructive/10 text-destructive';
-			default:
-				return 'border-border bg-muted text-muted-foreground';
-		}
+	function handleExpiresAfterChange(v: string) {
+		expiresAfter = v;
+		void loadSubs();
 	}
 
-	function handleRowKey(e: KeyboardEvent, sub: AdminSubscription) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			openDrawer(sub);
-		}
+	function handleExpiresBeforeChange(v: string) {
+		expiresBefore = v;
+		void loadSubs();
 	}
 
-	function rowKey(r: AdminSubscription): string {
-		return String(r.id);
+	function handleSearch() {
+		page = 1;
+		void loadSubs();
+	}
+
+	function handlePageChange(newPage: number) {
+		page = newPage;
+		void loadSubs();
 	}
 </script>
 
@@ -239,46 +197,13 @@
 	</div>
 
 	<!-- Stats bar -->
-	<Card class="flex items-center gap-5 px-[18px] py-3" data-testid="admin-subs-stats">
-		<div class="flex items-baseline gap-[7px]">
-			<span
-				class="font-mono text-[22px] font-bold tabular-nums text-emerald-500"
-				data-testid="admin-subs-stat-active"
-			>
-				{activeCount}
-			</span>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.subscriptions.statActive', { default: 'Active' })}
-			</span>
-		</div>
-		<div class="h-6 w-px bg-border" aria-hidden="true"></div>
-		<div class="flex items-baseline gap-[7px]">
-			<span
-				class="font-mono text-[22px] font-bold tabular-nums text-amber-500"
-				data-testid="admin-subs-stat-cancelled"
-			>
-				{cancelledCount}
-			</span>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.subscriptions.statCancelled', { default: 'Cancelled' })}
-			</span>
-		</div>
-		<div class="h-6 w-px bg-border" aria-hidden="true"></div>
-		<div class="flex items-baseline gap-[7px]">
-			<span
-				class="font-mono text-[22px] font-bold tabular-nums text-foreground"
-				data-testid="admin-subs-stat-revenue"
-			>
-				${totalRevenue.toFixed(2)}
-			</span>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.subscriptions.statRevenue', { default: 'MTD revenue' })}
-			</span>
-		</div>
-		<div class="ml-auto text-xs text-muted-foreground tabular-nums">
-			{rows.length} / {total}
-		</div>
-	</Card>
+	<SubscriptionStatsCards
+		{activeCount}
+		{cancelledCount}
+		{totalRevenue}
+		visibleCount={rows.length}
+		totalCount={total}
+	/>
 
 	<!-- Load error -->
 	{#if loadError}
@@ -292,242 +217,30 @@
 	{/if}
 
 	<!-- Filter bar -->
-	<Card class="flex flex-wrap items-center gap-2 p-2" data-testid="admin-subs-filters">
-		<div class="relative">
-			<Search class="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-			<Input
-				type="search"
-				class="h-8 w-56 pl-7 pr-2"
-				placeholder={$_('admin.subscriptions.searchPlaceholder', {
-					default: 'Search user email or ID…'
-				})}
-				bind:value={searchInput}
-				onkeydown={(e) => {
-					if (e.key === 'Enter') {
-						page = 1;
-						void loadSubs();
-					}
-				}}
-				data-testid="admin-subs-search"
-			/>
-		</div>
+	<SubscriptionFilterBar
+		{statusFilter}
+		{planFilter}
+		{searchInput}
+		{expiresAfter}
+		{expiresBefore}
+		{plans}
+		onStatusChange={handleStatusChange}
+		onPlanChange={handlePlanChange}
+		onSearchChange={handleSearchChange}
+		onExpiresAfterChange={handleExpiresAfterChange}
+		onExpiresBeforeChange={handleExpiresBeforeChange}
+		onSearch={handleSearch}
+	/>
 
-		<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-status-filter">
-			{$_('common.status', { default: 'Status' })}
-		</label>
-		<NativeSelect
-			id="admin-subs-status-filter"
-			class="h-8 px-2"
-			bind:value={statusFilter}
-			options={statusOptions}
-			onchange={() => loadSubs()}
-			data-testid="admin-subs-status-filter"
-		/>
-
-		<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-plan-filter">
-			{$_('admin.subscriptions.planLabel', { default: 'Plan' })}
-		</label>
-		<NativeSelect
-			id="admin-subs-plan-filter"
-			class="h-8 px-2"
-			bind:value={planFilter}
-			options={planOptions}
-			onchange={() => loadSubs()}
-			data-testid="admin-subs-plan-filter"
-		/>
-
-		<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-expires-after">
-			{$_('admin.subscriptions.expiresAfter', { default: 'Expires after' })}
-		</label>
-		<Input
-			id="admin-subs-expires-after"
-			type="date"
-			class="h-8 px-2"
-			bind:value={expiresAfter}
-			onchange={() => loadSubs()}
-			data-testid="admin-subs-expires-after"
-		/>
-		<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-expires-before">
-			{$_('admin.subscriptions.expiresBefore', { default: 'Expires before' })}
-		</label>
-		<Input
-			id="admin-subs-expires-before"
-			type="date"
-			class="h-8 px-2"
-			bind:value={expiresBefore}
-			onchange={() => loadSubs()}
-			data-testid="admin-subs-expires-before"
-		/>
-	</Card>
-
-	<!-- Table -->
-	{#if loading && rows.length === 0}
-		<div class="flex flex-col gap-2" data-testid="admin-subs-loading">
-			{#each Array(5) as _, i (i)}
-				<div
-					class="h-12 animate-pulse rounded-md border border-border bg-muted"
-				></div>
-			{/each}
-		</div>
-	{:else if rows.length > 0}
-		<Card
-			padded={false}
-			class="overflow-hidden"
-			data-testid="admin-subs-table-wrapper"
-			style="height: 560px;"
-		>
-			{#if useVirtual}
-				<VirtualTable
-					rows={rows}
-					rowHeight={56}
-					getRowKey={(r) => rowKey(r)}
-				>
-					{#snippet header()}
-						<div
-							class="grid grid-cols-[1.4fr,1fr,80px,90px,110px,80px,80px] gap-2 border-b border-border bg-muted px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
-						>
-							<div>{$_('admin.subscriptions.colUser', { default: 'User' })}</div>
-							<div>{$_('admin.subscriptions.colPlan', { default: 'Plan' })}</div>
-							<div>{$_('admin.subscriptions.colStatus', { default: 'Status' })}</div>
-							<div>{$_('admin.subscriptions.colStarted', { default: 'Started' })}</div>
-							<div>{$_('admin.subscriptions.colExpires', { default: 'Expires' })}</div>
-							<div class="text-right">{$_('admin.subscriptions.colMtd', { default: 'MTD' })}</div>
-							<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
-						</div>
-					{/snippet}
-					{#snippet row({ row: sub })}
-						<InteractiveRow
-							class="grid w-full cursor-pointer grid-cols-[1.4fr,1fr,80px,90px,110px,80px,80px] gap-2 border-b border-border px-3 py-2 text-left text-xs hover:bg-muted"
-							onclick={() => openDrawer(sub)}
-							onkeydown={(e) => handleRowKey(e, sub)}
-							data-testid="admin-subs-row"
-							data-sub-id={sub.id}
-						>
-							<div class="truncate">
-								<div class="truncate font-mono text-foreground">{maskEmail(sub.user_email)}</div>
-								<div class="truncate font-mono text-[10.5px] text-muted-foreground">
-									#{sub.user_id}
-								</div>
-							</div>
-							<div class="truncate text-foreground">{sub.plan_name ?? '—'}</div>
-							<div>
-								<Badge variant="outline" class="text-[10px] uppercase tracking-wider {statusClass(sub.status)}">{sub.status}</Badge>
-							</div>
-							<div class="font-mono tabular-nums text-muted-foreground">
-								{fmtDate(sub.started_at)}
-							</div>
-							<div class="font-mono tabular-nums text-muted-foreground">
-								{fmtDate(sub.expires_at)}
-							</div>
-							<div class="text-right font-mono tabular-nums text-foreground">
-								{fmtMoney(sub.mtd_cost, sub.currency)}
-							</div>
-							<div class="flex justify-end gap-1 text-[10.5px] text-muted-foreground">
-								{$_('common.view', { default: 'View' })}
-							</div>
-						</InteractiveRow>
-					{/snippet}
-				</VirtualTable>
-			{:else}
-				<!-- Plain table（≤ 50 行） -->
-				<div class="flex h-full flex-col" data-testid="admin-subs-table-flat">
-					<div
-						class="grid grid-cols-[1.4fr,1fr,80px,90px,110px,80px,80px] gap-2 border-b border-border bg-muted px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
-					>
-						<div>{$_('admin.subscriptions.colUser', { default: 'User' })}</div>
-						<div>{$_('admin.subscriptions.colPlan', { default: 'Plan' })}</div>
-						<div>{$_('admin.subscriptions.colStatus', { default: 'Status' })}</div>
-						<div>{$_('admin.subscriptions.colStarted', { default: 'Started' })}</div>
-						<div>{$_('admin.subscriptions.colExpires', { default: 'Expires' })}</div>
-						<div class="text-right">{$_('admin.subscriptions.colMtd', { default: 'MTD' })}</div>
-						<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
-					</div>
-					<div class="flex-1 overflow-y-auto">
-						{#each rows as sub (rowKey(sub))}
-							<InteractiveRow
-								class="grid w-full cursor-pointer grid-cols-[1.4fr,1fr,80px,90px,110px,80px,80px] gap-2 border-b border-border px-3 py-2 text-left text-xs hover:bg-muted"
-								onclick={() => openDrawer(sub)}
-								onkeydown={(e) => handleRowKey(e, sub)}
-								data-testid="admin-subs-row"
-								data-sub-id={sub.id}
-							>
-								<div class="truncate">
-									<div class="truncate font-mono text-foreground">{maskEmail(sub.user_email)}</div>
-									<div class="truncate font-mono text-[10.5px] text-muted-foreground">
-										#{sub.user_id}
-									</div>
-								</div>
-								<div class="truncate text-foreground">{sub.plan_name ?? '—'}</div>
-								<div>
-									<Badge variant="outline" class="text-[10px] uppercase tracking-wider {statusClass(sub.status)}">{sub.status}</Badge>
-								</div>
-								<div class="font-mono tabular-nums text-muted-foreground">
-									{fmtDate(sub.started_at)}
-								</div>
-								<div class="font-mono tabular-nums text-muted-foreground">
-									{fmtDate(sub.expires_at)}
-								</div>
-								<div class="text-right font-mono tabular-nums text-foreground">
-									{fmtMoney(sub.mtd_cost, sub.currency)}
-								</div>
-								<div class="flex justify-end gap-1 text-[10.5px] text-muted-foreground">
-									{$_('common.view', { default: 'View' })}
-								</div>
-							</InteractiveRow>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</Card>
-
-		<!-- Pagination -->
-		{#if totalPages > 1}
-			<div
-				class="flex items-center justify-center gap-2 pt-1"
-				data-testid="admin-subs-pagination"
-			>
-				<Button
-					variant="outline"
-					size="icon"
-					disabled={page === 1 || loading}
-					onclick={() => {
-						page = Math.max(1, page - 1);
-						void loadSubs();
-					}}
-					aria-label={$_('common.back', { default: 'Previous' })}
-				>
-					<ChevronLeft class="h-3 w-3" />
-				</Button>
-				<span class="text-xs tabular-nums text-muted-foreground">
-					{page} / {totalPages}
-				</span>
-				<Button
-					variant="outline"
-					size="icon"
-					disabled={page === totalPages || loading}
-					onclick={() => {
-						page = Math.min(totalPages, page + 1);
-						void loadSubs();
-					}}
-					aria-label={$_('common.next', { default: 'Next' })}
-				>
-					<ChevronRight class="h-3 w-3" />
-				</Button>
-			</div>
-		{/if}
-	{:else if !loading}
-		<div
-			class="flex flex-col items-center justify-center gap-3 px-6 py-20 text-muted-foreground"
-			data-testid="admin-subs-empty"
-		>
-			<PackageSearch class="h-10 w-10 opacity-40" />
-			<p class="m-0 text-[13px]">
-				{$_('admin.subscriptions.emptyText', {
-					default: 'No subscriptions match the current filters.'
-				})}
-			</p>
-		</div>
-	{/if}
+	<!-- Table + pagination + empty state -->
+	<SubscriptionTable
+		{rows}
+		{loading}
+		{page}
+		{totalPages}
+		onRowClick={openDrawer}
+		onPageChange={handlePageChange}
+	/>
 </section>
 
 <!-- Drawer -->

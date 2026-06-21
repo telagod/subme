@@ -2,39 +2,28 @@
 	/**
 	 * Admin · Monetization · Plans Catalog（M22）
 	 *
-	 * 与 Vue PlansCatalogView.vue 对齐：
-	 *   - Header: title + New Plan + Refresh
-	 *   - Stats bar: total / on-sale / archived
-	 *   - Filter bar: search (name) + platform filter + status filter（'__all__' sentinel
-	 *     per memory: reshadcn-migration）
-	 *   - Card grid: 3-col responsive；pagination if > 24 cards (3-col × 8 rows)
-	 *   - Empty / loading 状态
+	 * Thin orchestrator — holds page-level state + data fetching,
+	 * delegates rendering to feature components:
+	 *   - PlansStatsBar: total / on-sale / archived counters
+	 *   - PlansFilterBar: search + platform + status filters
+	 *   - PlansGrid: card grid + loading skeleton + pagination + empty state
+	 *   - PlanDeleteConfirmDialog: lightweight delete confirm
+	 *   - PlanEditDialog: lazy-loaded create/edit form (dynamic import)
 	 *
 	 * 红线：
 	 *   - NO QUENCH 皮肤（Zinc 中性 + 平台 accent dot）
 	 *   - 全部 Select 用真实 sentinel；platform/status filter 用 '__all__'
-	 *   - PlanEditDialog 走 dynamic import（lazy）—— catalog landing route 不背
-	 *     180-行表单的 6KB。check-chunks 红线下我们把 lib/features/* 默认归 vendor，
-	 *     但 dialog 通过 await import() 触发独立 lazy 解析。
+	 *   - PlanEditDialog 走 dynamic import（lazy）
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import {
-		Plus,
-		RefreshCw,
-		Search,
-		PackageOpen,
-		AlertTriangle,
-		ChevronLeft,
-		ChevronRight
-	} from '@lucide/svelte';
+	import { Plus, RefreshCw, AlertTriangle } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import Card from '$lib/ui/Card.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
-	import PlanCard from '$lib/features/monetization/plans/PlanCard.svelte';
+	import PlansStatsBar from '$lib/features/monetization/plans/PlansStatsBar.svelte';
+	import PlansFilterBar from '$lib/features/monetization/plans/PlansFilterBar.svelte';
+	import PlansGrid from '$lib/features/monetization/plans/PlansGrid.svelte';
+	import PlanDeleteConfirmDialog from '$lib/features/monetization/plans/PlanDeleteConfirmDialog.svelte';
 	import {
 		listPlans,
 		listGroups,
@@ -75,7 +64,7 @@
 	let dialogOpen = $state(false);
 	let editingPlan = $state<AdminPlan | null>(null);
 
-	// ── Delete confirm（inline native confirm placeholder; lightweight per page） ─
+	// ── Delete confirm ─────────────────────────────────────────────────────
 	let deletingPlan = $state<AdminPlan | null>(null);
 	let deleteConfirmOpen = $state(false);
 	let deleting = $state(false);
@@ -92,7 +81,6 @@
 		try {
 			groups = await listGroups();
 		} catch {
-			// Non-fatal — plans still render, group badges fall back to "missing".
 			groups = [];
 		}
 	}
@@ -158,7 +146,6 @@
 
 	// Reset page when filters change.
 	$effect(() => {
-		// Touch deps so effect re-runs.
 		void searchInput;
 		void platformFilter;
 		void statusFilter;
@@ -327,40 +314,7 @@
 	</div>
 
 	<!-- Stats bar -->
-	<Card class="flex items-center gap-5 px-[18px] py-3" data-testid="plans-stats">
-		<div class="flex items-baseline gap-[7px]">
-			<span class="font-mono text-[22px] font-bold tabular-nums text-foreground"
-				>{plans.length}</span
-			>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.plansCatalog.statTotal', { default: 'Total Plans' })}
-			</span>
-		</div>
-		<div class="h-6 w-px bg-border" aria-hidden="true"></div>
-		<div class="flex items-baseline gap-[7px]">
-			<span
-				class="font-mono text-[22px] font-bold tabular-nums text-emerald-500"
-				data-testid="plans-stat-on-sale"
-			>
-				{activeCount}
-			</span>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.plansCatalog.statOnSale', { default: 'On Sale' })}
-			</span>
-		</div>
-		<div class="h-6 w-px bg-border" aria-hidden="true"></div>
-		<div class="flex items-baseline gap-[7px]">
-			<span
-				class="font-mono text-[22px] font-bold tabular-nums text-muted-foreground"
-				data-testid="plans-stat-archived"
-			>
-				{archivedCount}
-			</span>
-			<span class="text-[11.5px] text-muted-foreground">
-				{$_('admin.plansCatalog.statOffSale', { default: 'Archived' })}
-			</span>
-		</div>
-	</Card>
+	<PlansStatsBar total={plans.length} {activeCount} {archivedCount} />
 
 	<!-- Load error -->
 	{#if loadError}
@@ -374,167 +328,45 @@
 	{/if}
 
 	<!-- Filter bar -->
-	<Card class="flex flex-wrap items-center gap-2 p-2" data-testid="plans-filters">
-		<div class="relative">
-			<Search
-				class="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-			/>
-			<Input
-				type="search"
-				class="h-8 w-56 pl-7 pr-2"
-				placeholder={$_('admin.plansCatalog.searchPlaceholder', {
-					default: 'Search plan name…'
-				})}
-				bind:value={searchInput}
-				data-testid="plans-search"
-			/>
-		</div>
+	<PlansFilterBar
+		bind:searchInput
+		bind:platformFilter
+		bind:statusFilter
+		{platformOptions}
+		{statusOptions}
+		filteredCount={filteredPlans.length}
+		totalCount={plans.length}
+	/>
 
-		<label class="ml-1 text-xs text-muted-foreground" for="plans-platform-filter">
-			{$_('payment.admin.platform', { default: 'Platform' })}
-		</label>
-		<NativeSelect
-			id="plans-platform-filter"
-			class="h-8 px-2"
-			bind:value={platformFilter}
-			options={platformOptions}
-			data-testid="plans-platform-filter"
-		/>
-
-		<label class="ml-1 text-xs text-muted-foreground" for="plans-status-filter">
-			{$_('common.status', { default: 'Status' })}
-		</label>
-		<NativeSelect
-			id="plans-status-filter"
-			class="h-8 px-2"
-			bind:value={statusFilter}
-			options={statusOptions}
-			data-testid="plans-status-filter"
-		/>
-
-		<div class="ml-auto text-xs text-muted-foreground tabular-nums">
-			{filteredPlans.length} / {plans.length}
-		</div>
-	</Card>
-
-	<!-- Loading skeleton -->
-	{#if loading && plans.length === 0}
-		<div
-			class="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] gap-[18px]"
-			data-testid="plans-loading"
-		>
-			{#each Array(6) as _, i (i)}
-				<div
-					class="flex min-h-[220px] animate-pulse flex-col gap-3 rounded-xl border border-border bg-card p-5"
-				>
-					<div class="h-4 w-[70%] rounded-md bg-muted"></div>
-					<div class="mt-1 h-7 w-[40%] rounded-md bg-muted"></div>
-					<div class="h-3 w-[55%] rounded-md bg-muted"></div>
-					<div class="h-3 w-[35%] rounded-md bg-muted"></div>
-				</div>
-			{/each}
-		</div>
-	{:else if pagedPlans.length > 0}
-		<!-- Card grid -->
-		<div
-			class="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] gap-[18px]"
-			data-testid="plans-grid"
-		>
-			{#each pagedPlans as plan (plan.id)}
-				{@const gidx = globalIndexOf(plan)}
-				<PlanCard
-					{plan}
-					group={findGroup(plan.group_id)}
-					groupMissing={isGroupMissing(plan.group_id)}
-					isFirst={gidx === 0 || sortLoading}
-					isLast={gidx === plans.length - 1 || sortLoading}
-					onToggleSale={() => toggleSale(plan)}
-					onEdit={() => openEdit(plan)}
-					onDuplicate={() => duplicate(plan)}
-					onDelete={() => openDeleteConfirm(plan)}
-					onMoveUp={() => moveUp(gidx)}
-					onMoveDown={() => moveDown(gidx)}
-				/>
-			{/each}
-		</div>
-
-		<!-- Pagination -->
-		{#if totalPages > 1}
-			<div
-				class="flex items-center justify-center gap-2 pt-2"
-				data-testid="plans-pagination"
-			>
-				<Button
-					variant="outline"
-					size="icon"
-					disabled={page === 1}
-					onclick={() => (page = Math.max(1, page - 1))}
-					aria-label={$_('common.back', { default: 'Previous' })}
-				>
-					<ChevronLeft class="h-3 w-3" />
-				</Button>
-				<span class="text-xs tabular-nums text-muted-foreground">
-					{page} / {totalPages}
-				</span>
-				<Button
-					variant="outline"
-					size="icon"
-					disabled={page === totalPages}
-					onclick={() => (page = Math.min(totalPages, page + 1))}
-					aria-label={$_('common.next', { default: 'Next' })}
-				>
-					<ChevronRight class="h-3 w-3" />
-				</Button>
-			</div>
-		{/if}
-	{:else if !loading}
-		<!-- Empty state -->
-		<div
-			class="flex flex-col items-center justify-center gap-3 px-6 py-20 text-muted-foreground"
-			data-testid="plans-empty"
-		>
-			<PackageOpen class="h-10 w-10 opacity-40" />
-			<p class="m-0 text-[13px]">
-				{$_('admin.plansCatalog.emptyText', {
-					default: 'No plans yet. Click "New Plan" to get started.'
-				})}
-			</p>
-		</div>
-	{/if}
+	<!-- Grid + loading + pagination + empty -->
+	<PlansGrid
+		{loading}
+		{pagedPlans}
+		allPlansCount={plans.length}
+		{page}
+		{totalPages}
+		{sortLoading}
+		{findGroup}
+		{isGroupMissing}
+		{globalIndexOf}
+		onToggleSale={toggleSale}
+		onEdit={openEdit}
+		onDuplicate={duplicate}
+		onDelete={openDeleteConfirm}
+		onMoveUp={moveUp}
+		onMoveDown={moveDown}
+		onPageChange={(p) => (page = p)}
+	/>
 </section>
 
-<!-- Delete confirm dialog (lightweight, no extra dynamic import) -->
+<!-- Delete confirm dialog -->
 {#if deletingPlan}
-	<StandardDialog
+	<PlanDeleteConfirmDialog
 		bind:open={deleteConfirmOpen}
-		width="sm"
-		title={$_('payment.admin.deletePlan', { default: 'Delete Plan' })}
-		description={$_('payment.admin.deletePlanConfirm', {
-			default: 'Are you sure you want to delete this plan?'
-		})}
-		data-testid="plans-delete-confirm"
-	>
-		<div class="mt-5 flex items-center justify-end gap-2">
-			<Button
-				variant="outline"
-				disabled={deleting}
-				onclick={closeDeleteConfirm}
-				data-testid="plans-delete-cancel"
-			>
-				{$_('common.cancel', { default: 'Cancel' })}
-			</Button>
-			<Button
-				variant="destructive"
-				disabled={deleting}
-				onclick={confirmDelete}
-				data-testid="plans-delete-confirm-btn"
-			>
-				{deleting
-					? $_('common.submitting', { default: 'Submitting...' })
-					: $_('common.delete', { default: 'Delete' })}
-			</Button>
-		</div>
-	</StandardDialog>
+		{deleting}
+		onConfirm={confirmDelete}
+		onClose={closeDeleteConfirm}
+	/>
 {/if}
 
 <!-- PlanEditDialog (dynamic) -->

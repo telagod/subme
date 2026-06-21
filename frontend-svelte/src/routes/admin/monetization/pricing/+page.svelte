@@ -2,15 +2,12 @@
 	/**
 	 * Admin · Monetization · Pricing Desk（POC 5 · 完整 port）
 	 *
-	 * 与 Vue PricingModelListView.vue 对齐：
-	 *   - Header: title + summary line + Refresh + Sync Catalog 双 actions
-	 *   - Sync 成功 toast（3500ms 自动消失）
-	 *   - Filter bar: search input + sort Select + only-overridden switch
-	 *   - Provider pill tabs（白名单声明顺序 + ALL_SENTINEL 在前）
-	 *   - VirtualTable rendering sortedModels —— Model / Provider / Input $/M /
-	 *     Output $/M / Cache Read / Context / Source 七列
-	 *   - 行点击（button role）打开 ProviderVerifyDrawer
-	 *   - empty / loading / error 三状态
+	 * Thin orchestrator — holds page-level state, data fetching, and derived
+	 * computations. Visual sections are delegated to:
+	 *   - PricingHeader   (title, summary, refresh/sync actions, toasts)
+	 *   - PricingSyncBar   (filter bar + provider pill tabs)
+	 *   - PricingTable     (virtual table with rows)
+	 *   - ProviderVerifyDrawer (detail drawer with price override editing)
 	 *
 	 * 红线：
 	 *   - 唯一 API 入口：modelCatalogApi（5 端点）。不引用后端 billing 计费 service / channel 路由。
@@ -19,23 +16,9 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import {
-		RefreshCw,
-		CloudDownload,
-		Search,
-		PackageSearch,
-		SquarePen,
-		AlertCircle
-	} from '@lucide/svelte';
-	import Alert from '$lib/ui/Alert.svelte';
-	import Badge from '$lib/ui/Badge.svelte';
-	import Button from '$lib/ui/Button.svelte';
-	import Card from '$lib/ui/Card.svelte';
-	import Checkbox from '$lib/ui/Checkbox.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import InteractiveRow from '$lib/ui/InteractiveRow.svelte';
-	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
+	import PricingHeader from '$lib/features/pricing/PricingHeader.svelte';
+	import PricingSyncBar from '$lib/features/pricing/PricingSyncBar.svelte';
+	import PricingTable from '$lib/features/pricing/PricingTable.svelte';
 	import ProviderVerifyDrawer from '$lib/features/pricing/ProviderVerifyDrawer.svelte';
 	import {
 		modelCatalogApi,
@@ -46,9 +29,6 @@
 		ALL_SENTINEL,
 		extractProvider,
 		prettifyProvider,
-		fmtPriceMTok,
-		fmtCtx,
-		sourceLabel,
 		lastSyncedText
 	} from '$lib/utils/pricing';
 
@@ -60,6 +40,7 @@
 		| 'output-desc'
 		| 'context-desc';
 
+	// ── Page-level state ──
 	let allModels = $state<CatalogModelListItem[]>([]);
 	let lastUpdated = $state<string>('');
 	let loading = $state(false);
@@ -78,9 +59,9 @@
 	let drawerSlug = $state<string | null>(null);
 	let drawerModelName = $state<string | null>(null);
 
-	// 用于 lastSyncedText 派生时间刷新
 	let nowMs = $state(Date.now());
 
+	// ── Data fetching ──
 	async function fetchList() {
 		loading = true;
 		loadError = null;
@@ -104,9 +85,7 @@
 			const result = await modelCatalogApi.syncCatalog();
 			syncToast = result.synced;
 			if (syncToastTimer) clearTimeout(syncToastTimer);
-			syncToastTimer = setTimeout(() => {
-				syncToast = null;
-			}, 3500);
+			syncToastTimer = setTimeout(() => { syncToast = null; }, 3500);
 			await fetchList();
 		} catch (e) {
 			loadError = e instanceof Error ? e.message : String(e);
@@ -115,33 +94,19 @@
 		}
 	}
 
-	onMount(() => {
-		void fetchList();
-	});
+	onMount(() => { void fetchList(); });
 
+	// ── Drawer ──
 	function openDetail(m: CatalogModelListItem) {
 		drawerSlug = m.id;
 		drawerModelName = m.name || m.id;
 		drawerOpen = true;
 	}
 
-	function handleRowKey(e: KeyboardEvent, m: CatalogModelListItem) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			openDetail(m);
-		}
-	}
+	function onOverrideSaved() { void fetchList(); }
 
-	function onOverrideSaved() {
-		void fetchList();
-	}
-
-	// ── 派生：mainstream providers 聚合（白名单顺序 + alias 合并） ──
-	interface ProviderEntry {
-		tag: string;
-		count: number;
-		aliases: ReadonlyArray<string>;
-	}
+	// ── Derived: mainstream providers ──
+	interface ProviderEntry { tag: string; count: number; aliases: ReadonlyArray<string>; }
 
 	const mainstreamProviders = $derived.by<ProviderEntry[]>(() => {
 		const counts = new Map<string, number>();
@@ -172,21 +137,15 @@
 		return e ? new Set(e.aliases) : null;
 	});
 
-	interface ProviderTab {
-		key: string;
-		label: string;
-		count: number;
-	}
+	interface ProviderTab { key: string; label: string; count: number; }
 
 	const providerTabs = $derived.by<ProviderTab[]>(() => {
 		const total = mainstreamProviders.reduce((acc, p) => acc + p.count, 0);
-		const tabs: ProviderTab[] = [
-			{
-				key: ALL_SENTINEL,
-				label: $_('admin.pricingList.providerTabs.all', { default: 'All' }),
-				count: total
-			}
-		];
+		const tabs: ProviderTab[] = [{
+			key: ALL_SENTINEL,
+			label: $_('admin.pricingList.providerTabs.all', { default: 'All' }),
+			count: total
+		}];
 		for (const p of mainstreamProviders) {
 			tabs.push({ key: p.tag, label: prettifyProvider(p.tag), count: p.count });
 		}
@@ -229,18 +188,12 @@
 	const sortedModels = $derived.by<CatalogModelListItem[]>(() => {
 		const list = [...filteredModels];
 		switch (sortKey) {
-			case 'input-asc':
-				return list.sort((a, b) => priceOf(a, 'input') - priceOf(b, 'input'));
-			case 'input-desc':
-				return list.sort((a, b) => priceOf(b, 'input') - priceOf(a, 'input'));
-			case 'output-asc':
-				return list.sort((a, b) => priceOf(a, 'output') - priceOf(b, 'output'));
-			case 'output-desc':
-				return list.sort((a, b) => priceOf(b, 'output') - priceOf(a, 'output'));
-			case 'context-desc':
-				return list.sort((a, b) => (b.context_len ?? 0) - (a.context_len ?? 0));
-			case 'alpha-asc':
-			default:
+			case 'input-asc':  return list.sort((a, b) => priceOf(a, 'input') - priceOf(b, 'input'));
+			case 'input-desc': return list.sort((a, b) => priceOf(b, 'input') - priceOf(a, 'input'));
+			case 'output-asc':  return list.sort((a, b) => priceOf(a, 'output') - priceOf(b, 'output'));
+			case 'output-desc': return list.sort((a, b) => priceOf(b, 'output') - priceOf(a, 'output'));
+			case 'context-desc': return list.sort((a, b) => (b.context_len ?? 0) - (a.context_len ?? 0));
+			case 'alpha-asc': default:
 				return list.sort((a, b) =>
 					(a.name || a.id).localeCompare(b.name || b.id, undefined, { sensitivity: 'base' })
 				);
@@ -249,13 +202,8 @@
 
 	const syncedText = $derived(
 		lastSyncedText(lastUpdated, nowMs, (k, p) =>
-			// svelte-i18n InterpolationValues 是 Record<string, string|number|boolean|Date|...>
-			// 这里来源是 lastSyncedText 内部传的 { n: number }，cast 一次安全。
 			$_(k, {
-				values: (p ?? {}) as Record<
-					string,
-					string | number | boolean | Date | null | undefined
-				>
+				values: (p ?? {}) as Record<string, string | number | boolean | Date | null | undefined>
 			})
 		)
 	);
@@ -266,297 +214,35 @@
 </svelte:head>
 
 <section class="flex h-[calc(100vh-8rem)] flex-col gap-3" data-testid="pricing-page">
-	<!-- Header -->
-	<div class="flex items-start justify-between gap-3">
-		<div class="min-w-0">
-			<h1 class="text-2xl font-semibold tracking-tight">
-				{$_('admin.pricingList.title', { default: 'PayGo Pricing' })}
-			</h1>
-			<p class="text-sm text-muted-foreground">
-				{$_('admin.pricingList.subtitle', { default: 'OpenRouter pricing catalog' })}
-			</p>
-			<div class="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-muted-foreground">
-				<span data-testid="pricing-summary">
-					{$_('admin.pricingList.mainstreamSummary', {
-						values: { models: visibleTotalCount, providers: mainstreamProviders.length },
-						default: '{models} models · {providers} providers'
-					})}
-				</span>
-				<span>·</span>
-				<span>{$_('admin.pricingList.sourceHint', { default: 'Source: OpenRouter + LiteLLM' })}</span>
-				{#if syncedText}
-					<span>·</span>
-					<span>
-						{$_('admin.pricingList.lastSynced', {
-							values: { time: syncedText },
-							default: 'last synced {time}'
-						})}
-					</span>
-				{/if}
-			</div>
-		</div>
-		<div class="flex items-center gap-2">
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={fetchList}
-				disabled={loading}
-				data-testid="pricing-refresh"
-			>
-				<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-				{$_('admin.pricingList.refresh', { default: 'Refresh' })}
-			</Button>
-			<Button
-				size="sm"
-				onclick={handleSync}
-				disabled={syncLoading}
-				data-testid="pricing-sync"
-			>
-				<CloudDownload class="h-3.5 w-3.5 {syncLoading ? 'animate-spin' : ''}" />
-				{$_('admin.pricingList.syncCatalog', { default: 'Sync catalog' })}
-			</Button>
-		</div>
-	</div>
+	<PricingHeader
+		{visibleTotalCount}
+		providerCount={mainstreamProviders.length}
+		{syncedText}
+		{loading}
+		{syncLoading}
+		{syncToast}
+		{loadError}
+		onRefresh={fetchList}
+		onSync={handleSync}
+	/>
 
-	<!-- Sync success toast -->
-	{#if syncToast != null}
-		<Alert
-			class="border-primary/40 bg-primary/10 text-primary"
-			data-testid="pricing-sync-toast"
-		>
-			{$_('admin.pricingList.syncSuccess', {
-				values: { n: syncToast },
-				default: '{n} models synced'
-			})}
-		</Alert>
-	{/if}
+	<PricingSyncBar
+		bind:searchInput
+		bind:sortKey
+		bind:activeProvider
+		bind:onlyOverridden
+		{providerTabs}
+		filteredCount={sortedModels.length}
+		totalCount={visibleTotalCount}
+	/>
 
-	{#if loadError}
-		<Alert
-			variant="destructive"
-			class="flex items-center gap-2"
-			data-testid="pricing-error"
-		>
-			<AlertCircle class="h-4 w-4" />
-			<span>{$_('admin.pricingList.loadFailed', { default: 'Load failed: ' })}{loadError}</span>
-			<Button
-				variant="outline"
-				size="sm"
-				class="ml-auto h-6 px-2 text-xs"
-				onclick={fetchList}
-			>
-				{$_('admin.providerVerify.retry', { default: 'Retry' })}
-			</Button>
-		</Alert>
-	{/if}
-
-	<!-- Filter bar -->
-	<Card
-		class="flex flex-wrap items-center gap-2 p-2"
-		data-testid="pricing-filters"
-	>
-		<div class="relative">
-			<Search class="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-			<Input
-				type="search"
-				class="h-8 w-56 pl-7 pr-2"
-				placeholder={$_('admin.pricingList.search.placeholder', {
-					default: 'Search by model id or name…'
-				})}
-				bind:value={searchInput}
-				data-testid="pricing-search"
-			/>
-		</div>
-
-		<label class="ml-1 text-xs text-muted-foreground" for="pricing-sort">
-			{$_('admin.pricingList.sort.label', { default: 'Sort' })}
-		</label>
-		<!--
-			Sort NativeSelect — uses enum values directly. Memory `reshadcn-migration`:
-			NO value="" allowed; every option has a real business value.
-		-->
-		<NativeSelect
-			id="pricing-sort"
-			class="h-8"
-			bind:value={sortKey}
-			data-testid="pricing-sort"
-		>
-			<option value="alpha-asc">
-				{$_('admin.pricingList.sort.alphaAsc', { default: 'Model A-Z' })}
-			</option>
-			<option value="input-asc">
-				{$_('admin.pricingList.sort.inputAsc', { default: 'Input price asc' })}
-			</option>
-			<option value="input-desc">
-				{$_('admin.pricingList.sort.inputDesc', { default: 'Input price desc' })}
-			</option>
-			<option value="output-asc">
-				{$_('admin.pricingList.sort.outputAsc', { default: 'Output price asc' })}
-			</option>
-			<option value="output-desc">
-				{$_('admin.pricingList.sort.outputDesc', { default: 'Output price desc' })}
-			</option>
-			<option value="context-desc">
-				{$_('admin.pricingList.sort.contextDesc', { default: 'Context window desc' })}
-			</option>
-		</NativeSelect>
-
-		<!--
-			Provider filter NativeSelect — kept for accessibility / test contract.
-			Sentinel: ALL_SENTINEL '__all__'. Pill tabs below are the primary UI;
-			this select exists for screen reader / keyboard fallback.
-		-->
-		<label class="ml-2 text-xs text-muted-foreground" for="pricing-provider-filter">
-			{$_('admin.pricingList.provider.label', { default: 'Provider' })}
-		</label>
-		<NativeSelect
-			id="pricing-provider-filter"
-			class="h-8"
-			bind:value={activeProvider}
-			data-testid="pricing-provider-filter"
-		>
-			<option value={ALL_SENTINEL}>
-				{$_('admin.pricingList.provider.allOption', { default: 'All providers' })}
-			</option>
-		{#each providerTabs.slice(1) as t (t.key)}
-			<option value={t.key}>{t.label}</option>
-		{/each}
-		</NativeSelect>
-
-		<!-- only-overridden switch -->
-		<label class="ml-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-			<Checkbox
-				class="h-3.5 w-3.5"
-				bind:checked={onlyOverridden}
-				data-testid="pricing-only-overridden"
-			/>
-			{$_('admin.pricingList.onlyOverridden', { default: 'Only overridden' })}
-		</label>
-
-		<div class="ml-auto text-xs text-muted-foreground tabular-nums">
-			{sortedModels.length} / {visibleTotalCount}
-		</div>
-	</Card>
-
-	<!-- Provider pill tabs -->
-	<div class="flex flex-wrap gap-1.5" data-testid="pricing-provider-tabs">
-		{#each providerTabs as t (t.key)}
-			<Button
-				variant={activeProvider === t.key ? 'default' : 'secondary'}
-				size="sm"
-				class="h-[26px] rounded-full px-2.5 text-[11.5px] leading-none"
-				onclick={() => (activeProvider = t.key)}
-				data-testid="pricing-provider-pill"
-				data-pill-key={t.key}
-			>
-				<span>{t.label}</span>
-				<span class="ml-1 tabular-nums opacity-75">{t.count}</span>
-			</Button>
-		{/each}
-	</div>
-
-	<!-- Table -->
-	<Card padded={false} class="flex min-h-0 flex-1 flex-col overflow-hidden">
-		<VirtualTable
-			rows={sortedModels}
-			rowHeight={56}
-			overscan={8}
-			{loading}
-			getRowKey={(r) => r.id}
-		>
-			{#snippet header()}
-				<div class="pricing-grid min-h-[var(--row-h,56px)] items-center gap-2 border-b border-border bg-card px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground">
-					<div>{$_('admin.pricingList.columns.model', { default: 'Model' })}</div>
-					<div>{$_('admin.pricingList.columns.provider', { default: 'Provider' })}</div>
-					<div class="text-right">
-						{$_('admin.pricingList.columns.input', { default: 'Input' })}
-					</div>
-					<div class="text-right">
-						{$_('admin.pricingList.columns.output', { default: 'Output' })}
-					</div>
-					<div class="text-right">
-						{$_('admin.pricingList.columns.cacheRead', { default: 'Cache Read' })}
-					</div>
-					<div class="text-right">
-						{$_('admin.pricingList.columns.context', { default: 'Context' })}
-					</div>
-					<div>{$_('admin.pricingList.columns.source', { default: 'Source' })}</div>
-				</div>
-			{/snippet}
-
-			{#snippet row({ row: m })}
-				<InteractiveRow
-					class="pricing-grid min-h-[var(--row-h,56px)] items-center gap-2 border-b border-border px-3 py-2 hover:bg-muted/40"
-					data-testid="pricing-row"
-					data-model-id={m.id}
-					onclick={() => openDetail(m)}
-					onkeydown={(e) => handleRowKey(e, m)}
-				>
-					<div class="min-w-0">
-						<div class="flex items-center gap-1 truncate text-sm font-medium">
-							<span class="truncate">{m.name}</span>
-							{#if m.has_override}
-								<SquarePen
-									class="h-3 w-3 flex-shrink-0 text-amber-600"
-									data-testid="pricing-override-badge"
-								/>
-							{/if}
-						</div>
-						<div class="truncate font-mono text-[10px] text-muted-foreground">{m.id}</div>
-					</div>
-					<div class="text-xs">
-						<Badge variant="outline" class="rounded px-1.5 py-0.5 font-mono uppercase">
-							{extractProvider(m.id) || '—'}
-						</Badge>
-					</div>
-					<div class="text-right text-sm tabular-nums">{fmtPriceMTok(m.baseline?.input)}</div>
-					<div class="text-right text-sm tabular-nums">{fmtPriceMTok(m.baseline?.output)}</div>
-					<div class="text-right text-sm tabular-nums text-muted-foreground">
-						{fmtPriceMTok(m.baseline?.cache_read)}
-					</div>
-					<div class="text-right text-sm tabular-nums text-muted-foreground">
-						{fmtCtx(m.context_len)}
-					</div>
-					<div class="text-xs">
-						<Badge variant="outline" class="rounded px-1.5 py-0.5 font-mono uppercase">
-							{sourceLabel(m.baseline?.source)}
-						</Badge>
-					</div>
-				</InteractiveRow>
-			{/snippet}
-
-			{#snippet empty()}
-				<div
-					class="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground"
-					data-testid="pricing-empty"
-				>
-					<PackageSearch class="h-8 w-8 opacity-30" />
-					<div>{$_('admin.pricingList.empty.title', { default: 'No models in catalog' })}</div>
-					<div class="text-xs">
-						{$_('admin.pricingList.empty.hint', { default: 'Sync to pull latest models' })}
-					</div>
-					<Button
-						size="sm"
-						class="mt-2"
-						onclick={handleSync}
-						disabled={syncLoading}
-						data-testid="pricing-empty-sync"
-					>
-						<CloudDownload class="h-3.5 w-3.5 {syncLoading ? 'animate-spin' : ''}" />
-						{$_('admin.pricingList.empty.action', { default: 'Sync catalog' })}
-					</Button>
-				</div>
-			{/snippet}
-
-			{#snippet loadingSlot()}
-				<div class="space-y-2 p-3" data-testid="pricing-loading">
-					{#each Array(6) as _, i (i)}
-						<div class="h-10 w-full animate-pulse rounded bg-muted"></div>
-					{/each}
-				</div>
-			{/snippet}
-		</VirtualTable>
-	</Card>
+	<PricingTable
+		rows={sortedModels}
+		{loading}
+		{syncLoading}
+		onRowClick={openDetail}
+		onSync={handleSync}
+	/>
 </section>
 
 <ProviderVerifyDrawer
@@ -565,13 +251,3 @@
 	modelName={drawerModelName}
 	on:override-saved={onOverrideSaved}
 />
-
-<style>
-	.pricing-grid {
-		display: grid;
-		grid-template-columns: minmax(0, 2.4fr) 0.9fr 0.9fr 0.9fr 0.9fr 0.8fr 0.9fr;
-	}
-	:global([data-density='compact']) .pricing-grid {
-		--row-h: 36px;
-	}
-</style>
