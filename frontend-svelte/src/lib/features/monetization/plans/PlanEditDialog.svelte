@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * PlanEditDialog · bits-ui Dialog with tabbed form（M22）
+	 * PlanEditDialog · StandardDialog with tabbed form（M22）
 	 *
 	 * 与 Vue PlanEditDialog.vue 同语义 + svelte 5 runes：
 	 *   - Tabs: Basic Info / Pricing / Quotas / Features
@@ -21,7 +21,6 @@
 	 *   - plan === null   → adminPlansApi.createPlan
 	 *   - plan !== null   → adminPlansApi.updatePlan(plan.id, …)
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
 	import { X, Plus, Trash2, ChevronUp, ChevronDown } from '@lucide/svelte';
 	import {
@@ -33,6 +32,14 @@
 		type ValidityUnit
 	} from '$lib/api/admin/plans';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import Textarea from '$lib/ui/Textarea.svelte';
+
+	const GROUP_NONE = '__none__';
 
 	type Props = {
 		open: boolean;
@@ -49,7 +56,7 @@
 	// ── Form state ─────────────────────────────────────────────────────────
 	let name = $state('');
 	let description = $state('');
-	let groupIdStr = $state(''); // bound to <select>; '' = nothing picked (sentinel-free: empty is a non-pick, NOT a Select value)
+	let groupIdStr = $state(GROUP_NONE);
 	let price = $state<number>(0);
 	let originalPrice = $state<number>(0);
 	let validityDays = $state<number>(30);
@@ -77,7 +84,7 @@
 		} else {
 			name = '';
 			description = '';
-			groupIdStr = '';
+			groupIdStr = GROUP_NONE;
 			price = 0;
 			originalPrice = 0;
 			validityDays = 30;
@@ -100,7 +107,7 @@
 	});
 
 	const selectedGroup = $derived.by<AdminGroupLite | null>(() => {
-		if (!groupIdStr) return null;
+		if (groupIdStr === GROUP_NONE) return null;
 		const id = Number(groupIdStr);
 		return groups.find((g) => g.id === id) ?? null;
 	});
@@ -144,7 +151,7 @@
 			showError($_('payment.admin.planName', { default: 'Plan name required' }));
 			return;
 		}
-		if (!groupIdStr) {
+		if (groupIdStr === GROUP_NONE) {
 			showError($_('payment.admin.groupRequired', { default: 'Please select a group' }));
 			return;
 		}
@@ -207,37 +214,42 @@
 	];
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-		/>
-		<Dialog.Content
-			data-testid="plan-edit-dialog"
-			class="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-full max-w-[620px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-border bg-card shadow-lg outline-none"
-		>
+<StandardDialog
+	bind:open
+	width="lg"
+	showHeader={false}
+	title={plan
+		? $_('payment.admin.editPlan', { default: 'Edit Plan' })
+		: $_('payment.admin.createPlan', { default: 'Create Plan' })}
+	description={$_('admin.plansCatalog.dialogDesc', {
+		default: 'Configure plan metadata, pricing and entitlements'
+	})}
+	data-testid="plan-edit-dialog"
+	class="flex max-h-[90vh] flex-col p-0"
+>
 			<header class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
 				<div class="min-w-0">
-					<Dialog.Title class="text-base font-semibold text-foreground">
+					<h2 class="text-base font-semibold text-foreground">
 						{plan
 							? $_('payment.admin.editPlan', { default: 'Edit Plan' })
 							: $_('payment.admin.createPlan', { default: 'Create Plan' })}
-					</Dialog.Title>
-					<Dialog.Description class="text-xs text-muted-foreground">
+					</h2>
+					<p class="text-xs text-muted-foreground">
 						{$_('admin.plansCatalog.dialogDesc', {
 							default: 'Configure plan metadata, pricing and entitlements'
 						})}
-					</Dialog.Description>
+					</p>
 				</div>
-				<button
-					type="button"
-					class="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-7 w-7 text-muted-foreground hover:bg-muted hover:text-foreground"
 					onclick={handleClose}
 					aria-label={$_('common.close', { default: 'Close' })}
 					data-testid="plan-edit-close"
 				>
 					<X class="h-4 w-4" />
-				</button>
+				</Button>
 			</header>
 
 			<!-- Tabs -->
@@ -247,21 +259,17 @@
 				aria-label="form tabs"
 			>
 				{#each TABS as t (t.key)}
-					<button
-						type="button"
-						class="inline-flex h-7 items-center rounded-md px-2.5 text-xs font-medium transition-colors"
-						class:bg-card={activeTab === t.key}
-						class:text-foreground={activeTab === t.key}
-						class:border={activeTab === t.key}
-						class:border-border={activeTab === t.key}
-						class:text-muted-foreground={activeTab !== t.key}
+					<Button
+						variant={activeTab === t.key ? 'outline' : 'ghost'}
+						size="sm"
+						class="h-7 px-2.5 {activeTab === t.key ? 'bg-card text-foreground' : 'text-muted-foreground'}"
 						onclick={() => (activeTab = t.key)}
 						data-testid="plan-edit-tab"
 						data-tab-key={t.key}
 						data-tab-active={activeTab === t.key ? 'true' : 'false'}
 					>
 						{$_(t.labelKey, { default: t.fallback })}
-					</button>
+					</Button>
 				{/each}
 			</nav>
 
@@ -282,11 +290,11 @@
 								{$_('payment.admin.planName', { default: 'Plan Name' })}
 								<span class="text-destructive">*</span>
 							</label>
-							<input
+							<Input
 								id="plan-name"
 								type="text"
 								required
-								class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+								class="h-9 px-2.5"
 								bind:value={name}
 								data-testid="plan-edit-name"
 							/>
@@ -300,18 +308,14 @@
 								{$_('payment.admin.group', { default: 'Group' })}
 								<span class="text-destructive">*</span>
 							</label>
-							<!--
-								Group Select — Vue tree filters to subscription_type='subscription'.
-								Empty string = unset (not a selectable value); placeholder option is
-								`disabled hidden` so user cannot pick it (matches POC 5 drawer pattern).
-							-->
-							<select
+							<!-- Group Select uses a non-empty sentinel for the unset state. -->
+							<NativeSelect
 								id="plan-group"
-								class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+								class="h-9 w-full px-2.5"
 								bind:value={groupIdStr}
 								data-testid="plan-edit-group"
 							>
-								<option value="" disabled hidden>
+								<option value={GROUP_NONE} disabled hidden>
 									{$_('payment.admin.selectGroup', { default: 'Select a group' })}
 								</option>
 								{#each eligibleGroups as g (g.id)}
@@ -319,7 +323,7 @@
 										{g.name} — {g.platform} ({g.rate_multiplier}x)
 									</option>
 								{/each}
-							</select>
+							</NativeSelect>
 						</div>
 
 						<div>
@@ -329,20 +333,18 @@
 							>
 								{$_('payment.admin.planDescription', { default: 'Plan Description' })}
 							</label>
-							<textarea
+							<Textarea
 								id="plan-description"
-								rows="3"
-								class="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+								rows={3}
+								class="px-2.5 py-1.5"
 								bind:value={description}
 								data-testid="plan-edit-description"
-							></textarea>
+							/>
 						</div>
 
 						<div class="flex items-center gap-3 rounded-md border border-border bg-muted/30 p-2.5">
 							<label class="inline-flex cursor-pointer items-center gap-2 text-sm text-foreground">
-								<input
-									type="checkbox"
-									class="h-4 w-4 accent-primary"
+								<Checkbox
 									bind:checked={forSale}
 									data-testid="plan-edit-for-sale"
 								/>
@@ -362,11 +364,11 @@
 							>
 								{$_('payment.admin.sortOrder', { default: 'Sort Order' })}
 							</label>
-							<input
+							<Input
 								id="plan-sort-order"
 								type="number"
 								min="0"
-								class="h-9 w-32 rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+								class="h-9 w-32 px-2.5"
 								bind:value={sortOrder}
 								data-testid="plan-edit-sort-order"
 							/>
@@ -386,13 +388,13 @@
 									{$_('payment.admin.price', { default: 'Price' })}
 									<span class="text-destructive">*</span>
 								</label>
-								<input
+								<Input
 									id="plan-price"
 									type="number"
 									step="0.01"
 									min="0.01"
 									required
-									class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+									class="h-9 px-2.5"
 									bind:value={price}
 									data-testid="plan-edit-price"
 								/>
@@ -404,12 +406,12 @@
 								>
 									{$_('payment.admin.originalPrice', { default: 'Original Price' })}
 								</label>
-								<input
+								<Input
 									id="plan-original-price"
 									type="number"
 									step="0.01"
 									min="0"
-									class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+									class="h-9 px-2.5"
 									bind:value={originalPrice}
 									data-testid="plan-edit-original-price"
 								/>
@@ -425,12 +427,12 @@
 									{$_('payment.admin.validityDays', { default: 'Validity (days)' })}
 									<span class="text-destructive">*</span>
 								</label>
-								<input
+								<Input
 									id="plan-validity-days"
 									type="number"
 									min="1"
 									required
-									class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+									class="h-9 px-2.5"
 									bind:value={validityDays}
 									data-testid="plan-edit-validity-days"
 								/>
@@ -442,9 +444,9 @@
 								>
 									{$_('payment.admin.validityUnit', { default: 'Validity Unit' })}
 								</label>
-								<select
+								<NativeSelect
 									id="plan-validity-unit"
-									class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+									class="h-9 w-full px-2.5"
 									bind:value={validityUnit}
 									data-testid="plan-edit-validity-unit"
 								>
@@ -457,7 +459,7 @@
 									<option value="months">
 										{$_('admin.plansCatalog.unitMonths', { default: 'Months' })}
 									</option>
-								</select>
+								</NativeSelect>
 							</div>
 						</div>
 
@@ -547,13 +549,13 @@
 								>
 									{$_('payment.admin.features', { default: 'Features' })}
 								</label>
-								<input
+								<Input
 									id="plan-new-feature"
 									type="text"
 									placeholder={$_('payment.admin.featuresPlaceholder', {
 										default: 'Enter plan features...'
 									})}
-									class="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+									class="h-9 px-2.5"
 									bind:value={newFeatureText}
 									onkeydown={(e) => {
 										if (e.key === 'Enter') {
@@ -564,15 +566,16 @@
 									data-testid="plan-edit-new-feature"
 								/>
 							</div>
-							<button
-								type="button"
-								class="inline-flex h-9 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs text-foreground hover:bg-muted"
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-9 px-2.5"
 								onclick={addFeature}
 								data-testid="plan-edit-add-feature"
 							>
 								<Plus class="h-3 w-3" />
 								{$_('common.create', { default: 'Add' })}
-							</button>
+							</Button>
 						</div>
 
 						<ul class="m-0 space-y-1 p-0 list-none" data-testid="plan-edit-features-list">
@@ -586,33 +589,36 @@
 										class="h-1 w-1 shrink-0 rounded-full bg-foreground/50"
 									></span>
 									<span class="flex-1 truncate text-foreground">{f}</span>
-									<button
-										type="button"
-										class="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-6 w-6 text-muted-foreground hover:bg-muted hover:text-foreground"
 										disabled={i === 0}
 										onclick={() => moveFeature(i, -1)}
 										aria-label={$_('admin.plansCatalog.moveUp', { default: 'Move Up' })}
 									>
 										<ChevronUp class="h-3 w-3" />
-									</button>
-									<button
-										type="button"
-										class="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-6 w-6 text-muted-foreground hover:bg-muted hover:text-foreground"
 										disabled={i === features.length - 1}
 										onclick={() => moveFeature(i, 1)}
 										aria-label={$_('admin.plansCatalog.moveDown', { default: 'Move Down' })}
 									>
 										<ChevronDown class="h-3 w-3" />
-									</button>
-									<button
-										type="button"
-										class="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-6 w-6 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 										onclick={() => removeFeature(i)}
 										aria-label={$_('common.delete', { default: 'Delete' })}
 										data-testid="plan-edit-remove-feature"
 									>
 										<Trash2 class="h-3 w-3" />
-									</button>
+									</Button>
 								</li>
 							{/each}
 						</ul>
@@ -627,27 +633,25 @@
 			</form>
 
 			<footer class="flex shrink-0 items-center justify-end gap-2 border-t border-border px-5 py-3">
-				<button
-					type="button"
-					class="inline-flex h-9 items-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+				<Button
+					variant="outline"
+					class="h-9"
 					disabled={saving}
 					onclick={handleClose}
 					data-testid="plan-edit-cancel"
 				>
 					{$_('common.cancel', { default: 'Cancel' })}
-				</button>
-				<button
+				</Button>
+				<Button
 					type="submit"
 					form="plan-edit-form"
-					class="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+					class="h-9"
 					disabled={saving}
 					data-testid="plan-edit-submit"
 				>
 					{saving
 						? $_('common.submitting', { default: 'Submitting...' })
 						: $_('common.save', { default: 'Save' })}
-				</button>
+				</Button>
 			</footer>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+		</StandardDialog>

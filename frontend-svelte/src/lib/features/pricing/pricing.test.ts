@@ -7,7 +7,8 @@
  *   3. 行点击 → drawer 打开 → getModel(slug) 被调用
  *   4. sort Select 切换 → sortedModels 顺序变化
  *   5. drawer auto mode + 已 overridden → 点 Restore → deleteOverride 调用 + override-saved 派发
- *   6. RED LINE grep: pricing 源码不出现 billing_service / /admin/channels/model-pricing
+ *   6. ProviderVerifyDrawer 使用 StandardDrawer，不再手写 bits overlay
+ *   7. RED LINE grep: pricing 源码不出现 billing_service / /admin/channels/model-pricing
  */
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
@@ -17,7 +18,7 @@ import { addMessages, init, locale } from 'svelte-i18n';
 import drawerSrc from '$lib/features/pricing/ProviderVerifyDrawer.svelte?raw';
 import apiSrc from '$lib/api/admin/modelCatalog.ts?raw';
 import utilSrc from '$lib/utils/pricing.ts?raw';
-import pageSrc from '../../../routes/(admin)/monetization/pricing/+page.svelte?raw';
+import pageSrc from '../../../routes/admin/monetization/pricing/+page.svelte?raw';
 import type {
 	CatalogListResponse,
 	CatalogModelDetail,
@@ -96,7 +97,7 @@ function fakeDetail(slug: string, overridden = true): CatalogModelDetail {
 }
 
 describe('Pricing page · listModels + filter + drawer wiring', () => {
-	let pageMod: typeof import('../../../routes/(admin)/monetization/pricing/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/monetization/pricing/+page.svelte');
 	let apiMod: typeof import('$lib/api/admin/modelCatalog');
 	let listSpy: ReturnType<typeof vi.fn>;
 	let getSpy: ReturnType<typeof vi.fn>;
@@ -114,7 +115,7 @@ describe('Pricing page · listModels + filter + drawer wiring', () => {
 		getSpy.mockImplementation(async (slug: string) => fakeDetail(slug, true));
 		deleteSpy.mockResolvedValue(undefined);
 
-		pageMod = await import('../../../routes/(admin)/monetization/pricing/+page.svelte');
+		pageMod = await import('../../../routes/admin/monetization/pricing/+page.svelte');
 	});
 
 	it('renders rows from listModels (fallback or virtual)', async () => {
@@ -275,6 +276,14 @@ describe('Pricing page · listModels + filter + drawer wiring', () => {
 		await waitFor(() => {
 			expect(listSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
 		});
+	});
+
+	it('ProviderVerifyDrawer uses StandardDrawer instead of a hand-rolled bits overlay', () => {
+		expect(drawerSrc).toContain('StandardDrawer');
+		expect(drawerSrc).toContain('data-testid="provider-verify-drawer"');
+		expect(drawerSrc).not.toContain('Dialog.Root');
+		expect(drawerSrc).not.toContain('Dialog.Overlay');
+		expect(drawerSrc).not.toContain('fixed inset-0');
 	});
 });
 

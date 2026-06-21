@@ -18,9 +18,12 @@
 	 * 设计：
 	 *   - 不发 API 请求。变化通过 bindable 与 onChange 回调反馈给父。
 	 *   - 父页约定：filter 任意维度变化 → 回到 page=1 → 重拉。
-	 */
+	*/
 	import { _ } from 'svelte-i18n';
 	import { Search } from '@lucide/svelte';
+	import Card from '$lib/ui/Card.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	type Option = { value: string; label: string };
 
@@ -64,15 +67,15 @@
 	}
 </script>
 
-<div
-	class="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card p-2"
+<Card
+	class="flex flex-wrap items-center gap-2 p-2"
 	data-testid="admin-orders-filters"
 >
 	<div class="relative">
 		<Search class="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-		<input
+		<Input
 			type="search"
-			class="h-8 w-56 rounded-md border border-border bg-background pl-7 pr-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+			class="h-8 w-56 pl-7 pr-2"
 			placeholder={$_('admin.orders.searchPlaceholder', {
 				default: 'Search out_trade_no / user email / ID…'
 			})}
@@ -85,55 +88,55 @@
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-status-filter">
 		{$_('common.status', { default: 'Status' })}
 	</label>
-	<select
+	<NativeSelect
 		id="admin-orders-status-filter"
-		class="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+		class="h-8"
 		bind:value={status}
 		onchange={dispatchChange}
 		data-testid="admin-orders-status-filter"
 	>
-		{#each statusOptions as o (o.value)}
-			<option value={o.value}>{o.label}</option>
-		{/each}
-	</select>
+	{#each statusOptions as o (o.value)}
+		<option value={o.value}>{o.label}</option>
+	{/each}
+	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-provider-filter">
 		{$_('admin.orders.providerLabel', { default: 'Provider' })}
 	</label>
-	<select
+	<NativeSelect
 		id="admin-orders-provider-filter"
-		class="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+		class="h-8"
 		bind:value={provider}
 		onchange={dispatchChange}
 		data-testid="admin-orders-provider-filter"
 	>
-		{#each providerOptions as o (o.value)}
-			<option value={o.value}>{o.label}</option>
-		{/each}
-	</select>
+	{#each providerOptions as o (o.value)}
+		<option value={o.value}>{o.label}</option>
+	{/each}
+	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-plan-filter">
 		{$_('admin.orders.planLabel', { default: 'Plan' })}
 	</label>
-	<select
+	<NativeSelect
 		id="admin-orders-plan-filter"
-		class="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+		class="h-8"
 		bind:value={plan}
 		onchange={dispatchChange}
 		data-testid="admin-orders-plan-filter"
 	>
-		{#each planOptions as o (o.value)}
-			<option value={o.value}>{o.label}</option>
-		{/each}
-	</select>
+	{#each planOptions as o (o.value)}
+		<option value={o.value}>{o.label}</option>
+	{/each}
+	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-start-date">
 		{$_('admin.orders.startDate', { default: 'From' })}
 	</label>
-	<input
+	<Input
 		id="admin-orders-start-date"
 		type="date"
-		class="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+		class="h-8 w-auto px-2"
 		bind:value={startDate}
 		onchange={dispatchChange}
 		data-testid="admin-orders-start-date"
@@ -141,12 +144,12 @@
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-end-date">
 		{$_('admin.orders.endDate', { default: 'To' })}
 	</label>
-	<input
+	<Input
 		id="admin-orders-end-date"
 		type="date"
-		class="h-8 rounded-md border border-border bg-background px-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+		class="h-8 w-auto px-2"
 		bind:value={endDate}
 		onchange={dispatchChange}
 		data-testid="admin-orders-end-date"
 	/>
-</div>
+</Card>

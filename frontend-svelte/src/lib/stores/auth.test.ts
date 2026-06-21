@@ -241,6 +241,21 @@ describe('auth store · hydrate / refreshUser', () => {
 		expect(auth.isAdmin).toBe(true);
 	});
 
+	it('setToken() stores token only and lets refreshUser() populate user', async () => {
+		auth.setSession('jwt.old', { id: 1, email: 'old@b', role: 'user' });
+		auth.setToken('jwt.oauth');
+		expect(auth.token).toBe('jwt.oauth');
+		expect(auth.user).toBeNull();
+		expect(auth.isAuthenticated).toBe(false);
+
+		mockMe.mockResolvedValueOnce({
+			data: { id: 3, email: 'oauth@b', role: 'user' }
+		});
+		await auth.refreshUser();
+		expect(auth.user?.email).toBe('oauth@b');
+		expect(auth.isAuthenticated).toBe(true);
+	});
+
 	it('refreshUser() clears session when /me fails', async () => {
 		auth.setSession('jwt.t2', { id: 1, email: 'a@b', role: 'user' });
 		mockMe.mockRejectedValueOnce(new Error('HTTP 401'));

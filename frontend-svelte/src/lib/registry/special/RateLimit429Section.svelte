@@ -16,6 +16,8 @@
 		type RateLimit429CooldownSettings
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -96,9 +98,10 @@
 					{$_('admin.settings.rateLimit429Cooldown.enabledHint')}
 				</p>
 			</div>
-			<button
+			<Button
 				id="rate-limit-429-enabled"
-				type="button"
+				variant="ghost"
+				size="icon"
 				role="switch"
 				aria-checked={form.enabled}
 				aria-label={$_('admin.settings.rateLimit429Cooldown.enabled')}
@@ -114,7 +117,7 @@
 						? 'translate-x-4'
 						: 'translate-x-0.5'}"
 				></span>
-			</button>
+			</Button>
 		</div>
 
 		{#if form.enabled}
@@ -126,13 +129,13 @@
 					>
 						{$_('admin.settings.rateLimit429Cooldown.cooldownSeconds')}
 					</label>
-					<input
+					<Input
 						id="rate-limit-429-seconds"
 						type="number"
 						min="1"
 						max="7200"
 						data-testid="rate-limit-429-seconds"
-						class="h-9 w-32 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-32 font-mono"
 						value={form.cooldown_seconds}
 						oninput={onCooldownInput}
 					/>
@@ -144,15 +147,15 @@
 		{/if}
 
 		<div class="flex justify-end border-t border-border pt-4">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				class="h-9"
 				data-testid="rate-limit-429-save"
 				disabled={saving}
 				onclick={save}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 			>
 				{saving ? $_('common.saving') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	{/if}
 </div>

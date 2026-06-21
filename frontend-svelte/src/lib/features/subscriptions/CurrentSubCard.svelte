@@ -12,6 +12,8 @@
 	import { _ } from 'svelte-i18n';
 	import { CreditCard, AlertTriangle } from '@lucide/svelte';
 	import type { UserSubscription, SubscriptionStatus } from '$lib/api/user/subscriptions';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	type Props = {
 		subscription: UserSubscription;
@@ -90,12 +92,12 @@
 				</h2>
 			</div>
 		</div>
-		<span
-			class="inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium {statusBadgeClass(subscription.status)}"
+		<Badge
+			class="shrink-0 {statusBadgeClass(subscription.status)}"
 			data-testid="current-sub-status"
 		>
 			{statusLabel(subscription.status)}
-		</span>
+		</Badge>
 	</div>
 
 	<dl class="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
@@ -133,22 +135,21 @@
 
 	<div class="mt-5 flex flex-wrap items-center justify-end gap-2">
 		{#if canCancel}
-			<button
-				type="button"
+			<Button
+				variant="outline"
 				data-testid="current-sub-cancel-btn"
 				onclick={() => onCancelClick?.(subscription)}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium text-destructive hover:bg-destructive/10"
+				class="h-9 px-3 text-destructive hover:bg-destructive/10"
 			>
 				{$_('user.subscriptions.cancel', { default: 'Cancel' })}
-			</button>
+			</Button>
 		{/if}
-		<button
-			type="button"
+		<Button
 			data-testid="current-sub-upgrade-btn"
 			onclick={() => onUpgradeClick?.(subscription)}
-			class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+			class="h-9 px-3"
 		>
 			{$_('user.subscriptions.upgrade', { default: 'Upgrade' })}
-		</button>
+		</Button>
 	</div>
 </article>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * TopUpDialog · bits-ui Dialog 余额充值入口（M6 billing）
+	 * TopUpDialog · StandardDialog 余额充值入口（M6 billing）
 	 *
 	 * 流程：
 	 *   1. bind:open 父持有状态。
@@ -21,11 +21,15 @@
 	 *   - 不在模块顶层 import @stripe/stripe-js / @airwallex/components-sdk。
 	 *     payment facade 内部也只是创建订单，真正 SDK 唤起留给 payment agent。
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
-	import { Wallet, AlertTriangle } from '@lucide/svelte';
+	import { AlertTriangle } from '@lucide/svelte';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import type { CreateOrderResult, TopUpProvider } from '$lib/api/user/payment';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	type Props = {
 		open: boolean;
@@ -143,44 +147,26 @@
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-		/>
-		<Dialog.Content
-			data-testid="topup-dialog"
-			class="fixed left-1/2 top-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg outline-none"
-		>
-			<div class="flex items-start gap-3">
-				<div
-					class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-				>
-					<Wallet class="h-5 w-5" />
-				</div>
-				<div class="space-y-1">
-					<Dialog.Title class="text-base font-semibold text-foreground">
-						{$_('user.topUp.title', { default: 'Top up balance' })}
-					</Dialog.Title>
-					<Dialog.Description class="text-sm text-muted-foreground">
-						{$_('user.topUp.description', {
-							default: 'Add credit to your account balance.'
-						})}
-					</Dialog.Description>
-				</div>
-			</div>
-
-			<form
-				class="mt-5 space-y-4"
-				data-testid="topup-form"
-				onsubmit={handleSubmit}
-			>
+<StandardDialog
+	bind:open
+	width="md"
+	title={$_('user.topUp.title', { default: 'Top up balance' })}
+	description={$_('user.topUp.description', {
+		default: 'Add credit to your account balance.'
+	})}
+	data-testid="topup-dialog"
+>
+	<form
+		class="mt-5 space-y-4"
+		data-testid="topup-form"
+		onsubmit={handleSubmit}
+	>
 				<!-- Amount -->
 				<div class="space-y-1.5">
 					<label class="text-sm font-medium text-foreground" for="topup-amount">
 						{$_('user.topUp.amountLabel', { default: 'Amount' })}
 					</label>
-					<input
+					<Input
 						id="topup-amount"
 						data-testid="topup-amount-input"
 						type="text"
@@ -191,7 +177,7 @@
 						placeholder={$_('user.topUp.amountPlaceholder', {
 							default: 'e.g. 20'
 						})}
-						class="block h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+						class="h-9"
 					/>
 					{#if amountText && !amountValid}
 						<p
@@ -211,16 +197,16 @@
 						<label class="text-sm font-medium text-foreground" for="topup-currency">
 							{$_('user.topUp.currencyLabel', { default: 'Currency' })}
 						</label>
-						<select
+						<NativeSelect
 							id="topup-currency"
 							data-testid="topup-currency-select"
 							bind:value={currency}
-							class="block h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+							class="h-9 w-full"
 						>
 							{#each currencies as c (c)}
 								<option value={c}>{c}</option>
 							{/each}
-						</select>
+						</NativeSelect>
 					</div>
 				{/if}
 
@@ -236,57 +222,56 @@
 						aria-label={$_('user.topUp.providerLabel', { default: 'Payment provider' })}
 					>
 						{#each providers as p (p)}
-							<button
-								type="button"
+							<Button
+								variant="outline"
 								role="radio"
 								aria-checked={provider === p}
 								data-testid="topup-provider-{p}"
 								data-active={provider === p}
 								onclick={() => (provider = p)}
-								class="inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=false]:border-border data-[active=false]:bg-background data-[active=false]:text-foreground hover:bg-accent"
+								class="h-9 transition-colors data-[active=true]:border-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=false]:border-border data-[active=false]:bg-background data-[active=false]:text-foreground"
 							>
 								{p === 'stripe'
 									? $_('user.topUp.providerStripe', { default: 'Stripe' })
 									: $_('user.topUp.providerAirwallex', { default: 'Airwallex' })}
-							</button>
+							</Button>
 						{/each}
 					</div>
 				</div>
 
 				<!-- Inline form error -->
 				{#if formError}
-					<div
-						class="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+					<Alert
+						variant="destructive"
+						class="flex items-start gap-2 px-3 py-2 text-xs"
 						data-testid="topup-form-error"
 						role="alert"
 					>
 						<AlertTriangle class="mt-0.5 h-3.5 w-3.5 shrink-0" />
 						<span>{formError}</span>
-					</div>
+					</Alert>
 				{/if}
 
 				<div class="flex items-center justify-end gap-2 pt-2">
-					<button
-						type="button"
+					<Button
+						variant="outline"
 						data-testid="topup-cancel-btn"
 						disabled={submitting}
 						onclick={handleClose}
-						class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+						class="h-9"
 					>
 						{$_('user.topUp.cancel', { default: 'Cancel' })}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="submit"
 						data-testid="topup-submit-btn"
 						disabled={submitting || !amountValid}
-						class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+						class="h-9"
 					>
 						{submitting
 							? $_('user.topUp.submitting', { default: 'Processing…' })
 							: $_('user.topUp.submit', { default: 'Continue to payment' })}
-					</button>
+					</Button>
 				</div>
-			</form>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+	</form>
+</StandardDialog>

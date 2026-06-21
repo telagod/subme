@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * TotpEnrollDialog · bits-ui Dialog 启动 2FA 注册（M7 profile/security）
+	 * TotpEnrollDialog · StandardDialog 启动 2FA 注册（M7 profile/security）
 	 *
 	 * 流程：
 	 *   1. open=true → POST /api/v1/user/totp/setup → { secret, qr_code_url, setup_token }
@@ -15,11 +15,14 @@
 	 *   - 不展示 secret plaintext 之外的字段；qr_code_url 是 otpauth:// 格式。
 	 *   - Select / sentinel 红线本组件不触发（无 Select）。
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
-	import { ShieldCheck, AlertTriangle } from '@lucide/svelte';
+	import { AlertTriangle } from '@lucide/svelte';
 	import { enrollTotpStart, enrollTotpConfirm } from '$lib/api/user/profile';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	type Props = {
 		open: boolean;
@@ -109,7 +112,7 @@
 		loadError = null;
 	}
 
-	// 父通过 bind:open 翻 true 时启动加载；bits-ui onOpenChange 在 controlled
+	// 父通过 bind:open 翻 true 时启动加载；controlled dialog
 	// 模式不一定回调外部置 true，因此用 $effect 兜底。
 	let lastOpen = false;
 	$effect(() => {
@@ -128,48 +131,30 @@
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-		/>
-		<Dialog.Content
-			data-testid="totp-enroll-dialog"
-			class="fixed left-1/2 top-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg outline-none"
-		>
-			<div class="flex items-start gap-3">
-				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-					<ShieldCheck class="h-5 w-5" />
-				</div>
-				<div class="space-y-1">
-					<Dialog.Title class="text-base font-semibold text-foreground">
-						{$_('user.security.totp.setupTitle', { default: 'Set up two-factor authentication' })}
-					</Dialog.Title>
-					<Dialog.Description class="text-sm text-muted-foreground">
-						{$_('user.security.totp.setupStep1', {
-							default: 'Scan the QR code below with your authenticator app, then enter the 6-digit code.'
-						})}
-					</Dialog.Description>
-				</div>
+<StandardDialog
+	bind:open
+	width="md"
+	title={$_('user.security.totp.setupTitle', { default: 'Set up two-factor authentication' })}
+	description={$_('user.security.totp.setupStep1', {
+		default: 'Scan the QR code below with your authenticator app, then enter the 6-digit code.'
+	})}
+	data-testid="totp-enroll-dialog"
+>
+	<div class="mt-4">
+		{#if phase === 'loading'}
+			<div
+				class="flex items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-sm text-muted-foreground"
+				data-testid="totp-loading"
+			>
+				{$_('user.security.totp.loading', { default: 'Loading setup…' })}
 			</div>
-
-			{#if phase === 'loading'}
-				<div
-					class="mt-6 flex items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-sm text-muted-foreground"
-					data-testid="totp-loading"
-				>
-					{$_('user.security.totp.loading', { default: 'Loading setup…' })}
-				</div>
-				{#if loadError}
-					<p
-						class="mt-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-						data-testid="totp-load-error"
-					>
-						{loadError}
-					</p>
-				{/if}
-			{:else}
-				<div class="mt-6 space-y-4">
+			{#if loadError}
+				<Alert variant="destructive" class="mt-3 px-3 py-2 text-xs" data-testid="totp-load-error">
+					{loadError}
+				</Alert>
+			{/if}
+		{:else}
+			<div class="space-y-4">
 					<div class="flex flex-col items-center gap-3">
 						<div
 							class="flex h-44 w-44 items-center justify-center rounded-md border border-border bg-white p-2"
@@ -209,43 +194,41 @@
 						<label for="totp-code" class="text-sm font-medium text-foreground">
 							{$_('user.security.totp.enterCode', { default: 'Enter the 6-digit code' })}
 						</label>
-						<input
+						<Input
 							id="totp-code"
 							type="text"
 							inputmode="numeric"
 							autocomplete="one-time-code"
-							maxlength="6"
+							maxlength={6}
 							pattern="[0-9]{6}"
 							data-testid="totp-code"
 							placeholder="123456"
 							bind:value={code}
-							class="block h-10 w-full rounded-md border border-input bg-background px-3 text-center font-mono text-lg tracking-widest text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+							class="text-center font-mono text-lg tracking-widest"
 						/>
 					</div>
 
 					<div class="flex items-center justify-end gap-2 pt-1">
-						<button
+						<Button
 							type="button"
+							variant="outline"
 							data-testid="totp-cancel"
 							onclick={handleCancel}
-							class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
 						>
 							{$_('user.security.totp.cancel', { default: 'Cancel' })}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="button"
 							data-testid="totp-confirm"
 							disabled={submitting}
 							onclick={handleConfirm}
-							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{submitting
 								? $_('user.security.totp.verifying', { default: 'Verifying…' })
 								: $_('user.security.totp.verify', { default: 'Verify and enable' })}
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+	</div>
+</StandardDialog>

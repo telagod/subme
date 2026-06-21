@@ -18,6 +18,9 @@
 	import { authApi } from '$lib/api/auth';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type Stage = 'loading' | 'collect' | 'verify' | 'submitting' | 'done' | 'invalid';
 
@@ -191,7 +194,7 @@
 				<label for="completion-email" class="text-sm font-medium text-foreground">
 					{$_('auth.emailLabel', { default: 'Email' })}
 				</label>
-				<input
+				<Input
 					id="completion-email"
 					name="email"
 					type="email"
@@ -199,27 +202,23 @@
 					placeholder={$_('auth.emailPlaceholder', { default: 'you@example.com' })}
 					bind:value={email}
 					data-testid="completion-email"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 				/>
 			</div>
 			{#if formError}
-				<p
-					class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-					data-testid="completion-error"
-				>
+				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="completion-error">
 					{formError}
-				</p>
+				</Alert>
 			{/if}
-			<button
+			<Button
 				type="submit"
 				disabled={sendingCode}
 				data-testid="completion-send-code"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{sendingCode
 					? $_('auth.emailCompletion.sending', { default: 'Sending...' })
 					: $_('auth.emailCompletion.sendCode', { default: 'Send verification code' })}
-			</button>
+			</Button>
 		</form>
 	{:else if stage === 'verify' || stage === 'submitting'}
 		<form
@@ -234,7 +233,7 @@
 				<label for="completion-code" class="text-sm font-medium text-foreground">
 					{$_('auth.emailCompletion.codeLabel', { default: 'Verification code' })}
 				</label>
-				<input
+				<Input
 					id="completion-code"
 					name="code"
 					type="text"
@@ -244,7 +243,7 @@
 					placeholder={$_('auth.emailCompletion.codePlaceholder', { default: '6-digit code' })}
 					bind:value={code}
 					data-testid="completion-code"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm tracking-widest text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+					class="tracking-widest"
 				/>
 				<p class="text-xs text-muted-foreground">
 					{$_('auth.emailCompletion.codeHintEmail', {
@@ -254,23 +253,20 @@
 				</p>
 			</div>
 			{#if formError}
-				<p
-					class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-					data-testid="completion-error"
-				>
+				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="completion-error">
 					{formError}
-				</p>
+				</Alert>
 			{/if}
-			<button
+			<Button
 				type="submit"
 				disabled={stage === 'submitting'}
 				data-testid="completion-submit"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{stage === 'submitting'
 					? $_('auth.emailCompletion.submitting', { default: 'Verifying...' })
 					: $_('auth.emailCompletion.submit', { default: 'Complete sign-in' })}
-			</button>
+			</Button>
 		</form>
 	{:else}
 		<div class="text-center text-sm text-muted-foreground" data-testid="completion-done">

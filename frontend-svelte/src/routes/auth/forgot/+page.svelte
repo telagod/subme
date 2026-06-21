@@ -18,6 +18,9 @@
 	} from '$lib/features/auth/forms';
 	import { authApi } from '$lib/api/auth';
 	import { showError } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	const initial = defaults<ForgotPasswordForm>(zod4(forgotPasswordSchema));
 
@@ -89,7 +92,7 @@
 				<label for="forgot-email" class="text-sm font-medium text-foreground">
 					{$_('auth.emailLabel', { default: 'Email' })}
 				</label>
-				<input
+				<Input
 					id="forgot-email"
 					name="email"
 					type="email"
@@ -98,7 +101,6 @@
 					bind:value={$form.email}
 					aria-invalid={$errors.email ? 'true' : undefined}
 					data-testid="forgot-email"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 				/>
 				{#if $errors.email && $errors.email[0]}
 					<p class="text-xs text-destructive" data-testid="error-email">
@@ -108,21 +110,21 @@
 			</div>
 
 			{#if formError}
-				<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive" data-testid="error-form">
+				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="error-form">
 					{formError}
-				</p>
+				</Alert>
 			{/if}
 
-			<button
+			<Button
 				type="submit"
 				disabled={$submitting}
 				data-testid="forgot-submit"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{$submitting
 					? $_('auth.sendingResetLink', { default: 'Sending...' })
 					: $_('auth.sendResetLink', { default: 'Send reset link' })}
-			</button>
+			</Button>
 		</form>
 	{/if}
 

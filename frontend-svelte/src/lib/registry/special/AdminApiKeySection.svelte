@@ -7,12 +7,14 @@
 	 * 设计：
 	 *   - 与 flat-form 解耦 —— onMount GET + 操作通过独立 API。
 	 *   - 新生成的 key 一次性显示，用户复制后 newKey 持续保留直到组件卸载/再生。
-	 *   - 删除前 confirm()；测试模式下 vitest 可 stub confirm/clipboard。
+	 *   - 再生成 / 删除前用 StandardDialog 确认；测试模式下 vitest 可 stub clipboard。
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { settingsApi } from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -33,6 +35,8 @@
 	let maskedKey = $state('');
 	let operating = $state(false);
 	let newKey = $state('');
+	let confirmOpen = $state(false);
+	let confirmMode = $state<'regenerate' | 'delete'>('regenerate');
 
 	onMount(async () => {
 		loading = true;
@@ -62,19 +66,37 @@
 		}
 	}
 
+	function openRegenerateConfirm() {
+		confirmMode = 'regenerate';
+		confirmOpen = true;
+	}
+
+	function openDeleteConfirm() {
+		confirmMode = 'delete';
+		confirmOpen = true;
+	}
+
+	async function confirmAdminApiKeyAction() {
+		if (confirmMode === 'regenerate') {
+			confirmOpen = false;
+			await regenerate();
+			return;
+		}
+		await remove();
+	}
+
 	async function regenerate() {
-		if (typeof window !== 'undefined' && !window.confirm($_('admin.settings.adminApiKey.regenerateConfirm'))) return;
 		await create();
 	}
 
 	async function remove() {
-		if (typeof window !== 'undefined' && !window.confirm($_('admin.settings.adminApiKey.deleteConfirm'))) return;
 		operating = true;
 		try {
 			await settingsApi.deleteAdminApiKey();
 			keyExists = false;
 			maskedKey = '';
 			newKey = '';
+			confirmOpen = false;
 			showSuccess($_('admin.settings.adminApiKey.keyDeleted'));
 		} catch (err) {
 			showError(err instanceof Error ? err.message : $_('common.error'));
@@ -119,15 +141,14 @@
 	{:else if !keyExists}
 		<div class="flex items-center justify-between gap-3">
 			<span class="text-xs text-muted-foreground">{$_('admin.settings.adminApiKey.notConfigured')}</span>
-			<button
-				type="button"
+			<Button
 				data-testid="admin-api-key-create"
-				class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+				class="h-9"
 				disabled={operating}
 				onclick={create}
 			>
 				{operating ? $_('admin.settings.adminApiKey.creating') : $_('admin.settings.adminApiKey.create')}
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<div class="flex flex-col gap-3">
@@ -142,26 +163,26 @@
 					>
 				</div>
 				<div class="flex shrink-0 gap-2">
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						class="h-9"
 						data-testid="admin-api-key-regenerate"
-						class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 						disabled={operating}
-						onclick={regenerate}
+						onclick={openRegenerateConfirm}
 					>
 						{operating
 							? $_('admin.settings.adminApiKey.regenerating')
 							: $_('admin.settings.adminApiKey.regenerate')}
-					</button>
-					<button
-						type="button"
+					</Button>
+					<Button
+						variant="destructive"
+						class="h-9"
 						data-testid="admin-api-key-delete"
-						class="inline-flex h-9 items-center justify-center rounded-md border border-destructive bg-destructive/10 px-3 text-sm text-destructive hover:bg-destructive/20 disabled:opacity-50"
 						disabled={operating}
-						onclick={remove}
+						onclick={openDeleteConfirm}
 					>
 						{$_('admin.settings.adminApiKey.delete')}
-					</button>
+					</Button>
 				</div>
 			</div>
 
@@ -174,13 +195,12 @@
 							class="flex-1 break-all rounded border border-emerald-500/25 bg-background px-2 py-1.5 font-mono text-xs text-foreground"
 							>{newKey}</code
 						>
-						<button
-							type="button"
-							class="inline-flex h-9 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+						<Button
+							class="h-9 shrink-0"
 							onclick={copyNewKey}
 						>
 							{$_('admin.settings.adminApiKey.copyKey')}
-						</button>
+						</Button>
 					</div>
 					<p class="m-0 text-[11px] leading-snug text-emerald-500">
 						{$_('admin.settings.adminApiKey.usage')}
@@ -189,4 +209,35 @@
 			{/if}
 		</div>
 	{/if}
+
+	<StandardDialog
+		bind:open={confirmOpen}
+		width="sm"
+		title={confirmMode === 'regenerate'
+			? $_('admin.settings.adminApiKey.regenerate')
+			: $_('admin.settings.adminApiKey.delete')}
+		data-testid="admin-api-key-confirm-dialog"
+	>
+		<div class="mt-4 space-y-4">
+			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+				{confirmMode === 'regenerate'
+					? $_('admin.settings.adminApiKey.regenerateConfirm')
+					: $_('admin.settings.adminApiKey.deleteConfirm')}
+			</p>
+			<div class="flex justify-end gap-2 border-t border-border pt-4">
+				<Button variant="outline" onclick={() => (confirmOpen = false)}>
+					{$_('common.cancel')}
+				</Button>
+				<Button
+					variant="outline"
+					class="border-destructive/30 text-destructive hover:bg-destructive/10"
+					disabled={operating}
+					onclick={confirmAdminApiKeyAction}
+					data-testid="admin-api-key-confirm-action"
+				>
+					{operating ? $_('common.loading') : $_('common.confirm')}
+				</Button>
+			</div>
+		</div>
+	</StandardDialog>
 </div>

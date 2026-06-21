@@ -1,13 +1,10 @@
-.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-frontend-critical test-datamanagementd secret-scan \
-	build-vue build-svelte build-server-vue build-server-svelte
+.PHONY: build build-backend build-frontend build-datamanagementd test test-backend test-frontend test-datamanagementd secret-scan \
+	build-svelte build-server build-server-svelte
 
-FRONTEND_CRITICAL_VITEST := \
-	src/views/auth/__tests__/LinuxDoCallbackView.spec.ts \
-	src/views/auth/__tests__/WechatCallbackView.spec.ts \
-	src/views/user/__tests__/PaymentView.spec.ts \
-	src/views/user/__tests__/PaymentResultView.spec.ts \
-	src/components/user/profile/__tests__/ProfileInfoCard.spec.ts \
-	src/views/admin/__tests__/SettingsView.spec.ts
+SVELTE_CRITICAL_VITEST := \
+	src/lib/routing/reroute.test.ts \
+	src/lib/features/backup/backup.test.ts \
+	src/lib/features/supply/supply.test.ts
 
 # 一键编译前后端
 build: build-backend build-frontend
@@ -18,7 +15,7 @@ build-backend:
 
 # 编译前端（需要已安装依赖）
 build-frontend:
-	@pnpm --dir frontend run build
+	@CI=true npx pnpm@9 --dir frontend-svelte run build
 
 # 编译 datamanagementd（宿主机数据管理进程）
 build-datamanagementd:
@@ -31,12 +28,9 @@ test-backend:
 	@$(MAKE) -C backend test
 
 test-frontend:
-	@pnpm --dir frontend run lint:check
-	@pnpm --dir frontend run typecheck
-	@$(MAKE) test-frontend-critical
-
-test-frontend-critical:
-	@pnpm --dir frontend exec vitest run $(FRONTEND_CRITICAL_VITEST)
+	@CI=true npx pnpm@9 --dir frontend-svelte exec svelte-kit sync
+	@CI=true npx pnpm@9 --dir frontend-svelte exec svelte-check --tsconfig ./tsconfig.json
+	@CI=true npx pnpm@9 --dir frontend-svelte exec vitest run $(SVELTE_CRITICAL_VITEST)
 
 test-datamanagementd:
 	@cd datamanagement && go test ./...
@@ -45,23 +39,18 @@ secret-scan:
 	@python3 tools/secret_scan.py
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Dual-SPA rewrite (Phase A-D) · Vue is default, Svelte gated by build tag.
-# Vue tree:    frontend/        -> backend/internal/web/dist/        (default)
-# Svelte tree: frontend-svelte/ -> backend/internal/web/dist_svelte/ (tag: frontend_svelte)
-# Both embeds require -tags=embed; the rewrite tree adds frontend_svelte.
+# Svelte rewrite (Phase D) · Svelte is the only embedded frontend.
+# frontend-svelte/ -> backend/internal/web/dist_svelte/
+# Embed requires -tags=embed.
 # Pin pnpm@9 — CI/CD lockfile is generated with pnpm 9 (see memory: pnpm-version-must-match-ci).
 # ─────────────────────────────────────────────────────────────────────────────
-
-build-vue:
-	@CI=true npx pnpm@9 --dir frontend run build
 
 build-svelte:
 	@CI=true npx pnpm@9 --dir frontend-svelte run build
 
-build-server-vue:
-	@mkdir -p bin
-	@cd backend && go build -tags=embed -o ../bin/server-vue ./cmd/server
-
 build-server-svelte:
+	@$(MAKE) build-server
+
+build-server:
 	@mkdir -p bin
-	@cd backend && go build -tags=embed,frontend_svelte -o ../bin/server-svelte ./cmd/server
+	@cd backend && go build -tags=embed -o ../bin/server-svelte ./cmd/server

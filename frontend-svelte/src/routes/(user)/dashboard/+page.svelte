@@ -25,6 +25,8 @@
 		type UsageEntry
 	} from '$lib/api/user/dashboard';
 	import UsageChart from '$lib/features/dashboard/UsageChart.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	// ── state ──────────────────────────────────────────────────────────
 	let summary = $state<DashboardSummary | null>(null);
@@ -242,20 +244,22 @@
 
 	<!-- Summary-level error w/ retry (cards already degraded above; retry refetches all) -->
 	{#if summaryError}
-		<div
-			class="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+		<Alert
+			variant="destructive"
+			class="flex items-center justify-between gap-3 px-4 py-3 text-sm"
 			data-testid="dashboard-summary-error"
 		>
 			<span>{$_('user.dashboard.errors.loadFailed', { default: 'Failed to load dashboard' })}</span>
-			<button
-				type="button"
-				class="rounded-md border border-destructive/40 px-3 py-1 text-xs font-medium hover:bg-destructive/20"
+			<Button
+				variant="outline"
+				size="sm"
+				class="border-destructive/40 hover:bg-destructive/20"
 				onclick={() => loadSummary()}
 				data-testid="dashboard-summary-retry"
 			>
 				{$_('user.dashboard.errors.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{/if}
 
 	<!-- 7-day chart -->
@@ -279,14 +283,15 @@
 				{$_('user.dashboard.recent.title', { default: 'Recent activity' })}
 			</h2>
 			{#if recentError && !loadingRecent}
-				<button
-					type="button"
-					class="rounded-md border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted"
+				<Button
+					variant="outline"
+					size="sm"
+					class="h-7 px-3"
 					onclick={() => loadRecent()}
 					data-testid="dashboard-recent-retry"
 				>
 					{$_('user.dashboard.errors.retry', { default: 'Retry' })}
-				</button>
+				</Button>
 			{/if}
 		</div>
 		{#if loadingRecent}

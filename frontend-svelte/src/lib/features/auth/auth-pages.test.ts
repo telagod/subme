@@ -24,6 +24,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
+import registerSrc from '../../../routes/auth/register/+page.svelte?raw';
 
 // ── API mock ───────────────────────────────────────────────────────
 const mockRegister = vi.fn();
@@ -31,6 +32,7 @@ const mockRequestPasswordReset = vi.fn();
 const mockConfirmPasswordReset = vi.fn();
 const mockVerifyEmail = vi.fn();
 const mockResendVerificationEmail = vi.fn();
+const mockGetPublicSettings = vi.fn();
 
 vi.mock('$lib/api/auth', () => ({
 	authApi: {
@@ -43,7 +45,8 @@ vi.mock('$lib/api/auth', () => ({
 		resetPassword: vi.fn(),
 		confirmPasswordReset: (...args: unknown[]) => mockConfirmPasswordReset(...args),
 		verifyEmail: (...args: unknown[]) => mockVerifyEmail(...args),
-		resendVerificationEmail: (...args: unknown[]) => mockResendVerificationEmail(...args)
+		resendVerificationEmail: (...args: unknown[]) => mockResendVerificationEmail(...args),
+		getPublicSettings: (...args: unknown[]) => mockGetPublicSettings(...args)
 	},
 	isTotpChallenge: vi.fn(() => false)
 }));
@@ -222,6 +225,11 @@ beforeEach(() => {
 	mockConfirmPasswordReset.mockReset();
 	mockVerifyEmail.mockReset();
 	mockResendVerificationEmail.mockReset();
+	mockGetPublicSettings.mockReset();
+	mockGetPublicSettings.mockResolvedValue({
+		github_oauth_enabled: false,
+		google_oauth_enabled: false
+	});
 	mockGoto.mockReset();
 	mockGoto.mockResolvedValue(undefined);
 	pageState.url = new URL('http://localhost/');
@@ -268,6 +276,24 @@ describe('register page · form validation', () => {
 		await waitFor(() => {
 			expect(hidden.value).toBe('AFFXYZ');
 		});
+	});
+
+	it('renders enabled email OAuth providers from public settings instead of placeholder divider', async () => {
+		mockGetPublicSettings.mockResolvedValueOnce({
+			github_oauth_enabled: true,
+			google_oauth_enabled: true
+		});
+
+		const mod = await import('../../../routes/auth/register/+page.svelte');
+		const { container } = render(mod.default);
+
+		await waitFor(() => {
+			expect(container.querySelector('[data-testid="email-oauth-github"]')).not.toBeNull();
+			expect(container.querySelector('[data-testid="email-oauth-google"]')).not.toBeNull();
+		});
+		expect(container.querySelector('[data-testid="register-oauth-row"]')).toBeNull();
+		expect(registerSrc).toContain('EmailOAuthButtons');
+		expect(registerSrc).not.toContain('OAuth row placeholder');
 	});
 });
 

@@ -3,52 +3,48 @@
 	 * SubscriptionDetailDrawer · 管理员订阅详情面板（M22）
 	 *
 	 * 设计：
-	 *   - bits-ui Sheet（Dialog.Root + 右侧贴边 Content）。
-	 *   - $effect 监听 open + subscription.id 变化 → 拉 detail + audit log。
-	 *   - actions：
-	 *       Force Cancel → 内联确认 → forceCancelSub(id, reason)
-	 *       Refund       → 触发 onRequestRefund 给父
-	 *       Extend       → 内联 date input → extendSub(id, newExpiresAt)
+	 *   - StandardDrawer 右侧贴边面板。
+	 *   - $effect 监听 open + subscription.id 变化 → 拉 detail。
+	 *   - actions（仅后端真实存在的端点）：
+	 *       Revoke → 内联确认 → revokeSub(id)        DELETE /admin/subscriptions/:id
+	 *       Extend → 内联 date input → extendSub(id, days)  POST /:id/extend { days }
+	 *   - 后端无 /:id/refund、/:id/audit-log、/:id/cancel —— 不渲染退款按钮 / 审计日志区。
 	 *   - 红线：subscription surface only —— 严禁引用计费核心、渠道定价、价格查询 service。
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
-	import { X, AlertTriangle, RefreshCw, Banknote, Calendar, Trash2 } from '@lucide/svelte';
+	import { X, AlertTriangle, RefreshCw, Calendar, Trash2 } from '@lucide/svelte';
 	import {
 		getAdminSub,
-		getAuditLog,
-		forceCancelSub,
+		revokeSub,
 		extendSub,
-		type AdminSubscription,
-		type AdminSubAuditEntry
+		type AdminSubscription
 	} from '$lib/api/admin/subscriptions';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 
 	type Props = {
 		open: boolean;
 		subscription: AdminSubscription | null;
 		onChanged?: () => void;
-		onRequestRefund?: (sub: AdminSubscription) => void;
 	};
 
 	let {
 		open = $bindable(false),
 		subscription = null,
-		onChanged,
-		onRequestRefund
+		onChanged
 	}: Props = $props();
 
 	let detail = $state<AdminSubscription | null>(null);
-	let auditLog = $state<AdminSubAuditEntry[]>([]);
 	let loading = $state(false);
 	let loadError = $state<string | null>(null);
 
-	// 强制取消确认
-	let cancelConfirmOpen = $state(false);
-	let cancelReason = $state('');
-	let cancelling = $state(false);
+	// 撤销确认（DELETE /:id；后端无 cancel 端点，故无理由 body）
+	let revokeConfirmOpen = $state(false);
+	let revoking = $state(false);
 
-	// 延期
+	// 延期（POST /:id/extend body { days }）—— UI 收一个新到期日期，转换为相对天数
 	let extendOpen = $state(false);
 	let extendDate = $state('');
 	let extending = $state(false);
@@ -63,9 +59,7 @@
 		if (!open) {
 			lastLoadedId = null;
 			detail = null;
-			auditLog = [];
-			cancelConfirmOpen = false;
-			cancelReason = '';
+			revokeConfirmOpen = false;
 			extendOpen = false;
 			extendDate = '';
 			loadError = null;
@@ -76,12 +70,8 @@
 		loading = true;
 		loadError = null;
 		try {
-			const [d, log] = await Promise.all([
-				getAdminSub(id),
-				getAuditLog(id).catch(() => [])
-			]);
+			const d = await getAdminSub(id);
 			detail = d;
-			auditLog = log;
 			extendDate = d.expires_at?.slice(0, 10) ?? '';
 		} catch (err) {
 			const e = err as Error;
@@ -95,36 +85,26 @@
 		open = false;
 	}
 
-	function openCancelConfirm() {
-		cancelConfirmOpen = true;
-		cancelReason = '';
+	function openRevokeConfirm() {
+		revokeConfirmOpen = true;
 	}
 
-	function closeCancelConfirm() {
-		if (cancelling) return;
-		cancelConfirmOpen = false;
+	function closeRevokeConfirm() {
+		if (revoking) return;
+		revokeConfirmOpen = false;
 	}
 
-	async function confirmForceCancel() {
-		if (!detail || cancelling) return;
-		const trimmed = cancelReason.trim();
-		if (trimmed.length < 4) {
-			showError(
-				$_('admin.subscriptions.cancelReasonRequired', {
-					default: 'Reason is required (≥ 4 characters)'
-				})
-			);
-			return;
-		}
-		cancelling = true;
+	async function confirmRevoke() {
+		if (!detail || revoking) return;
+		revoking = true;
 		try {
-			await forceCancelSub(detail.id, trimmed);
+			await revokeSub(detail.id);
 			showSuccess(
 				$_('admin.subscriptions.cancelSuccess', {
 					default: 'Subscription cancelled'
 				})
 			);
-			cancelConfirmOpen = false;
+			revokeConfirmOpen = false;
 			onChanged?.();
 			// 刷新详情
 			await loadDetail(detail.id);
@@ -137,17 +117,36 @@
 				})
 			);
 		} finally {
-			cancelling = false;
+			revoking = false;
 		}
+	}
+
+	// 由「新到期日」相对当前到期日推算出天数差（后端 extend 契约为相对天数）。
+	function daysFromExpiry(currentExpires: string | undefined, targetDate: string): number {
+		const MS_PER_DAY = 86_400_000;
+		const base = currentExpires ? new Date(currentExpires).getTime() : Date.now();
+		const target = new Date(`${targetDate}T23:59:59Z`).getTime();
+		if (!Number.isFinite(base) || !Number.isFinite(target)) return 0;
+		return Math.ceil((target - base) / MS_PER_DAY);
 	}
 
 	async function confirmExtend() {
 		if (!detail || extending || !extendDate) return;
+		const days = daysFromExpiry(detail.expires_at, extendDate);
+		if (days <= 0) {
+			showError(
+				$_('admin.subscriptions.extendError', {
+					default: 'Extend failed: {error}',
+					values: {
+						error: $_('admin.subscriptions.newExpiresAt', { default: 'New expiry date' })
+					}
+				})
+			);
+			return;
+		}
 		extending = true;
 		try {
-			// 转换为 ISO 8601 (UTC)
-			const newExpires = new Date(`${extendDate}T23:59:59Z`).toISOString();
-			await extendSub(detail.id, newExpires);
+			await extendSub(detail.id, days);
 			showSuccess(
 				$_('admin.subscriptions.extendSuccess', { default: 'Subscription extended' })
 			);
@@ -165,11 +164,6 @@
 		} finally {
 			extending = false;
 		}
-	}
-
-	function handleRefund() {
-		if (!detail) return;
-		onRequestRefund?.(detail);
 	}
 
 	function fmtDate(s?: string | null): string {
@@ -212,45 +206,44 @@
 	});
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-			data-testid="sub-detail-overlay"
-		/>
-		<Dialog.Content
-			class="fixed right-0 top-0 z-50 flex h-full w-full max-w-[560px] flex-col border-l border-border bg-card shadow-2xl"
-			data-testid="sub-detail-drawer"
-		>
-			<!-- Head -->
-			<div class="flex items-center justify-between border-b border-border bg-muted px-4 py-3">
-				<div class="min-w-0">
-					<Dialog.Title class="truncate text-sm font-semibold tracking-tight text-foreground">
-						{$_('admin.subscriptions.detailTitle', { default: 'Subscription detail' })}
-					</Dialog.Title>
-					<div
-						class="truncate font-mono text-[11px] text-muted-foreground"
-						title={String(subscription?.id ?? '')}
-					>
-						#{subscription?.id ?? '—'}
-					</div>
-				</div>
-				<button
-					type="button"
-					class="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground"
-					aria-label={$_('common.close', { default: 'Close' })}
-					data-testid="sub-detail-close"
-					onclick={close}
-				>
-					<X class="h-4 w-4" />
-				</button>
+<StandardDrawer
+	bind:open
+	width="md"
+	showHeader={false}
+	title={$_('admin.subscriptions.detailTitle', { default: 'Subscription detail' })}
+	data-testid="sub-detail-drawer"
+	class="gap-0 p-0"
+>
+	<!-- Head -->
+	<div class="flex items-center justify-between border-b border-border bg-muted px-4 py-3">
+		<div class="min-w-0">
+			<h2 class="truncate text-sm font-semibold tracking-tight text-foreground">
+				{$_('admin.subscriptions.detailTitle', { default: 'Subscription detail' })}
+			</h2>
+			<div
+				class="truncate font-mono text-[11px] text-muted-foreground"
+				title={String(subscription?.id ?? '')}
+			>
+				#{subscription?.id ?? '—'}
 			</div>
+		</div>
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-8 w-8 text-muted-foreground hover:bg-card hover:text-foreground"
+			aria-label={$_('common.close', { default: 'Close' })}
+			data-testid="sub-detail-close"
+			onclick={close}
+		>
+			<X class="h-4 w-4" />
+		</Button>
+	</div>
 
-			<!-- Body -->
-			<div class="flex-1 overflow-y-auto px-4 py-4">
-				{#if loading}
-					<div class="space-y-3" data-testid="sub-detail-loading">
-						<div class="h-5 w-1/3 animate-pulse rounded bg-muted"></div>
+	<!-- Body -->
+	<div class="flex-1 overflow-y-auto px-4 py-4">
+		{#if loading}
+			<div class="space-y-3" data-testid="sub-detail-loading">
+				<div class="h-5 w-1/3 animate-pulse rounded bg-muted"></div>
 						<div class="h-24 w-full animate-pulse rounded bg-muted"></div>
 						<div class="h-32 w-full animate-pulse rounded bg-muted"></div>
 					</div>
@@ -264,13 +257,14 @@
 							<span>{loadError}</span>
 						</div>
 						{#if subscription}
-							<button
-								type="button"
-								class="rounded border border-destructive/40 px-2 py-1 text-xs hover:bg-destructive/20"
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-7 border-destructive/40 px-2 hover:bg-destructive/20"
 								onclick={() => loadDetail(subscription!.id)}
 							>
 								{$_('common.confirm', { default: 'Retry' })}
-							</button>
+							</Button>
 						{/if}
 					</div>
 				{:else if detail}
@@ -372,48 +366,6 @@
 						</dl>
 					</section>
 
-					<!-- Audit log -->
-					<section class="mb-4 rounded-md border border-border bg-muted/40 p-3">
-						<h3
-							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-						>
-							{$_('admin.subscriptions.auditLog', { default: 'Audit log' })}
-						</h3>
-						{#if auditLog.length === 0}
-							<p
-								class="m-0 text-xs text-muted-foreground"
-								data-testid="sub-detail-audit-empty"
-							>
-								{$_('admin.subscriptions.auditEmpty', { default: 'No audit entries yet.' })}
-							</p>
-						{:else}
-							<ol class="m-0 flex flex-col gap-2 p-0 list-none" data-testid="sub-detail-audit-log">
-								{#each auditLog as entry (entry.id)}
-									<li
-										class="rounded border border-border bg-card p-2 text-xs"
-										data-testid="sub-detail-audit-entry"
-									>
-										<div class="flex items-center justify-between gap-2">
-											<span class="font-mono font-semibold text-foreground">
-												{entry.action}
-											</span>
-											<span class="font-mono text-[10.5px] text-muted-foreground">
-												{fmtDate(entry.created_at)}
-											</span>
-										</div>
-										{#if entry.actor}
-											<div class="mt-0.5 text-[11px] text-muted-foreground">
-												{$_('admin.subscriptions.auditActor', { default: 'By' })}: {entry.actor}
-											</div>
-										{/if}
-										{#if entry.reason}
-											<div class="mt-1 text-[11px] text-foreground">{entry.reason}</div>
-										{/if}
-									</li>
-								{/each}
-							</ol>
-						{/if}
-					</section>
 				{/if}
 			</div>
 
@@ -431,25 +383,26 @@
 							>
 								{$_('admin.subscriptions.newExpiresAt', { default: 'New expiry date' })}
 							</label>
-							<input
+							<Input
 								id="sub-detail-extend-date"
 								type="date"
-								class="h-8 rounded-md border border-border bg-background px-2 text-xs"
+								class="h-8 px-2 text-xs"
 								bind:value={extendDate}
 								data-testid="sub-detail-extend-date"
 							/>
 							<div class="flex justify-end gap-2">
-								<button
-									type="button"
-									class="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 text-xs hover:bg-muted"
+								<Button
+									variant="outline"
+									size="sm"
+									class="h-7 px-2"
 									onclick={() => (extendOpen = false)}
 									disabled={extending}
 								>
 									{$_('common.cancel', { default: 'Cancel' })}
-								</button>
-								<button
-									type="button"
-									class="inline-flex h-7 items-center rounded-md bg-primary px-2 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+								</Button>
+								<Button
+									size="sm"
+									class="h-7 px-2"
 									onclick={confirmExtend}
 									disabled={extending || !extendDate}
 									data-testid="sub-detail-extend-confirm"
@@ -457,96 +410,79 @@
 									{extending
 										? $_('common.submitting', { default: 'Submitting…' })
 										: $_('admin.subscriptions.extendConfirm', { default: 'Extend' })}
-								</button>
+								</Button>
 							</div>
 						</div>
 					{/if}
 
-					{#if cancelConfirmOpen}
+					{#if revokeConfirmOpen}
 						<div
 							class="flex flex-col gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2"
 							data-testid="sub-detail-cancel-panel"
 						>
-							<label
-								for="sub-detail-cancel-reason"
-								class="text-[10.5px] font-semibold uppercase tracking-wider text-destructive"
-							>
-								{$_('admin.subscriptions.cancelReason', { default: 'Cancel reason' })}
-							</label>
-							<textarea
-								id="sub-detail-cancel-reason"
-								rows="2"
-								class="rounded-md border border-border bg-background px-2 py-1 text-xs"
-								bind:value={cancelReason}
-								data-testid="sub-detail-cancel-reason"
-								placeholder={$_('admin.subscriptions.cancelReasonPlaceholder', {
-									default: 'Required (≥ 4 chars)'
-								})}
-							></textarea>
+							<p class="m-0 flex items-center gap-1.5 text-xs text-destructive">
+								<AlertTriangle class="h-3.5 w-3.5" />
+								{$_('admin.subscriptions.forceCancel', { default: 'Force cancel' })}
+								<span class="font-mono">#{detail.id}</span>?
+							</p>
 							<div class="flex justify-end gap-2">
-								<button
-									type="button"
-									class="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 text-xs hover:bg-muted"
-									onclick={closeCancelConfirm}
-									disabled={cancelling}
+								<Button
+									variant="outline"
+									size="sm"
+									class="h-7 px-2"
+									onclick={closeRevokeConfirm}
+									disabled={revoking}
 								>
 									{$_('common.cancel', { default: 'Cancel' })}
-								</button>
-								<button
-									type="button"
-									class="inline-flex h-7 items-center rounded-md bg-destructive px-2 text-xs text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-									onclick={confirmForceCancel}
-									disabled={cancelling}
+								</Button>
+								<Button
+									variant="destructive"
+									size="sm"
+									class="h-7 px-2"
+									onclick={confirmRevoke}
+									disabled={revoking}
 									data-testid="sub-detail-cancel-confirm"
 								>
-									{cancelling
+									{revoking
 										? $_('common.submitting', { default: 'Submitting…' })
 										: $_('admin.subscriptions.cancelConfirm', { default: 'Force cancel' })}
-								</button>
+								</Button>
 							</div>
 						</div>
 					{/if}
 
 					<div class="flex flex-wrap items-center justify-end gap-2">
-						<button
-							type="button"
-							class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted"
+						<Button
+							variant="outline"
+							size="sm"
+							class="px-2.5"
 							onclick={() => loadDetail(detail!.id)}
 							data-testid="sub-detail-refresh"
 						>
 							<RefreshCw class="h-3.5 w-3.5" />
 							{$_('common.refresh', { default: 'Refresh' })}
-						</button>
-						<button
-							type="button"
-							class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted"
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							class="px-2.5"
 							onclick={() => (extendOpen = !extendOpen)}
 							data-testid="sub-detail-extend-btn"
 						>
 							<Calendar class="h-3.5 w-3.5" />
 							{$_('admin.subscriptions.extendBtn', { default: 'Extend' })}
-						</button>
-						<button
-							type="button"
-							class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted"
-							onclick={handleRefund}
-							data-testid="sub-detail-refund-btn"
-						>
-							<Banknote class="h-3.5 w-3.5" />
-							{$_('admin.subscriptions.refundBtn', { default: 'Refund' })}
-						</button>
-						<button
-							type="button"
-							class="inline-flex h-8 items-center gap-1 rounded-md bg-destructive px-2.5 text-xs text-destructive-foreground hover:bg-destructive/90"
-							onclick={openCancelConfirm}
+						</Button>
+						<Button
+							variant="destructive"
+							size="sm"
+							class="px-2.5"
+							onclick={openRevokeConfirm}
 							data-testid="sub-detail-cancel-btn"
 						>
 							<Trash2 class="h-3.5 w-3.5" />
 							{$_('admin.subscriptions.forceCancel', { default: 'Force cancel' })}
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+</StandardDrawer>

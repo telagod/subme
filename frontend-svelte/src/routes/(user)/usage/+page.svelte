@@ -37,6 +37,10 @@
 	} from '$lib/api/user/usage';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import TimeseriesChart from '$lib/features/usage/TimeseriesChart.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	const MODELS_ALL = '__all__' as const;
 	const ENDPOINT_ALL = '__all__' as const;
@@ -274,27 +278,29 @@
 			</p>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<button
+			<Button
 				type="button"
+				variant="outline"
+				size="icon"
 				aria-label={$_('user.usage.refresh', { default: 'Refresh' })}
 				data-testid="usage-refresh-btn"
 				onclick={refreshAll}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+				class="h-9 w-9 text-muted-foreground hover:text-foreground"
 			>
 				<RotateCw class="h-4 w-4" />
-			</button>
-			<button
+			</Button>
+			<Button
 				type="button"
 				data-testid="usage-export-btn"
 				onclick={handleExport}
 				disabled={exporting}
-				class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="h-9"
 			>
 				<Download class="h-4 w-4" />
 				{exporting
 					? $_('user.usage.exporting', { default: 'Exporting…' })
 					: $_('user.usage.exportCsv', { default: 'Export CSV' })}
-			</button>
+			</Button>
 		</div>
 	</header>
 
@@ -307,13 +313,13 @@
 			>
 				{$_('user.usage.startDate', { default: 'From' })}
 			</label>
-			<input
+			<Input
 				id="usage-start-date"
 				data-testid="usage-start-date"
 				type="date"
 				value={startDate}
 				onchange={handleStartDateChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9 w-auto"
 			/>
 		</div>
 		<div class="space-y-1.5">
@@ -323,13 +329,13 @@
 			>
 				{$_('user.usage.endDate', { default: 'To' })}
 			</label>
-			<input
+			<Input
 				id="usage-end-date"
 				data-testid="usage-end-date"
 				type="date"
 				value={endDate}
 				onchange={handleEndDateChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9 w-auto"
 			/>
 		</div>
 		<div class="space-y-1.5">
@@ -339,11 +345,12 @@
 			>
 				{$_('user.usage.modelsFilter', { default: 'Models' })}
 			</label>
-			<select
+			<NativeSelect
 				id="usage-models-filter"
 				data-testid="usage-models-filter"
+				value={MODELS_ALL}
 				multiple
-				size="3"
+				size={3}
 				onchange={handleModelsChange}
 				class="min-w-[180px] rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			>
@@ -361,7 +368,7 @@
 						{m}
 					</option>
 				{/each}
-			</select>
+			</NativeSelect>
 		</div>
 		<div class="space-y-1.5">
 			<label
@@ -370,12 +377,12 @@
 			>
 				{$_('user.usage.endpointFilter', { default: 'Endpoint' })}
 			</label>
-			<select
+			<NativeSelect
 				id="usage-endpoint-filter"
 				data-testid="usage-endpoint-filter"
 				value={endpointFilter}
 				onchange={handleEndpointChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9"
 			>
 				<option value={ENDPOINT_ALL}>
 					{$_('user.usage.allEndpoints', { default: 'All endpoints' })}
@@ -383,7 +390,7 @@
 				{#each knownEndpoints as ep (ep)}
 					<option value={ep}>{ep}</option>
 				{/each}
-			</select>
+			</NativeSelect>
 		</div>
 		<div class="space-y-1.5">
 			<label
@@ -392,12 +399,12 @@
 			>
 				{$_('user.usage.groupBy', { default: 'Group by' })}
 			</label>
-			<select
+			<NativeSelect
 				id="usage-groupby"
 				data-testid="usage-groupby"
 				value={groupBy}
 				onchange={handleGroupByChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9"
 			>
 				<option value="day">{$_('user.usage.groupDay', { default: 'Day' })}</option>
 				<option value="hour">{$_('user.usage.groupHour', { default: 'Hour' })}</option>
@@ -405,7 +412,7 @@
 				<option value="endpoint">
 					{$_('user.usage.groupEndpoint', { default: 'Endpoint' })}
 				</option>
-			</select>
+			</NativeSelect>
 		</div>
 	</section>
 
@@ -474,22 +481,21 @@
 	</div>
 
 	{#if summaryError}
-		<div
-			class="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-			data-testid="usage-summary-error"
-		>
+		<Alert variant="destructive" class="flex items-center justify-between" data-testid="usage-summary-error">
 			<span>
 				{$_('user.usage.errors.summaryFailed', { default: 'Failed to load summary' })}
 			</span>
-			<button
+			<Button
 				type="button"
-				class="rounded-md border border-destructive/40 px-3 py-1 text-xs font-medium hover:bg-destructive/20"
+				variant="outline"
+				size="sm"
+				class="border-destructive/40 hover:bg-destructive/20"
 				onclick={() => loadSummary()}
 				data-testid="usage-summary-retry"
 			>
 				{$_('user.usage.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{/if}
 
 	<!-- Chart -->
@@ -502,14 +508,15 @@
 				{$_('user.usage.chartTitle', { default: 'Usage over time' })}
 			</h2>
 			{#if trendError && !loadingTrend}
-				<button
+				<Button
 					type="button"
-					class="rounded-md border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted"
+					variant="outline"
+					size="sm"
 					onclick={() => loadTrend()}
 					data-testid="usage-chart-retry"
 				>
 					{$_('user.usage.retry', { default: 'Retry' })}
-				</button>
+				</Button>
 			{/if}
 		</div>
 		<TimeseriesChart data={trend} loading={loadingTrend} />
@@ -531,14 +538,16 @@
 				{$_('user.usage.errors.listFailed', { default: 'Failed to load usage entries' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{listError}</p>
-			<button
+			<Button
 				type="button"
 				onclick={() => loadList()}
 				data-testid="usage-list-retry"
-				class="mt-4 inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-accent"
+				variant="outline"
+				size="sm"
+				class="mt-4"
 			>
 				{$_('user.usage.retry', { default: 'Retry' })}
-			</button>
+			</Button>
 		</div>
 	{:else if entries.length === 0}
 		<div
@@ -628,24 +637,26 @@
 					})}
 				</span>
 				<div class="flex items-center gap-2">
-					<button
+					<Button
 						type="button"
 						data-testid="usage-page-prev"
 						disabled={page <= 1}
 						onclick={gotoPrev}
-						class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+						variant="outline"
+						size="sm"
 					>
 						{$_('user.usage.prevPage', { default: 'Previous' })}
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						data-testid="usage-page-next"
 						disabled={totalPages > 0 && page >= totalPages}
 						onclick={gotoNext}
-						class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+						variant="outline"
+						size="sm"
 					>
 						{$_('user.usage.nextPage', { default: 'Next' })}
-					</button>
+					</Button>
 				</div>
 			</div>
 		{/if}

@@ -25,10 +25,7 @@ const (
 )
 
 // frontendFS and distRoot are provided by build-tag-gated files:
-//   embed_vue.go     -> //go:build embed && !frontend_svelte (default: dist/)
-//   embed_svelte.go  -> //go:build embed && frontend_svelte  (alt:     dist_svelte/)
-// This keeps Vue as the default embedded SPA; the Svelte rewrite is gated
-// behind -tags=embed,frontend_svelte until Phase D switches the default.
+//   embed_svelte.go -> //go:build embed (dist_svelte/)
 
 // PublicSettingsProvider is an interface to fetch public settings
 type PublicSettingsProvider interface {

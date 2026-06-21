@@ -8,19 +8,23 @@
  *
  * 后续：locale 切换走 `locale.set('en')` 并同步写回 localStorage（POC 4 落地）。
  */
-import { init, register, locale } from 'svelte-i18n';
+import { init, register, locale, waitLocale } from 'svelte-i18n';
 
 const LOCALE_KEY = 'locale';
 
 register('zh', () => import('./locales/zh').then((m) => m.default));
 register('en', () => import('./locales/en').then((m) => m.default));
 
-const initialLocale =
+export const initialLocale =
 	(typeof window !== 'undefined' && window.localStorage?.getItem(LOCALE_KEY)) || 'zh';
 
 init({
 	fallbackLocale: 'zh',
 	initialLocale
 });
+
+export function waitInitialLocale(): Promise<void> {
+	return waitLocale(initialLocale);
+}
 
 export { locale };

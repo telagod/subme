@@ -13,7 +13,7 @@
  *   - Vue `listModelCatalog / getModelCatalogDetail / syncCatalog /
  *     syncModelEndpoints / putModelOverride / deleteModelOverride` 一一对应
  *     `listModels / getModel / syncCatalog / syncModel / upsertOverride / deleteOverride`。
- *   - 类型 1:1 verbatim 自 frontend/src/api/admin/modelCatalog.ts。
+ *   - 类型 1:1 verbatim 自 frontend/src/api/v1/admin/modelCatalog.ts。
  */
 import { apiClient } from '../client';
 
@@ -104,7 +104,7 @@ export interface SyncModelCatalogResult {
 
 // ── 端点（路径与 Vue 一致，仅前置 /api 前缀 —— 与 svelte apiClient 契约对齐） ─
 
-const BASE = '/api/admin/model-catalog';
+const BASE = '/api/v1/admin/model-catalog';
 
 export const modelCatalogApi = {
 	/** GET /admin/model-catalog —— 列出全部 catalog 模型 */

@@ -13,8 +13,6 @@
  *   - platform      系统设置 / 公告 / 备份
  *
  * 注意：
- *   - "backup" 没有真实路由（frontend/src/router/index.ts 未收录），故未挂入导航。
- *     若后续接入备份页，挂在 platform 分组、icon 用 DatabaseBackup / HardDrive。
  *   - "users" 直接落 /admin/users（不是 /admin/users/list）。
  *   - "affiliates" 默认进 /admin/affiliates/invites（Vue 端 redirect 同向）。
  *   - "orders" 落主列表 /admin/orders；订单看板单列 paymentDashboard → /admin/orders/dashboard。
@@ -42,7 +40,8 @@ import {
 	ClipboardList,
 	Settings,
 	Megaphone,
-	Calculator
+	Calculator,
+	DatabaseBackup
 } from '@lucide/svelte';
 
 import type { NavGroup } from './types';
@@ -195,6 +194,12 @@ export const adminNavGroups: NavGroup[] = [
 				labelKey: 'nav.quench.announcements',
 				path: '/admin/announcements',
 				icon: Megaphone
+			},
+			{
+				key: 'backup',
+				labelKey: 'nav.quench.backup',
+				path: '/admin/backup',
+				icon: DatabaseBackup
 			}
 		]
 	}

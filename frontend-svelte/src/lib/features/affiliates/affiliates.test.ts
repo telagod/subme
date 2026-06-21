@@ -1,15 +1,14 @@
 /**
  * /(user)/affiliates · vitest 覆盖（subme-only affiliate dashboard）
  *
- * 覆盖点：
- *   1. Referral card 渲染：mock getReferralInfo → code 出现 + Copy 按钮触发
- *      navigator.clipboard.writeText（伪造）。
- *   2. Invited users 列表：mock listInvitedUsers 返回 5 行 → 行数 = 5。
- *   3. Rebate ledger：mock listRebateLedger 返回 frozen + available 混排。
- *   4. WithdrawalDialog：
- *        - amount > available → 提交拒绝（requestWithdrawal 不被调用）。
- *        - amount valid + paypal email valid → 提交触发 requestWithdrawal。
- *   5. Status filter Select 用 '__all__' sentinel；严禁 <option value="">。
+ * BLOCKER fix 锚点：用户侧唯一可用动作是 POST /api/v1/user/aff/transfer
+ * （quota → balance）。历史端口把主按钮接到不存在的 /aff/withdraw 幻影路由，
+ * 本测试钉死：
+ *   1. Referral card 渲染 + Copy。
+ *   2. Invited users 列表来自 /aff inline invitees（无独立列表端点）。
+ *   3. TransferDialog 提交 → transferAffiliateQuota() 被调用一次（=POST /aff/transfer）。
+ *   4. 整个 affiliate cluster 源码不再出现 /aff/withdraw / requestWithdrawal /
+ *      listRebateLedger / listWithdrawals 等幻影路由调用。
  *
  * Mock 策略：
  *   - vi.mock '$lib/api/user/affiliates' 一律替换为 vi.fn()。
@@ -19,20 +18,15 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
-import type {
-	ReferralInfo,
-	AffiliateInvitee,
-	RebateRecord
-} from '$lib/api/user/affiliates';
+import type { ReferralInfo, AffiliateInvitee } from '$lib/api/user/affiliates';
+import withdrawalDialogSrc from './WithdrawalDialog.svelte?raw';
+import affiliatesApiSrc from '$lib/api/user/affiliates.ts?raw';
+import affiliatesPageSrc from '../../../routes/(user)/affiliates/+page.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte / WithdrawalDialog 之前
 vi.mock('$lib/api/user/affiliates', () => {
 	return {
 		getReferralInfo: vi.fn(),
-		listInvitedUsers: vi.fn(),
-		listRebateLedger: vi.fn(),
-		requestWithdrawal: vi.fn(),
-		listWithdrawals: vi.fn(),
 		transferAffiliateQuota: vi.fn(),
 		userAffiliatesApi: {}
 	};
@@ -66,12 +60,23 @@ afterEach(() => {
 beforeAll(async () => {
 	addMessages('en', {
 		nav: { affiliate: 'Affiliates' },
+		affiliate: {
+			transferFailed: 'Failed to transfer affiliate quota',
+			stats: { rebateRate: 'My Rebate Rate' },
+			transfer: {
+				title: 'Transfer Rebate Quota',
+				description: 'Move available rebate quota into your account balance',
+				button: 'Transfer to Balance',
+				transferring: 'Transferring...',
+				empty: 'No available rebate quota',
+				success: '{amount} has been transferred to your balance'
+			}
+		},
 		user: {
 			affiliates: {
 				pageTitle: 'Affiliates',
 				pageSubtitle: 'sub',
 				refresh: 'Refresh',
-				retry: 'Retry',
 				loadFailed: 'Failed to load',
 				yourCode: 'Code',
 				inviteLink: 'Link',
@@ -80,7 +85,6 @@ beforeAll(async () => {
 				copyFailed: 'copy fail',
 				codeCopied: 'Code copied',
 				linkCopied: 'Link copied',
-				requestWithdrawal: 'Withdraw',
 				prevPage: 'Prev',
 				nextPage: 'Next',
 				pageOf: 'Page {page} of {pages}',
@@ -88,71 +92,20 @@ beforeAll(async () => {
 					totalInvited: 'Invited',
 					totalRebate: 'Rebate',
 					available: 'Available',
-					frozen: 'Frozen',
-					pendingWithdrawals: 'Pending'
+					frozen: 'Frozen'
 				},
 				invited: {
 					title: 'Invited users',
 					totalLabel: '{count} total',
 					empty: 'none',
-					loadFailed: 'load failed',
 					colId: 'ID',
 					colEmail: 'Email',
 					colJoined: 'Joined',
 					colSpend: 'Spend',
 					colRebate: 'Rebate'
-				},
-				rebates: {
-					title: 'Rebate ledger',
-					empty: 'none',
-					loadFailed: 'load failed',
-					allStatuses: 'All statuses',
-					colTimestamp: 'Timestamp',
-					colSource: 'Source',
-					colAmount: 'Amount',
-					colStatus: 'Status',
-					colFrozenUntil: 'Frozen until'
-				},
-				rebateStatuses: {
-					available: 'Available',
-					frozen: 'Frozen',
-					withdrawn: 'Withdrawn',
-					cancelled: 'Cancelled'
 				}
 			},
-			withdrawal: {
-				title: 'Request withdrawal',
-				description: 'desc',
-				availableLabel: 'Available rebate',
-				amountLabel: 'Amount',
-				amountPlaceholder: 'e.g. 50',
-				destinationLabel: 'Destination',
-				cancel: 'Cancel',
-				submit: 'Request',
-				submitting: 'Submitting…',
-				success: 'ok',
-				destinations: {
-					paypal: 'PayPal',
-					alipay: 'Alipay',
-					wxpay: 'WeChat Pay',
-					bank: 'Bank'
-				},
-				details: {
-					paypalEmail: 'PayPal email',
-					alipayAccount: 'Alipay account',
-					wxpayOpenid: 'WeChat OpenID',
-					bankAccountName: 'Name',
-					bankName: 'Bank',
-					bankAccount: 'Account'
-				},
-				errors: {
-					AMOUNT_REQUIRED: 'amount required',
-					AMOUNT_MIN: 'amount min {min}',
-					AMOUNT_MAX: 'amount max {max}',
-					DETAILS_REQUIRED: 'details required',
-					UNKNOWN: 'unknown'
-				}
-			}
+			withdrawal: { cancel: 'Cancel' }
 		}
 	});
 	await init({ fallbackLocale: 'en', initialLocale: 'en' });
@@ -160,21 +113,6 @@ beforeAll(async () => {
 });
 
 // ── fixtures ──────────────────────────────────────────────────────────
-
-function fakeReferral(over: Partial<ReferralInfo> = {}): ReferralInfo {
-	return {
-		code: 'ABCD1234',
-		link: 'http://localhost/register?ref=ABCD1234',
-		rebateRatePercent: 10,
-		totalInvited: 5,
-		availableRebate: 50,
-		frozenRebate: 20,
-		totalRebate: 70,
-		pendingWithdrawals: 15,
-		invitees: [],
-		...over
-	};
-}
 
 function fakeInvitee(over: Partial<AffiliateInvitee> = {}): AffiliateInvitee {
 	return {
@@ -188,19 +126,56 @@ function fakeInvitee(over: Partial<AffiliateInvitee> = {}): AffiliateInvitee {
 	};
 }
 
-function fakeRebate(over: Partial<RebateRecord> = {}): RebateRecord {
+function fakeReferral(over: Partial<ReferralInfo> = {}): ReferralInfo {
 	return {
-		id: 'r1',
-		timestamp: '2026-06-15T12:00:00Z',
-		sourceUserId: 2,
-		sourceEmail: 'bob@example.com',
-		amount: 5,
-		status: 'available',
-		frozenUntil: null,
-		note: null,
+		code: 'ABCD1234',
+		link: 'http://localhost/register?ref=ABCD1234',
+		rebateRatePercent: 10,
+		totalInvited: 5,
+		availableRebate: 50,
+		frozenRebate: 20,
+		totalRebate: 70,
+		invitees: [
+			fakeInvitee({ userId: 1, email: 'alice@example.com' }),
+			fakeInvitee({ userId: 2, email: 'bob@example.com' }),
+			fakeInvitee({ userId: 3, email: 'carol@example.com' }),
+			fakeInvitee({ userId: 4, email: 'dave@example.com' }),
+			fakeInvitee({ userId: 5, email: 'eve@example.com' })
+		],
 		...over
 	};
 }
+
+// ────────────────────────────────────────────────────────────────────────
+// 0) Phantom-route guard — source must NOT reference dead endpoints
+// ────────────────────────────────────────────────────────────────────────
+
+describe('affiliate cluster · phantom-route guard', () => {
+	it('api module no longer calls /aff/withdraw, /aff/rebates, /aff/invitees, /aff/withdrawals', () => {
+		expect(affiliatesApiSrc).not.toContain('/aff/withdraw');
+		expect(affiliatesApiSrc).not.toContain('/aff/rebates');
+		expect(affiliatesApiSrc).not.toContain('/aff/invitees');
+		// the only POST endpoint must be the real transfer route
+		expect(affiliatesApiSrc).toContain('/api/v1/user/aff/transfer');
+		expect(affiliatesApiSrc).toContain('/api/v1/user/aff');
+	});
+
+	it('api module dropped dead handlers (requestWithdrawal / listRebateLedger / listWithdrawals)', () => {
+		expect(affiliatesApiSrc).not.toContain('requestWithdrawal');
+		expect(affiliatesApiSrc).not.toContain('listRebateLedger');
+		expect(affiliatesApiSrc).not.toContain('listWithdrawals');
+		expect(affiliatesApiSrc).toContain('transferAffiliateQuota');
+	});
+
+	it('dialog + page never import or call requestWithdrawal / phantom routes', () => {
+		expect(withdrawalDialogSrc).not.toContain('requestWithdrawal');
+		expect(withdrawalDialogSrc).not.toContain('/aff/withdraw');
+		expect(withdrawalDialogSrc).toContain('transferAffiliateQuota');
+		expect(affiliatesPageSrc).not.toContain('requestWithdrawal');
+		expect(affiliatesPageSrc).not.toContain('listRebateLedger');
+		expect(affiliatesPageSrc).not.toContain('/aff/withdraw');
+	});
+});
 
 // ────────────────────────────────────────────────────────────────────────
 // 1) Referral card render + copy
@@ -213,21 +188,7 @@ describe('affiliates page · referral card', () => {
 	beforeEach(async () => {
 		api = await import('$lib/api/user/affiliates');
 		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockReset();
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockReset();
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockReset();
-
 		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockResolvedValue(fakeReferral());
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [],
-			total: 0,
-			pages: 0
-		});
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [],
-			total: 0,
-			pages: 0
-		});
-
 		pageMod = await import('../../../routes/(user)/affiliates/+page.svelte');
 	});
 
@@ -260,7 +221,7 @@ describe('affiliates page · referral card', () => {
 });
 
 // ────────────────────────────────────────────────────────────────────────
-// 2) Invited users list — 5 mocked rows
+// 2) Invited users list — rendered from inline /aff invitees (no extra fetch)
 // ────────────────────────────────────────────────────────────────────────
 
 describe('affiliates page · invited users', () => {
@@ -270,195 +231,54 @@ describe('affiliates page · invited users', () => {
 	beforeEach(async () => {
 		api = await import('$lib/api/user/affiliates');
 		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockReset();
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockReset();
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockReset();
-
 		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockResolvedValue(fakeReferral());
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [
-				fakeInvitee({ userId: 1, email: 'alice@example.com' }),
-				fakeInvitee({ userId: 2, email: 'bob@example.com' }),
-				fakeInvitee({ userId: 3, email: 'carol@example.com' }),
-				fakeInvitee({ userId: 4, email: 'dave@example.com' }),
-				fakeInvitee({ userId: 5, email: 'eve@example.com' })
-			],
-			total: 5,
-			pages: 1
-		});
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [],
-			total: 0,
-			pages: 0
-		});
-
 		pageMod = await import('../../../routes/(user)/affiliates/+page.svelte');
 	});
 
-	it('renders 5 invited rows from mock with masked email', async () => {
+	it('renders 5 invited rows from inline referral data with masked email', async () => {
 		const { container } = render(pageMod.default);
-		await waitFor(() => expect(api.listInvitedUsers).toHaveBeenCalled());
+		await waitFor(() => expect(api.getReferralInfo).toHaveBeenCalled());
 		await waitFor(() => {
 			const rows = container.querySelectorAll('[data-testid="affiliates-invited-row"]');
 			expect(rows.length).toBe(5);
 		});
 
 		// email mask 验证：alice → a****@example.com
-		const firstEmail = container.querySelector(
-			'[data-testid="affiliates-invited-email"]'
-		);
+		const firstEmail = container.querySelector('[data-testid="affiliates-invited-email"]');
 		expect(firstEmail?.textContent).toContain('@example.com');
 		expect(firstEmail?.textContent).not.toContain('alice@');
 	});
 });
 
 // ────────────────────────────────────────────────────────────────────────
-// 3) Rebate ledger — frozen + available mix + sentinel check
+// 3) TransferDialog — confirm submits transferAffiliateQuota (POST /aff/transfer)
 // ────────────────────────────────────────────────────────────────────────
 
-describe('affiliates page · rebate ledger', () => {
+describe('TransferDialog · transfer action', () => {
 	let api: typeof import('$lib/api/user/affiliates');
-	let pageMod: typeof import('../../../routes/(user)/affiliates/+page.svelte');
+	let TransferDialog: typeof import('../../../lib/features/affiliates/WithdrawalDialog.svelte').default;
 
 	beforeEach(async () => {
 		api = await import('$lib/api/user/affiliates');
-		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockReset();
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockReset();
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockReset();
-
-		(api.getReferralInfo as ReturnType<typeof vi.fn>).mockResolvedValue(fakeReferral());
-		(api.listInvitedUsers as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [],
-			total: 0,
-			pages: 0
-		});
-		(api.listRebateLedger as ReturnType<typeof vi.fn>).mockResolvedValue({
-			items: [
-				fakeRebate({ id: 'r-a', amount: 5, status: 'available' }),
-				fakeRebate({
-					id: 'r-f',
-					amount: 3,
-					status: 'frozen',
-					frozenUntil: '2026-07-01T00:00:00Z'
-				}),
-				fakeRebate({ id: 'r-w', amount: 10, status: 'withdrawn' })
-			],
-			total: 3,
-			pages: 1
-		});
-
-		pageMod = await import('../../../routes/(user)/affiliates/+page.svelte');
-	});
-
-	it('renders frozen + available mix + sentinel-safe status filter', async () => {
-		const { container } = render(pageMod.default);
-		await waitFor(() => expect(api.listRebateLedger).toHaveBeenCalled());
-		await waitFor(() => {
-			const rows = container.querySelectorAll('[data-testid="affiliates-rebate-row"]');
-			expect(rows.length).toBe(3);
-		});
-
-		const available = container.querySelector(
-			'[data-testid="affiliates-rebate-row"][data-status="available"]'
-		);
-		const frozen = container.querySelector(
-			'[data-testid="affiliates-rebate-row"][data-status="frozen"]'
-		);
-		expect(available).not.toBeNull();
-		expect(frozen).not.toBeNull();
-
-		// Sentinel guard：status filter 含 __all__；严禁 value=""
-		const sel = container.querySelector(
-			'[data-testid="affiliates-rebate-status-filter"]'
-		) as HTMLSelectElement;
-		expect(sel).not.toBeNull();
-
-		const html = container.innerHTML;
-		const offending = html.match(/<option\s+[^>]*\bvalue="(?:|\s*)"[^>]*>/g);
-		expect(offending).toBeNull();
-
-		const allOpt = sel.querySelector('option[value="__all__"]');
-		expect(allOpt).not.toBeNull();
-	});
-});
-
-// ────────────────────────────────────────────────────────────────────────
-// 4) WithdrawalDialog — amount > available rejected, valid amount submits
-// ────────────────────────────────────────────────────────────────────────
-
-describe('WithdrawalDialog · form validation', () => {
-	let api: typeof import('$lib/api/user/affiliates');
-	let WithdrawalDialog: typeof import('../../../lib/features/affiliates/WithdrawalDialog.svelte').default;
-
-	beforeEach(async () => {
-		api = await import('$lib/api/user/affiliates');
-		(api.requestWithdrawal as ReturnType<typeof vi.fn>).mockReset();
-		(api.requestWithdrawal as ReturnType<typeof vi.fn>).mockResolvedValue({
-			id: 'wd-1',
-			status: 'pending'
+		(api.transferAffiliateQuota as ReturnType<typeof vi.fn>).mockReset();
+		(api.transferAffiliateQuota as ReturnType<typeof vi.fn>).mockResolvedValue({
+			transferredQuota: 50,
+			balance: 150
 		});
 
 		const mod = await import('../../../lib/features/affiliates/WithdrawalDialog.svelte');
-		WithdrawalDialog = mod.default;
+		TransferDialog = mod.default;
 	});
 
-	it('amount > available → requestWithdrawal NOT called; error shown', async () => {
-		render(WithdrawalDialog, {
-			props: { open: true, availableRebate: 50, minAmount: 10 }
+	it('submitting the dialog calls transferAffiliateQuota exactly once with no args', async () => {
+		render(TransferDialog, {
+			props: { open: true, availableRebate: 50 }
 		});
 
 		await waitFor(() => {
 			const dlg = document.body.querySelector('[data-testid="withdrawal-dialog"]');
 			expect(dlg).not.toBeNull();
 		});
-
-		const amountInput = document.body.querySelector(
-			'[data-testid="withdrawal-amount-input"]'
-		) as HTMLInputElement;
-		expect(amountInput).not.toBeNull();
-		// 200 > availableRebate 50
-		await fireEvent.input(amountInput, { target: { value: '200' } });
-
-		const paypalEmail = document.body.querySelector(
-			'[data-testid="withdrawal-detail-paypal-email"]'
-		) as HTMLInputElement;
-		await fireEvent.input(paypalEmail, { target: { value: 'me@example.com' } });
-
-		const form = document.body.querySelector(
-			'[data-testid="withdrawal-form"]'
-		) as HTMLFormElement;
-		await fireEvent.submit(form);
-
-		await new Promise((r) => setTimeout(r, 50));
-		expect(api.requestWithdrawal).not.toHaveBeenCalled();
-
-		await waitFor(() => {
-			const fieldErr = document.body.querySelector(
-				'[data-testid="withdrawal-amount-error"]'
-			);
-			const formErr = document.body.querySelector('[data-testid="withdrawal-form-error"]');
-			expect(fieldErr || formErr).not.toBeNull();
-		});
-	});
-
-	it('amount valid + paypal email → requestWithdrawal called once', async () => {
-		render(WithdrawalDialog, {
-			props: { open: true, availableRebate: 100, minAmount: 10 }
-		});
-
-		await waitFor(() => {
-			const dlg = document.body.querySelector('[data-testid="withdrawal-dialog"]');
-			expect(dlg).not.toBeNull();
-		});
-
-		const amountInput = document.body.querySelector(
-			'[data-testid="withdrawal-amount-input"]'
-		) as HTMLInputElement;
-		await fireEvent.input(amountInput, { target: { value: '50' } });
-
-		const paypalEmail = document.body.querySelector(
-			'[data-testid="withdrawal-detail-paypal-email"]'
-		) as HTMLInputElement;
-		await fireEvent.input(paypalEmail, { target: { value: 'me@example.com' } });
 
 		const form = document.body.querySelector(
 			'[data-testid="withdrawal-form"]'
@@ -467,20 +287,18 @@ describe('WithdrawalDialog · form validation', () => {
 
 		await waitFor(
 			() => {
-				expect(api.requestWithdrawal).toHaveBeenCalled();
-				const args = (api.requestWithdrawal as ReturnType<typeof vi.fn>).mock
-					.calls[0]?.[0];
-				expect(args?.amount).toBe(50);
-				expect(args?.destination).toBe('paypal');
-				expect(args?.details?.email).toBe('me@example.com');
+				expect(api.transferAffiliateQuota).toHaveBeenCalledTimes(1);
 			},
 			{ timeout: 2000 }
 		);
+		// backend transfer takes no request body → the wrapper takes no args
+		const callArgs = (api.transferAffiliateQuota as ReturnType<typeof vi.fn>).mock.calls[0];
+		expect(callArgs).toEqual([]);
 	});
 
-	it('destination select is sentinel-safe (no <option value="">)', async () => {
-		render(WithdrawalDialog, {
-			props: { open: true, availableRebate: 100, minAmount: 10 }
+	it('disables submit + does not call transfer when no available quota', async () => {
+		render(TransferDialog, {
+			props: { open: true, availableRebate: 0 }
 		});
 
 		await waitFor(() => {
@@ -488,15 +306,25 @@ describe('WithdrawalDialog · form validation', () => {
 			expect(dlg).not.toBeNull();
 		});
 
-		const html = document.body.innerHTML;
-		const offending = html.match(/<option\s+[^>]*\bvalue="(?:|\s*)"[^>]*>/g);
-		expect(offending).toBeNull();
+		const submitBtn = document.body.querySelector(
+			'[data-testid="withdrawal-submit-btn"]'
+		) as HTMLButtonElement;
+		expect(submitBtn).not.toBeNull();
+		expect(submitBtn.disabled).toBe(true);
 
-		const sel = document.body.querySelector(
-			'[data-testid="withdrawal-destination-select"]'
-		) as HTMLSelectElement;
-		expect(sel).not.toBeNull();
-		// 4 destinations
-		expect(sel.querySelectorAll('option').length).toBe(4);
+		const form = document.body.querySelector(
+			'[data-testid="withdrawal-form"]'
+		) as HTMLFormElement;
+		await fireEvent.submit(form);
+
+		await new Promise((r) => setTimeout(r, 50));
+		expect(api.transferAffiliateQuota).not.toHaveBeenCalled();
+	});
+
+	it('uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(withdrawalDialogSrc).toContain('StandardDialog');
+		expect(withdrawalDialogSrc).toContain('data-testid="withdrawal-dialog"');
+		expect(withdrawalDialogSrc).not.toContain('Dialog.Overlay');
+		expect(withdrawalDialogSrc).not.toContain('fixed inset-0');
 	});
 });

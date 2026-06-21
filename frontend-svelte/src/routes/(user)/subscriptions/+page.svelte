@@ -29,6 +29,9 @@
 	import { showError } from '$lib/stores/toast.svelte';
 	import CurrentSubCard from '$lib/features/subscriptions/CurrentSubCard.svelte';
 	import CancelDialog from '$lib/features/subscriptions/CancelDialog.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	// ── state ───────────────────────────────────────────────────────────
 	let current = $state<UserSubscription | null>(null);
@@ -164,15 +167,16 @@
 			</p>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="icon"
 				aria-label={$_('user.subscriptions.refresh', { default: 'Refresh' })}
 				data-testid="subscriptions-refresh-btn"
 				onclick={refreshAll}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+				class="h-9 w-9 text-muted-foreground"
 			>
 				<RotateCw class="h-4 w-4" />
-			</button>
+			</Button>
 		</div>
 	</header>
 
@@ -190,20 +194,22 @@
 			</div>
 		</div>
 	{:else if currentError && !current}
-		<div
-			class="flex items-center justify-between rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+		<Alert
+			variant="destructive"
+			class="flex items-center justify-between gap-3 px-4 py-3 text-sm"
 			data-testid="subscriptions-current-error"
 		>
 			<span>{$_('user.subscriptions.failedToLoad', { default: 'Failed to load subscription' })}</span>
-			<button
-				type="button"
-				class="rounded-md border border-destructive/40 px-3 py-1 text-xs font-medium hover:bg-destructive/20"
+			<Button
+				variant="outline"
+				size="sm"
+				class="border-destructive/40 hover:bg-destructive/20"
 				onclick={() => loadCurrent()}
 				data-testid="subscriptions-current-retry"
 			>
 				{$_('user.subscriptions.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{:else if current}
 		<CurrentSubCard
 			subscription={current}
@@ -229,14 +235,13 @@
 					})}
 				</p>
 			</div>
-			<button
-				type="button"
+			<Button
 				data-testid="subscriptions-browse-plans-btn"
 				onclick={handleBrowsePlans}
-				class="mt-1 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="mt-1 h-9"
 			>
 				{$_('user.subscriptions.browsePlans', { default: 'Browse plans' })}
-			</button>
+			</Button>
 		</div>
 	{/if}
 
@@ -247,14 +252,15 @@
 				{$_('user.subscriptions.historyTitle', { default: 'Subscription history' })}
 			</h2>
 			{#if historyError && !loadingHistory}
-				<button
-					type="button"
-					class="rounded-md border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted"
+				<Button
+					variant="outline"
+					size="sm"
+					class="h-7 px-3"
 					onclick={() => loadHistory()}
 					data-testid="subscriptions-history-retry"
 				>
 					{$_('user.subscriptions.retry', { default: 'Retry' })}
-				</button>
+				</Button>
 			{/if}
 		</header>
 
@@ -308,11 +314,9 @@
 									</span>
 								</td>
 								<td class="px-4 py-3">
-									<span
-										class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {statusBadgeClass(row.status)}"
-									>
+									<Badge class={statusBadgeClass(row.status)}>
 										{statusLabel(row.status)}
-									</span>
+									</Badge>
 								</td>
 								<td class="px-4 py-3 text-muted-foreground">
 									{fmtDate(row.cancelledAt ?? row.expiresAt)}

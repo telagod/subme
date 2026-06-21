@@ -24,8 +24,8 @@ import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 
 // 红线 grep：?raw 把源码字符串带进测试
-import pageSrc from '../../../routes/(admin)/orders/dashboard/+page.svelte?raw';
-import paymentsSrc from '../../../routes/(admin)/orders/payments/+page.svelte?raw';
+import pageSrc from '../../../routes/admin/orders/dashboard/+page.svelte?raw';
+import paymentsSrc from '../../../routes/admin/orders/payments/+page.svelte?raw';
 import cardsSrc from '$lib/features/orders/PaymentDashboardCards.svelte?raw';
 import chartSrc from '$lib/features/orders/PaymentDashboardChart.svelte?raw';
 import providerSrc from '$lib/features/orders/ProviderBreakdown.svelte?raw';
@@ -127,7 +127,7 @@ function fakeProviders(): ProviderBreakdownRow[] {
 
 describe('admin orders · dashboard · 6 KPI cards', () => {
 	let api: typeof import('$lib/api/admin/paymentDashboard');
-	let pageMod: typeof import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/dashboard/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/paymentDashboard');
@@ -139,7 +139,7 @@ describe('admin orders · dashboard · 6 KPI cards', () => {
 		(api.getDashboardTrend as ReturnType<typeof vi.fn>).mockResolvedValue(fakeTrend(5));
 		(api.getProviderBreakdown as ReturnType<typeof vi.fn>).mockResolvedValue(fakeProviders());
 
-		pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 	}, 30000);
 
 	it('renders all 6 KPI cards with mocked stats', async () => {
@@ -210,7 +210,7 @@ describe('admin orders · dashboard · 6 KPI cards', () => {
 		(api.getDashboardStats as ReturnType<typeof vi.fn>).mockResolvedValue(
 			fakeStats({ active_subscriptions: null, churn_rate: null })
 		);
-		pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 
 		const { container } = render(pageMod.default);
 		await waitFor(() => expect(api.getDashboardStats).toHaveBeenCalled());
@@ -258,7 +258,7 @@ describe('admin orders · dashboard · chart lazy contract', () => {
 			.mockReset()
 			.mockResolvedValue(fakeProviders());
 
-		const pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		const pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 		const { container } = render(pageMod.default);
 
 		await waitFor(() => {
@@ -274,7 +274,7 @@ describe('admin orders · dashboard · chart lazy contract', () => {
 
 describe('admin orders · dashboard · provider breakdown', () => {
 	let api: typeof import('$lib/api/admin/paymentDashboard');
-	let pageMod: typeof import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/dashboard/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/paymentDashboard');
@@ -286,7 +286,7 @@ describe('admin orders · dashboard · provider breakdown', () => {
 			.mockReset()
 			.mockResolvedValue(fakeProviders());
 
-		pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 	}, 30000);
 
 	it('renders 3 provider rows, sorted by revenue descending', async () => {
@@ -309,7 +309,7 @@ describe('admin orders · dashboard · provider breakdown', () => {
 
 	it('renders empty state when provider rows are empty', async () => {
 		(api.getProviderBreakdown as ReturnType<typeof vi.fn>).mockReset().mockResolvedValue([]);
-		pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 
 		const { container } = render(pageMod.default);
 		await waitFor(() => expect(api.getProviderBreakdown).toHaveBeenCalled());
@@ -327,7 +327,7 @@ describe('admin orders · dashboard · provider breakdown', () => {
 
 describe('admin orders · dashboard · range switch reload', () => {
 	let api: typeof import('$lib/api/admin/paymentDashboard');
-	let pageMod: typeof import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/dashboard/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/paymentDashboard');
@@ -339,7 +339,7 @@ describe('admin orders · dashboard · range switch reload', () => {
 			.mockReset()
 			.mockResolvedValue(fakeProviders());
 
-		pageMod = await import('../../../routes/(admin)/orders/dashboard/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/dashboard/+page.svelte');
 	}, 30000);
 
 	it('clicking range 7d re-fires stats API with days=7', async () => {
@@ -384,7 +384,7 @@ describe('admin orders · dashboard · range switch reload', () => {
 
 describe('admin orders · payments redirect page', () => {
 	it('renders consolidation notice with link to /admin/monetization/plans', async () => {
-		const pageMod = await import('../../../routes/(admin)/orders/payments/+page.svelte');
+		const pageMod = await import('../../../routes/admin/orders/payments/+page.svelte');
 		const { container } = render(pageMod.default);
 
 		const notice = container.querySelector('[data-testid="admin-orderpayments-notice"]');

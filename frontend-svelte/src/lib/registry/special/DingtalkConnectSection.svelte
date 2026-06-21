@@ -21,6 +21,7 @@
 	import { _ } from 'svelte-i18n';
 	import FieldRenderer from '../FieldRenderer.svelte';
 	import type { Field } from '../types';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -191,22 +192,24 @@
 			</span>
 			<p class="text-xs text-muted-foreground">{$_('admin.settings.dingtalk.corpPolicy.hint')}</p>
 			<label class="flex items-center gap-2 text-sm">
-				<input
+				<Input
 					type="radio"
 					name="dingtalk_corp_policy"
 					value="none"
 					checked={policy === 'none'}
 					onchange={() => onPolicy('none')}
+					class="h-4 w-4"
 				/>
 				{$_('admin.settings.dingtalk.corpPolicy.none')}
 			</label>
 			<label class="flex items-center gap-2 text-sm">
-				<input
+				<Input
 					type="radio"
 					name="dingtalk_corp_policy"
 					value="internal_only"
 					checked={policy === 'internal_only'}
 					onchange={() => onPolicy('internal_only')}
+					class="h-4 w-4"
 				/>
 				{$_('admin.settings.dingtalk.corpPolicy.internalOnly')}
 			</label>

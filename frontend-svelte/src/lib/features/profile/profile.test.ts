@@ -23,6 +23,9 @@
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
+import totpEnrollDialogSrc from './TotpEnrollDialog.svelte?raw';
+import disableTotpDialogSrc from './DisableTotpDialog.svelte?raw';
+import oauthBindingsListSrc from './OAuthBindingsList.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte 之前
 vi.mock('$lib/api/user/profile', () => {
@@ -388,6 +391,28 @@ describe('profile page · TOTP enroll', () => {
 			{ timeout: 2000 }
 		);
 	});
+
+	it('TotpEnrollDialog uses StandardDialog without breaking qrcode lazy loading', () => {
+		expect(totpEnrollDialogSrc).toContain('StandardDialog');
+		expect(totpEnrollDialogSrc).toContain('data-testid="totp-enroll-dialog"');
+		expect(totpEnrollDialogSrc).toContain("await import('qrcode')");
+		expect(totpEnrollDialogSrc).not.toContain("import QRCode from 'qrcode'");
+		expect(totpEnrollDialogSrc).not.toContain('Dialog.Overlay');
+		expect(totpEnrollDialogSrc).not.toContain('fixed inset-0');
+	});
+});
+
+// ────────────────────────────────────────────────────────────────
+// TOTP disable dialog
+// ────────────────────────────────────────────────────────────────
+
+describe('profile page · TOTP disable', () => {
+	it('DisableTotpDialog uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(disableTotpDialogSrc).toContain('StandardDialog');
+		expect(disableTotpDialogSrc).toContain('data-testid="totp-disable-dialog"');
+		expect(disableTotpDialogSrc).not.toContain('Dialog.Overlay');
+		expect(disableTotpDialogSrc).not.toContain('fixed inset-0');
+	});
 });
 
 // ────────────────────────────────────────────────────────────────
@@ -440,6 +465,13 @@ describe('profile page · OAuth bindings', () => {
 		await waitFor(() => {
 			expect(api.unbindOAuth).toHaveBeenCalledWith('github');
 		});
+	});
+
+	it('OAuthBindingsList uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(oauthBindingsListSrc).toContain('StandardDialog');
+		expect(oauthBindingsListSrc).toContain('data-testid="oauth-unbind-dialog"');
+		expect(oauthBindingsListSrc).not.toContain('Dialog.Overlay');
+		expect(oauthBindingsListSrc).not.toContain('fixed inset-0');
 	});
 });
 

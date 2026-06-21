@@ -11,14 +11,18 @@
 	 *   - select 严格 sentinel-safe —— 所有 value 是具体语义值（pass/filter/block;all/oauth/apikey/bedrock）。
 	 *   - 简化：略去 quick presets（Vue tree 临时实验态），保留 model_whitelist 与
 	 *     fallback_action 主流程。
-	 */
+ */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
 	import {
 		settingsApi,
 		type BetaPolicyRule
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -189,17 +193,17 @@
 						>
 							{$_('admin.settings.betaPolicy.action')}
 						</label>
-						<select
+						<NativeSelect
 							id="beta-policy-action-{index}"
 							data-testid="beta-policy-action"
 							value={rule.action}
 							onchange={(e) => onActionChange(index, e)}
-							class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9 w-full"
 						>
 							<option value="pass">{$_('admin.settings.betaPolicy.actionPass')}</option>
 							<option value="filter">{$_('admin.settings.betaPolicy.actionFilter')}</option>
 							<option value="block">{$_('admin.settings.betaPolicy.actionBlock')}</option>
-						</select>
+						</NativeSelect>
 					</div>
 
 					<div class="flex flex-col gap-1">
@@ -209,18 +213,18 @@
 						>
 							{$_('admin.settings.betaPolicy.scope')}
 						</label>
-						<select
+						<NativeSelect
 							id="beta-policy-scope-{index}"
 							data-testid="beta-policy-scope"
 							value={rule.scope}
 							onchange={(e) => onScopeChange(index, e)}
-							class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9 w-full"
 						>
 							<option value="all">{$_('admin.settings.betaPolicy.scopeAll')}</option>
 							<option value="oauth">{$_('admin.settings.betaPolicy.scopeOAuth')}</option>
 							<option value="apikey">{$_('admin.settings.betaPolicy.scopeAPIKey')}</option>
 							<option value="bedrock">{$_('admin.settings.betaPolicy.scopeBedrock')}</option>
-						</select>
+						</NativeSelect>
 					</div>
 				</div>
 
@@ -232,14 +236,14 @@
 						>
 							{$_('admin.settings.betaPolicy.errorMessage')}
 						</label>
-						<input
+						<Input
 							id="beta-policy-error-message-{index}"
 							type="text"
 							data-testid="beta-policy-error-message"
 							placeholder={$_('admin.settings.betaPolicy.errorMessagePlaceholder')}
 							value={rule.error_message ?? ''}
 							oninput={(e) => onErrorMessageInput(index, e)}
-							class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9"
 						/>
 						<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 							{$_('admin.settings.betaPolicy.errorMessageHint')}
@@ -259,34 +263,36 @@
 							data-testid="beta-policy-whitelist-row"
 							class="flex items-center gap-2"
 						>
-							<input
+							<Input
 								id="beta-policy-whitelist-{index}-{pIdx}"
 								type="text"
 								data-testid="beta-policy-whitelist-input"
 								placeholder={$_('admin.settings.betaPolicy.modelPatternPlaceholder')}
 								value={pattern}
 								oninput={(e) => onWhitelistInput(index, pIdx, e)}
-								class="h-8 flex-1 rounded-md border border-input bg-background px-3 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+								class="h-8 flex-1 font-mono text-xs"
 							/>
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="icon"
 								data-testid="beta-policy-whitelist-remove"
 								aria-label={$_('admin.settings.betaPolicy.removePattern')}
 								onclick={() => removeWhitelistPattern(index, pIdx)}
-								class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+								class="h-7 w-7 text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
 							>
-								✕
-							</button>
+								<X class="h-3 w-3" />
+							</Button>
 						</div>
 					{/each}
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						size="sm"
 						data-testid="beta-policy-whitelist-add"
 						onclick={() => addWhitelistPattern(index)}
-						class="inline-flex h-8 w-fit items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+						class="w-fit"
 					>
 						+ {$_('admin.settings.betaPolicy.addModelPattern')}
-					</button>
+					</Button>
 				</div>
 
 				{#if (rule.model_whitelist ?? []).length > 0}
@@ -297,28 +303,28 @@
 						>
 							{$_('admin.settings.betaPolicy.fallbackAction')}
 						</label>
-						<select
+						<NativeSelect
 							id="beta-policy-fallback-{index}"
 							data-testid="beta-policy-fallback"
 							value={rule.fallback_action ?? 'pass'}
 							onchange={(e) => onFallbackChange(index, e)}
-							class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9 w-full"
 						>
 							<option value="pass">{$_('admin.settings.betaPolicy.actionPass')}</option>
 							<option value="filter">{$_('admin.settings.betaPolicy.actionFilter')}</option>
 							<option value="block">{$_('admin.settings.betaPolicy.actionBlock')}</option>
-						</select>
+						</NativeSelect>
 						<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 							{$_('admin.settings.betaPolicy.fallbackActionHint')}
 						</p>
 						{#if rule.fallback_action === 'block'}
-							<input
+							<Input
 								type="text"
 								data-testid="beta-policy-fallback-error-message"
 								placeholder={$_('admin.settings.betaPolicy.fallbackErrorMessagePlaceholder')}
 								value={rule.fallback_error_message ?? ''}
 								oninput={(e) => onFallbackErrorInput(index, e)}
-								class="mt-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+								class="mt-1 h-9"
 							/>
 						{/if}
 					</div>
@@ -327,15 +333,15 @@
 		{/each}
 
 		<div class="flex justify-end border-t border-border pt-4">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				class="h-9"
 				data-testid="beta-policy-save"
 				disabled={saving}
 				onclick={save}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 			>
 				{saving ? $_('common.saving') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	{/if}
 </div>

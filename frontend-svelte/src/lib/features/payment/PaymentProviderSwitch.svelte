@@ -15,6 +15,7 @@
 	 */
 	import { CreditCard, Wallet } from '@lucide/svelte';
 	import { _ } from 'svelte-i18n';
+	import Button from '$lib/ui/Button.svelte';
 
 	export type PaymentProviderKind = 'stripe' | 'airwallex' | 'balance';
 
@@ -79,15 +80,15 @@
 >
 	{#each enabledProviders as p (p)}
 		{@const Icon = iconFor(p)}
-		<button
-			type="button"
+		<Button
+			variant="outline"
 			role="radio"
 			aria-checked={value === p}
 			data-testid="payment-provider-{p}"
 			data-active={value === p}
 			disabled={disabled}
 			onclick={() => select(p)}
-			class="flex w-full items-start gap-3 rounded-md border bg-background px-4 py-3 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60 data-[active=true]:border-primary data-[active=true]:ring-2 data-[active=true]:ring-primary/30 data-[active=false]:border-border"
+			class="h-auto w-full items-start justify-start px-4 py-3 text-left data-[active=true]:border-primary data-[active=true]:ring-2 data-[active=true]:ring-primary/30 data-[active=false]:border-border"
 		>
 			<span
 				class="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
@@ -98,6 +99,6 @@
 				<span class="block text-sm font-medium text-foreground">{labelFor(p)}</span>
 				<span class="block text-xs text-muted-foreground">{descriptionFor(p)}</span>
 			</span>
-		</button>
+		</Button>
 	{/each}
 </div>

@@ -21,6 +21,9 @@
 	} from '$lib/features/auth/forms';
 	import { authApi } from '$lib/api/auth';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	// ── 从 query 读 token + email（email 可选，后端兼容） ──────────────
 	const token = $derived(page.url.searchParams.get('token') ?? '');
@@ -86,12 +89,12 @@
 					default: 'This password reset link is invalid or has expired.'
 				})}
 			</p>
-			<a
+			<Button
 				href="/auth/forgot"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+				class="w-full"
 			>
 				{$_('auth.requestNewResetLink', { default: 'Request new reset link' })}
-			</a>
+			</Button>
 		</div>
 	{:else}
 		<form method="POST" use:enhance class="space-y-4" data-testid="reset-form">
@@ -100,13 +103,13 @@
 					<label for="reset-email" class="text-sm font-medium text-foreground">
 						{$_('auth.emailLabel', { default: 'Email' })}
 					</label>
-					<input
+					<Input
 						id="reset-email"
 						type="email"
 						readonly
 						disabled
 						value={email}
-						class="block h-10 w-full rounded-md border border-input bg-muted/60 px-3 text-sm text-muted-foreground"
+						class="bg-muted/60 text-muted-foreground"
 						data-testid="reset-email"
 					/>
 				</div>
@@ -118,7 +121,7 @@
 					{$_('auth.newPassword', { default: 'New password' })}
 				</label>
 				<div class="relative">
-					<input
+					<Input
 						id="reset-newpassword"
 						name="newPassword"
 						type={showPassword ? 'text' : 'password'}
@@ -127,16 +130,18 @@
 						bind:value={$form.newPassword}
 						aria-invalid={$errors.newPassword ? 'true' : undefined}
 						data-testid="reset-password"
-						class="block h-10 w-full rounded-md border border-input bg-background px-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+						class="pr-12"
 					/>
-					<button
+					<Button
 						type="button"
-						tabindex="-1"
+						variant="ghost"
+						size="sm"
+						tabindex={-1}
 						onclick={() => (showPassword = !showPassword)}
-						class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+						class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 					>
 						{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
-					</button>
+					</Button>
 				</div>
 				{#if $errors.newPassword && $errors.newPassword[0]}
 					<p class="text-xs text-destructive" data-testid="error-password">
@@ -150,7 +155,7 @@
 				<label for="reset-confirm" class="text-sm font-medium text-foreground">
 					{$_('auth.confirmPassword', { default: 'Confirm password' })}
 				</label>
-				<input
+				<Input
 					id="reset-confirm"
 					name="confirmPassword"
 					type={showPassword ? 'text' : 'password'}
@@ -159,7 +164,6 @@
 					bind:value={$form.confirmPassword}
 					aria-invalid={$errors.confirmPassword ? 'true' : undefined}
 					data-testid="reset-confirm"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 				/>
 				{#if $errors.confirmPassword && $errors.confirmPassword[0]}
 					<p class="text-xs text-destructive" data-testid="error-confirm">
@@ -169,21 +173,21 @@
 			</div>
 
 			{#if formError}
-				<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive" data-testid="error-form">
+				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="error-form">
 					{formError}
-				</p>
+				</Alert>
 			{/if}
 
-			<button
+			<Button
 				type="submit"
 				disabled={$submitting}
 				data-testid="reset-submit"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{$submitting
 					? $_('auth.resettingPassword', { default: 'Resetting...' })
 					: $_('auth.resetPassword', { default: 'Reset password' })}
-			</button>
+			</Button>
 		</form>
 	{/if}
 

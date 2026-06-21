@@ -12,16 +12,20 @@
 	 *   - Add / Edit 共用模态：add 模式带 user picker（异步 lookupUsers），
 	 *     edit 模式锁定 user。
 	 *   - 批量设置比例：选择 ≥1 行 → 出现 batch 按钮 → 模态 → submit。
-	 *   - 重置：用 window.confirm（与 AdminApiKeySection 同步），后续接入
-	 *     ConfirmDialog 后零破换 — 当前仓库还没有此组件。
+	 *   - 重置：用 StandardDialog 确认，与其他危险操作保持一致。
 	 *
 	 * 不消费 props.values 的 'affiliate_enabled' 是个 effect 入口：父级 form 翻
 	 * affiliate_enabled false→true 时自动触发 load()。
-	 */
+ */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
 	import { adminAffiliatesApi, type AffiliateAdminEntry, type SimpleUser } from '$lib/api/admin/affiliates';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -66,6 +70,8 @@
 	let batchOpen = $state(false);
 	let batchSaving = $state(false);
 	let batchRate = $state('');
+	let resetDialogOpen = $state(false);
+	let resetTarget = $state<AffiliateAdminEntry | null>(null);
 
 	// ── Helpers ────────────────────────────────────────────────────────────
 	/** 解析返利比例输入：null=空、undefined=非法（已 toast）、number=合法。 */
@@ -282,13 +288,18 @@
 	}
 
 	// ── Reset (delete) ─────────────────────────────────────────────────────
-	async function askReset(entry: AffiliateAdminEntry) {
-		const msg = $_('admin.settings.features.affiliate.customUsers.resetMessage', {
-			values: { email: entry.email || `#${entry.user_id}` }
-		});
-		if (typeof window !== 'undefined' && !window.confirm(msg)) return;
+	function askReset(entry: AffiliateAdminEntry) {
+		resetTarget = entry;
+		resetDialogOpen = true;
+	}
+
+	async function confirmReset() {
+		const entry = resetTarget;
+		if (!entry) return;
 		try {
 			await adminAffiliatesApi.clearUserSettings(entry.user_id);
+			resetDialogOpen = false;
+			resetTarget = null;
 			showSuccess($_('common.saved'));
 			await load();
 		} catch (err) {
@@ -308,34 +319,33 @@
 	{:else}
 		<!-- toolbar -->
 		<div class="flex flex-wrap items-center gap-2">
-			<input
+			<Input
 				type="text"
 				data-testid="affiliate-custom-users-search"
-				class="h-9 min-w-[160px] flex-1 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+				class="h-9 min-w-[160px] flex-1"
 				placeholder={$_('admin.settings.features.affiliate.customUsers.searchPlaceholder')}
 				bind:value={search}
 				oninput={onSearchInput}
 			/>
 			{#if selected.length > 0}
-				<button
-					type="button"
+				<Button
+					variant="outline"
+					class="h-9"
 					data-testid="affiliate-custom-users-batch"
-					class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
 					onclick={openBatchModal}
 				>
 					{$_('admin.settings.features.affiliate.customUsers.batchButton', {
 						values: { count: selected.length }
 					})}
-				</button>
+				</Button>
 			{/if}
-			<button
-				type="button"
+			<Button
+				class="h-9"
 				data-testid="affiliate-custom-users-add"
-				class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
 				onclick={openAddModal}
 			>
 				+ {$_('admin.settings.features.affiliate.customUsers.addButton')}
-			</button>
+			</Button>
 		</div>
 
 		<!-- table -->
@@ -344,8 +354,7 @@
 				<thead class="bg-muted/40">
 					<tr class="border-b border-border text-left text-xs font-medium text-muted-foreground">
 						<th class="w-9 px-3 py-2">
-							<input
-								type="checkbox"
+							<Checkbox
 								data-testid="affiliate-custom-users-select-all"
 								class="cursor-pointer accent-primary"
 								checked={entries.length > 0 && selected.length === entries.length}
@@ -384,8 +393,7 @@
 						{#each entries as entry (entry.user_id)}
 							<tr class="border-b border-border last:border-b-0" data-testid="affiliate-custom-users-row">
 								<td class="w-9 px-3 py-2">
-									<input
-										type="checkbox"
+									<Checkbox
 										class="cursor-pointer accent-primary"
 										checked={selected.includes(entry.user_id)}
 										onchange={() => toggleSelect(entry.user_id)}
@@ -414,20 +422,22 @@
 								</td>
 								<td class="px-3 py-2">
 									<div class="flex items-center gap-2.5">
-										<button
-											type="button"
-											class="text-xs text-primary hover:underline"
+										<Button
+											variant="ghost"
+											size="sm"
+											class="h-auto px-0 py-0 text-xs text-primary hover:bg-transparent hover:underline"
 											onclick={() => openEditModal(entry)}
 										>
 											{$_('common.edit')}
-										</button>
-										<button
-											type="button"
-											class="text-xs text-destructive hover:underline"
+										</Button>
+										<Button
+											variant="ghost"
+											size="sm"
+											class="h-auto px-0 py-0 text-xs text-destructive hover:bg-transparent hover:underline"
 											onclick={() => askReset(entry)}
 										>
 											{$_('common.delete')}
-										</button>
+										</Button>
 									</div>
 								</td>
 							</tr>
@@ -446,53 +456,39 @@
 					})}
 				</span>
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						class="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent disabled:opacity-50"
+					<Button
+						variant="outline"
+						size="sm"
 						disabled={page <= 1}
 						onclick={() => changePage(page - 1)}
 					>
 						{$_('pagination.previous')}
-					</button>
+					</Button>
 					<span class="min-w-[48px] text-center text-xs text-muted-foreground">
 						{page} / {totalPages}
 					</span>
-					<button
-						type="button"
-						class="inline-flex h-8 items-center justify-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent disabled:opacity-50"
+					<Button
+						variant="outline"
+						size="sm"
 						disabled={page >= totalPages}
 						onclick={() => changePage(page + 1)}
 					>
 						{$_('pagination.next')}
-					</button>
+					</Button>
 				</div>
 			</div>
 		{/if}
 
 		<!-- add/edit modal -->
-		{#if modalOpen}
-			<div
-				class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
-				role="dialog"
-				aria-modal="true"
-				onclick={(e) => {
-					if (e.target === e.currentTarget) closeModal();
-				}}
-				onkeydown={(e) => {
-					if (e.key === 'Escape') closeModal();
-				}}
-				tabindex="-1"
-			>
-				<div
-					class="flex w-full max-w-[440px] flex-col gap-4 rounded-xl border border-border bg-popover p-6 shadow-2xl"
-					data-testid="affiliate-custom-users-modal"
-				>
-					<h3 class="m-0 text-[15px] font-semibold text-foreground">
-						{modalMode === 'add'
-							? $_('admin.settings.features.affiliate.modal.addTitle')
-							: $_('admin.settings.features.affiliate.modal.editTitle')}
-					</h3>
-
+		<StandardDialog
+			bind:open={modalOpen}
+			width="sm"
+			title={modalMode === 'add'
+				? $_('admin.settings.features.affiliate.modal.addTitle')
+				: $_('admin.settings.features.affiliate.modal.editTitle')}
+			data-testid="affiliate-custom-users-modal"
+		>
+			<div class="mt-4 flex flex-col gap-4">
 					<div class="flex flex-col gap-3.5">
 						<!-- user picker (add mode) -->
 						{#if modalMode === 'add'}
@@ -509,19 +505,20 @@
 											<span class="text-sm font-medium text-foreground">{modalSelectedUser.email}</span>
 											<span class="text-xs text-muted-foreground">({modalSelectedUser.username})</span>
 										</div>
-										<button
-											type="button"
+										<Button
+											variant="ghost"
+											size="icon"
 											aria-label={$_('admin.settings.features.affiliate.modal.changeUser')}
-											class="inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+											class="h-6 w-6 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 											onclick={clearSelectedUser}
 										>
-											×
-										</button>
+											<X class="h-3 w-3" />
+										</Button>
 									</div>
 								{:else}
-									<input
+									<Input
 										type="text"
-										class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+										class="h-9"
 										placeholder={$_('admin.settings.features.affiliate.modal.userPlaceholder')}
 										bind:value={modalUserQuery}
 										oninput={onUserSearchInput}
@@ -529,14 +526,15 @@
 									{#if modalUserResults.length > 0}
 										<div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-border bg-popover">
 											{#each modalUserResults as u (u.id)}
-												<button
-													type="button"
-													class="block w-full px-3 py-2 text-left text-sm text-foreground hover:bg-accent"
+												<Button
+													variant="ghost"
+													size="sm"
+													class="block h-auto w-full justify-start px-3 py-2 text-left text-sm text-foreground"
 													onclick={() => selectUser(u)}
 												>
 													{u.email}
 													<span class="text-xs text-muted-foreground">({u.username})</span>
-												</button>
+												</Button>
 											{/each}
 										</div>
 									{/if}
@@ -547,9 +545,9 @@
 								<span class="text-xs font-medium text-foreground">
 									{$_('admin.settings.features.affiliate.modal.userLabel')}
 								</span>
-								<input
+								<Input
 									type="text"
-									class="h-9 rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground"
+									class="h-9 bg-muted text-muted-foreground"
 									value={modalEditingEntry?.email ?? ''}
 									disabled
 								/>
@@ -561,11 +559,11 @@
 							<span class="text-xs font-medium text-foreground">
 								{$_('admin.settings.features.affiliate.modal.codeLabel')}
 							</span>
-							<input
+							<Input
 								type="text"
-								class="h-9 rounded-md border border-input bg-background px-3 font-mono text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+								class="h-9 font-mono"
 								placeholder={$_('admin.settings.features.affiliate.modal.codePlaceholder')}
-								maxlength="32"
+								maxlength={32}
 								bind:value={modalCode}
 							/>
 							<p class="m-0 text-[11px] leading-normal text-muted-foreground">
@@ -579,12 +577,12 @@
 								{$_('admin.settings.features.affiliate.modal.rateLabel')}
 							</span>
 							<div class="relative">
-								<input
+								<Input
 									type="number"
 									step="0.01"
 									min="0"
 									max="100"
-									class="h-9 w-full rounded-md border border-input bg-background pl-3 pr-8 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+									class="h-9 pr-8"
 									placeholder={$_('admin.settings.features.affiliate.modal.ratePlaceholder')}
 									bind:value={modalRate}
 								/>
@@ -608,61 +606,46 @@
 							<span></span>
 						{/if}
 						<div class="flex gap-2">
-							<button
-								type="button"
-								class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+							<Button
+								variant="outline"
+								class="h-9"
 								onclick={closeModal}
 							>
 								{$_('common.cancel')}
-							</button>
-							<button
-								type="button"
+							</Button>
+							<Button
+								class="h-9"
 								data-testid="affiliate-custom-users-modal-save"
-								class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
 								disabled={modalSaving || !modalCanSubmit}
 								onclick={submitModal}
 							>
 								{modalSaving ? $_('common.saving') : $_('common.save')}
-							</button>
+							</Button>
 						</div>
 					</div>
-				</div>
 			</div>
-		{/if}
+		</StandardDialog>
 
 		<!-- batch rate modal -->
-		{#if batchOpen}
-			<div
-				class="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
-				role="dialog"
-				aria-modal="true"
-				onclick={(e) => {
-					if (e.target === e.currentTarget) batchOpen = false;
-				}}
-				onkeydown={(e) => {
-					if (e.key === 'Escape') batchOpen = false;
-				}}
-				tabindex="-1"
-			>
-				<div
-					class="flex w-full max-w-[440px] flex-col gap-4 rounded-xl border border-border bg-popover p-6 shadow-2xl"
-					data-testid="affiliate-custom-users-batch-modal"
-				>
-					<h3 class="m-0 text-[15px] font-semibold text-foreground">
-						{$_('admin.settings.features.affiliate.batchModal.title', {
-							values: { count: selected.length }
-						})}
-					</h3>
+		<StandardDialog
+			bind:open={batchOpen}
+			width="sm"
+			title={$_('admin.settings.features.affiliate.batchModal.title', {
+				values: { count: selected.length }
+			})}
+			data-testid="affiliate-custom-users-batch-modal"
+		>
+			<div class="mt-4 flex flex-col gap-4">
 					<p class="m-0 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.features.affiliate.batchModal.hint')}
 					</p>
 					<div class="relative">
-						<input
+						<Input
 							type="number"
 							step="0.01"
 							min="0"
 							max="100"
-							class="h-9 w-full rounded-md border border-input bg-background pl-3 pr-8 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9 pr-8"
 							placeholder={$_('admin.settings.features.affiliate.batchModal.placeholder')}
 							bind:value={batchRate}
 						/>
@@ -674,25 +657,53 @@
 						{$_('admin.settings.features.affiliate.batchModal.clearHint')}
 					</p>
 					<div class="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-3">
-						<button
-							type="button"
-							class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+						<Button
+							variant="outline"
+							class="h-9"
 							onclick={() => (batchOpen = false)}
 						>
 							{$_('common.cancel')}
-						</button>
-						<button
-							type="button"
+						</Button>
+						<Button
+							class="h-9"
 							data-testid="affiliate-custom-users-batch-save"
-							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
 							disabled={batchSaving}
 							onclick={submitBatchModal}
 						>
 							{batchSaving ? $_('common.saving') : $_('common.save')}
-						</button>
+						</Button>
 					</div>
+			</div>
+		</StandardDialog>
+
+		<StandardDialog
+			bind:open={resetDialogOpen}
+			width="sm"
+			title={$_('common.delete')}
+			data-testid="affiliate-custom-users-reset-dialog"
+		>
+			<div class="mt-4 space-y-4">
+				<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+					{$_('admin.settings.features.affiliate.customUsers.resetMessage', {
+						values: {
+							email: resetTarget?.email || (resetTarget ? `#${resetTarget.user_id}` : '')
+						}
+					})}
+				</p>
+				<div class="flex justify-end gap-2 border-t border-border pt-4">
+					<Button variant="outline" onclick={() => (resetDialogOpen = false)}>
+						{$_('common.cancel')}
+					</Button>
+					<Button
+						variant="outline"
+						class="border-destructive/30 text-destructive hover:bg-destructive/10"
+						onclick={confirmReset}
+						data-testid="affiliate-custom-users-reset-confirm"
+					>
+						{$_('common.delete')}
+					</Button>
 				</div>
 			</div>
-		{/if}
+		</StandardDialog>
 	{/if}
 </div>

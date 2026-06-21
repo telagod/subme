@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * CreateKeyDialog · bits-ui Dialog + superforms SPA + zod schema（M6）
+	 * CreateKeyDialog · StandardDialog + superforms SPA + zod schema（M6）
 	 *
 	 * 流程：
 	 *   1. 表单（name 必填 / quota 可选 / expires_in_days 可选）→ POST /keys
@@ -16,14 +16,19 @@
 	 *   - 优先 navigator.clipboard.writeText
 	 *   - fallback document.execCommand('copy')（依然写入选区，老 Safari/IE 兼容）
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
 	import { z } from 'zod';
 	import { superForm, defaults } from 'sveltekit-superforms/client';
 	import { zod4, zod4Client } from 'sveltekit-superforms/adapters';
 	import { Copy, Check, KeyRound, ShieldAlert } from '@lucide/svelte';
-	import { createKey, type ApiKey } from '$lib/api/user/apiKeys';
+	import { createKey, getAvailableGroups, type ApiKey, type AvailableGroup } from '$lib/api/user/apiKeys';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	type Props = {
 		open: boolean;
@@ -31,6 +36,18 @@
 	};
 
 	let { open = $bindable(false), onCreated }: Props = $props();
+
+	let groups = $state<AvailableGroup[]>([]);
+	let groupsLoading = $state(false);
+
+	async function loadGroups() {
+		if (groups.length > 0) return;
+		groupsLoading = true;
+		try { groups = await getAvailableGroups(); } catch { /* toast handled elsewhere */ }
+		groupsLoading = false;
+	}
+
+	$effect(() => { if (open) loadGroups(); });
 
 	// ── schema ─────────────────────────────────────────────────────────
 	// 中间步骤：name 必填；quota / expires_in_days 可选；
@@ -40,6 +57,7 @@
 			.string()
 			.min(1, 'user.keys.errors.NAME_REQUIRED')
 			.max(64, 'user.keys.errors.NAME_TOO_LONG'),
+		groupId: z.string().default('__none__'),
 		quota: z.coerce
 			.number()
 			.min(0, 'user.keys.errors.QUOTA_NEGATIVE')
@@ -69,6 +87,9 @@
 
 			try {
 				const payload: Record<string, unknown> = { name: validated.data.name };
+				if (validated.data.groupId && validated.data.groupId !== '__none__') {
+					payload.group_id = Number(validated.data.groupId);
+				}
 				if (validated.data.quota && validated.data.quota > 0) {
 					payload.quota = validated.data.quota;
 				}
@@ -167,7 +188,7 @@
 		setTimeout(resetState, 200);
 	}
 
-	// 拦截 bits-ui Dialog 自带的 ESC / overlay click 关闭。
+	// 拦截 StandardDialog 自带的 ESC / overlay click 关闭。
 	function handleOpenChange(next: boolean) {
 		if (next) {
 			open = true;
@@ -187,15 +208,24 @@
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={handleOpenChange}>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-		/>
-		<Dialog.Content
-			data-testid="create-key-dialog"
-			class="fixed left-1/2 top-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg outline-none"
-		>
+<StandardDialog
+	bind:open
+	onOpenChange={handleOpenChange}
+	width="md"
+	showHeader={false}
+	title={revealPanel
+		? $_('user.keys.revealTitle', { default: 'Save your new API key' })
+		: $_('user.keys.createTitle', { default: 'Create API key' })}
+	description={revealPanel
+		? $_('user.keys.revealDescription', {
+				default: "Copy this key now. We won't show it again."
+			})
+		: $_('user.keys.createDescription', {
+				default: 'Generate a new key for API access.'
+			})}
+	data-testid="create-key-dialog"
+	class="max-w-[480px] p-6"
+>
 			<div class="flex items-start gap-3">
 				<div
 					class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
@@ -203,12 +233,12 @@
 					<KeyRound class="h-5 w-5" />
 				</div>
 				<div class="space-y-1">
-					<Dialog.Title class="text-base font-semibold text-foreground">
+					<h2 class="text-base font-semibold text-foreground">
 						{revealPanel
 							? $_('user.keys.revealTitle', { default: 'Save your new API key' })
 							: $_('user.keys.createTitle', { default: 'Create API key' })}
-					</Dialog.Title>
-					<Dialog.Description class="text-sm text-muted-foreground">
+					</h2>
+					<p class="text-sm text-muted-foreground">
 						{revealPanel
 							? $_('user.keys.revealDescription', {
 									default: "Copy this key now. We won't show it again."
@@ -216,7 +246,7 @@
 							: $_('user.keys.createDescription', {
 									default: 'Generate a new key for API access.'
 								})}
-					</Dialog.Description>
+					</p>
 				</div>
 			</div>
 
@@ -232,7 +262,7 @@
 						<label for="key-name" class="text-sm font-medium text-foreground">
 							{$_('user.keys.nameLabel', { default: 'Name' })}
 						</label>
-						<input
+						<Input
 							id="key-name"
 							name="name"
 							type="text"
@@ -241,7 +271,6 @@
 							placeholder={$_('user.keys.namePlaceholder', { default: 'My API key' })}
 							bind:value={$form.name}
 							aria-invalid={$errors.name ? 'true' : undefined}
-							class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 						/>
 						{#if $errors.name && $errors.name[0]}
 							<p class="text-xs text-destructive" data-testid="error-name">
@@ -250,12 +279,30 @@
 						{/if}
 					</div>
 
+					<!-- group -->
+					<div class="space-y-1.5">
+						<label for="key-group" class="text-sm font-medium text-foreground">
+							{$_('user.keys.groupLabel', { default: 'Group (optional)' })}
+						</label>
+						<NativeSelect
+							id="key-group"
+							data-testid="create-key-group"
+							bind:value={$form.groupId}
+							disabled={groupsLoading}
+						>
+							<option value="__none__">{$_('user.keys.groupDefault', { default: 'Default group' })}</option>
+							{#each groups as g (g.id)}
+								<option value={g.id}>{g.name} ({g.platform})</option>
+							{/each}
+						</NativeSelect>
+					</div>
+
 					<!-- quota -->
 					<div class="space-y-1.5">
 						<label for="key-quota" class="text-sm font-medium text-foreground">
 							{$_('user.keys.quotaLabel', { default: 'Quota (USD, optional)' })}
 						</label>
-						<input
+						<Input
 							id="key-quota"
 							name="quota"
 							type="number"
@@ -266,7 +313,6 @@
 							placeholder={$_('user.keys.quotaPlaceholder', { default: 'Leave empty for unlimited' })}
 							bind:value={$form.quota}
 							aria-invalid={$errors.quota ? 'true' : undefined}
-							class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						/>
 						{#if $errors.quota && $errors.quota[0]}
 							<p class="text-xs text-destructive" data-testid="error-quota">
@@ -280,7 +326,7 @@
 						<label for="key-expires" class="text-sm font-medium text-foreground">
 							{$_('user.keys.expiresLabel', { default: 'Expires in (days, optional)' })}
 						</label>
-						<input
+						<Input
 							id="key-expires"
 							name="expiresInDays"
 							type="number"
@@ -294,7 +340,6 @@
 							})}
 							bind:value={$form.expiresInDays}
 							aria-invalid={$errors.expiresInDays ? 'true' : undefined}
-							class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						/>
 						{#if $errors.expiresInDays && $errors.expiresInDays[0]}
 							<p class="text-xs text-destructive" data-testid="error-expires">
@@ -304,33 +349,34 @@
 					</div>
 
 					{#if formError}
-						<p
-							class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+						<Alert
+							variant="destructive"
+							class="px-3 py-2 text-xs"
 							data-testid="create-error-form"
 						>
 							{formError}
-						</p>
+						</Alert>
 					{/if}
 
 					<div class="flex items-center justify-end gap-2 pt-2">
-						<button
-							type="button"
+						<Button
+							variant="outline"
 							data-testid="create-cancel-btn"
 							onclick={() => handleOpenChange(false)}
-							class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+							class="h-9"
 						>
 							{$_('user.keys.cancel', { default: 'Cancel' })}
-						</button>
-						<button
+						</Button>
+						<Button
 							type="submit"
 							data-testid="create-submit-btn"
 							disabled={$submitting}
-							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+							class="h-9"
 						>
 							{$submitting
 								? $_('user.keys.creating', { default: 'Creating...' })
 								: $_('user.keys.create', { default: 'Create' })}
-						</button>
+						</Button>
 					</div>
 				</form>
 			{:else}
@@ -364,19 +410,20 @@
 							>
 								{createdKey?.key ?? ''}
 							</code>
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="icon"
 								data-testid="reveal-copy-btn"
 								onclick={copyKey}
 								aria-label={$_('user.keys.copyToClipboard', { default: 'Copy to clipboard' })}
-								class="flex items-center justify-center border-l border-input px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+								class="h-auto rounded-none border-l border-input px-3 text-muted-foreground"
 							>
 								{#if copied}
 									<Check class="h-4 w-4 text-emerald-500" />
 								{:else}
 									<Copy class="h-4 w-4" />
 								{/if}
-							</button>
+							</Button>
 						</div>
 					</div>
 
@@ -384,11 +431,9 @@
 						class="flex items-center gap-2 text-sm text-foreground"
 						data-testid="reveal-saved-label"
 					>
-						<input
-							type="checkbox"
+						<Checkbox
 							data-testid="reveal-saved-checkbox"
 							bind:checked={savedConfirmed}
-							class="h-4 w-4 rounded border-input text-primary focus:ring-ring"
 						/>
 						<span>
 							{$_('user.keys.savedAcknowledge', {
@@ -398,18 +443,15 @@
 					</label>
 
 					<div class="flex items-center justify-end gap-2 pt-2">
-						<button
-							type="button"
+						<Button
 							data-testid="reveal-done-btn"
 							disabled={!canClose()}
 							onclick={handleDoneClick}
-							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+							class="h-9"
 						>
 							{$_('user.keys.done', { default: 'Done' })}
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+		</StandardDialog>

@@ -149,3 +149,33 @@ function formatAbs(ts: number): string {
 		return '';
 	}
 }
+
+/**
+ * Channel model-pricing 单位换算 —— backend 存 per-token，UI 显示 $/MTok。
+ * 1:1 port 自 Vue `frontend/src/components/admin/channel/types.ts`，改一行需同步检查。
+ *
+ * toPrecision(10) 杀浮点误差：5e-8 * 1e6 必须 round 成 0.05；3e-6 round-trip 稳定。
+ * 注意：per_request_price 是定额费，绝不换算——调用方对该字段直接传 raw。
+ */
+export const MTOK = 1_000_000;
+
+function toNullableNumber(val: number | string | null | undefined): number | null {
+	if (val === null || val === undefined) return null;
+	if (typeof val === 'number') return Number.isFinite(val) ? val : null;
+	const trimmed = val.trim();
+	if (!trimmed) return null;
+	const n = Number(trimmed);
+	return Number.isFinite(n) ? n : null;
+}
+
+/** SAVE: 表单 $/MTok 值 → backend per-token。null 透传。 */
+export function mTokToPerToken(val: number | string | null | undefined): number | null {
+	const n = toNullableNumber(val);
+	return n === null ? null : parseFloat((n / MTOK).toPrecision(10));
+}
+
+/** LOAD: backend per-token → 表单 $/MTok 值。null 透传。 */
+export function perTokenToMTok(val: number | null | undefined): number | null {
+	if (val == null) return null;
+	return parseFloat((val * MTOK).toPrecision(10));
+}

@@ -11,10 +11,10 @@
 	 *   - select 严格 sentinel-safe —— provider.type 是 brave|tavily 具体值。
 	 *
 	 * 与 Vue tree 差异：
-	 *   - 暂略 ProxySelector（Svelte 仓库尚未端口 /admin/proxies API）—— proxy_id
-	 *     退化为 number input。后端契约同源，后续接入 proxies API 时切换为 select 即可。
+	 *   - proxy_id 通过 admin proxies facade 渲染为 select；加载失败或历史 ID 不在列表内
+	 *     时保留 custom ID 兜底。
 	 *   - 简化 quota 使用进度条 + 复制 API key + reset usage（Vue tree 包含完整 UI；
-	 *     这里保留可视化与重置入口，但不依赖 navigator.clipboard / proxies API）。
+	 *     这里保留可视化与重置入口，但不依赖 navigator.clipboard）。
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -25,6 +25,12 @@
 		type WebSearchTestResult
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import InteractiveRow from '$lib/ui/InteractiveRow.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import { listAllProxies, type Proxy } from '$lib/api/admin/proxies';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -38,20 +44,28 @@
 	const { values: _v, dirtyKeys: _d, onFieldUpdate: _f }: Props = $props();
 
 	const DEFAULT_QUOTA_LIMIT = 1000;
+	const NO_PROXY = '__none__';
+	const CUSTOM_PROXY = '__custom__';
 
 	let loading = $state(true);
 	let saving = $state(false);
 	let config = $state<WebSearchEmulationConfig>({ enabled: false, providers: [] });
 	let expanded = $state<Record<number, boolean>>({});
+	let proxies = $state<Proxy[]>([]);
+	let proxiesLoading = $state(false);
+	let proxiesError = $state<string | null>(null);
 
 	// test dialog state
 	let testOpen = $state(false);
 	let testQuery = $state('');
 	let testLoading = $state(false);
 	let testResult = $state<WebSearchTestResult | null>(null);
+	let resetUsageDialogOpen = $state(false);
+	let resetUsageIndex = $state<number | null>(null);
 
 	onMount(async () => {
 		loading = true;
+		void loadProxies();
 		try {
 			const resp = await settingsApi.getWebSearchEmulationConfig();
 			config = {
@@ -64,6 +78,19 @@
 			loading = false;
 		}
 	});
+
+	async function loadProxies() {
+		proxiesLoading = true;
+		proxiesError = null;
+		try {
+			proxies = await listAllProxies();
+		} catch (err) {
+			proxiesError = err instanceof Error ? err.message : String(err);
+			proxies = [];
+		} finally {
+			proxiesLoading = false;
+		}
+	}
 
 	function toggleEnabled() {
 		config = { ...config, enabled: !config.enabled };
@@ -94,6 +121,12 @@
 	function onProxyIdInput(index: number, e: Event) {
 		const raw = (e.target as HTMLInputElement).value;
 		updateProvider(index, { proxy_id: raw === '' ? null : Number(raw) });
+	}
+
+	function onProxySelect(index: number, e: Event) {
+		const raw = (e.target as HTMLSelectElement).value;
+		if (raw === CUSTOM_PROXY) return;
+		updateProvider(index, { proxy_id: raw === NO_PROXY ? null : Number(raw) });
 	}
 
 	function addProvider() {
@@ -145,17 +178,38 @@
 		return 'bg-emerald-500';
 	}
 
-	async function resetUsage(index: number) {
+	function proxySelectValue(proxyId: number | null | undefined): string {
+		if (proxyId == null || proxyId <= 0) return NO_PROXY;
+		return proxies.some((proxy) => proxy.id === proxyId) ? String(proxyId) : CUSTOM_PROXY;
+	}
+
+	function proxyLabel(proxy: Proxy): string {
+		const status = proxy.status && proxy.status !== 'active' ? ` · ${proxy.status}` : '';
+		const count =
+			typeof proxy.accounts_count === 'number'
+				? ` · ${proxy.accounts_count} acct`
+				: typeof proxy.total_accounts === 'number'
+					? ` · ${proxy.total_accounts} acct`
+					: '';
+		return `${proxy.name} (#${proxy.id}, ${proxy.protocol})${status}${count}`;
+	}
+
+	function openResetUsageDialog(index: number) {
+		if (!config.providers[index]) return;
+		resetUsageIndex = index;
+		resetUsageDialogOpen = true;
+	}
+
+	async function confirmResetUsage() {
+		if (resetUsageIndex == null) return;
+		const index = resetUsageIndex;
 		const provider = config.providers[index];
 		if (!provider) return;
-		if (
-			typeof window !== 'undefined' &&
-			!window.confirm($_('admin.settings.webSearchEmulation.resetUsageConfirm'))
-		)
-			return;
 		try {
 			await settingsApi.resetWebSearchUsage(provider.type);
 			updateProvider(index, { quota_used: 0 });
+			resetUsageDialogOpen = false;
+			resetUsageIndex = null;
 			showSuccess($_('admin.settings.webSearchEmulation.resetUsageSuccess'));
 		} catch (err) {
 			showError(err instanceof Error ? err.message : $_('common.error'));
@@ -235,9 +289,10 @@
 					{$_('admin.settings.webSearchEmulation.enabledHint')}
 				</p>
 			</div>
-			<button
+			<Button
 				id="web-search-enabled"
-				type="button"
+				variant="ghost"
+				size="icon"
 				role="switch"
 				aria-checked={config.enabled}
 				aria-label={$_('admin.settings.webSearchEmulation.enabled')}
@@ -253,7 +308,7 @@
 						? 'translate-x-4'
 						: 'translate-x-0.5'}"
 				></span>
-			</button>
+			</Button>
 		</div>
 
 		{#if config.enabled}
@@ -262,15 +317,15 @@
 					<label class="block text-sm font-medium text-foreground" for="web-search-add">
 						{$_('admin.settings.webSearchEmulation.providers')}
 					</label>
-					<button
+					<Button
 						id="web-search-add"
-						type="button"
+						variant="outline"
+						size="sm"
 						data-testid="web-search-add-provider"
 						onclick={addProvider}
-						class="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
 					>
 						{$_('admin.settings.webSearchEmulation.addProvider')}
-					</button>
+					</Button>
 				</div>
 
 				{#if config.providers.length === 0}
@@ -289,11 +344,10 @@
 						class="overflow-hidden rounded-md border border-border"
 					>
 						<!-- header -->
-						<div
+						<InteractiveRow
 							class="flex cursor-pointer select-none items-center justify-between gap-2 px-3 py-2"
+							data-testid="web-search-provider-header"
 							onclick={() => toggleExpand(index)}
-							role="button"
-							tabindex="0"
 							onkeydown={(e) => {
 								if (e.key === 'Enter' || e.key === ' ') toggleExpand(index);
 							}}
@@ -306,16 +360,16 @@
 										? 'rotate-90'
 										: ''}">▶</span
 								>
-								<select
+								<NativeSelect
 									data-testid="web-search-provider-type"
 									value={provider.type}
 									onclick={(e) => e.stopPropagation()}
 									onchange={(e) => onTypeChange(index, e)}
-									class="h-8 rounded-md border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+									class="h-8 px-2 text-xs"
 								>
 									<option value="brave">Brave Search</option>
 									<option value="tavily">Tavily</option>
-								</select>
+								</NativeSelect>
 								<span class="text-xs tabular-nums text-muted-foreground">
 									{provider.quota_used ?? 0} /
 									{provider.quota_limit != null && provider.quota_limit > 0
@@ -328,18 +382,19 @@
 									</span>
 								{/if}
 							</div>
-							<button
-								type="button"
+							<Button
+								variant="ghost"
+								size="sm"
 								data-testid="web-search-provider-remove"
 								onclick={(e) => {
 									e.stopPropagation();
 									removeProvider(index);
 								}}
-								class="inline-flex h-7 items-center justify-center rounded-md px-2 text-xs text-destructive hover:bg-destructive/10"
+								class="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
 							>
 								{$_('admin.settings.webSearchEmulation.removeProvider')}
-							</button>
-						</div>
+							</Button>
+						</InteractiveRow>
 
 						{#if expanded[index]}
 							<div
@@ -353,7 +408,7 @@
 									>
 										{$_('admin.settings.webSearchEmulation.apiKey')}
 									</label>
-									<input
+									<Input
 										id="web-search-api-key-{index}"
 										type="password"
 										autocomplete="new-password"
@@ -363,7 +418,7 @@
 											: $_('admin.settings.webSearchEmulation.apiKeyPlaceholder')}
 										value={provider.api_key}
 										oninput={(e) => onApiKeyInput(index, e)}
-										class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+										class="h-9"
 									/>
 								</div>
 
@@ -375,7 +430,7 @@
 										>
 											{$_('admin.settings.webSearchEmulation.quotaLimit')}
 										</label>
-										<input
+										<Input
 											id="web-search-quota-limit-{index}"
 											type="number"
 											min="1"
@@ -383,7 +438,7 @@
 											placeholder="∞"
 											value={provider.quota_limit ?? ''}
 											oninput={(e) => onQuotaLimitInput(index, e)}
-											class="h-9 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+											class="h-9 font-mono"
 										/>
 										<p class="m-0 text-[11px] leading-snug text-muted-foreground">
 											{$_('admin.settings.webSearchEmulation.quotaLimitHint')}
@@ -396,16 +451,46 @@
 										>
 											{$_('admin.settings.webSearchEmulation.proxy')}
 										</label>
-										<input
-											id="web-search-proxy-id-{index}"
-											type="number"
-											min="0"
-											data-testid="web-search-proxy-id"
-											placeholder="0"
-											value={provider.proxy_id ?? ''}
-											oninput={(e) => onProxyIdInput(index, e)}
-											class="h-9 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-										/>
+										<div class="flex flex-col gap-1">
+											<NativeSelect
+												id="web-search-proxy-id-{index}"
+												class="h-9"
+												data-testid="web-search-proxy-select"
+												value={proxySelectValue(provider.proxy_id)}
+												disabled={proxiesLoading}
+												onchange={(e) => onProxySelect(index, e)}
+											>
+												<option value={NO_PROXY}>
+													{$_('admin.settings.webSearchEmulation.noProxy')}
+												</option>
+												<option value={CUSTOM_PROXY}>
+													{proxiesLoading
+														? $_('admin.settings.webSearchEmulation.loadingProxies')
+														: $_('admin.settings.webSearchEmulation.customProxyId')}
+												</option>
+												{#each proxies as proxy (proxy.id)}
+													<option value={String(proxy.id)}>{proxyLabel(proxy)}</option>
+												{/each}
+											</NativeSelect>
+											{#if proxySelectValue(provider.proxy_id) === CUSTOM_PROXY}
+												<Input
+													type="number"
+													min="0"
+													data-testid="web-search-proxy-id"
+													placeholder={$_(
+														'admin.settings.webSearchEmulation.customProxyIdPlaceholder'
+													)}
+													value={provider.proxy_id ?? ''}
+													oninput={(e) => onProxyIdInput(index, e)}
+													class="h-9 font-mono"
+												/>
+											{/if}
+											{#if proxiesError}
+												<p class="m-0 text-[11px] text-amber-500">
+													{$_('admin.settings.webSearchEmulation.proxyLoadFailed')}
+												</p>
+											{/if}
+										</div>
 									</div>
 								</div>
 
@@ -433,26 +518,27 @@
 											: '∞'}
 									</span>
 									{#if (provider.quota_used ?? 0) > 0}
-										<button
-											type="button"
-											data-testid="web-search-reset-usage"
-											onclick={() => resetUsage(index)}
-											class="inline-flex h-7 items-center whitespace-nowrap rounded-md px-2 text-xs text-primary hover:underline"
-										>
+											<Button
+												variant="ghost"
+												size="sm"
+												data-testid="web-search-reset-usage"
+												onclick={() => openResetUsageDialog(index)}
+												class="h-7 whitespace-nowrap px-2 text-xs text-primary hover:bg-transparent hover:underline"
+											>
 											{$_('admin.settings.webSearchEmulation.resetUsage')}
-										</button>
+										</Button>
 									{/if}
 								</div>
 
 								<div class="flex justify-end">
-									<button
-										type="button"
+									<Button
+										variant="outline"
+										size="sm"
 										data-testid="web-search-open-test"
 										onclick={openTest}
-										class="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
 									>
 										{$_('admin.settings.webSearchEmulation.test')}
-									</button>
+									</Button>
 								</div>
 							</div>
 						{/if}
@@ -462,38 +548,27 @@
 		{/if}
 
 		<div class="flex justify-end border-t border-border pt-4">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				class="h-9"
 				data-testid="web-search-save"
 				disabled={saving}
 				onclick={save}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 			>
 				{saving ? $_('common.saving') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	{/if}
 
-	{#if testOpen}
-		<div
-			data-testid="web-search-test-dialog"
-			class="fixed inset-0 z-50 flex items-center justify-center bg-black/55"
-			onclick={(e) => {
-				if (e.target === e.currentTarget) closeTest();
-			}}
-			onkeydown={(e) => {
-				if (e.key === 'Escape') closeTest();
-			}}
-			role="dialog"
-			tabindex="-1"
-			aria-modal="true"
-		>
-			<div class="mx-4 w-full max-w-lg rounded-md border border-border bg-card p-5">
-				<h3 class="m-0 mb-3 text-base font-semibold text-foreground">
-					{$_('admin.settings.webSearchEmulation.testResultTitle')}
-				</h3>
+	<StandardDialog
+		bind:open={testOpen}
+		width="md"
+		title={$_('admin.settings.webSearchEmulation.testResultTitle')}
+		data-testid="web-search-test-dialog"
+	>
+		<div class="mt-4">
 				<div class="flex items-center gap-2">
-					<input
+					<Input
 						type="text"
 						data-testid="web-search-test-query"
 						placeholder={$_('admin.settings.webSearchEmulation.testDefaultQuery')}
@@ -502,19 +577,19 @@
 						onkeyup={(e) => {
 							if (e.key === 'Enter') runTest();
 						}}
-						class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 flex-1"
 					/>
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						class="h-9 whitespace-nowrap"
 						data-testid="web-search-run-test"
 						disabled={testLoading}
 						onclick={runTest}
-						class="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 					>
 						{testLoading
 							? $_('admin.settings.webSearchEmulation.testing')
 							: $_('admin.settings.webSearchEmulation.test')}
-					</button>
+					</Button>
 				</div>
 				{#if testResult}
 					<div class="mt-4 max-h-80 overflow-y-auto rounded-md bg-muted p-3">
@@ -545,16 +620,41 @@
 					</div>
 				{/if}
 				<div class="mt-4 flex justify-end">
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						class="h-9"
 						data-testid="web-search-test-close"
 						onclick={closeTest}
-						class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
 					>
 						{$_('common.close')}
-					</button>
+					</Button>
 				</div>
+		</div>
+	</StandardDialog>
+
+	<StandardDialog
+		bind:open={resetUsageDialogOpen}
+		width="sm"
+		title={$_('admin.settings.webSearchEmulation.resetUsage')}
+		data-testid="web-search-reset-usage-dialog"
+	>
+		<div class="mt-4 space-y-4">
+			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+				{$_('admin.settings.webSearchEmulation.resetUsageConfirm')}
+			</p>
+			<div class="flex justify-end gap-2 border-t border-border pt-4">
+				<Button variant="outline" onclick={() => (resetUsageDialogOpen = false)}>
+					{$_('common.cancel')}
+				</Button>
+				<Button
+					variant="outline"
+					class="border-destructive/30 text-destructive hover:bg-destructive/10"
+					onclick={confirmResetUsage}
+					data-testid="web-search-reset-usage-confirm"
+				>
+					{$_('common.confirm')}
+				</Button>
 			</div>
 		</div>
-	{/if}
+	</StandardDialog>
 </div>

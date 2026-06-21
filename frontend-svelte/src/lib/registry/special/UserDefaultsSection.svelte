@@ -9,14 +9,22 @@
 	 *   - default_platform_quotas：4 平台 × 3 窗口（daily/weekly/monthly）矩阵
 	 *
 	 * 与 Vue tree 差异：
-	 *   - group_id 用 number input 替代 Vue 的 GroupBadge Select —— Svelte 仓库尚无
-	 *     admin.groups API；后端契约同形，接入 API 后可零破换 select。
+	 *   - group picker 走 Svelte admin groups facade；若加载失败或既有 group_id 不在列表内，
+	 *     仍保留 custom ID 兜底，避免管理员丢失老配置。
 	 *   - 归一化策略（sanitizePlatformQuotasMap）内联实现 —— 非有限数/负数/空串 → null，
 	 *     保留 0 = 显式禁用。
 	 *
-	 * Sentinel：本组件不渲染任何 select option，沿用 sentinel guard 自动 PASS。
-	 */
+	 * Sentinel：group select 使用 "__custom__"，不使用空 option。
+ */
+	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import {
+		listAllGroupsIncludingInactive,
+		type AdminGroup
+	} from '$lib/api/admin/groups';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -27,6 +35,7 @@
 	type QuotaMap = Record<PlatformType, QuotaCell>;
 
 	type SubscriptionRow = { group_id: number; validity_days: number };
+	const CUSTOM_GROUP = '__custom__';
 
 	type Props = {
 		values: Record<string, unknown>;
@@ -35,6 +44,27 @@
 	};
 
 	const { values, onFieldUpdate }: Props = $props();
+
+	let groups = $state<AdminGroup[]>([]);
+	let groupsLoading = $state(false);
+	let groupsError = $state<string | null>(null);
+
+	onMount(() => {
+		void loadGroups();
+	});
+
+	async function loadGroups() {
+		groupsLoading = true;
+		groupsError = null;
+		try {
+			groups = await listAllGroupsIncludingInactive();
+		} catch (err) {
+			groupsError = err instanceof Error ? err.message : String(err);
+			groups = [];
+		} finally {
+			groupsLoading = false;
+		}
+	}
 
 	function cloneSubs(raw: unknown): SubscriptionRow[] {
 		if (!Array.isArray(raw)) return [];
@@ -129,6 +159,10 @@
 		subs = subs.map((s, idx) => (idx === i ? { ...s, group_id: Number.isFinite(n) ? n : 0 } : s));
 		emitSubs();
 	}
+	function patchSubGroupSelect(i: number, raw: string) {
+		if (raw === CUSTOM_GROUP) return;
+		patchSubGroupId(i, raw);
+	}
 	function patchSubValidity(i: number, raw: string) {
 		const n = raw === '' ? 0 : Number(raw);
 		subs = subs.map((s, idx) =>
@@ -145,6 +179,15 @@
 		};
 		emitQuotas();
 	}
+
+	function groupSelectValue(groupId: number): string {
+		return groups.some((group) => group.id === groupId) ? String(groupId) : CUSTOM_GROUP;
+	}
+
+	function groupLabel(group: AdminGroup): string {
+		const status = group.status && group.status !== 'active' ? ` · ${group.status}` : '';
+		return `${group.name} (#${group.id}, ${group.platform})${status}`;
+	}
 </script>
 
 <div class="flex flex-col gap-6" data-special="user-defaults">
@@ -159,14 +202,14 @@
 					{$_('admin.settings.defaults.defaultSubscriptionsHint')}
 				</p>
 			</div>
-			<button
-				type="button"
+			<Button
+				variant="outline"
 				data-testid="default-subscription-add"
-				class="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+				class="h-9 shrink-0 text-xs"
 				onclick={addSubscription}
 			>
 				+ {$_('admin.settings.defaults.addDefaultSubscription')}
-			</button>
+			</Button>
 		</div>
 
 		{#if subs.length === 0}
@@ -187,38 +230,65 @@
 							<span class="mb-1 block text-[11px] font-medium text-muted-foreground">
 								{$_('admin.settings.defaults.subscriptionGroup')}
 							</span>
-							<input
-								type="number"
-								min="1"
-								class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-								value={row.group_id === 0 ? '' : String(row.group_id)}
-								placeholder="ID"
-								oninput={(e) =>
-									patchSubGroupId(i, (e.target as HTMLInputElement).value)}
-							/>
+							<div class="flex flex-col gap-1">
+								<NativeSelect
+									class="h-9"
+									data-testid="default-subscription-group-select"
+									value={groupSelectValue(row.group_id)}
+									disabled={groupsLoading}
+									onchange={(e) =>
+										patchSubGroupSelect(i, (e.target as HTMLSelectElement).value)}
+								>
+									<option value={CUSTOM_GROUP}>
+										{groupsLoading
+											? $_('admin.settings.defaults.loadingGroups')
+											: $_('admin.settings.defaults.customGroupId')}
+									</option>
+									{#each groups as group (group.id)}
+										<option value={String(group.id)}>{groupLabel(group)}</option>
+									{/each}
+								</NativeSelect>
+								{#if groupSelectValue(row.group_id) === CUSTOM_GROUP}
+									<Input
+										type="number"
+										min="1"
+										class="h-9"
+										data-testid="default-subscription-group-id"
+										value={row.group_id === 0 ? '' : String(row.group_id)}
+										placeholder={$_('admin.settings.defaults.customGroupIdPlaceholder')}
+										oninput={(e) =>
+											patchSubGroupId(i, (e.target as HTMLInputElement).value)}
+									/>
+								{/if}
+								{#if groupsError}
+									<p class="m-0 text-[11px] text-amber-500">
+										{$_('admin.settings.defaults.groupLoadFailed')}
+									</p>
+								{/if}
+							</div>
 						</label>
 						<label class="flex flex-col">
 							<span class="mb-1 block text-[11px] font-medium text-muted-foreground">
 								{$_('admin.settings.defaults.subscriptionValidityDays')}
 							</span>
-							<input
+							<Input
 								type="number"
 								min="1"
 								max="36500"
-								class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+								class="h-9"
 								value={String(row.validity_days)}
 								oninput={(e) => patchSubValidity(i, (e.target as HTMLInputElement).value)}
 							/>
 						</label>
 						<div class="flex items-end">
-							<button
-								type="button"
+							<Button
+								variant="outline"
 								data-testid="default-subscription-remove"
-								class="inline-flex h-9 w-full items-center justify-center rounded-md border border-input bg-background px-3 text-xs text-destructive hover:bg-destructive/10"
+								class="h-9 w-full text-xs text-destructive hover:bg-destructive/10"
 								onclick={() => removeSubscription(i)}
 							>
 								{$_('common.delete')}
-							</button>
+							</Button>
 						</div>
 					</div>
 				{/each}
@@ -273,36 +343,36 @@
 								<span class="font-mono text-[12px] text-foreground opacity-85">{p}</span>
 							</td>
 							<td class="py-1 pr-3">
-								<input
+								<Input
 									type="number"
 									step="0.01"
 									min="0"
 									data-testid={`quota-${p}-daily`}
-									class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+									class="h-8 w-28 px-2 text-xs"
 									value={quotas[p].daily === null ? '' : String(quotas[p].daily)}
 									placeholder={$_('admin.settings.platformQuota.placeholder')}
 									oninput={(e) => patchQuota(p, 'daily', (e.target as HTMLInputElement).value)}
 								/>
 							</td>
 							<td class="py-1 pr-3">
-								<input
+								<Input
 									type="number"
 									step="0.01"
 									min="0"
 									data-testid={`quota-${p}-weekly`}
-									class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+									class="h-8 w-28 px-2 text-xs"
 									value={quotas[p].weekly === null ? '' : String(quotas[p].weekly)}
 									placeholder={$_('admin.settings.platformQuota.placeholder')}
 									oninput={(e) => patchQuota(p, 'weekly', (e.target as HTMLInputElement).value)}
 								/>
 							</td>
 							<td class="py-1 pr-3">
-								<input
+								<Input
 									type="number"
 									step="0.01"
 									min="0"
 									data-testid={`quota-${p}-monthly`}
-									class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+									class="h-8 w-28 px-2 text-xs"
 									value={quotas[p].monthly === null ? '' : String(quotas[p].monthly)}
 									placeholder={$_('admin.settings.platformQuota.placeholder')}
 									oninput={(e) => patchQuota(p, 'monthly', (e.target as HTMLInputElement).value)}

@@ -10,6 +10,101 @@
  */
 import { apiClient } from './client';
 
+export interface LoginAgreementDocument {
+	id: string;
+	title: string;
+	content_md: string;
+}
+
+export interface CustomMenuItem {
+	id: string;
+	label: string;
+	icon_svg?: string;
+	url: string;
+	page_slug?: string;
+	visibility?: 'user' | 'admin' | string;
+	sort_order?: number;
+}
+
+export interface CustomEndpoint {
+	name: string;
+	endpoint: string;
+	description: string;
+}
+
+export interface PublicSettings {
+	registration_enabled?: boolean;
+	email_verify_enabled?: boolean;
+	force_email_on_third_party_signup?: boolean;
+	registration_email_suffix_whitelist?: string[];
+	promo_code_enabled?: boolean;
+	password_reset_enabled?: boolean;
+	invitation_code_enabled?: boolean;
+	totp_enabled?: boolean;
+	login_agreement_enabled?: boolean;
+	login_agreement_mode?: 'modal' | 'checkbox' | string;
+	login_agreement_updated_at?: string;
+	login_agreement_revision?: string;
+	login_agreement_documents?: LoginAgreementDocument[];
+	turnstile_enabled?: boolean;
+	turnstile_site_key?: string;
+	site_name?: string;
+	site_logo?: string;
+	site_subtitle?: string;
+	api_base_url?: string;
+	contact_info?: string;
+	doc_url?: string;
+	home_content?: string;
+	hide_ccs_import_button?: boolean;
+	purchase_subscription_enabled?: boolean;
+	purchase_subscription_url?: string;
+	payment_enabled?: boolean;
+	risk_control_enabled?: boolean;
+	table_default_page_size?: number;
+	table_page_size_options?: number[];
+	custom_menu_items?: CustomMenuItem[];
+	custom_endpoints?: CustomEndpoint[];
+	linuxdo_oauth_enabled?: boolean;
+	dingtalk_oauth_enabled?: boolean;
+	wechat_oauth_enabled?: boolean;
+	wechat_oauth_open_enabled?: boolean;
+	wechat_oauth_mp_enabled?: boolean;
+	wechat_oauth_mobile_enabled?: boolean;
+	oidc_oauth_enabled?: boolean;
+	oidc_oauth_provider_name?: string;
+	github_oauth_enabled?: boolean;
+	google_oauth_enabled?: boolean;
+	backend_mode_enabled?: boolean;
+	version?: string;
+	balance_low_notify_enabled?: boolean;
+	account_quota_notify_enabled?: boolean;
+	balance_low_notify_threshold?: number;
+	channel_monitor_enabled?: boolean;
+	channel_monitor_default_interval_seconds?: number;
+	available_channels_enabled?: boolean;
+	affiliate_enabled?: boolean;
+	allow_user_view_error_requests?: boolean;
+	[key: string]: unknown;
+}
+
+interface ApiEnvelope<T> {
+	code?: number;
+	message?: string;
+	data?: T;
+}
+
+function unwrapMaybeEnvelope<T>(value: T | ApiEnvelope<T>): T {
+	if (
+		value &&
+		typeof value === 'object' &&
+		'data' in value &&
+		(value as ApiEnvelope<T>).data !== undefined
+	) {
+		return (value as ApiEnvelope<T>).data as T;
+	}
+	return value as T;
+}
+
 export interface LoginPayload {
 	email: string;
 	password: string;
@@ -24,15 +119,21 @@ export interface AuthUser {
 	username?: string;
 	role?: 'admin' | 'user' | string;
 	balance?: number;
+	concurrency?: number;
 	run_mode?: 'standard' | 'simple';
 	[k: string]: unknown;
 }
 
-export interface AuthResponse {
+export interface OAuthTokenResponse {
 	access_token: string;
 	refresh_token?: string;
 	expires_in?: number;
 	token_type?: string;
+	user?: AuthUser;
+	redirect?: string;
+}
+
+export interface AuthResponse extends OAuthTokenResponse {
 	user: AuthUser;
 }
 
@@ -51,6 +152,48 @@ export function isTotpChallenge(r: LoginResponse): r is TotpChallengeResponse {
 		'requires_2fa' in r &&
 		(r as TotpChallengeResponse).requires_2fa === true
 	);
+}
+
+export interface OAuthAdoptionDecision {
+	adoptDisplayName?: boolean;
+	adoptAvatar?: boolean;
+}
+
+function serializeOAuthAdoptionDecision(
+	decision?: OAuthAdoptionDecision
+): Record<string, boolean> {
+	const payload: Record<string, boolean> = {};
+	if (typeof decision?.adoptDisplayName === 'boolean') {
+		payload.adopt_display_name = decision.adoptDisplayName;
+	}
+	if (typeof decision?.adoptAvatar === 'boolean') {
+		payload.adopt_avatar = decision.adoptAvatar;
+	}
+	return payload;
+}
+
+export interface PendingOAuthExchangeResponse extends Partial<OAuthTokenResponse> {
+	auth_result?: string;
+	redirect?: string;
+	error?: string;
+	requires_2fa?: boolean;
+	temp_token?: string;
+	user_email_masked?: string;
+	adoption_required?: boolean;
+	suggested_display_name?: string;
+	suggested_avatar_url?: string;
+	provider?: string;
+	email?: string;
+	resolved_email?: string;
+	invitation_required?: boolean;
+}
+
+export type EmailOAuthProvider = 'github' | 'google';
+
+export interface CompleteEmailOAuthRegistrationPayload {
+	password: string;
+	invitation_code?: string;
+	aff_code?: string;
 }
 
 export interface RegisterPayload {
@@ -91,13 +234,21 @@ export interface VerifyEmailResponse {
 
 export const authApi = {
 	login(payload: LoginPayload): Promise<LoginResponse> {
-		return apiClient.post<LoginResponse>('/api/v1/auth/login', payload);
+		return apiClient
+			.post<LoginResponse | ApiEnvelope<LoginResponse>>('/api/v1/auth/login', payload)
+			.then((resp) => unwrapMaybeEnvelope<LoginResponse>(resp));
 	},
 	logout(refreshToken?: string | null): Promise<unknown> {
 		return apiClient.post('/api/v1/auth/logout', { refresh_token: refreshToken ?? '' });
 	},
 	me(): Promise<MeResponse> {
 		return apiClient.get<MeResponse>('/api/v1/auth/me');
+	},
+	async getPublicSettings(): Promise<PublicSettings> {
+		const resp = await apiClient.get<PublicSettings | ApiEnvelope<PublicSettings>>(
+			'/api/v1/settings/public'
+		);
+		return unwrapMaybeEnvelope<PublicSettings>(resp);
 	},
 	register(payload: RegisterPayload): Promise<RegisterResponse> {
 		return apiClient.post<RegisterResponse>('/api/v1/auth/register', payload);
@@ -201,6 +352,23 @@ export const authApi = {
 			intent: 'dingtalk_email_completion',
 			partial_auth_token: partialAuthToken
 		});
+	},
+	async exchangePendingOAuthCompletion(
+		decision?: OAuthAdoptionDecision
+	): Promise<PendingOAuthExchangeResponse> {
+		const resp = await apiClient.post<
+			PendingOAuthExchangeResponse | ApiEnvelope<PendingOAuthExchangeResponse>
+		>('/api/v1/auth/oauth/pending/exchange', serializeOAuthAdoptionDecision(decision));
+		return unwrapMaybeEnvelope<PendingOAuthExchangeResponse>(resp);
+	},
+	completeEmailOAuthRegistration(
+		provider: EmailOAuthProvider,
+		payload: CompleteEmailOAuthRegistrationPayload
+	): Promise<OAuthTokenResponse> {
+		return apiClient.post<OAuthTokenResponse>(
+			`/api/v1/auth/oauth/${encodeURIComponent(provider)}/complete-registration`,
+			payload
+		);
 	}
 };
 

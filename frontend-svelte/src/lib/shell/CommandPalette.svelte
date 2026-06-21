@@ -26,6 +26,8 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import type { NavGroup, NavItem } from '$lib/nav/types';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	let open = $state(false);
 	let query = $state('');
@@ -143,13 +145,13 @@
 
 			<div class="flex items-center gap-2 border-b px-3 py-2">
 				<Search class="h-4 w-4 text-muted-foreground" />
-				<input
+				<Input
 					type="text"
 					bind:value={query}
 					placeholder={$_('nav.quench.commandPalettePlaceholder', {
 						default: 'Search pages, settings…'
 					})}
-					class="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+					class="h-9 flex-1 border-none bg-transparent px-0 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 					data-testid="command-palette-input"
 					autocomplete="off"
 					autocapitalize="off"
@@ -168,15 +170,14 @@
 				{:else}
 					{#each filtered as item, i (item.variant + ':' + item.key)}
 						{@const active = i === activeIndex}
-						<button
-							type="button"
+						<Button
+							variant="ghost"
 							onclick={() => selectItem(item)}
 							onmouseenter={() => (activeIndex = i)}
 							data-testid="cmdk-item-{item.variant}-{item.key}"
 							data-active={active || undefined}
 							data-path={item.path}
-							class="flex w-full items-center gap-2 rounded-[8px] px-2.5 py-2 text-left text-sm transition-colors"
-							class:cmdk-active={active}
+							class="h-auto w-full justify-start rounded-[8px] px-2.5 py-2 text-left text-sm hover:text-foreground {active ? 'bg-primary/10 text-foreground shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.25),0_0_12px_hsl(var(--primary)/0.1)]' : 'text-muted-foreground'}"
 						>
 							<item.icon class="h-4 w-4 shrink-0 opacity-90" />
 							<span class="flex-1 truncate">{$_(item.labelKey)}</span>
@@ -186,26 +187,10 @@
 							<span class="font-mono text-[10px] text-muted-foreground">
 								{$_(item.groupLabelKey)}
 							</span>
-						</button>
+						</Button>
 					{/each}
 				{/if}
 			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
-
-<style>
-	.cmdk-active {
-		background-color: hsl(var(--primary) / 0.1);
-		color: hsl(var(--foreground));
-		box-shadow:
-			inset 0 0 0 1px hsl(var(--primary) / 0.25),
-			0 0 12px hsl(var(--primary) / 0.1);
-	}
-	button:not(.cmdk-active) {
-		color: hsl(var(--muted-foreground));
-	}
-	button:hover {
-		color: hsl(var(--foreground));
-	}
-</style>

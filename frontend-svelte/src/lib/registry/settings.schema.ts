@@ -55,6 +55,61 @@ export const testEmailSection: SectionDef = {
 	special: 'test-email'
 };
 
+/** 订阅到期提醒总开关。 */
+export const emailSubscriptionExpirySection: SectionDef = {
+	id: 'email.subscriptionExpiry',
+	titleKey: 'admin.settings.subscriptionExpiryNotify.title',
+	descriptionKey: 'admin.settings.subscriptionExpiryNotify.description',
+	fields: [
+		{
+			key: 'subscription_expiry_notify_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.subscriptionExpiryNotify.enabled',
+			descriptionKey: 'admin.settings.subscriptionExpiryNotify.enabledHint'
+		}
+	]
+};
+
+/** 邮件模板编辑器 special section —— 独立 lifecycle，不进 patchSettings。 */
+export const emailTemplatesSection: SectionDef = {
+	id: 'email.templates',
+	titleKey: 'admin.settings.emailTemplates.title',
+	descriptionKey: 'admin.settings.emailTemplates.description',
+	special: 'email-templates'
+};
+
+/** 余额不足提醒配置。 */
+export const emailBalanceNotifySection: SectionDef = {
+	id: 'email.balanceNotify',
+	titleKey: 'admin.settings.balanceNotify.title',
+	descriptionKey: 'admin.settings.balanceNotify.description',
+	fields: [
+		{
+			key: 'balance_low_notify_enabled',
+			type: 'switch',
+			labelKey: 'admin.settings.balanceNotify.enabled',
+			descriptionKey: 'admin.settings.balanceNotify.description'
+		},
+		{
+			key: 'balance_low_notify_threshold',
+			type: 'number',
+			labelKey: 'admin.settings.balanceNotify.threshold',
+			descriptionKey: 'admin.settings.balanceNotify.thresholdHint',
+			placeholder: 'admin.settings.balanceNotify.thresholdPlaceholder',
+			min: 0,
+			showWhen: (v) => !!v['balance_low_notify_enabled']
+		},
+		{
+			key: 'balance_low_notify_recharge_url',
+			type: 'text',
+			labelKey: 'admin.settings.balanceNotify.rechargeUrl',
+			descriptionKey: 'admin.settings.balanceNotify.rechargeUrlHint',
+			placeholder: 'admin.settings.balanceNotify.rechargeUrlPlaceholder',
+			showWhen: (v) => !!v['balance_low_notify_enabled']
+		}
+	]
+};
+
 /**
  * Quota notify special section（M10e · email tab）—— flat-form pipeline。
  * 端口自 Vue special/QuotaNotifySection.vue。整组 emails 以 flat key
@@ -72,6 +127,9 @@ export const emailSection: SettingsSchema = [
 	emailGeneralSection,
 	smtpSection,
 	testEmailSection,
+	emailSubscriptionExpirySection,
+	emailTemplatesSection,
+	emailBalanceNotifySection,
 	emailQuotaNotifySection
 ];
 
@@ -473,9 +531,8 @@ export const usersDefaultsSection: SectionDef = {
  * 字段：default_subscriptions (Array<{group_id, validity_days}>),
  *       default_platform_quotas (4 × {daily, weekly, monthly}).
  *
- * 与 Vue tree 的差异：Svelte 仓库尚未有 adminAPI.groups —— group_id 退化为 number input
- * （Vue tree 是带 GroupBadge 的 Select）。后端契约同源（flat key + 同形 payload），
- * 后续接入 groups API 时切换为 select 即可，不破坏 schema。
+ * 与 Vue tree 对齐：group_id 由 UserDefaultsSection 通过 admin groups facade 渲染为
+ * 下拉选择；加载失败或历史 ID 不在列表内时保留 custom ID 兜底。
  */
 export const usersSubscriptionsQuotasSection: SectionDef = {
 	id: 'users.defaultSubscriptionsAndQuotas',
@@ -880,7 +937,8 @@ export const gatewayOpenaiFastPolicySection: SectionDef = {
  * Web search emulation —— 独立 GET/PUT lifecycle，不进 patchSettings。
  * 端口自 Vue special/WebSearchEmulationSection.vue + sections/webSearchEmulation.ts。
  *
- * 与 Vue tree 差异：proxy_id 退化为 number input（Svelte 仓库尚未端口 /admin/proxies API）。
+ * 与 Vue tree 对齐：proxy_id 由 WebSearchEmulationSection 通过 admin proxies facade
+ * 渲染为下拉选择；加载失败或历史 ID 不在列表内时保留 custom ID 兜底。
  */
 export const gatewayWebSearchEmulationSection: SectionDef = {
 	id: 'gateway.webSearchEmulation',
@@ -1085,9 +1143,8 @@ export const paymentConfigSection: SectionDef = {
 
 /**
  * Payment 服务商列表 —— special section。
- * 覆盖 payment_enabled_types 徽章切换 + provider 实例最小可用 CRUD（read + toggle + delete）。
- * 完整 dialog/create/edit/reorder 是 backlog（Vue tree 依赖 PaymentProviderList +
- * PaymentProviderDialog 大组件树，Svelte 仓库尚未端口）。
+ * 覆盖 payment_enabled_types 徽章切换 + provider 实例 CRUD（create/edit/toggle/delete）。
+ * 复杂 credentials/limits 先用 JSON 表单直通，避免 Svelte 端未建模字段丢失；拖拽排序仍是后续增强。
  */
 export const paymentProvidersSection: SectionDef = {
 	id: 'payment.providers',
@@ -1183,7 +1240,6 @@ export interface SettingsTab {
 	id: string;
 	labelKey: string;
 	sections: SettingsSchema;
-	placeholder?: boolean;
 }
 
 export const settingsTabs: SettingsTab[] = [

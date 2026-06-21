@@ -32,6 +32,10 @@
 	import OAuthBindingsList, {
 		type BindingState
 	} from '$lib/features/profile/OAuthBindingsList.svelte';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	type Tab = 'basic' | 'security' | 'connections' | 'danger';
 	let activeTab = $state<Tab>('basic');
@@ -183,8 +187,9 @@
 
 	<!-- Tab nav -->
 	<div class="flex flex-wrap items-center gap-1 rounded-lg border border-border bg-card p-1" role="tablist" data-testid="profile-tabs">
-		<button
+		<Button
 			type="button"
+			variant="ghost"
 			role="tab"
 			aria-selected={isTabActive('basic')}
 			data-testid="tab-basic"
@@ -193,9 +198,10 @@
 		>
 			<UserIcon class="h-4 w-4" />
 			{$_('user.profile.tabBasic', { default: 'Basic Info' })}
-		</button>
-		<button
+		</Button>
+		<Button
 			type="button"
+			variant="ghost"
 			role="tab"
 			aria-selected={isTabActive('security')}
 			data-testid="tab-security"
@@ -204,9 +210,10 @@
 		>
 			<ShieldCheck class="h-4 w-4" />
 			{$_('user.profile.tabSecurity', { default: 'Security' })}
-		</button>
-		<button
+		</Button>
+		<Button
 			type="button"
+			variant="ghost"
 			role="tab"
 			aria-selected={isTabActive('connections')}
 			data-testid="tab-connections"
@@ -215,9 +222,10 @@
 		>
 			<Link2 class="h-4 w-4" />
 			{$_('user.profile.tabConnections', { default: 'Connections' })}
-		</button>
-		<button
+		</Button>
+		<Button
 			type="button"
+			variant="ghost"
 			role="tab"
 			aria-selected={isTabActive('danger')}
 			data-testid="tab-danger"
@@ -226,7 +234,7 @@
 		>
 			<AlertOctagon class="h-4 w-4" />
 			{$_('user.profile.tabDanger', { default: 'Danger Zone' })}
-		</button>
+		</Button>
 	</div>
 
 	<!-- Tab panels -->
@@ -253,13 +261,13 @@
 					<label for="pf-email" class="text-sm font-medium text-foreground">
 						{$_('user.profile.email', { default: 'Email' })}
 					</label>
-					<input
+					<Input
 						id="pf-email"
 						type="email"
 						readonly
 						data-testid="pf-email"
 						value={email}
-						class="block h-10 w-full cursor-not-allowed rounded-md border border-input bg-muted/30 px-3 text-sm text-muted-foreground"
+						class="cursor-not-allowed bg-muted/30 text-muted-foreground"
 					/>
 				</div>
 
@@ -289,13 +297,12 @@
 					<label for="pf-username" class="text-sm font-medium text-foreground">
 						{$_('user.profile.username', { default: 'Username' })}
 					</label>
-					<input
+					<Input
 						id="pf-username"
 						type="text"
 						autocomplete="username"
 						data-testid="pf-username"
 						bind:value={username}
-						class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					/>
 				</div>
 
@@ -304,15 +311,14 @@
 					<label for="pf-language" class="text-sm font-medium text-foreground">
 						{$_('user.profile.language', { default: 'Language' })}
 					</label>
-					<select
+					<NativeSelect
 						id="pf-language"
 						data-testid="pf-language"
 						bind:value={language}
-						class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					>
 						<option value="zh">{$_('user.profile.languages.zh', { default: '简体中文' })}</option>
 						<option value="en">{$_('user.profile.languages.en', { default: 'English' })}</option>
-					</select>
+					</NativeSelect>
 				</div>
 
 				<!-- timezone select -->
@@ -320,11 +326,10 @@
 					<label for="pf-timezone" class="text-sm font-medium text-foreground">
 						{$_('user.profile.timezone', { default: 'Timezone' })}
 					</label>
-					<select
+					<NativeSelect
 						id="pf-timezone"
 						data-testid="pf-timezone"
 						bind:value={timezone}
-						class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					>
 						<option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
 						<option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
@@ -334,22 +339,21 @@
 						<option value="America/New_York">America/New_York (UTC-5)</option>
 						<option value="America/Los_Angeles">America/Los_Angeles (UTC-8)</option>
 						<option value="UTC">UTC</option>
-					</select>
+					</NativeSelect>
 				</div>
 			</div>
 
 			<div class="mt-6 flex items-center justify-end">
-				<button
+				<Button
 					type="button"
 					data-testid="pf-save-basic"
 					disabled={savingBasic}
 					onclick={handleSaveBasic}
-					class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					{savingBasic
 						? $_('user.profile.updating', { default: 'Updating…' })
 						: $_('user.profile.updateProfile', { default: 'Update profile' })}
-				</button>
+				</Button>
 			</div>
 		</section>
 	{:else if activeTab === 'security'}
@@ -373,8 +377,9 @@
 							})}
 						</p>
 					</div>
-					<span
-						class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+					<Badge
+						variant="outline"
+						class={`${
 							totpEnabled
 								? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
 								: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
@@ -384,28 +389,28 @@
 						{totpEnabled
 							? $_('user.security.totp.enabled', { default: 'Enabled' })
 							: $_('user.security.totp.notEnabled', { default: 'Not enabled' })}
-					</span>
+					</Badge>
 				</header>
 
 				<div class="flex items-center justify-end gap-2">
 					{#if totpEnabled}
-						<button
+						<Button
 							type="button"
+							variant="outline"
 							data-testid="totp-disable-btn"
 							onclick={() => (totpDisableOpen = true)}
-							class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-destructive hover:bg-destructive/10"
+							class="text-destructive hover:bg-destructive/10"
 						>
 							{$_('user.security.totp.disable', { default: 'Disable 2FA' })}
-						</button>
+						</Button>
 					{:else}
-						<button
+						<Button
 							type="button"
 							data-testid="totp-enable-btn"
 							onclick={() => (totpEnrollOpen = true)}
-							class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
 						>
 							{$_('user.security.totp.enable', { default: 'Enable 2FA' })}
-						</button>
+						</Button>
 					{/if}
 				</div>
 			</section>
@@ -449,42 +454,40 @@
 							values: { email }
 						})}
 					</label>
-					<input
+					<Input
 						id="dz-email"
 						type="email"
 						autocomplete="off"
 						data-testid="dz-email"
 						bind:value={confirmEmail}
 						placeholder={email}
-						class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					/>
 				</div>
 				<div class="space-y-1.5">
 					<label for="dz-password" class="text-sm font-medium text-foreground">
 						{$_('user.danger.password', { default: 'Current password' })}
 					</label>
-					<input
+					<Input
 						id="dz-password"
 						type="password"
 						autocomplete="current-password"
 						data-testid="dz-password"
 						bind:value={deletePassword}
-						class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					/>
 				</div>
 
 				<div class="flex items-center justify-end pt-2">
-					<button
+					<Button
 						type="button"
+						variant="destructive"
 						data-testid="dz-submit"
 						disabled={!canDelete || deletingAccount}
 						onclick={handleDeleteAccount}
-						class="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{deletingAccount
 							? $_('user.danger.deleting', { default: 'Deleting…' })
 							: $_('user.danger.deleteButton', { default: 'Delete my account' })}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</section>

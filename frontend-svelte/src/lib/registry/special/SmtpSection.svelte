@@ -19,6 +19,7 @@
 	import type { Field } from '../types';
 	import { settingsApi, type TestSmtpRequest } from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -120,14 +121,14 @@
 	</div>
 
 	<div class="flex items-center justify-start gap-3 border-t border-border pt-4">
-		<button
-			type="button"
+		<Button
+			variant="outline"
+			class="h-9"
 			data-testid="smtp-test-connection"
 			onclick={handleTestConnection}
 			disabled={testing}
-			class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent disabled:opacity-60"
 		>
 			{testing ? $_('admin.settings.smtp.testing') : $_('admin.settings.smtp.testConnection')}
-		</button>
+		</Button>
 	</div>
 </div>

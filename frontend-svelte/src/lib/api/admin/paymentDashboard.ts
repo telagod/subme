@@ -2,7 +2,7 @@
  * Admin Payment Dashboard API · Svelte rewrite（M12 · /(admin)/orders/dashboard）
  *
  * 端口自 Vue tree 的 `adminPaymentAPI.getDashboard(days?)`，原始 backend 端点
- * 仅一条：`GET /api/admin/payment/dashboard?days=N`，返回 `DashboardStats`
+ * 仅一条：`GET /api/v1/admin/payment/dashboard?days=N`，返回 `DashboardStats`
  * 聚合包（today/total + daily_series + payment_methods + top_users）。
  *
  * Task 描述要求暴露 3 个函数（getDashboardStats / getDashboardTrend /
@@ -114,7 +114,7 @@ async function fetchDashboard(range: DashboardRange): Promise<DashboardWire> {
 	const promise = (async () => {
 		try {
 			const qs = `?days=${encodeURIComponent(String(range.days))}`;
-			const raw = await apiClient.get<DashboardWire>(`/api/admin/payment/dashboard${qs}`);
+			const raw = await apiClient.get<DashboardWire>(`/api/v1/admin/payment/dashboard${qs}`);
 			return raw ?? {};
 		} finally {
 			// 同步窗口结束后清缓存：下一次调用会重新打后端。

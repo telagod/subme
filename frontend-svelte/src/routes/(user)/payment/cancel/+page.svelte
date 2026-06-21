@@ -11,6 +11,7 @@
 	import { _ } from 'svelte-i18n';
 	import { goto } from '$app/navigation';
 	import { XCircle } from '@lucide/svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	function goBilling() {
 		void goto('/billing');
@@ -43,22 +44,21 @@
 			})}
 		</p>
 		<div class="mt-6 flex items-center justify-center gap-2">
-			<button
-				type="button"
+			<Button
 				data-testid="payment-cancel-back-billing"
 				onclick={goBilling}
-				class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="h-9"
 			>
 				{$_('user.payment.cancel.backToBilling', { default: 'Back to billing' })}
-			</button>
-			<button
-				type="button"
+			</Button>
+			<Button
+				variant="outline"
 				data-testid="payment-cancel-back-purchase"
 				onclick={goPurchase}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+				class="h-9"
 			>
 				{$_('user.payment.cancel.backToPurchase', { default: 'Back to purchase' })}
-			</button>
+			</Button>
 		</div>
 	</div>
 </section>

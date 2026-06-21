@@ -3,10 +3,8 @@
 	 * FieldRenderer · 单字段渲染器（POC 4）
 	 *
 	 * 端口自 frontend/src/views/admin/settings-registry/FieldRenderer.vue。
-	 * 删繁就简：bits-ui Select 在 jsdom 下渲染体感复杂（portal/popup），POC 4 暂用原生
-	 * <select> + sentinel —— 后续 M10 视需要再换 bits-ui Select。Switch / Input 同走原生，
-	 * 保持类型一致性与测试可断言性；样式通过 tailwind 自家 utilities 兜住，与 Vue tree
-	 * 的视觉密度对齐（h-9 / px-3 / rounded-md / border）。
+	 * 表单控件走标准 UI primitives；select 仍保持 sentinel 契约以便测试断言。
+	 * file input 保留原生隐藏控件用于浏览器文件选择。
 	 *
 	 * Sentinel 契约（reshadcn-migration 教训）：
 	 *   - select option 的 value 永远是非空字符串
@@ -21,9 +19,14 @@
 	 *   - 用 onUpdate prop 代替 createEventDispatcher —— runes 模式更直观，
 	 *     测试时直接传 vi.fn() 即可断言（无需 DOM 事件冒泡）。
 	 *   - 父级（SectionRenderer）转发为 field-update 带 key。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
 	import type { Field } from './types';
+	import Button from '$lib/ui/Button.svelte';
+	import FileInput from '$lib/ui/FileInput.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import Textarea from '$lib/ui/Textarea.svelte';
 
 	type Props = {
 		field: Field;
@@ -156,9 +159,10 @@
 					<p class="mt-0.5 text-xs text-muted-foreground">{description}</p>
 				{/if}
 			</div>
-			<button
+			<Button
 				id={`f-${field.key}`}
-				type="button"
+				variant="ghost"
+				size="icon"
 				role="switch"
 				aria-checked={!!value}
 				aria-label={label}
@@ -173,35 +177,35 @@
 						? 'translate-x-4'
 						: 'translate-x-0.5'}"
 				></span>
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<label class="block text-sm font-medium text-foreground" for={`f-${field.key}`}>{label}</label>
 
 		{#if field.type === 'text'}
-			<input
+			<Input
 				id={`f-${field.key}`}
 				type="text"
-				class="mt-1 block h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+				class="mt-1 h-9"
 				value={(value as string) ?? ''}
 				placeholder={field.placeholder ?? ''}
 				oninput={onText}
 			/>
 		{:else if field.type === 'password'}
-			<input
+			<Input
 				id={`f-${field.key}`}
 				type="password"
 				autocomplete="new-password"
-				class="mt-1 block h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+				class="mt-1 h-9"
 				value={(value as string) ?? ''}
 				placeholder={passwordPlaceholder}
 				oninput={onText}
 			/>
 		{:else if field.type === 'number'}
-			<input
+			<Input
 				id={`f-${field.key}`}
 				type="number"
-				class="mt-1 block h-9 w-32 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+				class="mt-1 h-9 w-32"
 				value={value === undefined || value === null ? '' : String(value)}
 				placeholder={field.placeholder ?? ''}
 				min={field.min}
@@ -209,23 +213,23 @@
 				oninput={onNumber}
 			/>
 		{:else if field.type === 'textarea'}
-			<textarea
+			<Textarea
 				id={`f-${field.key}`}
-				rows="4"
-				class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+				rows={4}
+				class="mt-1 font-mono text-xs"
 				placeholder={field.placeholder ?? ''}
 				value={(value as string) ?? ''}
 				oninput={onTextarea}
-			></textarea>
+			/>
 		{:else if field.type === 'json'}
-			<textarea
+			<Textarea
 				id={`f-${field.key}`}
-				rows="4"
-				class="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+				rows={4}
+				class="mt-1 font-mono text-xs"
 				placeholder={field.placeholder ?? ''}
 				value={jsonDisplay}
 				oninput={onJson}
-			></textarea>
+			/>
 			{#if jsonError}
 				<p class="mt-0.5 text-xs text-destructive">{jsonError}</p>
 			{/if}
@@ -238,33 +242,27 @@
 						—
 					</div>
 				{/if}
-				<label
-					for={`f-${field.key}`}
-					class="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+				<FileInput
+					id={`f-${field.key}`}
+					accept="image/*"
+					onchange={onImageInput}
 				>
 					{$_('admin.settings.site.uploadImage')}
-				</label>
-				<input
-					id={`f-${field.key}`}
-					type="file"
-					accept="image/*"
-					class="sr-only"
-					onchange={onImageInput}
-				/>
+				</FileInput>
 				{#if value}
-					<button
-						type="button"
-						class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+					<Button
+						variant="outline"
+						class="h-9"
 						onclick={onImageClear}
 					>
 						{$_('admin.settings.site.remove')}
-					</button>
+					</Button>
 				{/if}
 			</div>
 		{:else if field.type === 'select'}
-			<select
+			<NativeSelect
 				id={`f-${field.key}`}
-				class="mt-1 block h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+				class="mt-1 h-9 w-full"
 				value={(value as string) ?? '__unset__'}
 				onchange={onSelect}
 			>
@@ -276,7 +274,7 @@
 					{@const optLabel = $_(opt.labelKey)}
 					<option value={opt.value}>{optLabel === opt.labelKey ? opt.value : optLabel}</option>
 				{/each}
-			</select>
+			</NativeSelect>
 		{/if}
 
 		{#if description}

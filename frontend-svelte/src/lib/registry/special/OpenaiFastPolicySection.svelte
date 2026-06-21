@@ -11,9 +11,13 @@
 	 *   - 之所以是 special：rule 是复合对象，FieldRenderer 9 类原子字段无法表达；
 	 *     用 special 把"卡片化 CRUD + cascading subfields"包成黑盒。
 	 *   - select 严格 sentinel-safe —— 所有 value 是具体语义值。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
 	import type { OpenAIFastPolicyRule } from '$lib/api/admin/settingsRegistry';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -186,15 +190,16 @@
 						String(index + 1)
 					)}
 				</span>
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon"
 					data-testid="openai-fast-policy-remove"
 					aria-label={$_('admin.settings.openaiFastPolicy.removeRule')}
 					onclick={() => removeRule(index)}
-					class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+					class="h-7 w-7 text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
 				>
-					✕
-				</button>
+					<X class="h-3 w-3" />
+				</Button>
 			</div>
 
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -205,19 +210,19 @@
 					>
 						{$_('admin.settings.openaiFastPolicy.serviceTier')}
 					</label>
-					<select
+					<NativeSelect
 						id="openai-fast-policy-tier-{index}"
 						data-testid="openai-fast-policy-tier"
 						value={rule.service_tier}
 						onchange={(e) => onTierChange(index, e)}
-						class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-full"
 					>
 						<option value="all">{$_('admin.settings.openaiFastPolicy.tierAll')}</option>
 						<option value="priority"
 							>{$_('admin.settings.openaiFastPolicy.tierPriority')}</option
 						>
 						<option value="flex">{$_('admin.settings.openaiFastPolicy.tierFlex')}</option>
-					</select>
+					</NativeSelect>
 				</div>
 
 				<div class="flex flex-col gap-1">
@@ -227,12 +232,12 @@
 					>
 						{$_('admin.settings.openaiFastPolicy.action')}
 					</label>
-					<select
+					<NativeSelect
 						id="openai-fast-policy-action-{index}"
 						data-testid="openai-fast-policy-action"
 						value={rule.action}
 						onchange={(e) => onActionChange(index, e)}
-						class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-full"
 					>
 						<option value="pass"
 							>{$_('admin.settings.openaiFastPolicy.actionPass')}</option
@@ -243,7 +248,7 @@
 						<option value="block"
 							>{$_('admin.settings.openaiFastPolicy.actionBlock')}</option
 						>
-					</select>
+					</NativeSelect>
 				</div>
 
 				<div class="flex flex-col gap-1">
@@ -253,12 +258,12 @@
 					>
 						{$_('admin.settings.openaiFastPolicy.scope')}
 					</label>
-					<select
+					<NativeSelect
 						id="openai-fast-policy-scope-{index}"
 						data-testid="openai-fast-policy-scope"
 						value={rule.scope}
 						onchange={(e) => onScopeChange(index, e)}
-						class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-full"
 					>
 						<option value="all">{$_('admin.settings.openaiFastPolicy.scopeAll')}</option>
 						<option value="oauth"
@@ -270,7 +275,7 @@
 						<option value="bedrock"
 							>{$_('admin.settings.openaiFastPolicy.scopeBedrock')}</option
 						>
-					</select>
+					</NativeSelect>
 				</div>
 			</div>
 
@@ -282,14 +287,14 @@
 					>
 						{$_('admin.settings.openaiFastPolicy.errorMessage')}
 					</label>
-					<input
+					<Input
 						id="openai-fast-policy-error-message-{index}"
 						type="text"
 						data-testid="openai-fast-policy-error-message"
 						placeholder={$_('admin.settings.openaiFastPolicy.errorMessagePlaceholder')}
 						value={rule.error_message ?? ''}
 						oninput={(e) => onErrorMessageInput(index, e)}
-						class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9"
 					/>
 					<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.openaiFastPolicy.errorMessageHint')}
@@ -312,34 +317,36 @@
 						data-testid="openai-fast-policy-whitelist-row"
 						class="flex items-center gap-2"
 					>
-						<input
+						<Input
 							id="openai-fast-policy-whitelist-{index}-{pIdx}"
 							type="text"
 							data-testid="openai-fast-policy-whitelist-input"
 							placeholder={$_('admin.settings.openaiFastPolicy.modelPatternPlaceholder')}
 							value={pattern}
 							oninput={(e) => onWhitelistInput(index, pIdx, e)}
-							class="h-8 flex-1 rounded-md border border-input bg-background px-3 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-8 flex-1 font-mono text-xs"
 						/>
-						<button
-							type="button"
+						<Button
+							variant="ghost"
+							size="icon"
 							data-testid="openai-fast-policy-whitelist-remove"
 							aria-label={$_('common.delete')}
 							onclick={() => removeWhitelistPattern(index, pIdx)}
-							class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+							class="h-7 w-7 text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
 						>
-							✕
-						</button>
+							<X class="h-3 w-3" />
+						</Button>
 					</div>
 				{/each}
-				<button
-					type="button"
+				<Button
+					variant="outline"
+					size="sm"
 					data-testid="openai-fast-policy-whitelist-add"
 					onclick={() => addWhitelistPattern(index)}
-					class="inline-flex h-8 w-fit items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+					class="w-fit"
 				>
 					+ {$_('admin.settings.openaiFastPolicy.addModelPattern')}
-				</button>
+				</Button>
 			</div>
 
 			{#if (rule.model_whitelist ?? []).length > 0}
@@ -350,12 +357,12 @@
 					>
 						{$_('admin.settings.openaiFastPolicy.fallbackAction')}
 					</label>
-					<select
+					<NativeSelect
 						id="openai-fast-policy-fallback-{index}"
 						data-testid="openai-fast-policy-fallback"
 						value={rule.fallback_action ?? 'pass'}
 						onchange={(e) => onFallbackChange(index, e)}
-						class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-full"
 					>
 						<option value="pass"
 							>{$_('admin.settings.openaiFastPolicy.actionPass')}</option
@@ -366,12 +373,12 @@
 						<option value="block"
 							>{$_('admin.settings.openaiFastPolicy.actionBlock')}</option
 						>
-					</select>
+					</NativeSelect>
 					<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.openaiFastPolicy.fallbackActionHint')}
 					</p>
 					{#if rule.fallback_action === 'block'}
-						<input
+						<Input
 							type="text"
 							data-testid="openai-fast-policy-fallback-error-message"
 							placeholder={$_(
@@ -379,7 +386,7 @@
 							)}
 							value={rule.fallback_error_message ?? ''}
 							oninput={(e) => onFallbackErrorInput(index, e)}
-							class="mt-1 h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="mt-1 h-9"
 						/>
 					{/if}
 				</div>
@@ -388,14 +395,14 @@
 	{/each}
 
 	<div class="flex flex-col gap-1.5">
-		<button
-			type="button"
+		<Button
+			variant="outline"
 			data-testid="openai-fast-policy-add"
 			onclick={addRule}
-			class="inline-flex h-9 w-fit items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm hover:bg-accent"
+			class="h-9 w-fit"
 		>
 			+ {$_('admin.settings.openaiFastPolicy.addRule')}
-		</button>
+		</Button>
 		<p class="m-0 text-xs leading-relaxed text-muted-foreground">
 			{$_('admin.settings.openaiFastPolicy.saveHint')}
 		</p>

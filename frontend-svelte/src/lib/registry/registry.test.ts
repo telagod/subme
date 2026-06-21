@@ -15,12 +15,16 @@
  *     又能断言 payload。
  */
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/svelte';
+import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import SectionRenderer from './SectionRenderer.svelte';
 import {
 	smtpSection,
 	emailGeneralSection,
+	testEmailSection,
+	emailSubscriptionExpirySection,
+	emailTemplatesSection,
+	emailBalanceNotifySection,
 	emailQuotaNotifySection,
 	generalSiteSection,
 	generalTableSection,
@@ -72,6 +76,8 @@ import {
 } from './settings.schema';
 import { buildZodSchema } from './zod';
 import type { SectionDef } from './types';
+import affiliateCustomUsersSrc from './special/AffiliateCustomUsersSection.svelte?raw';
+import webSearchEmulationSrc from './special/WebSearchEmulationSection.svelte?raw';
 
 // -- mock api（必须在 import 之前由 vi 提升）
 vi.mock('$lib/api/admin/settingsRegistry', () => {
@@ -81,6 +87,54 @@ vi.mock('$lib/api/admin/settingsRegistry', () => {
 			patchSettings: vi.fn(),
 			testSmtpConnection: vi.fn(),
 			sendTestEmail: vi.fn(),
+			getEmailTemplates: vi.fn(() =>
+				Promise.resolve({
+					events: [
+						{
+							value: 'auth.verify_code',
+							label: 'Email Verification Code',
+							description: 'Sent for verification',
+							category: 'auth'
+						}
+					],
+					locales: ['en', 'zh'],
+					placeholders: ['site_name', '{{verification_code}}']
+				})
+			),
+			getEmailTemplate: vi.fn(() =>
+				Promise.resolve({
+					event: 'auth.verify_code',
+					locale: 'en',
+					subject: 'Verify {{site_name}}',
+					html: '<p>{{verification_code}}</p>',
+					is_custom: false,
+					placeholders: ['site_name', 'verification_code']
+				})
+			),
+			updateEmailTemplate: vi.fn(
+				(event: string, locale: string, body: { subject: string; html: string }) =>
+					Promise.resolve({
+						event,
+						locale,
+						subject: body.subject,
+						html: body.html,
+						is_custom: true,
+						placeholders: ['site_name', 'verification_code']
+					})
+			),
+			restoreOfficialEmailTemplate: vi.fn((event: string, locale: string) =>
+				Promise.resolve({
+					event,
+					locale,
+					subject: 'Official subject',
+					html: '<p>Official</p>',
+					is_custom: false,
+					placeholders: ['site_name']
+				})
+			),
+			previewEmailTemplate: vi.fn((body: { subject: string; html: string }) =>
+				Promise.resolve({ subject: body.subject, html: body.html })
+			),
 			getAdminApiKey: vi.fn(() => Promise.resolve({ exists: false, masked_key: '' })),
 			regenerateAdminApiKey: vi.fn(() => Promise.resolve({ key: 'sk-test-1234567890abcdef' })),
 			deleteAdminApiKey: vi.fn(() => Promise.resolve()),
@@ -193,6 +247,28 @@ vi.mock('$lib/api/admin/settingsRegistry', () => {
 	};
 });
 
+vi.mock('$lib/api/admin/groups', () => {
+	return {
+		listAllGroupsIncludingInactive: vi.fn(() =>
+			Promise.resolve([
+				{ id: 10, name: 'Pro', platform: 'openai', status: 'active' },
+				{ id: 11, name: 'Archive', platform: 'anthropic', status: 'inactive' }
+			])
+		)
+	};
+});
+
+vi.mock('$lib/api/admin/proxies', () => {
+	return {
+		listAllProxies: vi.fn(() =>
+			Promise.resolve([
+				{ id: 20, name: 'Main proxy', protocol: 'http', host: '127.0.0.1', port: 8080, status: 'active' },
+				{ id: 21, name: 'Old proxy', protocol: 'socks5h', host: '127.0.0.2', port: 1080, status: 'inactive' }
+			])
+		)
+	};
+});
+
 // -- mock admin payment API（M12 payment tab special section）
 vi.mock('$lib/api/admin/payment', () => {
 	const listProviders = vi.fn(() => Promise.resolve([]));
@@ -247,6 +323,16 @@ beforeAll(async () => {
 	addMessages('en', {});
 	await init({ fallbackLocale: 'en', initialLocale: 'en' });
 	locale.set('en');
+});
+
+describe('settings tabs · complete registry contract', () => {
+	it('all tabs render real sections and no placeholder metadata remains', () => {
+		expect(settingsTabs.length).toBeGreaterThan(0);
+		for (const tab of settingsTabs) {
+			expect(tab.sections.length, `${tab.id} should have concrete sections`).toBeGreaterThan(0);
+			expect('placeholder' in tab, `${tab.id} should not be a placeholder tab`).toBe(false);
+		}
+	});
 });
 
 describe('SMTP section · field type dispatch', () => {
@@ -439,8 +525,6 @@ describe('M10 · general tab sections render without errors', () => {
 	it('settingsTabs registers general + security non-placeholder', () => {
 		const general = settingsTabs.find((t) => t.id === 'general');
 		const security = settingsTabs.find((t) => t.id === 'security');
-		expect(general?.placeholder).not.toBe(true);
-		expect(security?.placeholder).not.toBe(true);
 		expect(general?.sections.length).toBeGreaterThan(0);
 		expect(security?.sections.length).toBeGreaterThan(0);
 	});
@@ -586,6 +670,50 @@ describe('M10 · special components honour props contract + emit fires', () => {
 		expect((call.value as unknown[]).length).toBe(1);
 	});
 
+	it('CustomMenuSection reorders menu items and normalizes sort_order', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: generalCustomMenuSection,
+				values: {
+					custom_endpoints: [],
+					custom_menu_items: [
+						{
+							id: 'first',
+							label: 'First',
+							icon_svg: '',
+							url: 'https://first.example.com',
+							visibility: 'user',
+							sort_order: 0
+						},
+						{
+							id: 'second',
+							label: 'Second',
+							icon_svg: '',
+							url: 'https://second.example.com',
+							visibility: 'admin',
+							sort_order: 1
+						}
+					]
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+
+		const moveDown = container.querySelector('[data-testid="custom-menu-move-down-0"]') as HTMLElement;
+		expect(moveDown).not.toBeNull();
+		await fireEvent.click(moveDown);
+
+		const call = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: Array<{ id: string; sort_order: number }>;
+		};
+		expect(call.key).toBe('custom_menu_items');
+		expect(call.value.map((item) => item.id)).toEqual(['second', 'first']);
+		expect(call.value.map((item) => item.sort_order)).toEqual([0, 1]);
+	});
+
 	it('AdminApiKeySection mounts and renders create button when not configured', async () => {
 		const { container, findByTestId } = render(SectionRenderer, {
 			props: {
@@ -598,6 +726,36 @@ describe('M10 · special components honour props contract + emit fires', () => {
 		// onMount 异步 —— 等待 create 按钮出现
 		const btn = await findByTestId('admin-api-key-create');
 		expect(btn).not.toBeNull();
+	});
+
+	it('AdminApiKeySection confirms destructive key actions before calling the API', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const statusSpy = mod.settingsApi.getAdminApiKey as unknown as ReturnType<typeof vi.fn>;
+		const regenSpy = mod.settingsApi.regenerateAdminApiKey as unknown as ReturnType<typeof vi.fn>;
+		statusSpy.mockResolvedValueOnce({ exists: true, masked_key: 'sk-***-test' });
+		regenSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: securityAdminApiKeySection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="admin-api-key-regenerate"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="admin-api-key-regenerate"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="admin-api-key-confirm-dialog"]')).not.toBeNull();
+		});
+		expect(regenSpy).not.toHaveBeenCalled();
+
+		await fireEvent.click(document.body.querySelector('[data-testid="admin-api-key-confirm-action"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(regenSpy).toHaveBeenCalledOnce();
+		});
 	});
 
 	it('OidcConnectSection respects oidc_connect_enabled = false → only top switch visible', () => {
@@ -760,7 +918,6 @@ describe('M11 · users tab registration', () => {
 	it('settingsTabs registers users non-placeholder with 3 sections', () => {
 		const users = settingsTabs.find((t) => t.id === 'users');
 		expect(users).toBeDefined();
-		expect(users?.placeholder).not.toBe(true);
 		expect(users?.sections.length).toBe(3);
 		expect(usersSection.length).toBe(3);
 	});
@@ -817,6 +974,38 @@ describe('M11 · users special components honour props contract + emit fires', (
 
 		const rows = container.querySelectorAll('[data-testid="default-subscription-row"]');
 		expect(rows.length).toBe(1);
+	});
+
+	it('UserDefaultsSection loads groups and emits selected group_id from select', async () => {
+		const handler = vi.fn();
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: usersSubscriptionsQuotasSection,
+				values: {
+					default_subscriptions: [{ group_id: 0, validity_days: 30 }],
+					default_platform_quotas: {}
+				},
+				dirtyKeys: new Set<string>(),
+				onFieldUpdate: handler
+			}
+		});
+
+		const select = container.querySelector(
+			'[data-testid="default-subscription-group-select"]'
+		) as HTMLSelectElement;
+		expect(select).not.toBeNull();
+		await waitFor(() => {
+			expect(select.querySelector('option[value="10"]')).not.toBeNull();
+		});
+		await fireEvent.change(select, { target: { value: '10' } });
+
+		const last = handler.mock.calls[handler.mock.calls.length - 1][0] as {
+			key: string;
+			value: Array<{ group_id: number; validity_days: number }>;
+		};
+		expect(last.key).toBe('default_subscriptions');
+		expect(last.value).toEqual([{ group_id: 10, validity_days: 30 }]);
+		expect(container.querySelector('[data-testid="default-subscription-group-id"]')).toBeNull();
 	});
 
 	it('UserDefaultsSection emits sanitized default_platform_quotas on quota input', async () => {
@@ -1022,7 +1211,6 @@ describe('M10c · features tab registration', () => {
 	it('settingsTabs registers features non-placeholder with 5 sections', () => {
 		const features = settingsTabs.find((t) => t.id === 'features');
 		expect(features).toBeDefined();
-		expect(features?.placeholder).not.toBe(true);
 		expect(features?.sections.length).toBe(5);
 		expect(featuresSection.length).toBe(5);
 	});
@@ -1149,13 +1337,105 @@ describe('M10c · AffiliateCustomUsersSection special component', () => {
 		const addBtn = container.querySelector('[data-testid="affiliate-custom-users-add"]') as HTMLElement;
 		expect(addBtn).not.toBeNull();
 		await fireEvent.click(addBtn);
-		expect(container.querySelector('[data-testid="affiliate-custom-users-modal"]')).not.toBeNull();
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="affiliate-custom-users-modal"]')).not.toBeNull();
+		});
 		// add 模式：modalCanSubmit=false（无 selectedUser），save 按钮禁用
-		const saveBtn = container.querySelector(
+		const saveBtn = document.body.querySelector(
 			'[data-testid="affiliate-custom-users-modal-save"]'
 		) as HTMLButtonElement;
 		expect(saveBtn).not.toBeNull();
 		expect(saveBtn.disabled).toBe(true);
+	});
+
+	it('uses StandardDialog instead of hand-rolled overlays for add/edit and batch modals', () => {
+		expect(affiliateCustomUsersSrc).toContain('StandardDialog');
+		expect(affiliateCustomUsersSrc).toContain('data-testid="affiliate-custom-users-modal"');
+		expect(affiliateCustomUsersSrc).toContain('data-testid="affiliate-custom-users-batch-modal"');
+		expect(affiliateCustomUsersSrc).not.toContain('fixed inset-0');
+		expect(affiliateCustomUsersSrc).not.toContain('role="dialog"');
+	});
+
+	it('Batch button opens a StandardDialog for selected user updates', async () => {
+		const mod = await import('$lib/api/admin/affiliates');
+		const listSpy = mod.listUsers as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockResolvedValue({
+			items: [
+				{
+					user_id: 42,
+					email: 'ada@example.test',
+					username: 'ada',
+					aff_code: 'ADA42',
+					aff_code_custom: true,
+					aff_rebate_rate_percent: 12
+				}
+			],
+			total: 1,
+			pages: 1
+		});
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateCustomUsersSection,
+				values: { affiliate_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="affiliate-custom-users-row"]')).not.toBeNull();
+		});
+		await fireEvent.click(container.querySelector('[data-testid="affiliate-custom-users-row"] input[type="checkbox"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="affiliate-custom-users-batch"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="affiliate-custom-users-batch"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="affiliate-custom-users-batch-modal"]')).not.toBeNull();
+		});
+	});
+
+	it('Reset opens a standard confirmation dialog before clearing custom user settings', async () => {
+		const mod = await import('$lib/api/admin/affiliates');
+		const listSpy = mod.listUsers as unknown as ReturnType<typeof vi.fn>;
+		const clearSpy = mod.clearUserSettings as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockResolvedValue({
+			items: [
+				{
+					user_id: 42,
+					email: 'ada@example.test',
+					username: 'ada',
+					aff_code: 'ADA42',
+					aff_code_custom: true,
+					aff_rebate_rate_percent: 12
+				}
+			],
+			total: 1,
+			pages: 1
+		});
+		clearSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: featuresAffiliateCustomUsersSection,
+				values: { affiliate_enabled: true },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="affiliate-custom-users-row"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="affiliate-custom-users-row"] button.text-destructive') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="affiliate-custom-users-reset-dialog"]')).not.toBeNull();
+		});
+		expect(clearSpy).not.toHaveBeenCalled();
+
+		await fireEvent.click(document.body.querySelector('[data-testid="affiliate-custom-users-reset-confirm"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(clearSpy).toHaveBeenCalledWith(42);
+		});
 	});
 });
 
@@ -1251,7 +1531,6 @@ describe('M11 · gateway tab registration', () => {
 		// 此处保留 ≥6 的宽断言以与 M11 时序对齐；精确数验证在 M10e 注册测试里做。
 		const gateway = settingsTabs.find((t) => t.id === 'gateway');
 		expect(gateway).toBeDefined();
-		expect(gateway?.placeholder).not.toBe(true);
 		expect(gateway?.sections.length).toBeGreaterThanOrEqual(6);
 		expect(gatewaySection.length).toBeGreaterThanOrEqual(6);
 	});
@@ -1558,7 +1837,6 @@ describe('M12 · payment tab registration', () => {
 	it('settingsTabs registers payment non-placeholder with 2 sections', () => {
 		const payment = settingsTabs.find((t) => t.id === 'payment');
 		expect(payment).toBeDefined();
-		expect(payment?.placeholder).not.toBe(true);
 		expect(payment?.sections.length).toBe(2);
 		expect(paymentSection.length).toBe(2);
 	});
@@ -1822,6 +2100,249 @@ describe('M12 · PaymentProviderListSection special component', () => {
 		expect(wechat?.getAttribute('data-checked')).toBe('true');
 		expect(epay?.getAttribute('data-checked')).toBe('false');
 	});
+
+	it('creates a provider instance with JSON config and limits passthrough', async () => {
+		const mod = await import('$lib/api/admin/payment');
+		const listSpy = mod.listProviders as unknown as ReturnType<typeof vi.fn>;
+		const createSpy = mod.createProvider as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		createSpy.mockClear();
+		listSpy.mockResolvedValue([]);
+		createSpy.mockResolvedValue({ id: 31 });
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: ['stripe'] },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="payment-provider-empty"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(
+			container.querySelector('[data-testid="payment-provider-create"]') as HTMLElement
+		);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="payment-provider-dialog"]')).not.toBeNull();
+		});
+		await fireEvent.input(
+			document.body.querySelector('[data-testid="payment-provider-form-name"]') as HTMLInputElement,
+			{ target: { value: 'Stripe Main' } }
+		);
+		await fireEvent.input(
+			document.body.querySelector(
+				'[data-testid="payment-provider-form-config"]'
+			) as HTMLTextAreaElement,
+			{ target: { value: '{"publishableKey":"pk_test"}' } }
+		);
+		await fireEvent.input(
+			document.body.querySelector(
+				'[data-testid="payment-provider-form-limits"]'
+			) as HTMLTextAreaElement,
+			{ target: { value: '{"stripe":{"singleMin":1}}' } }
+		);
+		await fireEvent.input(
+			document.body.querySelector('[data-testid="payment-provider-form-sort"]') as HTMLInputElement,
+			{ target: { value: '7' } }
+		);
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="payment-provider-form-save"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(createSpy).toHaveBeenCalledTimes(1);
+		});
+		expect(createSpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				provider_key: 'stripe',
+				name: 'Stripe Main',
+				supported_types: ['card', 'alipay', 'wxpay', 'link'],
+				enabled: true,
+				payment_mode: '',
+				sort_order: 7,
+				config: { publishableKey: 'pk_test' },
+				limits: '{"stripe":{"singleMin":1}}'
+			})
+		);
+	});
+
+	it('edits an existing provider instance through updateProvider', async () => {
+		const mod = await import('$lib/api/admin/payment');
+		const listSpy = mod.listProviders as unknown as ReturnType<typeof vi.fn>;
+		const updateSpy = mod.updateProvider as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		updateSpy.mockClear();
+		listSpy.mockResolvedValue([
+			{
+				id: 9,
+				provider_key: 'stripe',
+				name: 'Old Stripe',
+				config: { publishableKey: 'pk_old' },
+				supported_types: ['card'],
+				enabled: true,
+				payment_mode: '',
+				refund_enabled: false,
+				allow_user_refund: false,
+				limits: '',
+				sort_order: 2
+			}
+		]);
+		updateSpy.mockResolvedValue({ id: 9 });
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: ['stripe'] },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="payment-provider-edit-9"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(
+			container.querySelector('[data-testid="payment-provider-edit-9"]') as HTMLElement
+		);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="payment-provider-dialog"]')).not.toBeNull();
+		});
+		await fireEvent.input(
+			document.body.querySelector('[data-testid="payment-provider-form-name"]') as HTMLInputElement,
+			{ target: { value: 'New Stripe' } }
+		);
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="payment-provider-form-refund"]') as HTMLElement
+		);
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="payment-provider-form-user-refund"]') as HTMLElement
+		);
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="payment-provider-form-save"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(updateSpy).toHaveBeenCalledTimes(1);
+		});
+		expect(updateSpy).toHaveBeenCalledWith(
+			9,
+			expect.objectContaining({
+				provider_key: 'stripe',
+				name: 'New Stripe',
+				supported_types: ['card'],
+				payment_mode: '',
+				refund_enabled: true,
+				allow_user_refund: true,
+				config: { publishableKey: 'pk_old' },
+				limits: ''
+			})
+		);
+	});
+
+	it('reorders provider instances by updating adjacent sort_order values', async () => {
+		const mod = await import('$lib/api/admin/payment');
+		const listSpy = mod.listProviders as unknown as ReturnType<typeof vi.fn>;
+		const updateSpy = mod.updateProvider as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		updateSpy.mockClear();
+		listSpy.mockResolvedValue([
+			{
+				id: 11,
+				provider_key: 'stripe',
+				name: 'Stripe',
+				config: {},
+				supported_types: ['card'],
+				enabled: true,
+				payment_mode: '',
+				refund_enabled: false,
+				allow_user_refund: false,
+				limits: '',
+				sort_order: 0
+			},
+			{
+				id: 12,
+				provider_key: 'alipay',
+				name: 'Alipay',
+				config: {},
+				supported_types: ['alipay'],
+				enabled: true,
+				payment_mode: '',
+				refund_enabled: false,
+				allow_user_refund: false,
+				limits: '',
+				sort_order: 1
+			}
+		]);
+		updateSpy.mockResolvedValue({ id: 11 });
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: ['stripe', 'alipay'] },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="payment-provider-move-down-11"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(
+			container.querySelector('[data-testid="payment-provider-move-down-11"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(updateSpy).toHaveBeenCalledTimes(2);
+		});
+		expect(updateSpy).toHaveBeenCalledWith(11, { sort_order: 1 });
+		expect(updateSpy).toHaveBeenCalledWith(12, { sort_order: 0 });
+	});
+
+	it('deletes a provider only after standard confirmation dialog approval', async () => {
+		const mod = await import('$lib/api/admin/payment');
+		const listSpy = mod.listProviders as unknown as ReturnType<typeof vi.fn>;
+		const deleteSpy = mod.deleteProvider as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		deleteSpy.mockClear();
+		listSpy.mockResolvedValue([
+			{
+				id: 22,
+				provider_key: 'stripe',
+				name: 'Stripe Delete',
+				config: {},
+				supported_types: ['card'],
+				enabled: true,
+				payment_mode: '',
+				refund_enabled: false,
+				allow_user_refund: false,
+				limits: '',
+				sort_order: 0
+			}
+		]);
+		deleteSpy.mockResolvedValue(undefined);
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: paymentProvidersSection,
+				values: { payment_enabled: true, payment_enabled_types: ['stripe'] },
+				dirtyKeys: new Set<string>()
+			}
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="payment-provider-delete-22"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="payment-provider-delete-22"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="payment-provider-delete-dialog"]')).not.toBeNull();
+		});
+		expect(deleteSpy).not.toHaveBeenCalled();
+
+		await fireEvent.click(document.body.querySelector('[data-testid="payment-provider-delete-confirm"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(deleteSpy).toHaveBeenCalledWith(22);
+		});
+	});
 });
 
 describe('M12 · sentinel guard · no empty-string <option value=""> in payment sections', () => {
@@ -1918,7 +2439,6 @@ describe('M10d · agreement tab registration', () => {
 	it('settingsTabs registers agreement non-placeholder with 2 sections', () => {
 		const agreement = settingsTabs.find((t) => t.id === 'agreement');
 		expect(agreement).toBeDefined();
-		expect(agreement?.placeholder).not.toBe(true);
 		expect(agreement?.sections.length).toBe(2);
 		expect(agreementSection.length).toBe(2);
 	});
@@ -2157,7 +2677,6 @@ describe('M10d · backup tab registration', () => {
 	it('settingsTabs registers backup non-placeholder with 1 section', () => {
 		const backup = settingsTabs.find((t) => t.id === 'backup');
 		expect(backup).toBeDefined();
-		expect(backup?.placeholder).not.toBe(true);
 		expect(backup?.sections.length).toBe(1);
 		expect(backupSection.length).toBe(1);
 	});
@@ -2213,6 +2732,32 @@ describe('M10d · backup tab BackupSection special component', () => {
 		expect(updateSpy).toHaveBeenCalled();
 		const arg = updateSpy.mock.calls[0][0] as { endpoint?: string };
 		expect(arg.endpoint).toBe('https://r2.example.com');
+	});
+
+	it('opens the Cloudflare R2 guide in a standard dialog', async () => {
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-r2-guide-open"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(
+			container.querySelector('[data-testid="backup-r2-guide-open"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="backup-r2-guide-dialog"]')).not.toBeNull();
+		});
+		expect(document.body.textContent).toContain('admin.backup.r2Guide.step1.title');
+		expect(document.body.textContent).toContain('r2.cloudflarestorage.com');
+
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="backup-r2-guide-close"]') as HTMLElement
+		);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="backup-r2-guide-dialog"]')).toBeNull();
+		});
 	});
 
 	it('Schedule Save click invokes updateBackupSchedule with current form', async () => {
@@ -2283,6 +2828,98 @@ describe('M10d · backup tab BackupSection special component', () => {
 		const arg = createSpy.mock.calls[0][0] as { expire_days?: number };
 		expect(arg.expire_days).toBe(7);
 	});
+
+	it('Restore uses a standard password dialog before calling restoreBackup', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const listSpy = mod.settingsApi.listBackups as unknown as ReturnType<typeof vi.fn>;
+		const restoreSpy = mod.settingsApi.restoreBackup as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		restoreSpy.mockClear();
+		listSpy.mockResolvedValueOnce({
+			items: [
+				{
+					id: 'backup-restore-1',
+					status: 'completed',
+					file_name: 'backup.sql.gz',
+					size_bytes: 1024,
+					triggered_by: 'manual',
+					started_at: '2026-01-01T00:00:00Z'
+				}
+			]
+		});
+		restoreSpy.mockResolvedValueOnce({
+			id: 'backup-restore-1',
+			status: 'completed',
+			restore_status: 'running'
+		});
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-restore"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="backup-restore"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="backup-restore-dialog"]')).not.toBeNull();
+		});
+		expect(restoreSpy).not.toHaveBeenCalled();
+
+		await fireEvent.input(
+			document.body.querySelector('[data-testid="backup-restore-password"]') as HTMLInputElement,
+			{ target: { value: 'admin-password' } }
+		);
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="backup-restore-confirm"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(restoreSpy).toHaveBeenCalledWith('backup-restore-1', 'admin-password');
+		});
+	});
+
+	it('Delete uses a standard confirmation dialog before calling deleteBackup', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const listSpy = mod.settingsApi.listBackups as unknown as ReturnType<typeof vi.fn>;
+		const deleteSpy = mod.settingsApi.deleteBackup as unknown as ReturnType<typeof vi.fn>;
+		listSpy.mockClear();
+		deleteSpy.mockClear();
+		listSpy.mockResolvedValueOnce({
+			items: [
+				{
+					id: 'backup-delete-1',
+					status: 'completed',
+					file_name: 'backup.sql.gz',
+					size_bytes: 1024,
+					triggered_by: 'manual',
+					started_at: '2026-01-01T00:00:00Z'
+				}
+			]
+		});
+		deleteSpy.mockResolvedValueOnce(undefined);
+
+		const { container } = render(SectionRenderer, {
+			props: { section: backupViewSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="backup-delete"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="backup-delete"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="backup-delete-dialog"]')).not.toBeNull();
+		});
+		expect(deleteSpy).not.toHaveBeenCalled();
+
+		await fireEvent.click(
+			document.body.querySelector('[data-testid="backup-delete-confirm"]') as HTMLElement
+		);
+
+		await vi.waitFor(() => {
+			expect(deleteSpy).toHaveBeenCalledWith('backup-delete-1');
+		});
+	});
 });
 
 describe('M10d · backup section does NOT participate in flat-form patchSettings', () => {
@@ -2318,10 +2955,23 @@ describe('M10d · backup section does NOT participate in flat-form patchSettings
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('M10e · long-tail special registration', () => {
-	it('email tab now exposes the quota-notify section', () => {
+	it('email tab mirrors the Vue email registry sections', () => {
 		const email = settingsTabs.find((t) => t.id === 'email');
-		expect(email?.sections.length).toBe(4);
-		expect(email?.sections.some((s) => s.special === 'quota-notify')).toBe(true);
+		expect(email?.sections.length).toBe(7);
+		expect(email?.sections).toEqual(
+			expect.arrayContaining([
+				emailGeneralSection,
+				smtpSection,
+				testEmailSection,
+				emailSubscriptionExpirySection,
+				emailTemplatesSection,
+				emailBalanceNotifySection,
+				emailQuotaNotifySection
+			])
+		);
+		expect((email?.sections ?? []).map((s) => s.special).filter(Boolean)).toEqual(
+			expect.arrayContaining(['smtp', 'test-email', 'email-templates', 'quota-notify'])
+		);
 	});
 
 	it('gateway tab now exposes 11 sections (6 existing + 5 long-tail specials)', () => {
@@ -2420,6 +3070,87 @@ describe('M10e · QuotaNotifySection (flat-form pipeline)', () => {
 		};
 		expect(last.key).toBe('account_quota_notify_enabled');
 		expect(last.value).toBe(true);
+	});
+});
+
+describe('M10e · EmailTemplatesSection lifecycle', () => {
+	beforeEach(async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		for (const key of [
+			'getEmailTemplates',
+			'getEmailTemplate',
+			'previewEmailTemplate',
+			'updateEmailTemplate',
+			'restoreOfficialEmailTemplate'
+		] as const) {
+			(mod.settingsApi[key] as unknown as ReturnType<typeof vi.fn>).mockClear();
+		}
+	});
+
+	it('loads list + detail + preview through the self-managed email template API', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const { container } = render(SectionRenderer, {
+			props: { section: emailTemplatesSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+
+		await waitFor(() => {
+			expect(mod.settingsApi.getEmailTemplates).toHaveBeenCalledOnce();
+			expect(mod.settingsApi.getEmailTemplate).toHaveBeenCalledWith('auth.verify_code', 'en');
+			expect(mod.settingsApi.previewEmailTemplate).toHaveBeenCalled();
+			expect(container.querySelector('[data-testid="email-template-subject"]')).not.toBeNull();
+			expect(container.querySelector('[data-testid="email-template-preview-frame"]')).not.toBeNull();
+		});
+
+		const eventSelect = container.querySelector('[data-testid="email-template-event"]') as HTMLSelectElement;
+		const localeSelect = container.querySelector('[data-testid="email-template-locale"]') as HTMLSelectElement;
+		expect(eventSelect.value).toBe('auth.verify_code');
+		expect(localeSelect.value).toBe('en');
+	});
+
+	it('saves edited template body and can restore the official template', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+		const { container } = render(SectionRenderer, {
+			props: { section: emailTemplatesSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+
+		const subjectInput = await waitFor(() => {
+			const el = container.querySelector('[data-testid="email-template-subject"]') as HTMLInputElement;
+			expect(el).not.toBeNull();
+			return el;
+		});
+		await fireEvent.input(subjectInput, { target: { value: 'Updated subject' } });
+		await fireEvent.click(container.querySelector('[data-testid="email-template-save"]') as HTMLElement);
+
+		await waitFor(() => {
+			expect(mod.settingsApi.updateEmailTemplate).toHaveBeenCalledWith(
+				'auth.verify_code',
+				'en',
+				expect.objectContaining({ subject: 'Updated subject' })
+			);
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="email-template-restore"]') as HTMLElement);
+		await waitFor(() => {
+			expect(mod.settingsApi.restoreOfficialEmailTemplate).toHaveBeenCalledWith(
+				'auth.verify_code',
+				'en'
+			);
+		});
+		confirmSpy.mockRestore();
+	});
+
+	it('uses non-empty select sentinels and renders placeholder chips', async () => {
+		const { container } = render(SectionRenderer, {
+			props: { section: emailTemplatesSection, values: {}, dirtyKeys: new Set<string>() }
+		});
+		await waitFor(() => {
+			expect(container.querySelector('[data-testid="email-template-placeholder"]')).not.toBeNull();
+		});
+
+		const html = container.innerHTML;
+		const offending = html.match(/<option\s+[^>]*value=""[^>]*>/g);
+		expect(offending).toBeNull();
 	});
 });
 
@@ -2750,6 +3481,13 @@ describe('M10e · WebSearchEmulationSection (self-managed lifecycle)', () => {
 		});
 	});
 
+	it('uses StandardDialog instead of a hand-rolled overlay for the test dialog', () => {
+		expect(webSearchEmulationSrc).toContain('StandardDialog');
+		expect(webSearchEmulationSrc).toContain('data-testid="web-search-test-dialog"');
+		expect(webSearchEmulationSrc).not.toContain('fixed inset-0');
+		expect(webSearchEmulationSrc).not.toContain('role="dialog"');
+	});
+
 	it('providers list section hidden when global enable=false', async () => {
 		const { container } = render(SectionRenderer, {
 			props: {
@@ -2844,6 +3582,116 @@ describe('M10e · WebSearchEmulationSection (self-managed lifecycle)', () => {
 		const opts = sel.querySelectorAll('option');
 		const values = Array.from(opts).map((o) => o.getAttribute('value'));
 		expect(values).toEqual(['brave', 'tavily']);
+	});
+
+	it('reset usage opens a standard confirmation dialog before calling resetWebSearchUsage', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(
+			mod.settingsApi.getWebSearchEmulationConfig as ReturnType<typeof vi.fn>
+		).mockResolvedValueOnce({
+			enabled: true,
+			providers: [
+				{
+					type: 'brave',
+					api_key: '',
+					api_key_configured: false,
+					quota_limit: 100,
+					quota_used: 10,
+					subscribed_at: null,
+					proxy_id: null,
+					expires_at: null
+				}
+			]
+		});
+		const resetSpy = mod.settingsApi.resetWebSearchUsage as ReturnType<typeof vi.fn>;
+		resetSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const provider = await vi.waitFor(() => {
+			const el = container.querySelector('[data-testid="web-search-provider"]') as HTMLElement | null;
+			expect(el).not.toBeNull();
+			return el!;
+		});
+		const header = provider.querySelector('[data-testid="web-search-provider-header"]') as HTMLElement;
+		await fireEvent.click(header);
+		await vi.waitFor(() => {
+			expect(container.querySelector('[data-testid="web-search-reset-usage"]')).not.toBeNull();
+		});
+
+		await fireEvent.click(container.querySelector('[data-testid="web-search-reset-usage"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector('[data-testid="web-search-reset-usage-dialog"]')).not.toBeNull();
+		});
+		expect(resetSpy).not.toHaveBeenCalled();
+
+		await fireEvent.click(document.body.querySelector('[data-testid="web-search-reset-usage-confirm"]') as HTMLElement);
+		await vi.waitFor(() => {
+			expect(resetSpy).toHaveBeenCalledWith('brave');
+		});
+	});
+
+	it('proxy select loads proxies and saves numeric proxy_id', async () => {
+		const mod = await import('$lib/api/admin/settingsRegistry');
+		(
+			mod.settingsApi.getWebSearchEmulationConfig as ReturnType<typeof vi.fn>
+		).mockResolvedValueOnce({
+			enabled: true,
+			providers: [
+				{
+					type: 'brave',
+					api_key: '',
+					api_key_configured: false,
+					quota_limit: 100,
+					subscribed_at: null,
+					proxy_id: null,
+					expires_at: null
+				}
+			]
+		});
+		const updateSpy = mod.settingsApi.updateWebSearchEmulationConfig as ReturnType<typeof vi.fn>;
+		updateSpy.mockClear();
+
+		const { container } = render(SectionRenderer, {
+			props: {
+				section: gatewayWebSearchEmulationSection,
+				values: {},
+				dirtyKeys: new Set<string>()
+			}
+		});
+		const provider = await vi.waitFor(() => {
+			const el = container.querySelector('[data-testid="web-search-provider"]') as HTMLElement | null;
+			expect(el).not.toBeNull();
+			return el!;
+		});
+		const header = provider.querySelector('[data-testid="web-search-provider-header"]') as HTMLElement;
+		expect(header).not.toBeNull();
+		await fireEvent.click(header);
+
+		const proxySelect = await vi.waitFor(() => {
+			const el = container.querySelector(
+				'[data-testid="web-search-proxy-select"]'
+			) as HTMLSelectElement | null;
+			expect(el).not.toBeNull();
+			expect(el!.querySelector('option[value="20"]')).not.toBeNull();
+			return el!;
+		});
+
+		await fireEvent.change(proxySelect, { target: { value: '20' } });
+		const saveBtn = container.querySelector('[data-testid="web-search-save"]') as HTMLElement;
+		await fireEvent.click(saveBtn);
+
+		expect(updateSpy).toHaveBeenCalledOnce();
+		const arg = updateSpy.mock.calls[0][0] as {
+			providers: Array<{ proxy_id: number | null }>;
+		};
+		expect(arg.providers[0].proxy_id).toBe(20);
+		expect(container.querySelector('[data-testid="web-search-proxy-id"]')).toBeNull();
 	});
 });
 

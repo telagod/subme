@@ -12,6 +12,7 @@
 	import AuthLayout from '$lib/features/auth/AuthLayout.svelte';
 	import { authApi } from '$lib/api/auth';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	const email = $derived(page.url.searchParams.get('email') ?? '');
 
@@ -75,17 +76,18 @@
 			})}
 		</p>
 
-		<button
+		<Button
 			type="button"
+			variant="outline"
 			disabled={resending}
 			onclick={resend}
 			data-testid="resend-button"
-			class="inline-flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground transition hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+			class="w-full"
 		>
 			{resending
 				? $_('auth.verifyEmail.resending', { default: 'Sending...' })
 				: $_('auth.verifyEmailSent.resend', { default: 'Resend verification email' })}
-		</button>
+		</Button>
 	</div>
 
 	{#snippet footer()}

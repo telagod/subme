@@ -60,9 +60,28 @@ export interface PaginatedKeys {
 
 export interface CreateKeyPayload {
 	name: string;
+	group_id?: number;
 	quota?: number;
-	/** 过期天数（创建端语义；Vue tree 同 expires_in_days）。 */
 	expires_in_days?: number;
+	custom_key?: string;
+}
+
+export interface UpdateKeyPayload {
+	name?: string;
+	group_id?: number | null;
+	status?: 'active' | 'inactive';
+	quota?: number | null;
+	expires_at?: string | null;
+	reset_quota?: boolean;
+}
+
+export interface AvailableGroup {
+	id: number;
+	name: string;
+	description: string;
+	platform: string;
+	rate_multiplier: number;
+	subscription_type: string;
 }
 
 /** Raw backend response shape (snake_case)。不暴露给 UI。 */
@@ -156,13 +175,28 @@ export async function createKey(payload: CreateKeyPayload): Promise<ApiKey> {
  * DELETE /api/v1/keys/:id —— 后端语义为 HARD delete（无 soft-revoke 路由）。
  * Vue tree 同点：soft-revoke 走 `PUT { status: 'inactive' }`，本 M6 范围不暴露。
  */
+export async function updateKey(id: number, payload: UpdateKeyPayload): Promise<ApiKey> {
+	const raw = await apiClient.put<RawApiKey>(`/api/v1/keys/${id}`, payload);
+	return mapKey(raw);
+}
+
 export async function revokeKey(id: number): Promise<void> {
 	await apiClient.delete<unknown>(`/api/v1/keys/${id}`);
+}
+
+export async function getAvailableGroups(): Promise<AvailableGroup[]> {
+	const resp = await apiClient.get<AvailableGroup[] | { data?: AvailableGroup[] }>(
+		'/api/v1/groups/available'
+	);
+	if (Array.isArray(resp)) return resp;
+	return resp?.data ?? [];
 }
 
 export const userApiKeysApi = {
 	listKeys,
 	getKey,
 	createKey,
-	revokeKey
+	updateKey,
+	revokeKey,
+	getAvailableGroups
 };

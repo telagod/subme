@@ -7,6 +7,7 @@
  *   3. Create flow：打开 dialog → 填表 → 提交 → POST /keys 调用 + reveal 面板出现
  *   4. Revoke flow：点行的 revoke → 确认 → DELETE 调用 + list 重新拉
  *   5. Sentinel guard：状态筛选 Select 不含 value=""
+ *   6. Dialog guard：Create/Revoke 都走 StandardDialog，不手写 bits overlay
  *
  * Mock 策略：vi.mock '$lib/api/user/apiKeys' 一律替换为 vi.fn()，
  *   beforeEach 重置 + 重新装载页面模块。
@@ -15,6 +16,8 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import type { ApiKey } from '$lib/api/user/apiKeys';
+import createKeyDialogSrc from './CreateKeyDialog.svelte?raw';
+import revokeKeyDialogSrc from './RevokeKeyDialog.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte 之前
 vi.mock('$lib/api/user/apiKeys', () => {
@@ -291,6 +294,15 @@ describe('keys page · create flow', () => {
 			expect(value?.textContent).toContain('sk-mirror-FULL-PLAINTEXT-1234567890');
 		});
 	});
+
+	it('CreateKeyDialog uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(createKeyDialogSrc).toContain('StandardDialog');
+		expect(createKeyDialogSrc).toContain('data-testid="create-key-dialog"');
+		expect(createKeyDialogSrc).toContain('onOpenChange={handleOpenChange}');
+		expect(createKeyDialogSrc).not.toContain('Dialog.Root');
+		expect(createKeyDialogSrc).not.toContain('Dialog.Overlay');
+		expect(createKeyDialogSrc).not.toContain('fixed inset-0');
+	});
 });
 
 describe('keys page · revoke flow', () => {
@@ -346,5 +358,12 @@ describe('keys page · revoke flow', () => {
 		await waitFor(() => {
 			expect((api.listKeys as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThanOrEqual(2);
 		});
+	});
+
+	it('RevokeKeyDialog uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(revokeKeyDialogSrc).toContain('StandardDialog');
+		expect(revokeKeyDialogSrc).toContain('data-testid="revoke-key-dialog"');
+		expect(revokeKeyDialogSrc).not.toContain('Dialog.Overlay');
+		expect(revokeKeyDialogSrc).not.toContain('fixed inset-0');
 	});
 });

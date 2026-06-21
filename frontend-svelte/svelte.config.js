@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// 静态 SPA：fallback:'index.html' 配合 +layout.ts 的 ssr:false / prerender:false。
-// 输出物直接写入后端嵌入路径 backend/internal/web/dist_svelte/，与 Vue tree
-// 的 dist/ 平行共存；后端 embed.go 切换源时无需任何文件搬运。
+// Static SPA: fallback:'index.html' pairs with +layout.ts ssr:false / prerender:false.
+// Build output is written directly to the backend embed path.
 const distAbs = path.resolve(__dirname, '..', 'backend', 'internal', 'web', 'dist_svelte');
 
 /** @type {import('@sveltejs/kit').Config} */

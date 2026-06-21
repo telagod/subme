@@ -23,6 +23,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import type { Balance, BillingTransaction } from '$lib/api/user/billing';
+import topUpDialogSrc from './TopUpDialog.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte / TopUpDialog 之前
 vi.mock('$lib/api/user/billing', () => {
@@ -344,6 +345,15 @@ describe('TopUpDialog · form validation', () => {
 			},
 			{ timeout: 2000 }
 		);
+	});
+
+	it('TopUpDialog uses StandardDialog and keeps payment facade lazy', () => {
+		expect(topUpDialogSrc).toContain('StandardDialog');
+		expect(topUpDialogSrc).toContain('data-testid="topup-dialog"');
+		expect(topUpDialogSrc).toContain("await import('$lib/api/user/payment')");
+		expect(topUpDialogSrc).not.toContain("import { createTopUp");
+		expect(topUpDialogSrc).not.toContain('Dialog.Overlay');
+		expect(topUpDialogSrc).not.toContain('fixed inset-0');
 	});
 });
 

@@ -14,6 +14,8 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import type { UserSubscription, Plan } from '$lib/api/user/subscriptions';
+import cancelDialogSrc from './CancelDialog.svelte?raw';
+import purchasePageSrc from '../../../routes/(user)/purchase/+page.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte 之前
 vi.mock('$lib/api/user/subscriptions', () => {
@@ -196,6 +198,14 @@ describe('purchase page · plans rendering', () => {
 			expect(cards.length).toBe(3);
 		});
 	});
+
+	it('provider picker uses StandardDialog instead of a hand-rolled overlay', () => {
+		expect(purchasePageSrc).toContain('StandardDialog');
+		expect(purchasePageSrc).toContain('data-testid="purchase-provider-panel"');
+		expect(purchasePageSrc).not.toContain('purchase-provider-overlay');
+		expect(purchasePageSrc).not.toContain('fixed inset-0');
+		expect(purchasePageSrc).not.toContain('role="dialog"');
+	});
 });
 
 describe('purchase page · empty plans state', () => {
@@ -313,5 +323,12 @@ describe('subscriptions page · cancel flow', () => {
 				2
 			);
 		});
+	});
+
+	it('CancelDialog uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(cancelDialogSrc).toContain('StandardDialog');
+		expect(cancelDialogSrc).toContain('data-testid="cancel-sub-dialog"');
+		expect(cancelDialogSrc).not.toContain('Dialog.Overlay');
+		expect(cancelDialogSrc).not.toContain('fixed inset-0');
 	});
 });

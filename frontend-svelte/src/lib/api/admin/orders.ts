@@ -3,14 +3,14 @@
  *
  * 端口自 Vue tree 的 adminPaymentAPI.{getOrders,getOrder,cancelOrder,retryRecharge}。
  * 退款入口 refundOrder 不在这里 —— task 描述明确指明走 M11 已落地的
- * `$lib/api/admin/payment.ts` 同名导出（subscription / orders 两面共用退款管线）。
+ * `$lib/api/v1/admin/payment.ts` 同名导出（subscription / orders 两面共用退款管线）。
  *
  * 端点：
- *   - listAdminOrders(filter)        : GET /api/admin/payment/orders
- *   - getAdminOrder(id)              : GET /api/admin/payment/orders/:id
- *   - retryOrder(id)                 : POST /api/admin/payment/orders/:id/retry
- *   - cancelOrder(id)                : POST /api/admin/payment/orders/:id/cancel
- *   - listOrderAuditLog(id)          : GET /api/admin/payment/orders/:id/audit-log
+ *   - listAdminOrders(filter)        : GET /api/v1/admin/payment/orders
+ *   - getAdminOrder(id)              : GET /api/v1/admin/payment/orders/:id
+ *   - retryOrder(id)                 : POST /api/v1/admin/payment/orders/:id/retry
+ *   - cancelOrder(id)                : POST /api/v1/admin/payment/orders/:id/cancel
+ *   - listOrderAuditLog(id)          : GET /api/v1/admin/payment/orders/:id/audit-log
  *     —— audit log endpoint 与 subscription 等差形对齐，404 时 fallback 空数组。
  *
  * 红线（CLAUDE.md billing）：
@@ -117,7 +117,7 @@ function buildQuery(filter: AdminOrderFilter | undefined): string {
 
 // ── 端点 ────────────────────────────────────────────────────────────────────
 
-const ORDERS_BASE = '/api/admin/payment/orders';
+const ORDERS_BASE = '/api/v1/admin/payment/orders';
 
 export async function listAdminOrders(
 	filter?: AdminOrderFilter

@@ -20,7 +20,7 @@ import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 
 // 红线 grep：?raw 把源码字符串带进测试
-import pageSrc from '../../../routes/(admin)/orders/refunds/+page.svelte?raw';
+import pageSrc from '../../../routes/admin/orders/refunds/+page.svelte?raw';
 import apiSrc from '$lib/api/admin/refunds.ts?raw';
 
 import type { AdminRefundRequest } from '$lib/api/admin/refunds';
@@ -40,22 +40,20 @@ vi.mock('$lib/api/admin/refunds', () => {
 	};
 });
 
-vi.mock('$lib/api/admin/subscriptions', () => {
-	// M11 RefundDialog 仅依赖 refundSub —— mock 成 resolve 即可
+vi.mock('$lib/api/admin/payment', () => {
+	// OrderRefundDialog 依赖 refundOrder —— 命中真实 ProcessRefund 端点。
 	return {
-		listAdminSubs: vi.fn(),
-		getAdminSub: vi.fn(),
-		forceCancelSub: vi.fn(),
-		refundSub: vi.fn().mockResolvedValue({ amount: 0 }),
-		extendSub: vi.fn(),
-		getAuditLog: vi.fn(),
-		adminSubscriptionsApi: {
-			listAdminSubs: vi.fn(),
-			getAdminSub: vi.fn(),
-			forceCancelSub: vi.fn(),
-			refundSub: vi.fn().mockResolvedValue({ amount: 0 }),
-			extendSub: vi.fn(),
-			getAuditLog: vi.fn()
+		listProviders: vi.fn().mockResolvedValue([]),
+		createProvider: vi.fn(),
+		updateProvider: vi.fn(),
+		deleteProvider: vi.fn(),
+		refundOrder: vi.fn().mockResolvedValue({ amount: 0, status: 'REFUNDED' }),
+		adminPaymentApi: {
+			listProviders: vi.fn().mockResolvedValue([]),
+			createProvider: vi.fn(),
+			updateProvider: vi.fn(),
+			deleteProvider: vi.fn(),
+			refundOrder: vi.fn().mockResolvedValue({ amount: 0, status: 'REFUNDED' })
 		}
 	};
 });
@@ -117,7 +115,7 @@ function fakeMixedListResponse() {
 
 describe('admin refunds · list rendering', () => {
 	let api: typeof import('$lib/api/admin/refunds');
-	let pageMod: typeof import('../../../routes/(admin)/orders/refunds/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/refunds/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/refunds');
@@ -126,7 +124,7 @@ describe('admin refunds · list rendering', () => {
 			fakeMixedListResponse()
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/refunds/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/refunds/+page.svelte');
 	}, 30000);
 
 	it('renders mixed pending + approved + rejected rows', async () => {
@@ -158,7 +156,7 @@ describe('admin refunds · list rendering', () => {
 
 describe('admin refunds · status filter sentinel', () => {
 	let api: typeof import('$lib/api/admin/refunds');
-	let pageMod: typeof import('../../../routes/(admin)/orders/refunds/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/refunds/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/refunds');
@@ -167,7 +165,7 @@ describe('admin refunds · status filter sentinel', () => {
 			fakeMixedListResponse()
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/refunds/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/refunds/+page.svelte');
 	}, 30000);
 
 	it('status filter uses __all__ sentinel; no empty-string option', async () => {
@@ -189,20 +187,21 @@ describe('admin refunds · status filter sentinel', () => {
 // Test 3 · approve → RefundDialog → approveRefund
 // ─────────────────────────────────────────────────────────────────
 
-describe('admin refunds · approve delegates to RefundDialog', () => {
+describe('admin refunds · approve delegates to OrderRefundDialog → refundOrder', () => {
 	let api: typeof import('$lib/api/admin/refunds');
-	let subsApi: typeof import('$lib/api/admin/subscriptions');
-	let pageMod: typeof import('../../../routes/(admin)/orders/refunds/+page.svelte');
+	let payApi: typeof import('$lib/api/admin/payment');
+	let pageMod: typeof import('../../../routes/admin/orders/refunds/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/refunds');
-		subsApi = await import('$lib/api/admin/subscriptions');
+		payApi = await import('$lib/api/admin/payment');
 		(api.listRefundQueue as ReturnType<typeof vi.fn>).mockReset();
 		(api.approveRefund as ReturnType<typeof vi.fn>).mockReset();
-		(subsApi.refundSub as ReturnType<typeof vi.fn>).mockReset();
+		(payApi.refundOrder as ReturnType<typeof vi.fn>).mockReset();
 
 		(api.listRefundQueue as ReturnType<typeof vi.fn>).mockResolvedValue({
-			data: [fakeRequest({ id: 7777, status: 'pending', amount: 12.5 })],
+			// id = queue-request id (7777); order_id = the real order (1001)
+			data: [fakeRequest({ id: 7777, order_id: 1001, status: 'pending', amount: 12.5 })],
 			total: 1,
 			page: 1,
 			page_size: 20
@@ -210,14 +209,15 @@ describe('admin refunds · approve delegates to RefundDialog', () => {
 		(api.approveRefund as ReturnType<typeof vi.fn>).mockResolvedValue({
 			status: 'approved'
 		});
-		(subsApi.refundSub as ReturnType<typeof vi.fn>).mockResolvedValue({
-			amount: 12.5
+		(payApi.refundOrder as ReturnType<typeof vi.fn>).mockResolvedValue({
+			amount: 12.5,
+			status: 'REFUNDED'
 		});
 
-		pageMod = await import('../../../routes/(admin)/orders/refunds/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/refunds/+page.svelte');
 	}, 30000);
 
-	it('clicking approve opens RefundDialog; confirming it calls approveRefund', async () => {
+	it('approve → OrderRefundDialog → refundOrder(ORDER id) then approveRefund(REQUEST id)', async () => {
 		const { container } = render(pageMod.default);
 		await waitFor(() => {
 			expect(
@@ -232,26 +232,29 @@ describe('admin refunds · approve delegates to RefundDialog', () => {
 		await fireEvent.click(approveBtn);
 
 		await waitFor(() => {
-			const dlg = document.body.querySelector('[data-testid="refund-dialog"]');
+			const dlg = document.body.querySelector('[data-testid="order-refund-dialog"]');
 			expect(dlg).not.toBeNull();
 		});
 
-		// Fill the M11 dialog (amount already pre-filled from remaining_value; just
-		// supply a reason ≥ 4 chars and confirm).
+		// amount pre-filled from refundable balance; supply a reason ≥ 4 chars.
 		const reasonInput = document.body.querySelector(
-			'[data-testid="refund-reason-input"]'
+			'[data-testid="order-refund-reason-input"]'
 		) as HTMLTextAreaElement;
 		await fireEvent.input(reasonInput, { target: { value: 'approved by admin' } });
 
 		const confirmBtn = document.body.querySelector(
-			'[data-testid="refund-confirm-btn"]'
+			'[data-testid="order-refund-confirm-btn"]'
 		) as HTMLButtonElement;
 		await fireEvent.click(confirmBtn);
 
+		// Refund must hit the ORDER record, not a subscription/ghost endpoint.
 		await waitFor(() => {
-			expect(subsApi.refundSub).toHaveBeenCalled();
+			expect(payApi.refundOrder).toHaveBeenCalled();
+			const [orderId] = (payApi.refundOrder as ReturnType<typeof vi.fn>).mock.calls[0];
+			expect(orderId).toBe(1001);
 		});
 
+		// Queue-side mark uses the REQUEST id.
 		await waitFor(() => {
 			expect(api.approveRefund).toHaveBeenCalled();
 			const [calledId] = (api.approveRefund as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -266,7 +269,7 @@ describe('admin refunds · approve delegates to RefundDialog', () => {
 
 describe('admin refunds · reject confirm dialog', () => {
 	let api: typeof import('$lib/api/admin/refunds');
-	let pageMod: typeof import('../../../routes/(admin)/orders/refunds/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/refunds/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/refunds');
@@ -283,7 +286,7 @@ describe('admin refunds · reject confirm dialog', () => {
 			status: 'rejected'
 		});
 
-		pageMod = await import('../../../routes/(admin)/orders/refunds/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/refunds/+page.svelte');
 	}, 30000);
 
 	it('reject button → confirm dialog → empty reason blocked → valid reason triggers rejectRefund', async () => {
@@ -361,5 +364,12 @@ describe('RED LINE · admin refunds surface must not reference billing core', ()
 				).toBe(false);
 			}
 		}
+	});
+
+	it('detail drawer uses StandardDrawer instead of a hand-rolled bits overlay', () => {
+		expect(pageSrc).toContain('StandardDrawer');
+		expect(pageSrc).toContain('data-testid="admin-refunds-detail-drawer"');
+		expect(pageSrc).not.toContain('Dialog.Overlay');
+		expect(pageSrc).not.toContain('fixed inset-0');
 	});
 });

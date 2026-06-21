@@ -12,8 +12,11 @@
 	 *   - 粘贴：拆分多 token 批量入队。
 	 *
 	 * 验证：用最小可用域名正则 —— 业务校验最终以后端为准；纯前端拦掉显然非法形式即可。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -125,22 +128,21 @@
 					data-tag={t}
 				>
 					<span class="whitespace-nowrap font-mono text-xs text-foreground">{t}</span>
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						aria-label="remove {t}"
-						class="inline-flex h-4 w-4 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+						class="h-4 w-4 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 						onclick={() => removeTag(t)}
 					>
-						<svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-						</svg>
-					</button>
+						<X class="h-2.5 w-2.5" />
+					</Button>
 				</span>
 			{/each}
-			<input
+			<Input
 				type="text"
 				data-testid="email-suffix-input"
-				class="h-7 min-w-[180px] flex-1 border-none bg-transparent px-1 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground"
+				class="h-7 min-w-[180px] flex-1 border-none bg-transparent px-1 font-mono text-xs text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
 				placeholder={tags.length === 0 ? $_('admin.settings.registration.emailSuffixWhitelistPlaceholder') : ''}
 				bind:value={draft}
 				onkeydown={onKeydown}

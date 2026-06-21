@@ -1,7 +1,7 @@
 /**
  * Admin Plans Catalog API · Svelte rewrite（M22 · /(admin)/monetization/plans）
  *
- * 端口自 frontend/src/api/admin/payment.ts 的 plan slice。
+ * 端口自 frontend/src/api/v1/admin/payment.ts 的 plan slice。
  * 与 Vue tree 差异：
  *   - features 字段在线上后端是 JSON 字符串或换行分隔字符串；listPlans 内
  *     直接 parse 成 string[]，上游消费即得；createPlan / updatePlan 反向
@@ -117,8 +117,8 @@ function serializeWritePayload(p: CreatePlanPayload | UpdatePlanPayload): Record
 
 // ── 端点 ────────────────────────────────────────────────────────────────────
 
-const PLANS_BASE = '/api/admin/payment/plans';
-const GROUPS_BASE = '/api/admin/groups';
+const PLANS_BASE = '/api/v1/admin/payment/plans';
+const GROUPS_BASE = '/api/v1/admin/groups';
 
 export async function listPlans(): Promise<AdminPlan[]> {
 	const raw = await apiClient.get<AdminPlanWire[] | ListPlansResponse>(PLANS_BASE);

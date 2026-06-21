@@ -8,12 +8,16 @@
 	 *   - Custom Endpoints：name / endpoint / description
 	 *   - Custom Menu Items：id / label / icon_svg / url / visibility / sort_order
 	 *
-	 * 不可重排：M10 不支持菜单项上下移（Vue tree 有，列入 backlog）—— 但保留 sort_order 字段
-	 * 以保证 backend 兼容。
+	 * 菜单项支持上移/下移重排，emit 时同步归一化 sort_order，保持 backend 兼容。
 	 *
 	 * Sentinel：visibility 走 'user' / 'admin'，绝不出 ''。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
+	import { ChevronDown, ChevronUp, X } from '@lucide/svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import Textarea from '$lib/ui/Textarea.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -103,6 +107,14 @@
 		menuItems = menuItems.filter((_, idx) => idx !== i).map((m, idx) => ({ ...m, sort_order: idx }));
 		emitMenu();
 	}
+	function moveMenu(i: number, direction: -1 | 1) {
+		const target = i + direction;
+		if (target < 0 || target >= menuItems.length) return;
+		const next = [...menuItems];
+		[next[i], next[target]] = [next[target], next[i]];
+		menuItems = next.map((m, idx) => ({ ...m, sort_order: idx }));
+		emitMenu();
+	}
 	function patchMenu(i: number, key: keyof MenuItem, val: string) {
 		const next = menuItems.map((m, idx) => (idx === i ? { ...m, [key]: val } : m));
 		menuItems = next;
@@ -134,21 +146,24 @@
 					<span class="text-xs font-semibold text-foreground">
 						{$_('admin.settings.site.customEndpoints.itemLabel', { values: { n: i + 1 } })}
 					</span>
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						aria-label="remove endpoint"
-						class="inline-flex h-7 w-7 items-center justify-center rounded text-destructive hover:bg-destructive/10"
-						onclick={() => removeEp(i)}>×</button
+						class="h-7 w-7 text-destructive hover:bg-destructive/10"
+						onclick={() => removeEp(i)}
 					>
+						<X class="h-3 w-3" />
+					</Button>
 				</div>
 				<div class="grid grid-cols-1 gap-3 p-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
 					<label class="block">
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.site.customEndpoints.name')}
 						</span>
-						<input
+						<Input
 							type="text"
-							class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+							class="h-9"
 							value={ep.name}
 							oninput={(e) => patchEp(i, 'name', (e.target as HTMLInputElement).value)}
 						/>
@@ -157,9 +172,9 @@
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.site.customEndpoints.endpointUrl')}
 						</span>
-						<input
+						<Input
 							type="url"
-							class="h-9 w-full rounded-md border border-input bg-background px-3 font-mono text-xs"
+							class="h-9 font-mono text-xs"
 							value={ep.endpoint}
 							oninput={(e) => patchEp(i, 'endpoint', (e.target as HTMLInputElement).value)}
 						/>
@@ -168,9 +183,9 @@
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.site.customEndpoints.descriptionLabel')}
 						</span>
-						<input
+						<Input
 							type="text"
-							class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+							class="h-9"
 							value={ep.description}
 							oninput={(e) => patchEp(i, 'description', (e.target as HTMLInputElement).value)}
 						/>
@@ -178,12 +193,14 @@
 				</div>
 			</div>
 		{/each}
-		<button
-			type="button"
+		<Button
+			variant="outline"
 			data-testid="custom-endpoint-add"
-			class="inline-flex h-9 w-full items-center justify-center rounded-md border border-dashed border-input bg-background text-xs text-muted-foreground hover:border-ring hover:text-foreground"
-			onclick={addEp}>+ {$_('admin.settings.site.customEndpoints.add')}</button
+			class="h-9 w-full border-dashed text-xs text-muted-foreground hover:border-ring hover:text-foreground"
+			onclick={addEp}
 		>
+			+ {$_('admin.settings.site.customEndpoints.add')}
+		</Button>
 	</div>
 
 	<div class="flex flex-col gap-3 border-t border-border pt-5">
@@ -196,21 +213,51 @@
 					<span class="text-xs font-semibold text-foreground">
 						{$_('admin.settings.customMenu.itemLabel', { values: { n: i + 1 } })}
 					</span>
-					<button
-						type="button"
-						aria-label="remove menu item"
-						class="inline-flex h-7 w-7 items-center justify-center rounded text-destructive hover:bg-destructive/10"
-						onclick={() => removeMenu(i)}>×</button
-					>
+					<div class="flex items-center gap-1">
+						<Button
+							variant="ghost"
+							size="icon"
+							aria-label={$_('admin.settings.customMenu.moveUp')}
+							title={$_('admin.settings.customMenu.moveUp')}
+							data-testid={`custom-menu-move-up-${i}`}
+							disabled={i === 0}
+							class="h-7 w-7"
+							onclick={() => moveMenu(i, -1)}
+						>
+							<ChevronUp class="h-3.5 w-3.5" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							aria-label={$_('admin.settings.customMenu.moveDown')}
+							title={$_('admin.settings.customMenu.moveDown')}
+							data-testid={`custom-menu-move-down-${i}`}
+							disabled={i === menuItems.length - 1}
+							class="h-7 w-7"
+							onclick={() => moveMenu(i, 1)}
+						>
+							<ChevronDown class="h-3.5 w-3.5" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							aria-label={$_('admin.settings.customMenu.remove')}
+							title={$_('admin.settings.customMenu.remove')}
+							class="h-7 w-7 text-destructive hover:bg-destructive/10"
+							onclick={() => removeMenu(i)}
+						>
+							<X class="h-3 w-3" />
+						</Button>
+					</div>
 				</div>
 				<div class="grid gap-3 p-3 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
 					<label class="block">
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.customMenu.name')}
 						</span>
-						<input
+						<Input
 							type="text"
-							class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+							class="h-9"
 							value={item.label}
 							oninput={(e) => patchMenu(i, 'label', (e.target as HTMLInputElement).value)}
 						/>
@@ -219,9 +266,9 @@
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.customMenu.url')}
 						</span>
-						<input
+						<Input
 							type="url"
-							class="h-9 w-full rounded-md border border-input bg-background px-3 font-mono text-xs"
+							class="h-9 font-mono text-xs"
 							value={item.url}
 							oninput={(e) => patchMenu(i, 'url', (e.target as HTMLInputElement).value)}
 						/>
@@ -230,34 +277,36 @@
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.customMenu.visibility')}
 						</span>
-						<select
-							class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+						<NativeSelect
+							class="h-9 w-full"
 							value={item.visibility}
 							onchange={(e) => patchMenu(i, 'visibility', (e.target as HTMLSelectElement).value)}
 						>
 							<option value="user">{$_('admin.settings.customMenu.visibilityUser')}</option>
 							<option value="admin">{$_('admin.settings.customMenu.visibilityAdmin')}</option>
-						</select>
+						</NativeSelect>
 					</label>
 					<label class="col-span-full block">
 						<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 							{$_('admin.settings.customMenu.iconSvg')}
 						</span>
-						<textarea
-							rows="2"
-							class="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-[11px]"
+						<Textarea
+							rows={2}
+							class="font-mono text-[11px]"
 							value={item.icon_svg}
 							oninput={(e) => patchMenu(i, 'icon_svg', (e.target as HTMLTextAreaElement).value)}
-						></textarea>
+						/>
 					</label>
 				</div>
 			</div>
 		{/each}
-		<button
-			type="button"
+		<Button
+			variant="outline"
 			data-testid="custom-menu-add"
-			class="inline-flex h-9 w-full items-center justify-center rounded-md border border-dashed border-input bg-background text-xs text-muted-foreground hover:border-ring hover:text-foreground"
-			onclick={addMenu}>+ {$_('admin.settings.customMenu.add')}</button
+			class="h-9 w-full border-dashed text-xs text-muted-foreground hover:border-ring hover:text-foreground"
+			onclick={addMenu}
 		>
+			+ {$_('admin.settings.customMenu.add')}
+		</Button>
 	</div>
 </div>

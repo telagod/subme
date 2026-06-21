@@ -38,6 +38,10 @@ export default defineConfig({
 					//   3. 与 vendor 同生同灭，hash 稳定性不变
 					if (id.includes('/src/lib/stores/') && id.endsWith('.svelte.ts')) return 'vendor';
 					if (id.includes('/src/lib/api/') && id.endsWith('.ts')) return 'vendor';
+					// 标准 UI primitives 被 shell/layout/routes 广泛 eager 引用。Rollup 默认
+					// 会把 Button/Input 等拆成额外 shared chunks，突破 EAGER_CHUNK_CAP=2。
+					// 这些组件是启动期基础设施，不属于懒加载业务岛，统一收进 vendor。
+					if (id.includes('/src/lib/ui/')) return 'vendor';
 
 					if (!id.includes('node_modules')) return;
 

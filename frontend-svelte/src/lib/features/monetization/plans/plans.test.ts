@@ -8,8 +8,9 @@
  *      sentinel（'__all__'），严禁 <option value=""> 出现（reshadcn-migration 铁律）。
  *   3. PlanEditDialog tab switching —— 打开 → 四个 tab（basic/pricing/quotas/features）
  *      可切换 → 在表单完整填写后 submit 触发 createPlan。
- *   4. Duplicate flow —— 点 PlanCard 的 Duplicate 按钮触发 duplicatePlan API。
- *   5. Archive confirm —— 点 Delete 触发原生 confirm dialog（页面内 lightweight 弹窗），
+ *   4. PlanEditDialog 使用 StandardDialog，不再手写 bits overlay。
+ *   5. Duplicate flow —— 点 PlanCard 的 Duplicate 按钮触发 duplicatePlan API。
+ *   6. Archive confirm —— 点 Delete 触发原生 confirm dialog（页面内 lightweight 弹窗），
  *      点 Confirm 触发 deletePlan，并 reload。
  *
  * Mock 策略：
@@ -21,6 +22,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vite
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 import type { AdminPlan, AdminGroupLite } from '$lib/api/admin/plans';
+import dialogSrc from './PlanEditDialog.svelte?raw';
 
 // vi.mock hoists —— 必须在 import +page.svelte / PlanEditDialog 之前
 vi.mock('$lib/api/admin/plans', () => {
@@ -187,7 +189,7 @@ function fakePlan(over: Partial<AdminPlan> = {}): AdminPlan {
 
 describe('plans page · list render', () => {
 	let api: typeof import('$lib/api/admin/plans');
-	let pageMod: typeof import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+	let pageMod: typeof import('../../../../routes/admin/monetization/plans/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/plans');
@@ -203,7 +205,7 @@ describe('plans page · list render', () => {
 		]);
 		(api.listGroups as ReturnType<typeof vi.fn>).mockResolvedValue([fakeGroup()]);
 
-		pageMod = await import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+		pageMod = await import('../../../../routes/admin/monetization/plans/+page.svelte');
 	});
 
 	it('renders 5 plan cards from mock', async () => {
@@ -233,7 +235,7 @@ describe('plans page · list render', () => {
 
 describe('plans page · filter sentinels', () => {
 	let api: typeof import('$lib/api/admin/plans');
-	let pageMod: typeof import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+	let pageMod: typeof import('../../../../routes/admin/monetization/plans/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/plans');
@@ -242,7 +244,7 @@ describe('plans page · filter sentinels', () => {
 		(api.listPlans as ReturnType<typeof vi.fn>).mockResolvedValue([fakePlan()]);
 		(api.listGroups as ReturnType<typeof vi.fn>).mockResolvedValue([fakeGroup()]);
 
-		pageMod = await import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+		pageMod = await import('../../../../routes/admin/monetization/plans/+page.svelte');
 	});
 
 	it('platform + status filters use __all__ sentinel; no <option value="">', async () => {
@@ -441,6 +443,14 @@ describe('PlanEditDialog · tabs + submit', () => {
 			expect(o.value).not.toBe('');
 		}
 	});
+
+	it('uses StandardDialog instead of a hand-rolled bits overlay', () => {
+		expect(dialogSrc).toContain('StandardDialog');
+		expect(dialogSrc).toContain('data-testid="plan-edit-dialog"');
+		expect(dialogSrc).not.toContain('Dialog.Root');
+		expect(dialogSrc).not.toContain('Dialog.Overlay');
+		expect(dialogSrc).not.toContain('fixed inset-0');
+	});
 });
 
 // ────────────────────────────────────────────────────────────────────────
@@ -449,7 +459,7 @@ describe('PlanEditDialog · tabs + submit', () => {
 
 describe('plans page · duplicate flow', () => {
 	let api: typeof import('$lib/api/admin/plans');
-	let pageMod: typeof import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+	let pageMod: typeof import('../../../../routes/admin/monetization/plans/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/plans');
@@ -465,7 +475,7 @@ describe('plans page · duplicate flow', () => {
 			fakePlan({ id: 8, name: 'Source Plan (copy)' })
 		);
 
-		pageMod = await import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+		pageMod = await import('../../../../routes/admin/monetization/plans/+page.svelte');
 	});
 
 	it('clicking Duplicate calls duplicatePlan API with snapshot', async () => {
@@ -498,7 +508,7 @@ describe('plans page · duplicate flow', () => {
 
 describe('plans page · delete confirm flow', () => {
 	let api: typeof import('$lib/api/admin/plans');
-	let pageMod: typeof import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+	let pageMod: typeof import('../../../../routes/admin/monetization/plans/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/plans');
@@ -512,7 +522,7 @@ describe('plans page · delete confirm flow', () => {
 		(api.listGroups as ReturnType<typeof vi.fn>).mockResolvedValue([fakeGroup()]);
 		(api.deletePlan as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
-		pageMod = await import('../../../../routes/(admin)/monetization/plans/+page.svelte');
+		pageMod = await import('../../../../routes/admin/monetization/plans/+page.svelte');
 	});
 
 	it('Delete button opens confirm; Confirm triggers deletePlan(id)', async () => {

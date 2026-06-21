@@ -1,8 +1,8 @@
 /**
  * Settings Registry API · 管理端入口（POC 4）
  *
- * 端点与 Vue tree (frontend/src/api/admin/settings.ts) 同源；后端 handler 仍是
- * /api/admin/settings 系列。本 POC 仅落地邮件相关四个端点，其余等 M10 全量铺开。
+ * 端点与 Vue tree (frontend/src/api/v1/admin/settings.ts) 同源；后端 handler 仍是
+ * /api/v1/admin/settings 系列。本 POC 仅落地邮件相关四个端点，其余等 M10 全量铺开。
  *
  * 契约要点：
  *   - patchSettings 只发 dirty key —— 调用方（+page.svelte）负责构造增量 payload。
@@ -35,7 +35,7 @@ export interface ApiActionResult {
 	message?: string;
 }
 
-/** Admin API Key 状态 —— GET /api/admin/settings/admin-api-key 返回。 */
+/** Admin API Key 状态 —— GET /api/v1/admin/settings/admin-api-key 返回。 */
 export interface AdminApiKeyStatus {
 	exists: boolean;
 	masked_key: string;
@@ -129,10 +129,60 @@ export interface WebSearchTestResult {
 	results: { url: string; title: string; snippet: string; page_age?: string }[];
 }
 
+export interface EmailTemplateOption {
+	value: string;
+	label?: string;
+	description?: string;
+	category?: string;
+	optional?: boolean;
+}
+
+export type EmailTemplateEventOption = string | EmailTemplateOption;
+
+export interface EmailTemplateSummary {
+	event: string;
+	locale: string;
+	subject: string;
+	is_custom?: boolean;
+	updated_at?: string;
+}
+
+export interface EmailTemplateListResponse {
+	events: EmailTemplateEventOption[];
+	locales: string[];
+	templates?: EmailTemplateSummary[];
+	placeholders?: string[];
+}
+
+export interface EmailTemplateDetail {
+	event: string;
+	locale: string;
+	subject: string;
+	html: string;
+	is_custom?: boolean;
+	updated_at?: string;
+	placeholders?: string[];
+}
+
+export interface UpdateEmailTemplateRequest {
+	subject: string;
+	html: string;
+}
+
+export interface PreviewEmailTemplateRequest extends UpdateEmailTemplateRequest {
+	event: string;
+	locale: string;
+}
+
+export interface EmailTemplatePreviewResponse {
+	subject: string;
+	html: string;
+}
+
 // ── M10d backup lifecycle ────────────────────────────────────────────────────
 //
-// 端口自 frontend/src/api/admin/backup.ts。后端路由组：admin.Group("/backups")。
-// 走 `/api/admin/backups/...`（前端 client.baseURL 默认空 + apiBase 拼接，与
+// 端口自 frontend/src/api/v1/admin/backup.ts。后端路由组：admin.Group("/backups")。
+// 走 `/api/v1/admin/backups/...`（前端 client.baseURL 默认空 + apiBase 拼接，与
 // 已落地的 affiliates / payment 同款）。
 //
 // 与 settings flat-form 完全解耦 —— 本 lifecycle 走 GET/PUT/POST/DELETE 自管，
@@ -185,7 +235,7 @@ export interface BackupListResponse {
 export const settingsApi = {
 	/** 拉取后端全量 settings 快照。 */
 	getSettings(): Promise<SettingsMap> {
-		return apiClient.get<SettingsMap>('/api/admin/settings');
+		return apiClient.get<SettingsMap>('/api/v1/admin/settings');
 	},
 
 	/**
@@ -194,13 +244,13 @@ export const settingsApi = {
 	 * 调用方应在 success 后用 form 视图覆盖 savedSettings 快照。
 	 */
 	async patchSettings(payload: SettingsMap): Promise<void> {
-		await apiClient.patch<SettingsMap>('/api/admin/settings', payload);
+		await apiClient.patch<SettingsMap>('/api/v1/admin/settings', payload);
 	},
 
 	/** 用表单实时值测 SMTP 连接（不持久化）。 */
 	async testSmtpConnection(body: TestSmtpRequest): Promise<ApiActionResult> {
 		const res = await apiClient.post<{ message?: string }>(
-			'/api/admin/settings/test-smtp',
+			'/api/v1/admin/settings/test-smtp',
 			body
 		);
 		return { success: true, message: res?.message };
@@ -209,7 +259,7 @@ export const settingsApi = {
 	/** 用表单实时值发测试邮件（不持久化）。 */
 	async sendTestEmail(body: SendTestEmailRequest): Promise<ApiActionResult> {
 		const res = await apiClient.post<{ message?: string }>(
-			'/api/admin/settings/send-test-email',
+			'/api/v1/admin/settings/send-test-email',
 			body
 		);
 		return { success: true, message: res?.message };
@@ -219,24 +269,24 @@ export const settingsApi = {
 
 	/** GET 当前 admin API key 状态（masked）。 */
 	getAdminApiKey(): Promise<AdminApiKeyStatus> {
-		return apiClient.get<AdminApiKeyStatus>('/api/admin/settings/admin-api-key');
+		return apiClient.get<AdminApiKeyStatus>('/api/v1/admin/settings/admin-api-key');
 	},
 
 	/** POST 重新生成 admin API key —— 返回一次性明文，前端必须立刻显示给管理员。 */
 	regenerateAdminApiKey(): Promise<AdminApiKeyResult> {
-		return apiClient.post<AdminApiKeyResult>('/api/admin/settings/admin-api-key/regenerate', {});
+		return apiClient.post<AdminApiKeyResult>('/api/v1/admin/settings/admin-api-key/regenerate', {});
 	},
 
 	/** DELETE 当前 admin API key。 */
 	async deleteAdminApiKey(): Promise<void> {
-		await apiClient.delete('/api/admin/settings/admin-api-key');
+		await apiClient.delete('/api/v1/admin/settings/admin-api-key');
 	},
 
 	// ── M11 gateway 自管理 endpoints ──────────────────────────────────────────────
 
 	/** GET 当前 529 overload cooldown 设置。 */
 	getOverloadCooldownSettings(): Promise<OverloadCooldownSettings> {
-		return apiClient.get<OverloadCooldownSettings>('/api/admin/settings/overload-cooldown');
+		return apiClient.get<OverloadCooldownSettings>('/api/v1/admin/settings/overload-cooldown');
 	},
 
 	/** PUT 完整 529 overload cooldown 配置 —— 不是 patch，整体替换。 */
@@ -244,7 +294,7 @@ export const settingsApi = {
 		body: OverloadCooldownSettings
 	): Promise<OverloadCooldownSettings> {
 		return apiClient.put<OverloadCooldownSettings>(
-			'/api/admin/settings/overload-cooldown',
+			'/api/v1/admin/settings/overload-cooldown',
 			body
 		);
 	},
@@ -252,7 +302,7 @@ export const settingsApi = {
 	/** GET 当前 429 default cooldown 设置。 */
 	getRateLimit429CooldownSettings(): Promise<RateLimit429CooldownSettings> {
 		return apiClient.get<RateLimit429CooldownSettings>(
-			'/api/admin/settings/rate-limit-429-cooldown'
+			'/api/v1/admin/settings/rate-limit-429-cooldown'
 		);
 	},
 
@@ -261,7 +311,7 @@ export const settingsApi = {
 		body: RateLimit429CooldownSettings
 	): Promise<RateLimit429CooldownSettings> {
 		return apiClient.put<RateLimit429CooldownSettings>(
-			'/api/admin/settings/rate-limit-429-cooldown',
+			'/api/v1/admin/settings/rate-limit-429-cooldown',
 			body
 		);
 	},
@@ -269,88 +319,123 @@ export const settingsApi = {
 	// ── M10e gateway long-tail self-managed endpoints ──────────────────────────
 
 	getStreamTimeoutSettings(): Promise<StreamTimeoutSettings> {
-		return apiClient.get<StreamTimeoutSettings>('/api/admin/settings/stream-timeout');
+		return apiClient.get<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout');
 	},
 	updateStreamTimeoutSettings(body: StreamTimeoutSettings): Promise<StreamTimeoutSettings> {
-		return apiClient.put<StreamTimeoutSettings>('/api/admin/settings/stream-timeout', body);
+		return apiClient.put<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout', body);
 	},
 
 	getRectifierSettings(): Promise<RectifierSettings> {
-		return apiClient.get<RectifierSettings>('/api/admin/settings/rectifier');
+		return apiClient.get<RectifierSettings>('/api/v1/admin/settings/rectifier');
 	},
 	updateRectifierSettings(body: RectifierSettings): Promise<RectifierSettings> {
-		return apiClient.put<RectifierSettings>('/api/admin/settings/rectifier', body);
+		return apiClient.put<RectifierSettings>('/api/v1/admin/settings/rectifier', body);
 	},
 
 	getBetaPolicySettings(): Promise<BetaPolicySettings> {
-		return apiClient.get<BetaPolicySettings>('/api/admin/settings/beta-policy');
+		return apiClient.get<BetaPolicySettings>('/api/v1/admin/settings/beta-policy');
 	},
 	updateBetaPolicySettings(body: BetaPolicySettings): Promise<BetaPolicySettings> {
-		return apiClient.put<BetaPolicySettings>('/api/admin/settings/beta-policy', body);
+		return apiClient.put<BetaPolicySettings>('/api/v1/admin/settings/beta-policy', body);
 	},
 
 	getWebSearchEmulationConfig(): Promise<WebSearchEmulationConfig> {
 		return apiClient.get<WebSearchEmulationConfig>(
-			'/api/admin/settings/web-search-emulation'
+			'/api/v1/admin/settings/web-search-emulation'
 		);
 	},
 	updateWebSearchEmulationConfig(
 		body: WebSearchEmulationConfig
 	): Promise<WebSearchEmulationConfig> {
 		return apiClient.put<WebSearchEmulationConfig>(
-			'/api/admin/settings/web-search-emulation',
+			'/api/v1/admin/settings/web-search-emulation',
 			body
 		);
 	},
 	testWebSearchEmulation(query: string): Promise<WebSearchTestResult> {
 		return apiClient.post<WebSearchTestResult>(
-			'/api/admin/settings/web-search-emulation/test',
+			'/api/v1/admin/settings/web-search-emulation/test',
 			{ query }
 		);
 	},
 	async resetWebSearchUsage(providerType: string): Promise<void> {
-		await apiClient.post('/api/admin/settings/web-search-emulation/reset-usage', {
+		await apiClient.post('/api/v1/admin/settings/web-search-emulation/reset-usage', {
 			provider_type: providerType
 		});
+	},
+
+	// ── Email template editor（独立 lifecycle，不进 patchSettings） ─────────────
+
+	getEmailTemplates(): Promise<EmailTemplateListResponse> {
+		return apiClient.get<EmailTemplateListResponse>('/api/v1/admin/settings/email-templates');
+	},
+	getEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
+		return apiClient.get<EmailTemplateDetail>(
+			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}`
+		);
+	},
+	updateEmailTemplate(
+		event: string,
+		locale: string,
+		body: UpdateEmailTemplateRequest
+	): Promise<EmailTemplateDetail> {
+		return apiClient.put<EmailTemplateDetail>(
+			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}`,
+			body
+		);
+	},
+	restoreOfficialEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
+		return apiClient.post<EmailTemplateDetail>(
+			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}/restore-official`,
+			{}
+		);
+	},
+	previewEmailTemplate(
+		body: PreviewEmailTemplateRequest
+	): Promise<EmailTemplatePreviewResponse> {
+		return apiClient.post<EmailTemplatePreviewResponse>(
+			'/api/v1/admin/settings/email-template-preview',
+			body
+		);
 	},
 
 	// ── M10d backup endpoints（独立 lifecycle，不进 patchSettings） ─────────────
 
 	getBackupS3Config(): Promise<BackupS3Config> {
-		return apiClient.get<BackupS3Config>('/api/admin/backups/s3-config');
+		return apiClient.get<BackupS3Config>('/api/v1/admin/backups/s3-config');
 	},
 	updateBackupS3Config(body: BackupS3Config): Promise<BackupS3Config> {
-		return apiClient.put<BackupS3Config>('/api/admin/backups/s3-config', body);
+		return apiClient.put<BackupS3Config>('/api/v1/admin/backups/s3-config', body);
 	},
 	testBackupS3Connection(body: BackupS3Config): Promise<BackupTestS3Response> {
-		return apiClient.post<BackupTestS3Response>('/api/admin/backups/s3-config/test', body);
+		return apiClient.post<BackupTestS3Response>('/api/v1/admin/backups/s3-config/test', body);
 	},
 	getBackupSchedule(): Promise<BackupScheduleConfig> {
-		return apiClient.get<BackupScheduleConfig>('/api/admin/backups/schedule');
+		return apiClient.get<BackupScheduleConfig>('/api/v1/admin/backups/schedule');
 	},
 	updateBackupSchedule(body: BackupScheduleConfig): Promise<BackupScheduleConfig> {
-		return apiClient.put<BackupScheduleConfig>('/api/admin/backups/schedule', body);
+		return apiClient.put<BackupScheduleConfig>('/api/v1/admin/backups/schedule', body);
 	},
 	listBackups(): Promise<BackupListResponse> {
-		return apiClient.get<BackupListResponse>('/api/admin/backups');
+		return apiClient.get<BackupListResponse>('/api/v1/admin/backups');
 	},
 	createBackup(body: { expire_days?: number }): Promise<BackupRecord> {
-		return apiClient.post<BackupRecord>('/api/admin/backups', body ?? {});
+		return apiClient.post<BackupRecord>('/api/v1/admin/backups', body ?? {});
 	},
 	getBackup(id: string): Promise<BackupRecord> {
-		return apiClient.get<BackupRecord>(`/api/admin/backups/${encodeURIComponent(id)}`);
+		return apiClient.get<BackupRecord>(`/api/v1/admin/backups/${encodeURIComponent(id)}`);
 	},
 	async deleteBackup(id: string): Promise<void> {
-		await apiClient.delete(`/api/admin/backups/${encodeURIComponent(id)}`);
+		await apiClient.delete(`/api/v1/admin/backups/${encodeURIComponent(id)}`);
 	},
 	getBackupDownloadURL(id: string): Promise<{ url: string }> {
 		return apiClient.get<{ url: string }>(
-			`/api/admin/backups/${encodeURIComponent(id)}/download-url`
+			`/api/v1/admin/backups/${encodeURIComponent(id)}/download-url`
 		);
 	},
 	restoreBackup(id: string, password: string): Promise<BackupRecord> {
 		return apiClient.post<BackupRecord>(
-			`/api/admin/backups/${encodeURIComponent(id)}/restore`,
+			`/api/v1/admin/backups/${encodeURIComponent(id)}/restore`,
 			{ password }
 		);
 	}

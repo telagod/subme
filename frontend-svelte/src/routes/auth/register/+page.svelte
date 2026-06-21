@@ -11,7 +11,7 @@
 	 *       3. 后端返回 verify_required=true → goto /auth/verify-email-sent?email=<email>
 	 *       4. 其他错误 → mapAuthError → showError + 表单红色错误条
 	 *   - Layout 复用 AuthLayout（与 LoginView 视觉一致）。
-	 *   - OAuth provider row 暂留 placeholder（publicSettings 拉通在 M7+）。
+	 *   - OAuth provider row 读取 public settings，当前接入 GitHub / Google email OAuth。
 	 */
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -20,6 +20,8 @@
 	import { superForm, defaults } from 'sveltekit-superforms/client';
 	import { zod4, zod4Client } from 'sveltekit-superforms/adapters';
 	import AuthLayout from '$lib/features/auth/AuthLayout.svelte';
+	import EmailOAuthButtons from '$lib/features/auth/EmailOAuthButtons.svelte';
+	import OAuthProvidersSection from '$lib/features/auth/OAuthProvidersSection.svelte';
 	import {
 		registerSchema,
 		captureAffiliateFromUrl,
@@ -31,6 +33,10 @@
 	import { authApi } from '$lib/api/auth';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	// ── 表单初值 ───────────────────────────────────────────────
 	const initial = defaults<RegisterForm>(zod4(registerSchema));
@@ -106,7 +112,7 @@
 			<label for="reg-email" class="text-sm font-medium text-foreground">
 				{$_('auth.register.emailLabel', { default: 'Email' })}
 			</label>
-			<input
+			<Input
 				id="reg-email"
 				name="email"
 				type="email"
@@ -115,7 +121,6 @@
 				bind:value={$form.email}
 				aria-invalid={$errors.email ? 'true' : undefined}
 				data-testid="register-email"
-				class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 			/>
 			{#if $errors.email && $errors.email[0]}
 				<p class="text-xs text-destructive" data-testid="error-email">
@@ -130,7 +135,7 @@
 				{$_('auth.register.passwordLabel', { default: 'Password' })}
 			</label>
 			<div class="relative">
-				<input
+				<Input
 					id="reg-password"
 					name="password"
 					type={showPassword ? 'text' : 'password'}
@@ -139,17 +144,19 @@
 					bind:value={$form.password}
 					aria-invalid={$errors.password ? 'true' : undefined}
 					data-testid="register-password"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+					class="pr-12"
 				/>
-				<button
+				<Button
 					type="button"
-					tabindex="-1"
+					variant="ghost"
+					size="sm"
+					tabindex={-1}
 					onclick={() => (showPassword = !showPassword)}
 					data-testid="toggle-password"
-					class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+					class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 				>
 					{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
-				</button>
+				</Button>
 			</div>
 			{#if $errors.password && $errors.password[0]}
 				<p class="text-xs text-destructive" data-testid="error-password">
@@ -168,7 +175,7 @@
 				{$_('auth.register.confirmPasswordLabel', { default: 'Confirm password' })}
 			</label>
 			<div class="relative">
-				<input
+				<Input
 					id="reg-confirm"
 					name="confirmPassword"
 					type={showConfirmPassword ? 'text' : 'password'}
@@ -177,16 +184,18 @@
 					bind:value={$form.confirmPassword}
 					aria-invalid={$errors.confirmPassword ? 'true' : undefined}
 					data-testid="register-confirm"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+					class="pr-12"
 				/>
-				<button
+				<Button
 					type="button"
-					tabindex="-1"
+					variant="ghost"
+					size="sm"
+					tabindex={-1}
 					onclick={() => (showConfirmPassword = !showConfirmPassword)}
-					class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+					class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 				>
 					{showConfirmPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
-				</button>
+				</Button>
 			</div>
 			{#if $errors.confirmPassword && $errors.confirmPassword[0]}
 				<p class="text-xs text-destructive" data-testid="error-confirm">
@@ -197,8 +206,7 @@
 
 		<!-- agreement -->
 		<label class="flex items-start gap-2 text-xs text-muted-foreground">
-			<input
-				type="checkbox"
+			<Checkbox
 				name="agreementConsent"
 				bind:checked={$form.agreementConsent}
 				data-testid="register-agreement"
@@ -206,43 +214,44 @@
 			/>
 			<span>
 				{$_('auth.register.agreementPrefix', { default: 'I agree to the' })}
-				<a href="/terms" class="text-foreground underline-offset-4 hover:underline">
+				<a href="/legal/terms" class="text-foreground underline-offset-4 hover:underline">
 					{$_('auth.register.termsLink', { default: 'Terms' })}
 				</a>
 				{$_('auth.register.and', { default: 'and' })}
-				<a href="/privacy" class="text-foreground underline-offset-4 hover:underline">
+				<a href="/legal/privacy" class="text-foreground underline-offset-4 hover:underline">
 					{$_('auth.register.privacyLink', { default: 'Privacy Policy' })}
 				</a>.
 			</span>
 		</label>
 
 		<!-- affiliate code (hidden, surface-only debug) -->
-		<input type="hidden" name="affCode" bind:value={$form.affCode} data-testid="register-aff" />
+		<Input type="hidden" name="affCode" bind:value={$form.affCode} data-testid="register-aff" />
 
 		<!-- 表单级错误 -->
 		{#if formError}
-			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive" data-testid="error-form">
+			<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="error-form">
 				{formError}
-			</p>
+			</Alert>
 		{/if}
 
-		<button
+		<Button
 			type="submit"
 			disabled={$submitting}
 			data-testid="register-submit"
-			class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+			class="w-full"
 		>
 			{$submitting
 				? $_('auth.register.submitting', { default: 'Creating account...' })
 				: $_('auth.register.submit', { default: 'Create account' })}
-		</button>
+		</Button>
 
-		<!-- OAuth row placeholder (publicSettings 拉通在 M7+) -->
-		<div class="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground" data-testid="register-oauth-row">
-			<div class="h-px flex-1 bg-border"></div>
-			<span>{$_('auth.oauthOrContinue', { default: 'or continue with others' })}</span>
-			<div class="h-px flex-1 bg-border"></div>
-		</div>
+		<EmailOAuthButtons
+			affCode={$form.affCode}
+			disabled={$submitting}
+			redirect="/dashboard"
+		/>
+
+		<OAuthProvidersSection disabled={$submitting} affCode={$form.affCode} />
 	</form>
 
 	{#snippet footer()}

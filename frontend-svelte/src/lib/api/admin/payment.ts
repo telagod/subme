@@ -1,7 +1,7 @@
 /**
  * Admin Payment API · Svelte rewrite（M12 · payment tab）
  *
- * 端口自 frontend/src/api/admin/payment.ts。本批次仅落地 provider 实例 CRUD
+ * 端口自 frontend/src/api/v1/admin/payment.ts。本批次仅落地 provider 实例 CRUD
  * （PaymentProviderListSection.svelte 唯一依赖面）—— 全局 payment_* 配置走
  * settingsApi.patchSettings 主流水线，不在这里二次包装。
  *
@@ -36,7 +36,7 @@ interface ListProvidersResponse {
 
 export async function listProviders(): Promise<ProviderInstance[]> {
 	const raw = await apiClient.get<ProviderInstance[] | ListProvidersResponse>(
-		'/api/admin/payment/providers'
+		'/api/v1/admin/payment/providers'
 	);
 	if (Array.isArray(raw)) return raw;
 	return raw.data ?? raw.providers ?? raw.items ?? [];
@@ -45,25 +45,60 @@ export async function listProviders(): Promise<ProviderInstance[]> {
 export async function createProvider(
 	payload: Partial<ProviderInstance>
 ): Promise<ProviderInstance> {
-	return apiClient.post<ProviderInstance>('/api/admin/payment/providers', payload);
+	return apiClient.post<ProviderInstance>('/api/v1/admin/payment/providers', payload);
 }
 
 export async function updateProvider(
 	id: number,
 	payload: Partial<ProviderInstance>
 ): Promise<ProviderInstance> {
-	return apiClient.put<ProviderInstance>(`/api/admin/payment/providers/${id}`, payload);
+	return apiClient.put<ProviderInstance>(`/api/v1/admin/payment/providers/${id}`, payload);
 }
 
 export async function deleteProvider(id: number): Promise<void> {
-	await apiClient.delete<void>(`/api/admin/payment/providers/${id}`);
+	await apiClient.delete<void>(`/api/v1/admin/payment/providers/${id}`);
+}
+
+// ── Order refund ──────────────────────────────────────────────────────────────
+// Ground truth (backend/internal/server/routes/payment.go:103 + handler
+// AdminProcessRefundRequest): admin order refund is
+//   POST /api/v1/admin/payment/orders/:id/refund
+// processed by PaymentHandler.ProcessRefund. The request body maps 1:1 to the
+// Go struct { amount, reason, force, deduct_balance } — :id is the ORDER id
+// (works for subscription / topup / balance orders alike). This replaces the
+// previous mistake of routing order refunds through a nonexistent
+// /admin/subscriptions/:id/refund endpoint via an id-aliasing adapter.
+
+export interface RefundOrderPayload {
+	amount?: number;
+	reason?: string;
+	force?: boolean;
+	deduct_balance?: boolean;
+}
+
+export interface RefundOrderResult {
+	refund_id?: string;
+	amount?: number;
+	status?: string;
+	[key: string]: unknown;
+}
+
+export async function refundOrder(
+	orderId: number | string,
+	body: RefundOrderPayload = {}
+): Promise<RefundOrderResult> {
+	return apiClient.post<RefundOrderResult>(
+		`/api/v1/admin/payment/orders/${orderId}/refund`,
+		body
+	);
 }
 
 export const adminPaymentApi = {
 	listProviders,
 	createProvider,
 	updateProvider,
-	deleteProvider
+	deleteProvider,
+	refundOrder
 };
 
 export default adminPaymentApi;

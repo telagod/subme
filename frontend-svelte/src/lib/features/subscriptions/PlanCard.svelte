@@ -12,6 +12,7 @@
 	import { _ } from 'svelte-i18n';
 	import { Check } from '@lucide/svelte';
 	import type { Plan } from '$lib/api/user/subscriptions';
+	import Button from '$lib/ui/Button.svelte';
 
 	type Props = {
 		plan: Plan;
@@ -107,15 +108,14 @@
 	{/if}
 
 	<div class="mt-auto pt-5">
-		<button
-			type="button"
+		<Button
 			data-testid="plan-subscribe-btn"
 			data-plan-id={plan.id}
 			{disabled}
 			onclick={handleClick}
-			class="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+			class="h-9 w-full px-3"
 		>
 			{$_('user.purchase.subscribe', { default: 'Subscribe' })}
-		</button>
+		</Button>
 	</div>
 </article>

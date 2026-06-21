@@ -54,16 +54,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: frontend-svelte/pnpm-lock.yaml
       - name: Install dependencies
-        working-directory: frontend
+        working-directory: frontend-svelte
         run: pnpm install --frozen-lockfile
       - name: Run pnpm audit
-        working-directory: frontend
+        working-directory: frontend-svelte
         run: |
           pnpm audit --prod --audit-level=high --json > audit.json || true
       - name: Check audit exceptions
         run: |
           python tools/check_pnpm_audit_exceptions.py \
-            --audit frontend/audit.json \
+            --audit frontend-svelte/audit.json \
             --exceptions .github/audit-exceptions.yml

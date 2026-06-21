@@ -18,6 +18,8 @@
 	import AuthLayout from '$lib/features/auth/AuthLayout.svelte';
 	import { authApi, type VerifyEmailResponse } from '$lib/api/auth';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	type Phase = 'pending' | 'verified' | 'already_verified' | 'expired' | 'invalid';
 
@@ -146,21 +148,21 @@
 				})}
 			</p>
 			{#if resendError}
-				<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+				<Alert variant="destructive" class="px-3 py-2 text-xs">
 					{resendError}
-				</p>
+				</Alert>
 			{/if}
-			<button
+			<Button
 				type="button"
 				disabled={resending}
 				onclick={resend}
 				data-testid="verify-resend"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{resending
 					? $_('auth.verifyEmail.resending', { default: 'Sending...' })
 					: $_('auth.verifyEmail.resend', { default: 'Resend verification' })}
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<div class="space-y-3 text-center" data-testid="verify-invalid">

@@ -325,10 +325,10 @@ cd sub2api
 npm install -g pnpm
 
 # 3. 编译前端
-cd frontend
+cd frontend-svelte
 pnpm install
 pnpm run build
-# 构建产物输出到 ../backend/internal/web/dist/
+# 构建产物输出到 ../backend/internal/web/dist_svelte/
 
 # 4. 编译后端（嵌入前端）
 cd ../backend
@@ -568,12 +568,10 @@ sub2api/
 │   │   └── gateway/          # API 网关核心
 │   └── resources/            # 静态资源
 │
-├── frontend/                 # Vue 3 前端
+├── frontend-svelte/          # Svelte 5 前端
 │   └── src/
-│       ├── api/              # API 调用
-│       ├── stores/           # 状态管理
-│       ├── views/            # 页面组件
-│       └── components/       # 通用组件
+│       ├── lib/              # API 客户端、UI、状态和功能模块
+│       └── routes/           # SvelteKit 路由
 │
 └── deploy/                   # 部署文件
     ├── docker-compose.yml    # Docker Compose 配置

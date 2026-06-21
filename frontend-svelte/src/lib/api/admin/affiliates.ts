@@ -1,10 +1,8 @@
 /**
  * Admin Affiliates API · Svelte rewrite（M10c · features tab）
  *
- * 端口自 frontend/src/api/admin/affiliates.ts。仅包含
- * AffiliateCustomUsersSection.svelte 所需的 5 个端点（list / lookup / update /
- * clear / batch-rate）—— invite/rebate/transfer 记录在管理端 affiliates 路由侧
- * 已落地，不重复包装。
+ * 端口自 frontend/src/api/v1/admin/affiliates.ts。覆盖 settings feature tab 的
+ * per-user 配置端点，以及管理端 affiliate records 读面。
  *
  * 与 Vue tree 差异：
  *   - 不引 axios；走 apiClient 已统一 401 兜底。
@@ -57,6 +55,72 @@ export interface BatchSetRateRequest {
 	clear?: boolean;
 }
 
+export interface ListAffiliateRecordsParams {
+	page?: number;
+	page_size?: number;
+	search?: string;
+	start_at?: string;
+	end_at?: string;
+	sort_by?: string;
+	sort_order?: 'asc' | 'desc';
+	timezone?: string;
+}
+
+export interface AffiliateInviteRecord {
+	inviter_id: number;
+	inviter_email: string;
+	inviter_username: string;
+	invitee_id: number;
+	invitee_email: string;
+	invitee_username: string;
+	aff_code: string;
+	total_rebate: number;
+	created_at: string;
+}
+
+export interface AffiliateRebateRecord {
+	order_id: number;
+	out_trade_no: string;
+	inviter_id: number;
+	inviter_email: string;
+	inviter_username: string;
+	invitee_id: number;
+	invitee_email: string;
+	invitee_username: string;
+	order_amount: number;
+	pay_amount: number;
+	rebate_amount: number;
+	payment_type: string;
+	order_status: string;
+	created_at: string;
+}
+
+export interface AffiliateTransferRecord {
+	ledger_id: number;
+	user_id: number;
+	user_email: string;
+	username: string;
+	amount: number;
+	balance_after?: number | null;
+	available_quota_after?: number | null;
+	frozen_quota_after?: number | null;
+	history_quota_after?: number | null;
+	snapshot_available: boolean;
+	created_at: string;
+}
+
+export interface AffiliateUserOverview {
+	user_id: number;
+	email: string;
+	username: string;
+	aff_code: string;
+	rebate_rate_percent: number;
+	invited_count: number;
+	rebated_invitee_count: number;
+	available_quota: number;
+	history_quota: number;
+}
+
 interface RawPaginated<T> {
 	items?: T[];
 	data?: T[];
@@ -75,6 +139,15 @@ function buildQuery(params: Record<string, string | number | undefined>): string
 	return s ? `?${s}` : '';
 }
 
+function normalizePaginated<T>(raw: RawPaginated<T>): { items: T[]; total: number; pages: number } {
+	const items = raw.items ?? raw.data ?? raw.records ?? [];
+	return {
+		items,
+		total: typeof raw.total === 'number' ? raw.total : items.length,
+		pages: typeof raw.pages === 'number' ? raw.pages : 0
+	};
+}
+
 export async function listUsers(
 	params: ListAffiliateUsersParams = {}
 ): Promise<PaginatedAffiliateUsers> {
@@ -84,19 +157,15 @@ export async function listUsers(
 		search: params.search ?? ''
 	});
 	const raw = await apiClient.get<RawPaginated<AffiliateAdminEntry>>(
-		`/api/admin/affiliates/users${q}`
+		`/api/v1/admin/affiliates/users${q}`
 	);
-	return {
-		items: raw.items ?? raw.data ?? raw.records ?? [],
-		total: typeof raw.total === 'number' ? raw.total : 0,
-		pages: typeof raw.pages === 'number' ? raw.pages : 0
-	};
+	return normalizePaginated(raw);
 }
 
 export async function lookupUsers(q: string): Promise<SimpleUser[]> {
 	const query = buildQuery({ q });
 	const raw = await apiClient.get<SimpleUser[] | RawPaginated<SimpleUser>>(
-		`/api/admin/affiliates/users/lookup${query}`
+		`/api/v1/admin/affiliates/users/lookup${query}`
 	);
 	if (Array.isArray(raw)) return raw;
 	return raw.items ?? raw.data ?? raw.records ?? [];
@@ -107,22 +176,66 @@ export async function updateUserSettings(
 	payload: UpdateAffiliateUserRequest
 ): Promise<{ user_id: number }> {
 	return apiClient.put<{ user_id: number }>(
-		`/api/admin/affiliates/users/${userId}`,
+		`/api/v1/admin/affiliates/users/${userId}`,
 		payload
 	);
 }
 
 export async function clearUserSettings(userId: number): Promise<{ user_id: number }> {
-	return apiClient.delete<{ user_id: number }>(`/api/admin/affiliates/users/${userId}`);
+	return apiClient.delete<{ user_id: number }>(`/api/v1/admin/affiliates/users/${userId}`);
 }
 
 export async function batchSetRate(
 	payload: BatchSetRateRequest
 ): Promise<{ affected: number }> {
 	return apiClient.post<{ affected: number }>(
-		'/api/admin/affiliates/users/batch-rate',
+		'/api/v1/admin/affiliates/users/batch-rate',
 		payload
 	);
+}
+
+function recordQuery(params: ListAffiliateRecordsParams = {}): string {
+	return buildQuery({
+		page: params.page ?? 1,
+		page_size: params.page_size ?? 20,
+		search: params.search ?? '',
+		start_at: params.start_at,
+		end_at: params.end_at,
+		sort_by: params.sort_by,
+		sort_order: params.sort_order,
+		timezone: params.timezone
+	});
+}
+
+export async function listInviteRecords(
+	params: ListAffiliateRecordsParams = {}
+): Promise<{ items: AffiliateInviteRecord[]; total: number; pages: number }> {
+	const raw = await apiClient.get<RawPaginated<AffiliateInviteRecord>>(
+		`/api/v1/admin/affiliates/invites${recordQuery(params)}`
+	);
+	return normalizePaginated(raw);
+}
+
+export async function listRebateRecords(
+	params: ListAffiliateRecordsParams = {}
+): Promise<{ items: AffiliateRebateRecord[]; total: number; pages: number }> {
+	const raw = await apiClient.get<RawPaginated<AffiliateRebateRecord>>(
+		`/api/v1/admin/affiliates/rebates${recordQuery(params)}`
+	);
+	return normalizePaginated(raw);
+}
+
+export async function listTransferRecords(
+	params: ListAffiliateRecordsParams = {}
+): Promise<{ items: AffiliateTransferRecord[]; total: number; pages: number }> {
+	const raw = await apiClient.get<RawPaginated<AffiliateTransferRecord>>(
+		`/api/v1/admin/affiliates/transfers${recordQuery(params)}`
+	);
+	return normalizePaginated(raw);
+}
+
+export async function getUserOverview(userId: number): Promise<AffiliateUserOverview> {
+	return apiClient.get<AffiliateUserOverview>(`/api/v1/admin/affiliates/users/${userId}/overview`);
 }
 
 export const adminAffiliatesApi = {
@@ -130,7 +243,11 @@ export const adminAffiliatesApi = {
 	lookupUsers,
 	updateUserSettings,
 	clearUserSettings,
-	batchSetRate
+	batchSetRate,
+	listInviteRecords,
+	listRebateRecords,
+	listTransferRecords,
+	getUserOverview
 };
 
 export default adminAffiliatesApi;

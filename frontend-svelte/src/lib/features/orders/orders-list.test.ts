@@ -7,7 +7,8 @@
  *   3. Row click → AdminOrderDetail drawer 打开 + audit log API 被调用
  *   4. Refund quick action → 委托给 M11 RefundDialog（refund-dialog testid 出现）
  *   5. Retry / Cancel delegate（drawer 内按钮触发 retryOrder / cancelOrder）
- *   6. 红线 grep：orders surface 不含 billing_service / channels/model-pricing / GetModelPricing
+ *   6. AdminOrderDetail 使用 StandardDrawer，不再手写 bits overlay
+ *   7. 红线 grep：orders surface 不含 billing_service / channels/model-pricing / GetModelPricing
  *
  * Mock 策略：
  *   - vi.mock '$lib/api/admin/orders' / '$lib/api/admin/plans' / '$lib/api/admin/payment'
@@ -18,7 +19,8 @@ import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 
 // 红线 grep：?raw 把源码字符串带进测试
-import pageSrc from '../../../routes/(admin)/orders/list/+page.svelte?raw';
+import pageSrc from '../../../routes/admin/orders/list/+page.svelte?raw';
+import rootPageSrc from '../../../routes/admin/orders/+page.svelte?raw';
 import drawerSrc from '$lib/features/orders/AdminOrderDetail.svelte?raw';
 import filterSrc from '$lib/features/orders/OrdersFilterBar.svelte?raw';
 import apiSrc from '$lib/api/admin/orders.ts?raw';
@@ -55,31 +57,13 @@ vi.mock('$lib/api/admin/payment', () => {
 		createProvider: vi.fn(),
 		updateProvider: vi.fn(),
 		deleteProvider: vi.fn(),
+		refundOrder: vi.fn().mockResolvedValue({ amount: 0, status: 'REFUNDED' }),
 		adminPaymentApi: {
 			listProviders: vi.fn().mockResolvedValue([]),
 			createProvider: vi.fn(),
 			updateProvider: vi.fn(),
-			deleteProvider: vi.fn()
-		}
-	};
-});
-
-vi.mock('$lib/api/admin/subscriptions', () => {
-	// M11 RefundDialog 仅依赖 refundSub —— mock 成 resolve 即可
-	return {
-		listAdminSubs: vi.fn(),
-		getAdminSub: vi.fn(),
-		forceCancelSub: vi.fn(),
-		refundSub: vi.fn().mockResolvedValue({ amount: 0 }),
-		extendSub: vi.fn(),
-		getAuditLog: vi.fn(),
-		adminSubscriptionsApi: {
-			listAdminSubs: vi.fn(),
-			getAdminSub: vi.fn(),
-			forceCancelSub: vi.fn(),
-			refundSub: vi.fn().mockResolvedValue({ amount: 0 }),
-			extendSub: vi.fn(),
-			getAuditLog: vi.fn()
+			deleteProvider: vi.fn(),
+			refundOrder: vi.fn().mockResolvedValue({ amount: 0, status: 'REFUNDED' })
 		}
 	};
 });
@@ -153,7 +137,7 @@ function fakeListResponse(n: number) {
 
 describe('admin orders · list rendering', () => {
 	let api: typeof import('$lib/api/admin/orders');
-	let pageMod: typeof import('../../../routes/(admin)/orders/list/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/orders');
@@ -162,10 +146,13 @@ describe('admin orders · list rendering', () => {
 			fakeListResponse(5)
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/+page.svelte');
 	}, 30000);
 
-	it('renders 5 mock rows', async () => {
+	it('root /admin/orders renders the real list and no placeholder copy', async () => {
+		expect(rootPageSrc).not.toContain('Admin orders placeholder');
+		expect(rootPageSrc).toContain('./list/+page.svelte');
+
 		const { container } = render(pageMod.default);
 		await waitFor(() => expect(api.listAdminOrders).toHaveBeenCalled());
 		await waitFor(() => {
@@ -181,7 +168,7 @@ describe('admin orders · list rendering', () => {
 
 describe('admin orders · status filter sentinel', () => {
 	let api: typeof import('$lib/api/admin/orders');
-	let pageMod: typeof import('../../../routes/(admin)/orders/list/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/list/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/orders');
@@ -190,7 +177,7 @@ describe('admin orders · status filter sentinel', () => {
 			fakeListResponse(3)
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/list/+page.svelte');
 	}, 30000);
 
 	it('status filter uses __all__ sentinel; no empty-string option', async () => {
@@ -214,7 +201,7 @@ describe('admin orders · status filter sentinel', () => {
 
 describe('admin orders · detail drawer wiring', () => {
 	let api: typeof import('$lib/api/admin/orders');
-	let pageMod: typeof import('../../../routes/(admin)/orders/list/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/list/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/orders');
@@ -238,7 +225,7 @@ describe('admin orders · detail drawer wiring', () => {
 			}
 		]);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/list/+page.svelte');
 	}, 30000);
 
 	it('row click opens drawer and fetches detail + audit log', async () => {
@@ -266,15 +253,23 @@ describe('admin orders · detail drawer wiring', () => {
 			expect(api.listOrderAuditLog).toHaveBeenCalled();
 		});
 	});
+
+	it('AdminOrderDetail uses StandardDrawer instead of a hand-rolled bits overlay', () => {
+		expect(drawerSrc).toContain('StandardDrawer');
+		expect(drawerSrc).toContain('data-testid="order-detail-drawer"');
+		expect(drawerSrc).not.toContain('Dialog.Root');
+		expect(drawerSrc).not.toContain('Dialog.Overlay');
+		expect(drawerSrc).not.toContain('fixed inset-0');
+	});
 });
 
 // ─────────────────────────────────────────────────────────────────
-// Test 4 · refund quick action → M11 RefundDialog wired
+// Test 4 · refund quick action → OrderRefundDialog wired
 // ─────────────────────────────────────────────────────────────────
 
-describe('admin orders · refund delegates to M11 dialog', () => {
+describe('admin orders · refund opens feature-native OrderRefundDialog', () => {
 	let api: typeof import('$lib/api/admin/orders');
-	let pageMod: typeof import('../../../routes/(admin)/orders/list/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/list/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/orders');
@@ -283,15 +278,27 @@ describe('admin orders · refund delegates to M11 dialog', () => {
 			fakeListResponse(1)
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/list/+page.svelte');
 	}, 30000);
 
-	it('clicking row refund-quick opens M11 RefundDialog', async () => {
+	it('clicking row refund-quick opens OrderRefundDialog and refunds the ORDER', async () => {
+		const payApi = await import('$lib/api/admin/payment');
+		(payApi.refundOrder as ReturnType<typeof vi.fn>).mockReset();
+		(payApi.refundOrder as ReturnType<typeof vi.fn>).mockResolvedValue({
+			amount: 0,
+			status: 'REFUNDED'
+		});
+
 		const { container } = render(pageMod.default);
 		await waitFor(() => {
 			const rows = container.querySelectorAll('[data-testid="admin-orders-row"]');
 			expect(rows.length).toBeGreaterThan(0);
 		});
+
+		const firstRow = container.querySelector(
+			'[data-testid="admin-orders-row"]'
+		) as HTMLElement;
+		const orderId = Number(firstRow.getAttribute('data-order-id'));
 
 		const quick = container.querySelector(
 			'[data-testid="admin-orders-refund-quick"]'
@@ -300,8 +307,25 @@ describe('admin orders · refund delegates to M11 dialog', () => {
 		await fireEvent.click(quick);
 
 		await waitFor(() => {
-			const dlg = document.body.querySelector('[data-testid="refund-dialog"]');
+			const dlg = document.body.querySelector('[data-testid="order-refund-dialog"]');
 			expect(dlg).not.toBeNull();
+		});
+
+		// Confirm the refund: amount pre-filled, supply a reason ≥ 4 chars.
+		const reasonInput = document.body.querySelector(
+			'[data-testid="order-refund-reason-input"]'
+		) as HTMLTextAreaElement;
+		await fireEvent.input(reasonInput, { target: { value: 'duplicate charge' } });
+
+		const confirmBtn = document.body.querySelector(
+			'[data-testid="order-refund-confirm-btn"]'
+		) as HTMLButtonElement;
+		await fireEvent.click(confirmBtn);
+
+		await waitFor(() => {
+			expect(payApi.refundOrder).toHaveBeenCalled();
+			const [calledId] = (payApi.refundOrder as ReturnType<typeof vi.fn>).mock.calls[0];
+			expect(calledId).toBe(orderId);
 		});
 	});
 });
@@ -312,7 +336,7 @@ describe('admin orders · refund delegates to M11 dialog', () => {
 
 describe('admin orders · drawer retry / cancel delegate', () => {
 	let api: typeof import('$lib/api/admin/orders');
-	let pageMod: typeof import('../../../routes/(admin)/orders/list/+page.svelte');
+	let pageMod: typeof import('../../../routes/admin/orders/list/+page.svelte');
 
 	beforeEach(async () => {
 		api = await import('$lib/api/admin/orders');
@@ -338,7 +362,7 @@ describe('admin orders · drawer retry / cancel delegate', () => {
 			fakeOrder({ id: 501, status: 'FAILED' })
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/list/+page.svelte');
 		const { container } = render(pageMod.default);
 		await waitFor(() => {
 			expect(container.querySelectorAll('[data-testid="admin-orders-row"]').length).toBe(1);
@@ -374,7 +398,7 @@ describe('admin orders · drawer retry / cancel delegate', () => {
 			fakeOrder({ id: 601, status: 'PENDING' })
 		);
 
-		pageMod = await import('../../../routes/(admin)/orders/list/+page.svelte');
+		pageMod = await import('../../../routes/admin/orders/list/+page.svelte');
 		const { container } = render(pageMod.default);
 		await waitFor(() => {
 			expect(container.querySelectorAll('[data-testid="admin-orders-row"]').length).toBe(1);
@@ -407,6 +431,7 @@ describe('admin orders · drawer retry / cancel delegate', () => {
 describe('RED LINE · admin orders surface must not reference billing core', () => {
 	it('no source file under orders surface references forbidden strings', () => {
 		const sources: Array<[string, string]> = [
+			['orders/+page.svelte', rootPageSrc as unknown as string],
 			['orders/list/+page.svelte', pageSrc as unknown as string],
 			['AdminOrderDetail.svelte', drawerSrc as unknown as string],
 			['OrdersFilterBar.svelte', filterSrc as unknown as string],

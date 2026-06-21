@@ -12,11 +12,14 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
 	import {
 		settingsApi,
 		type RectifierSettings
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -131,9 +134,10 @@
 			<label class="block text-sm font-medium text-foreground" for={id}>{label}</label>
 			<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">{hint}</p>
 		</div>
-		<button
+		<Button
 			{id}
-			type="button"
+			variant="ghost"
+			size="icon"
 			role="switch"
 			aria-checked={checked}
 			aria-label={label}
@@ -149,7 +153,7 @@
 					? 'translate-x-4'
 					: 'translate-x-0.5'}"
 			></span>
-		</button>
+		</Button>
 	</div>
 {/snippet}
 
@@ -217,49 +221,51 @@
 								data-row-index={index}
 								class="flex items-center gap-2"
 							>
-								<input
+								<Input
 									id="rectifier-pattern-{index}"
 									type="text"
 									data-testid="rectifier-pattern-input"
 									placeholder={$_('admin.settings.rectifier.apikeyPatternPlaceholder')}
 									value={pattern}
 									oninput={(e) => onPatternInput(index, e)}
-									class="h-9 flex-1 rounded-md border border-input bg-background px-3 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+									class="h-9 flex-1 font-mono text-xs"
 								/>
-								<button
-									type="button"
+								<Button
+									variant="ghost"
+									size="icon"
 									data-testid="rectifier-pattern-remove"
 									aria-label={$_('common.delete')}
 									onclick={() => removePattern(index)}
-									class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+									class="h-7 w-7 text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
 								>
-									✕
-								</button>
+									<X class="h-3 w-3" />
+								</Button>
 							</div>
 						{/each}
-						<button
-							type="button"
+						<Button
+							variant="outline"
+							size="sm"
 							data-testid="rectifier-pattern-add"
 							onclick={addPattern}
-							class="inline-flex h-8 w-fit items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+							class="w-fit"
 						>
 							+ {$_('admin.settings.rectifier.addPattern')}
-						</button>
+						</Button>
 					</div>
 				{/if}
 			</div>
 		{/if}
 
 		<div class="flex justify-end border-t border-border pt-4">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				class="h-9"
 				data-testid="rectifier-save"
 				disabled={saving}
 				onclick={save}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 			>
 				{saving ? $_('common.saving') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	{/if}
 </div>

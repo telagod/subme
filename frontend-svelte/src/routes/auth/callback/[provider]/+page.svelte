@@ -27,6 +27,9 @@
 	import AuthLayout from '$lib/features/auth/AuthLayout.svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 	import {
 		dispatchCallback,
 		classifyOAuthErrorParam,
@@ -290,7 +293,7 @@
 				<label for="callback-totp" class="text-sm font-medium text-foreground">
 					{$_('auth.callback.totpLabel', { default: 'Two-factor code' })}
 				</label>
-				<input
+				<Input
 					id="callback-totp"
 					name="totp"
 					type="text"
@@ -300,27 +303,24 @@
 					placeholder={$_('auth.callback.totpPlaceholder', { default: '6-digit code' })}
 					bind:value={totpCode}
 					data-testid="callback-totp-input"
-					class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm tracking-widest text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+					class="tracking-widest"
 				/>
 			</div>
 			{#if formError}
-				<p
-					class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-					data-testid="callback-error"
-				>
+				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="callback-error">
 					{formError}
-				</p>
+				</Alert>
 			{/if}
-			<button
+			<Button
 				type="submit"
 				disabled={totpSubmitting}
 				data-testid="callback-totp-submit"
-				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="w-full"
 			>
 				{totpSubmitting
 					? $_('auth.callback.totpSubmitting', { default: 'Verifying...' })
 					: $_('auth.callback.totpSubmit', { default: 'Verify and continue' })}
-			</button>
+			</Button>
 		</form>
 	{:else}
 		<div class="space-y-3 text-center" data-testid="callback-completed">

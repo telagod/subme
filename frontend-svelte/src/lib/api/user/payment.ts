@@ -61,6 +61,21 @@ export interface CreateOrderResult {
 	expiresAt?: string;
 }
 
+export interface PaymentConfig {
+	payment_enabled?: boolean;
+	min_amount?: number;
+	max_amount?: number;
+	daily_limit?: number;
+	max_pending_orders?: number;
+	order_timeout_minutes?: number;
+	balance_disabled?: boolean;
+	balance_recharge_multiplier?: number;
+	enabled_payment_types?: string[];
+	help_image_url?: string;
+	help_text?: string;
+	stripe_publishable_key?: string;
+}
+
 interface RawCreateOrder {
 	order_id?: string;
 	out_trade_no?: string;
@@ -143,6 +158,11 @@ export async function createTopUp(payload: CreateTopUpPayload): Promise<CreateOr
 	}
 
 	return result;
+}
+
+export async function getPaymentConfig(): Promise<PaymentConfig> {
+	const raw = await apiClient.get<PaymentConfig | ApiEnvelope<PaymentConfig>>('/api/v1/payment/config');
+	return unwrapData(raw) ?? {};
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -260,6 +280,23 @@ interface RawOrderStatus {
 	[k: string]: unknown;
 }
 
+interface ApiEnvelope<T> {
+	data?: T;
+	code?: number;
+	message?: string;
+}
+
+function unwrapData<T>(raw: T | ApiEnvelope<T>): T {
+	if (
+		raw &&
+		typeof raw === 'object' &&
+		Object.prototype.hasOwnProperty.call(raw, 'data')
+	) {
+		return (raw as ApiEnvelope<T>).data as T;
+	}
+	return raw as T;
+}
+
 function normalizeStatus(raw: string | undefined): PaymentStatus {
 	const s = (raw ?? '').toUpperCase();
 	if (s === 'PAID' || s === 'COMPLETED' || s === 'SUCCEEDED' || s === 'SUCCESS') {
@@ -283,17 +320,21 @@ export async function confirmPayment(sessionId: string): Promise<ConfirmPaymentR
 	}
 	let raw: RawOrderStatus | null = null;
 	try {
-		raw = await apiClient.post<RawOrderStatus>(
-			'/api/v1/payment/public/orders/resolve',
-			{ resume_token: sessionId }
+		raw = unwrapData(
+			await apiClient.post<RawOrderStatus | ApiEnvelope<RawOrderStatus>>(
+				'/api/v1/payment/public/orders/resolve',
+				{ resume_token: sessionId }
+			)
 		);
 	} catch {
 		raw = null;
 	}
 	if (!raw) {
-		raw = await apiClient.post<RawOrderStatus>(
-			'/api/v1/payment/orders/verify',
-			{ out_trade_no: sessionId }
+		raw = unwrapData(
+			await apiClient.post<RawOrderStatus | ApiEnvelope<RawOrderStatus>>(
+				'/api/v1/payment/orders/verify',
+				{ out_trade_no: sessionId }
+			)
 		);
 	}
 	return {
@@ -360,10 +401,186 @@ export async function listPaymentMethods(): Promise<PaymentMethod[]> {
 	}
 }
 
+// ──────────────────────────────────────────────────────────────────────
+// User orders · /orders page parity
+// ──────────────────────────────────────────────────────────────────────
+
+export type UserOrderStatus =
+	| 'PENDING'
+	| 'PAID'
+	| 'RECHARGING'
+	| 'COMPLETED'
+	| 'EXPIRED'
+	| 'CANCELLED'
+	| 'FAILED'
+	| 'REFUND_REQUESTED'
+	| 'REFUNDING'
+	| 'PARTIALLY_REFUNDED'
+	| 'REFUNDED'
+	| 'REFUND_FAILED';
+
+export type UserOrderType = 'balance' | 'subscription' | string;
+
+export interface UserPaymentOrder {
+	id: number;
+	user_id: number;
+	amount: number;
+	pay_amount: number;
+	currency?: string;
+	fee_rate: number;
+	payment_type: string;
+	out_trade_no: string;
+	status: UserOrderStatus | string;
+	order_type: UserOrderType;
+	created_at: string;
+	expires_at: string;
+	paid_at?: string;
+	completed_at?: string;
+	refund_amount: number;
+	refund_reason?: string;
+	refund_requested_at?: string;
+	refund_requested_by?: string;
+	refund_request_reason?: string;
+	plan_id?: number;
+	provider_instance_id?: string;
+}
+
+export interface ListUserOrdersParams {
+	page?: number;
+	page_size?: number;
+	status?: UserOrderStatus | string;
+	order_type?: UserOrderType;
+	payment_type?: string;
+}
+
+export interface UserOrdersPage {
+	items: UserPaymentOrder[];
+	total: number;
+	page: number;
+	page_size: number;
+	pages: number;
+}
+
+interface RawUserOrdersPage {
+	items?: UserPaymentOrder[];
+	data?: UserPaymentOrder[];
+	total?: number;
+	page?: number;
+	page_size?: number;
+	pages?: number;
+}
+
+type RawUserOrder = UserPaymentOrder | { order?: UserPaymentOrder };
+
+function buildOrdersQuery(params: ListUserOrdersParams = {}): string {
+	const q: Record<string, string> = {};
+	q.page = String(params.page ?? 1);
+	q.page_size = String(params.page_size ?? 20);
+	if (params.status && params.status !== '__all__') q.status = String(params.status);
+	if (params.order_type && params.order_type !== '__all__') q.order_type = String(params.order_type);
+	if (params.payment_type && params.payment_type !== '__all__') q.payment_type = params.payment_type;
+	const usp = new URLSearchParams(q);
+	const s = usp.toString();
+	return s ? `?${s}` : '';
+}
+
+export async function listMyOrders(params: ListUserOrdersParams = {}): Promise<UserOrdersPage> {
+	const page = params.page ?? 1;
+	const pageSize = params.page_size ?? 20;
+	const raw = unwrapData(
+		await apiClient.get<
+			RawUserOrdersPage | UserPaymentOrder[] | ApiEnvelope<RawUserOrdersPage | UserPaymentOrder[]>
+		>(`/api/v1/payment/orders/my${buildOrdersQuery(params)}`)
+	);
+	if (Array.isArray(raw)) {
+		return {
+			items: raw,
+			total: raw.length,
+			page,
+			page_size: pageSize,
+			pages: 1
+		};
+	}
+	const items = raw.items ?? raw.data ?? [];
+	const total = raw.total ?? items.length;
+	return {
+		items,
+		total,
+		page: raw.page ?? page,
+		page_size: raw.page_size ?? pageSize,
+		pages: raw.pages ?? Math.max(1, Math.ceil(total / pageSize))
+	};
+}
+
+export async function getMyOrder(id: number | string): Promise<UserPaymentOrder | null> {
+	if (!id) return null;
+	const raw = unwrapData(
+		await apiClient.get<RawUserOrder | ApiEnvelope<RawUserOrder>>(
+			`/api/v1/payment/orders/${id}`
+		)
+	);
+	if (!raw) return null;
+	if ('order' in raw && raw.order) return raw.order;
+	return raw as UserPaymentOrder;
+}
+
+export async function verifyPublicOrderByOutTradeNo(
+	outTradeNo: string
+): Promise<UserPaymentOrder | null> {
+	if (!outTradeNo) return null;
+	const raw = unwrapData(
+		await apiClient.post<UserPaymentOrder | ApiEnvelope<UserPaymentOrder>>(
+			'/api/v1/payment/public/orders/verify',
+			{ out_trade_no: outTradeNo }
+		)
+	);
+	return raw ?? null;
+}
+
+export async function resolvePublicOrderByResumeToken(
+	resumeToken: string
+): Promise<UserPaymentOrder | null> {
+	if (!resumeToken) return null;
+	const raw = unwrapData(
+		await apiClient.post<UserPaymentOrder | ApiEnvelope<UserPaymentOrder>>(
+			'/api/v1/payment/public/orders/resolve',
+			{ resume_token: resumeToken }
+		)
+	);
+	return raw ?? null;
+}
+
+export async function cancelMyOrder(id: number): Promise<void> {
+	await apiClient.post(`/api/v1/payment/orders/${id}/cancel`, {});
+}
+
+export async function requestMyOrderRefund(id: number, reason: string): Promise<void> {
+	await apiClient.post(`/api/v1/payment/orders/${id}/refund-request`, { reason });
+}
+
+export async function getRefundEligibleProviders(): Promise<Set<string>> {
+	const data = unwrapData(
+		await apiClient.get<
+			{ provider_instance_ids?: string[] } | ApiEnvelope<{ provider_instance_ids?: string[] }>
+		>(
+			'/api/v1/payment/orders/refund-eligible-providers'
+		)
+	);
+	return new Set(data.provider_instance_ids ?? []);
+}
+
 export const userPaymentApi = {
 	startCheckout,
 	createTopUp,
+	getPaymentConfig,
 	createCheckoutSession,
 	confirmPayment,
-	listPaymentMethods
+	listPaymentMethods,
+	listMyOrders,
+	getMyOrder,
+	verifyPublicOrderByOutTradeNo,
+	resolvePublicOrderByResumeToken,
+	cancelMyOrder,
+	requestMyOrderRefund,
+	getRefundEligibleProviders
 };

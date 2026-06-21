@@ -116,7 +116,8 @@
 	// 派生显示数据集
 	const totalSize = $derived(virtualizerSnapshot?.getTotalSize() ?? rows.length * rowHeight);
 	const virtualItems = $derived(virtualizerSnapshot?.getVirtualItems() ?? []);
-	const usingVirtual = $derived(virtualizerLoaded && virtualizerSnapshot !== null && rows.length > 0);
+	// jsdom 无 ResizeObserver → virtualizer 无法工作 → 走 fallback 渲染全部行
+	const usingVirtual = $derived(typeof ResizeObserver !== 'undefined' && virtualizerLoaded && virtualizerSnapshot !== null && virtualItems.length > 0);
 </script>
 
 <div class="virtual-table-shell {extraClass}" data-testid="virtual-table">

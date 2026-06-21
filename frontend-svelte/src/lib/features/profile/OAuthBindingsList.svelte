@@ -19,13 +19,14 @@
 	 */
 	import { _ } from 'svelte-i18n';
 	import { Link as LinkIcon, MessageCircle, Building2, Globe, ShieldCheck, Code2 } from '@lucide/svelte';
-	import { Dialog } from 'bits-ui';
 	import {
 		startOAuthBind,
 		unbindOAuth,
 		type OAuthProvider
 	} from '$lib/api/user/profile';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	export type BindingState = {
 		bound: boolean;
@@ -176,25 +177,27 @@
 
 					<div class="flex shrink-0 items-center gap-2">
 						{#if state.bound}
-							<button
+							<Button
 								type="button"
+								variant="outline"
+								size="sm"
 								data-testid="oauth-unbind-btn"
 								data-provider={p}
 								onclick={() => openUnbind(p)}
-								class="inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium text-destructive hover:bg-destructive/10"
+								class="text-destructive hover:bg-destructive/10"
 							>
 								{$_('user.connections.unbind', { default: 'Unlink' })}
-							</button>
+							</Button>
 						{:else}
-							<button
+							<Button
 								type="button"
+								size="sm"
 								data-testid="oauth-bind-btn"
 								data-provider={p}
 								onclick={() => handleBindClick(p)}
-								class="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
 							>
 								{$_('user.connections.bind', { default: 'Link' })}
-							</button>
+							</Button>
 						{/if}
 					</div>
 				</li>
@@ -203,48 +206,37 @@
 	{/if}
 </section>
 
-<Dialog.Root bind:open={confirmOpen}>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
-		/>
-		<Dialog.Content
-			data-testid="oauth-unbind-dialog"
-			class="fixed left-1/2 top-1/2 z-50 w-full max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-6 shadow-lg outline-none"
+<StandardDialog
+	bind:open={confirmOpen}
+	width="sm"
+	title={$_('user.connections.unbindTitle', { default: 'Unlink this sign-in method?' })}
+	description={$_('user.connections.unbindDescription', {
+		default:
+			'You will no longer be able to log in with {provider}. Make sure another sign-in method is available.',
+		values: { provider: pendingProvider ? providerLabel(pendingProvider) : '' }
+	})}
+	data-testid="oauth-unbind-dialog"
+>
+	<div class="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
+		<Button
+			type="button"
+			variant="outline"
+			data-testid="oauth-unbind-cancel"
+			disabled={submitting}
+			onclick={() => (confirmOpen = false)}
 		>
-			<Dialog.Title class="text-base font-semibold text-foreground">
-				{$_('user.connections.unbindTitle', { default: 'Unlink this sign-in method?' })}
-			</Dialog.Title>
-			<Dialog.Description class="mt-1.5 text-sm text-muted-foreground">
-				{$_('user.connections.unbindDescription', {
-					default:
-						'You will no longer be able to log in with {provider}. Make sure another sign-in method is available.',
-					values: { provider: pendingProvider ? providerLabel(pendingProvider) : '' }
-				})}
-			</Dialog.Description>
-
-			<div class="mt-6 flex items-center justify-end gap-2">
-				<button
-					type="button"
-					data-testid="oauth-unbind-cancel"
-					disabled={submitting}
-					onclick={() => (confirmOpen = false)}
-					class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-				>
-					{$_('user.connections.cancel', { default: 'Cancel' })}
-				</button>
-				<button
-					type="button"
-					data-testid="oauth-unbind-confirm"
-					disabled={submitting}
-					onclick={handleUnbind}
-					class="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60"
-				>
-					{submitting
-						? $_('user.connections.unbinding', { default: 'Unlinking…' })
-						: $_('user.connections.confirmUnbind', { default: 'Unlink' })}
-				</button>
-			</div>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+			{$_('user.connections.cancel', { default: 'Cancel' })}
+		</Button>
+		<Button
+			type="button"
+			variant="destructive"
+			data-testid="oauth-unbind-confirm"
+			disabled={submitting}
+			onclick={handleUnbind}
+		>
+			{submitting
+				? $_('user.connections.unbinding', { default: 'Unlinking…' })
+				: $_('user.connections.confirmUnbind', { default: 'Unlink' })}
+		</Button>
+	</div>
+</StandardDialog>

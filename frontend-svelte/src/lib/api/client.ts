@@ -102,10 +102,51 @@ async function request<T = Json>(method: string, path: string, body?: unknown): 
 	return parsed as T;
 }
 
+async function streamRequest(method: string, path: string, body?: unknown, init: RequestInit = {}): Promise<Response> {
+	const url = getBase() + path;
+	const headers = new Headers(init.headers);
+	if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+	const tok = readAuthToken();
+	if (tok && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${tok}`);
+
+	const res = await fetch(url, {
+		...init,
+		method,
+		headers,
+		credentials: init.credentials ?? 'include',
+		body: body === undefined ? init.body : JSON.stringify(body)
+	});
+
+	if (res.status === 401) {
+		const hook = _unauthorizedHook ?? defaultUnauthorized;
+		await hook();
+		throw new Error('unauthorized');
+	}
+
+	if (!res.ok) {
+		let msg = `HTTP ${res.status}`;
+		try {
+			const parsed = await res.clone().json();
+			if (parsed && typeof parsed === 'object') {
+				msg =
+					((parsed as Record<string, unknown>).message as string | undefined) ??
+					((parsed as Record<string, unknown>).error as string | undefined) ??
+					msg;
+			}
+		} catch {
+			// Streaming endpoints may return non-JSON error bodies.
+		}
+		throw new Error(msg);
+	}
+
+	return res;
+}
+
 export const apiClient = {
 	get: <T = Json>(path: string) => request<T>('GET', path),
 	post: <T = Json>(path: string, body?: unknown) => request<T>('POST', path, body),
 	patch: <T = Json>(path: string, body?: unknown) => request<T>('PATCH', path, body),
 	put: <T = Json>(path: string, body?: unknown) => request<T>('PUT', path, body),
-	delete: <T = Json>(path: string) => request<T>('DELETE', path)
+	delete: <T = Json>(path: string) => request<T>('DELETE', path),
+	streamPost: (path: string, body?: unknown, init?: RequestInit) => streamRequest('POST', path, body, init)
 };

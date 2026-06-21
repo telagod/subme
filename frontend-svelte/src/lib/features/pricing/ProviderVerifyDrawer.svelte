@@ -31,7 +31,6 @@
 	 *   - data-testid="provider-verify-restore"
 	 *   - data-testid="provider-verify-pinned-select"
 	 */
-	import { Dialog } from 'bits-ui';
 	import {
 		X,
 		RefreshCw,
@@ -62,6 +61,12 @@
 		SHOW_CAPS,
 		CAP_LABELS
 	} from '$lib/utils/pricing';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
+
+	const PINNED_NONE = '__none__';
 
 	type Props = {
 		open: boolean;
@@ -85,7 +90,7 @@
 	// ── 编辑面板状态 ──
 	let editOpen = $state(false);
 	let mode = $state<OverrideMode>('auto');
-	let pinnedTag = $state<string>('');
+	let pinnedTag = $state<string>(PINNED_NONE);
 	let manualInput = $state<string>('');
 	let manualOutput = $state<string>('');
 	let manualCacheRead = $state<string>('');
@@ -165,7 +170,7 @@
 		const ov = d?.override;
 		if (!ov) {
 			mode = 'auto';
-			pinnedTag = '';
+			pinnedTag = PINNED_NONE;
 			manualInput = '';
 			manualOutput = '';
 			manualCacheRead = '';
@@ -185,13 +190,13 @@
 			manualOutput = ov.manual_output != null ? String(ov.manual_output * 1e6) : '';
 			manualCacheRead = ov.manual_cache_read != null ? String(ov.manual_cache_read * 1e6) : '';
 			manualCacheWrite = ov.manual_cache_write != null ? String(ov.manual_cache_write * 1e6) : '';
-			pinnedTag = '';
+			pinnedTag = PINNED_NONE;
 		} else if (ov.pinned_provider_tag) {
 			mode = 'pinned';
 			pinnedTag = ov.pinned_provider_tag;
 		} else {
 			mode = 'auto';
-			pinnedTag = '';
+			pinnedTag = PINNED_NONE;
 		}
 	}
 
@@ -231,7 +236,7 @@
 	}
 
 	const canSave = $derived.by(() => {
-		if (mode === 'pinned') return !!pinnedTag;
+		if (mode === 'pinned') return pinnedTag !== PINNED_NONE;
 		if (mode === 'manual') {
 			return !!(manualInput || manualOutput || manualCacheRead || manualCacheWrite);
 		}
@@ -293,38 +298,37 @@
 	}
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
-			data-testid="provider-verify-overlay"
-		/>
-		<Dialog.Content
-			class="pvd-content fixed right-0 top-0 z-[9999] flex h-full w-full max-w-[560px] flex-col border-l bg-card shadow-2xl"
-			data-testid="provider-verify-drawer"
-		>
+<StandardDrawer
+	bind:open
+	width="md"
+	showHeader={false}
+	title={modelName ?? detail?.name ?? slug ?? 'Provider pricing'}
+	data-testid="provider-verify-drawer"
+	class="pvd-content gap-0 p-0"
+>
 			<!-- Head -->
 			<div class="flex items-center justify-between border-b bg-muted px-4 py-3">
 				<div class="flex min-w-0 items-center gap-2">
 					<Layers class="h-4 w-4 flex-shrink-0 text-primary" />
 					<div class="min-w-0">
-						<Dialog.Title class="truncate text-sm font-semibold tracking-tight">
+						<h2 class="truncate text-sm font-semibold tracking-tight">
 							{modelName ?? detail?.name ?? slug ?? '—'}
-						</Dialog.Title>
+						</h2>
 						<div class="truncate font-mono text-[11px] text-muted-foreground" title={slug ?? ''}>
 							{slug ?? '—'}
 						</div>
 					</div>
 				</div>
-				<button
-					type="button"
-					class="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
 					aria-label={$_('admin.providerVerify.close', { default: 'Close' })}
 					data-testid="provider-verify-close"
 					onclick={close}
 				>
 					<X class="h-4 w-4" />
-				</button>
+				</Button>
 			</div>
 
 			<!-- Body -->
@@ -344,13 +348,14 @@
 							{$_('admin.providerVerify.loadError', { default: 'Load failed: ' })}{error}
 						</div>
 						{#if slug}
-							<button
-								type="button"
-								class="rounded-md border border-destructive/40 px-2 py-1 text-xs hover:bg-destructive/20"
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-7 border-destructive/40 px-2 hover:bg-destructive/20"
 								onclick={() => load(slug!)}
 							>
 								{$_('admin.providerVerify.retry', { default: 'Retry' })}
-							</button>
+							</Button>
 						{/if}
 					</div>
 				{:else if detail}
@@ -392,15 +397,16 @@
 								{detail.description}
 							</p>
 							{#if detail.description.length > 160}
-								<button
-									type="button"
-									class="mt-1 text-[10.5px] text-primary hover:underline"
+								<Button
+									variant="ghost"
+									size="sm"
+									class="mt-1 h-auto px-0 py-0 text-[10.5px] text-primary hover:bg-transparent hover:underline"
 									onclick={() => (descExpanded = !descExpanded)}
 								>
 									{descExpanded
 										? $_('admin.providerVerify.showLess', { default: 'Show less' })
 										: $_('admin.providerVerify.showMore', { default: 'Show more' })}
-								</button>
+								</Button>
 							{/if}
 						</div>
 					{/if}
@@ -441,14 +447,15 @@
 									default: 'Sync failed, list may not be up to date'
 								})}
 							</span>
-							<button
-								type="button"
-								class="ml-auto rounded border border-amber-500/40 px-2 py-0.5 text-[11px] hover:bg-amber-500/20"
+							<Button
+								variant="outline"
+								size="sm"
+								class="ml-auto h-6 border-amber-500/40 px-2 text-[11px] hover:bg-amber-500/20"
 								onclick={retrySync}
 								disabled={syncing}
 							>
 								{$_('admin.providerVerify.retry', { default: 'Retry' })}
-							</button>
+							</Button>
 						</div>
 					{/if}
 
@@ -560,9 +567,10 @@
 
 					<!-- Edit footer toggle -->
 					<div class="mt-4 flex items-center justify-end gap-2 border-t pt-3">
-						<button
-							type="button"
-							class="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-xs hover:bg-muted"
+						<Button
+							variant="outline"
+							size="sm"
+							class="px-3"
 							onclick={toggleEdit}
 							data-testid="provider-verify-edit-toggle"
 							aria-expanded={editOpen}
@@ -570,7 +578,7 @@
 							<Edit class="h-3.5 w-3.5" />
 							{$_('admin.providerVerify.editBtn', { default: 'Override price' })}
 							<ChevronDown class="h-3.5 w-3.5 transition-transform {editOpen ? 'rotate-180' : ''}" />
-						</button>
+						</Button>
 					</div>
 
 					<!-- Edit panel -->
@@ -592,7 +600,13 @@
 									class:radio-active={mode === 'auto'}
 									data-testid="provider-verify-mode-auto"
 								>
-									<input type="radio" bind:group={mode} value="auto" class="sr-only" />
+									<Input
+										type="radio"
+										value="auto"
+										checked={mode === 'auto'}
+										onchange={() => (mode = 'auto')}
+										class="sr-only"
+									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
 										{$_('admin.providerVerify.modeAuto', { default: 'Auto lowest price' })}
@@ -607,7 +621,13 @@
 									class:radio-active={mode === 'pinned'}
 									data-testid="provider-verify-mode-pinned"
 								>
-									<input type="radio" bind:group={mode} value="pinned" class="sr-only" />
+									<Input
+										type="radio"
+										value="pinned"
+										checked={mode === 'pinned'}
+										onchange={() => (mode = 'pinned')}
+										class="sr-only"
+									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
 										{$_('admin.providerVerify.modePinned', { default: 'Pin provider' })}
@@ -615,31 +635,22 @@
 								</label>
 
 								{#if mode === 'pinned'}
-									<!--
-										Sentinel contract: pinned-tag select.
-										- value is the provider TAG (non-empty string, real business value).
-										- 「none yet」用空 list 而非空 string —— select 是 native，但仍坚守
-										  Memory `reshadcn-migration` 哨兵铁律：value="" 不可入选项。
-										- 调用方在 mode='pinned' 但 pinnedTag='' 时 disable Save。
-									-->
-									<select
-										class="ml-7 h-8 rounded-md border bg-background px-2 text-xs"
+									<NativeSelect
+										class="ml-7 h-8 px-2 text-xs"
 										bind:value={pinnedTag}
 										data-testid="provider-verify-pinned-select"
 									>
-										{#if !pinnedTag}
-											<option value="" disabled selected hidden>
-												{$_('admin.providerVerify.selectProviderPlaceholder', {
-													default: '— select provider —'
-												})}
-											</option>
-										{/if}
+										<option value={PINNED_NONE} disabled hidden>
+											{$_('admin.providerVerify.selectProviderPlaceholder', {
+												default: '— select provider —'
+											})}
+										</option>
 										{#each sortedProviders as p (p.tag)}
 											<option value={p.tag}>
 												{p.provider || p.tag} ({fmtPriceMTok(p.input)}/{fmtPriceMTok(p.output)})
 											</option>
 										{/each}
-									</select>
+									</NativeSelect>
 								{/if}
 
 								<label
@@ -647,7 +658,13 @@
 									class:radio-active={mode === 'manual'}
 									data-testid="provider-verify-mode-manual"
 								>
-									<input type="radio" bind:group={mode} value="manual" class="sr-only" />
+									<Input
+										type="radio"
+										value="manual"
+										checked={mode === 'manual'}
+										onchange={() => (mode = 'manual')}
+										class="sr-only"
+									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
 										{$_('admin.providerVerify.modeManual', { default: 'Manual input' })}
@@ -668,11 +685,11 @@
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
-												<input
+												<Input
 													id="pvd-manual-input"
 													type="text"
 													inputmode="decimal"
-													class="h-8 w-full rounded-md border bg-background px-2 text-xs"
+													class="h-8 px-2 text-xs"
 													placeholder={$_('admin.providerVerify.fieldPlaceholder', {
 														default: 'leave blank'
 													})}
@@ -691,11 +708,11 @@
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
-												<input
+												<Input
 													id="pvd-manual-output"
 													type="text"
 													inputmode="decimal"
-													class="h-8 w-full rounded-md border bg-background px-2 text-xs"
+													class="h-8 px-2 text-xs"
 													placeholder={$_('admin.providerVerify.fieldPlaceholder', {
 														default: 'leave blank'
 													})}
@@ -714,11 +731,11 @@
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
-												<input
+												<Input
 													id="pvd-manual-cr"
 													type="text"
 													inputmode="decimal"
-													class="h-8 w-full rounded-md border bg-background px-2 text-xs"
+													class="h-8 px-2 text-xs"
 													placeholder={$_('admin.providerVerify.fieldPlaceholder', {
 														default: 'leave blank'
 													})}
@@ -736,11 +753,11 @@
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
-												<input
+												<Input
 													id="pvd-manual-cw"
 													type="text"
 													inputmode="decimal"
-													class="h-8 w-full rounded-md border bg-background px-2 text-xs"
+													class="h-8 px-2 text-xs"
 													placeholder={$_('admin.providerVerify.fieldPlaceholder', {
 														default: 'leave blank'
 													})}
@@ -760,11 +777,11 @@
 									>
 										{$_('admin.providerVerify.noteLabel', { default: 'Note (optional)' })}
 									</label>
-									<input
+									<Input
 										id="pvd-note"
 										type="text"
 										maxlength={200}
-										class="h-8 rounded-md border bg-background px-2 text-xs"
+										class="h-8 px-2 text-xs"
 										placeholder={$_('admin.providerVerify.notePlaceholder', {
 											default: 'e.g. negotiated rate'
 										})}
@@ -782,16 +799,17 @@
 									{/if}
 									{#if mode === 'auto'}
 										{#if detail.overridden}
-											<button
-												type="button"
-												class="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/20 disabled:opacity-50"
+											<Button
+												variant="outline"
+												size="sm"
+												class="border-destructive/40 bg-destructive/10 px-3 text-destructive hover:bg-destructive/20"
 												onclick={handleRestore}
 												disabled={saving}
 												data-testid="provider-verify-restore"
 											>
 												<Trash2 class="h-3.5 w-3.5" />
 												{$_('admin.providerVerify.restoreBtn', { default: 'Restore auto' })}
-											</button>
+											</Button>
 										{:else}
 											<span class="text-[11px] text-muted-foreground">
 												{$_('admin.providerVerify.modeAutoHint', {
@@ -800,9 +818,9 @@
 											</span>
 										{/if}
 									{:else}
-										<button
-											type="button"
-											class="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+										<Button
+											size="sm"
+											class="px-3"
 											onclick={handleSave}
 											disabled={saving || !canSave}
 											data-testid="provider-verify-save"
@@ -811,7 +829,7 @@
 											{saving
 												? $_('admin.providerVerify.saving', { default: 'Saving…' })
 												: $_('admin.providerVerify.saveBtn', { default: 'Save' })}
-										</button>
+										</Button>
 									{/if}
 								</div>
 							</div>
@@ -833,9 +851,7 @@
 					</div>
 				{/if}
 			</div>
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+		</StandardDrawer>
 
 <style>
 	.baseline-band-default {

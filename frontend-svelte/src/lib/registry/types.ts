@@ -78,6 +78,7 @@ export interface SectionDef {
 	special?:
 		| 'smtp'
 		| 'test-email'
+		| 'email-templates'
 		| 'admin-api-key'
 		| 'email-suffix-whitelist'
 		| 'custom-menu'

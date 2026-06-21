@@ -22,7 +22,7 @@
 
 | # | 项 `[簇]` | effort | 本地落点 / 要点 | commit |
 |---|-----------|--------|----------------|--------|
-| 1 | **form-data 升 ≥4.0.6** `[admin-frontend]` | trivial | `frontend/pnpm-lock.yaml:2620,7378` 仍 pin `form-data@4.0.5`（GHSA-hmw2-7cc7-3qxx CRLF 注入，axios ^1.16 传递依赖）。**只**在 `frontend/package.json` 的 `pnpm.overrides` 加 `"form-data": ">=4.0.6"` 再 `pnpm install`，勿整包复制上游 package.json | — |
+| 1 | **form-data 升 ≥4.0.6** `[admin-frontend]` | closed | 旧 `frontend/` Vue tree 已删除；Svelte rewrite 使用 `frontend-svelte/pnpm-lock.yaml`，不再携带该旧 `form-data@4.0.5` pin。 | — |
 
 ---
 

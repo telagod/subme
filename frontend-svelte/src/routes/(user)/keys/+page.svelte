@@ -19,12 +19,17 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { Plus, Trash2, KeyRound, RotateCw } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, KeyRound, RotateCw } from '@lucide/svelte';
 	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
 	import CreateKeyDialog from '$lib/features/keys/CreateKeyDialog.svelte';
+	import EditKeyDialog from '$lib/features/keys/EditKeyDialog.svelte';
 	import RevokeKeyDialog from '$lib/features/keys/RevokeKeyDialog.svelte';
 	import { listKeys, type ApiKey, type ApiKeyStatus } from '$lib/api/user/apiKeys';
 	import { showError } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	// ── 数据 ────────────────────────────────────────────────────────────
 	let keys = $state<ApiKey[]>([]);
@@ -38,8 +43,12 @@
 
 	// ── Dialog 状态 ─────────────────────────────────────────────────────
 	let createOpen = $state(false);
+	let editOpen = $state(false);
+	let editTarget = $state<ApiKey | null>(null);
 	let revokeOpen = $state(false);
 	let revokeTarget = $state<ApiKey | null>(null);
+
+	function openEdit(key: ApiKey) { editTarget = key; editOpen = true; }
 
 	// 阈值：> 50 行落虚拟表
 	const VIRTUAL_THRESHOLD = 50;
@@ -148,24 +157,24 @@
 			</p>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="icon"
 				aria-label={$_('user.keys.refresh', { default: 'Refresh' })}
 				data-testid="keys-refresh-btn"
 				onclick={refreshList}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+				class="h-9 w-9 text-muted-foreground"
 			>
 				<RotateCw class="h-4 w-4" />
-			</button>
-			<button
-				type="button"
+			</Button>
+			<Button
 				data-testid="keys-create-btn"
 				onclick={openCreate}
-				class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="h-9 gap-1.5 px-3"
 			>
 				<Plus class="h-4 w-4" />
 				{$_('user.keys.newKey', { default: 'New API Key' })}
-			</button>
+			</Button>
 		</div>
 	</header>
 
@@ -174,19 +183,19 @@
 		<label class="text-sm text-muted-foreground" for="status-filter">
 			{$_('user.keys.statusFilter', { default: 'Status' })}
 		</label>
-		<select
+		<NativeSelect
 			id="status-filter"
 			data-testid="keys-status-filter"
-			value={statusFilter}
+			bind:value={statusFilter}
 			onchange={handleStatusChange}
-			class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+			class="h-9"
 		>
 			<option value={STATUS_ALL}>{$_('user.keys.allStatus', { default: 'All status' })}</option>
 			<option value="active">{statusLabel('active')}</option>
 			<option value="inactive">{statusLabel('inactive')}</option>
 			<option value="quota_exhausted">{statusLabel('quota_exhausted')}</option>
 			<option value="expired">{statusLabel('expired')}</option>
-		</select>
+		</NativeSelect>
 	</div>
 
 	<!-- Table -->
@@ -195,19 +204,20 @@
 			{$_('user.keys.loading', { default: 'Loading…' })}
 		</div>
 	{:else if loadError && filteredKeys.length === 0}
-		<div class="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center" data-testid="keys-error">
+		<Alert variant="destructive" class="p-8 text-center" data-testid="keys-error">
 			<p class="text-sm font-medium text-destructive">
 				{$_('user.keys.failedToLoad', { default: 'Failed to load API keys' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				onclick={refreshList}
-				class="mt-4 inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-accent"
+				class="mt-4"
 			>
 				{$_('user.keys.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{:else if filteredKeys.length === 0}
 		<!-- Empty state -->
 		<div
@@ -227,15 +237,14 @@
 					})}
 				</p>
 			</div>
-			<button
-				type="button"
+			<Button
 				data-testid="keys-empty-create-btn"
 				onclick={openCreate}
-				class="mt-1 inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="mt-1 h-9 gap-1.5"
 			>
 				<Plus class="h-4 w-4" />
 				{$_('user.keys.createFirstKey', { default: 'Create your first key' })}
-			</button>
+			</Button>
 		</div>
 	{:else if useVirtual}
 		<!-- Virtual table 路径（> 50 行） -->
@@ -265,23 +274,34 @@
 							</div>
 							<div class="text-muted-foreground">{fmtQuota(k)}</div>
 							<div>
-								<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {statusBadgeClass(k.status)}">
+								<Badge class={statusBadgeClass(k.status)}>
 									{statusLabel(k.status)}
-								</span>
+								</Badge>
 							</div>
 							<div class="truncate text-muted-foreground">{fmtDate(k.createdAt)}</div>
 							<div class="truncate text-muted-foreground">{fmtDate(k.lastUsedAt)}</div>
-							<div class="flex justify-end">
-								<button
-									type="button"
+							<div class="flex justify-end gap-1">
+								<Button
+									variant="outline"
+									size="icon"
+									aria-label={$_('user.keys.editAria', { default: 'Edit key' })}
+									data-testid="keys-edit-btn"
+									onclick={() => openEdit(k)}
+									class="h-8 w-8"
+								>
+									<Pencil class="h-3.5 w-3.5" />
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
 									aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
 									data-testid="keys-revoke-btn"
 									data-key-id={k.id}
 									onclick={() => openRevoke(k)}
-									class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-destructive hover:bg-destructive/10"
+									class="h-8 w-8 text-destructive hover:bg-destructive/10"
 								>
 									<Trash2 class="h-3.5 w-3.5" />
-								</button>
+								</Button>
 							</div>
 						</div>
 					{/snippet}
@@ -320,23 +340,36 @@
 							</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtQuota(k)}</td>
 							<td class="px-4 py-3">
-								<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {statusBadgeClass(k.status)}">
+								<Badge class={statusBadgeClass(k.status)}>
 									{statusLabel(k.status)}
-								</span>
+								</Badge>
 							</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtDate(k.createdAt)}</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtDate(k.lastUsedAt)}</td>
 							<td class="px-4 py-3 text-right">
-								<button
-									type="button"
-									aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
-									data-testid="keys-revoke-btn"
-									data-key-id={k.id}
-									onclick={() => openRevoke(k)}
-									class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-destructive hover:bg-destructive/10"
-								>
-									<Trash2 class="h-3.5 w-3.5" />
-								</button>
+								<div class="flex justify-end gap-1">
+									<Button
+										variant="outline"
+										size="icon"
+										aria-label={$_('user.keys.editAria', { default: 'Edit key' })}
+										data-testid="keys-edit-btn"
+										onclick={() => openEdit(k)}
+										class="h-8 w-8"
+									>
+										<Pencil class="h-3.5 w-3.5" />
+									</Button>
+									<Button
+										variant="outline"
+										size="icon"
+										aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
+										data-testid="keys-revoke-btn"
+										data-key-id={k.id}
+										onclick={() => openRevoke(k)}
+										class="h-8 w-8 text-destructive hover:bg-destructive/10"
+									>
+										<Trash2 class="h-3.5 w-3.5" />
+									</Button>
+								</div>
 							</td>
 						</tr>
 					{/each}
@@ -347,4 +380,5 @@
 </section>
 
 <CreateKeyDialog bind:open={createOpen} onCreated={handleCreated} />
+<EditKeyDialog bind:open={editOpen} apiKey={editTarget} onUpdated={() => { editOpen = false; refreshList(); }} />
 <RevokeKeyDialog bind:open={revokeOpen} apiKey={revokeTarget} onRevoked={handleRevoked} />

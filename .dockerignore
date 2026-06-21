@@ -27,7 +27,7 @@ dist/
 build/
 
 # Node modules (will be installed in container)
-frontend/node_modules/
+frontend-svelte/node_modules/
 node_modules/
 
 # Go build cache (will be built in container)

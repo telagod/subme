@@ -13,6 +13,9 @@
 	 *     的 9 类原子字段无法表达；用 special 把"每行 mini-toggle + email input"包成黑盒。
 	 */
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -107,9 +110,10 @@
 		>
 			{$_('admin.settings.quotaNotify.enabled')}
 		</label>
-		<button
+		<Button
 			id="quota-notify-enabled"
-			type="button"
+			variant="ghost"
+			size="icon"
 			role="switch"
 			aria-checked={localEnabled}
 			aria-label={$_('admin.settings.quotaNotify.enabled')}
@@ -125,7 +129,7 @@
 					? 'translate-x-4'
 					: 'translate-x-0.5'}"
 			></span>
-		</button>
+		</Button>
 	</div>
 
 	{#if localEnabled}
@@ -137,8 +141,9 @@
 					class="flex items-center gap-2"
 				>
 					<!-- per-row mini switch -->
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						role="switch"
 						aria-checked={!entry.disabled}
 						aria-label={$_('admin.settings.quotaNotify.enabled')}
@@ -154,35 +159,37 @@
 								? 'translate-x-3.5'
 								: 'translate-x-0.5'}"
 						></span>
-					</button>
-					<input
+					</Button>
+					<Input
 						type="email"
 						data-testid="quota-notify-email"
 						placeholder={$_('admin.settings.quotaNotify.emailPlaceholder')}
 						value={entry.email}
 						oninput={(e) => onEmailInput(index, e)}
-						class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 flex-1"
 					/>
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="icon"
 						data-testid="quota-notify-remove"
 						aria-label={$_('common.delete')}
 						onclick={() => removeEmail(index)}
-						class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
+						class="h-7 w-7 text-muted-foreground hover:border-destructive/25 hover:bg-destructive/10 hover:text-destructive"
 					>
-						✕
-					</button>
+						<X class="h-3 w-3" />
+					</Button>
 				</div>
 			{/each}
 
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				data-testid="quota-notify-add"
 				onclick={addEmail}
-				class="inline-flex h-8 w-fit items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+				class="w-fit"
 			>
 				+ {$_('admin.settings.quotaNotify.addEmail')}
-			</button>
+			</Button>
 
 			<p class="m-0 mt-1 text-xs leading-relaxed text-muted-foreground">
 				{$_('admin.settings.quotaNotify.emailsHint')}

@@ -24,6 +24,7 @@
 	import { CheckCircle2, Loader2, AlertTriangle, RotateCw } from '@lucide/svelte';
 	import { confirmPayment } from '$lib/api/user/payment';
 	import { showSuccess, showError } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
 
 	type Phase = 'polling' | 'succeeded' | 'pending' | 'failed';
 
@@ -222,23 +223,22 @@
 				})}
 			</p>
 			<div class="mt-6 flex items-center justify-center gap-2">
-				<button
-					type="button"
+				<Button
+					variant="outline"
 					data-testid="payment-success-retry"
 					onclick={retry}
-					class="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+					class="h-9 gap-1.5"
 				>
 					<RotateCw class="h-4 w-4" />
 					{$_('user.payment.success.retry', { default: 'Retry' })}
-				</button>
-				<button
-					type="button"
+				</Button>
+				<Button
 					data-testid="payment-success-go-billing"
 					onclick={goBilling}
-					class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+					class="h-9"
 				>
 					{$_('user.payment.success.goBilling', { default: 'Go to billing' })}
-				</button>
+				</Button>
 			</div>
 		</div>
 	{:else}
@@ -270,31 +270,30 @@
 				</p>
 			{/if}
 			<div class="mt-6 flex items-center justify-center gap-2">
-				<button
-					type="button"
+				<Button
+					variant="outline"
 					data-testid="payment-success-retry-failed"
 					onclick={retry}
-					class="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+					class="h-9 gap-1.5"
 				>
 					<RotateCw class="h-4 w-4" />
 					{$_('user.payment.success.retry', { default: 'Retry' })}
-				</button>
-				<button
-					type="button"
+				</Button>
+				<Button
 					data-testid="payment-success-go-billing-failed"
 					onclick={goBilling}
-					class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+					class="h-9"
 				>
 					{$_('user.payment.success.goBilling', { default: 'Go to billing' })}
-				</button>
-				<button
-					type="button"
+				</Button>
+				<Button
+					variant="outline"
 					data-testid="payment-success-go-subs"
 					onclick={goSubs}
-					class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent"
+					class="h-9"
 				>
 					{$_('user.payment.success.goSubs', { default: 'My subscriptions' })}
-				</button>
+				</Button>
 			</div>
 		</div>
 	{/if}

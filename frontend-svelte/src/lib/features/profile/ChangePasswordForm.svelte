@@ -18,6 +18,9 @@
 	import { KeyRound } from '@lucide/svelte';
 	import { changePassword } from '$lib/api/user/profile';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type Props = {
 		/** 提交成功回调（父组件可清理状态 / 刷新）。 */
@@ -108,7 +111,7 @@
 			<label for="cp-current" class="text-sm font-medium text-foreground">
 				{$_('user.security.currentPassword', { default: 'Current password' })}
 			</label>
-			<input
+			<Input
 				id="cp-current"
 				name="currentPassword"
 				type="password"
@@ -116,7 +119,6 @@
 				data-testid="cp-current"
 				bind:value={$form.currentPassword}
 				aria-invalid={$errors.currentPassword ? 'true' : undefined}
-				class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			/>
 			{#if $errors.currentPassword && $errors.currentPassword[0]}
 				<p class="text-xs text-destructive" data-testid="cp-error-current">
@@ -129,7 +131,7 @@
 			<label for="cp-new" class="text-sm font-medium text-foreground">
 				{$_('user.security.newPassword', { default: 'New password' })}
 			</label>
-			<input
+			<Input
 				id="cp-new"
 				name="newPassword"
 				type="password"
@@ -137,7 +139,6 @@
 				data-testid="cp-new"
 				bind:value={$form.newPassword}
 				aria-invalid={$errors.newPassword ? 'true' : undefined}
-				class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			/>
 			{#if $errors.newPassword && $errors.newPassword[0]}
 				<p class="text-xs text-destructive" data-testid="cp-error-new">
@@ -150,7 +151,7 @@
 			<label for="cp-confirm" class="text-sm font-medium text-foreground">
 				{$_('user.security.confirmNewPassword', { default: 'Confirm new password' })}
 			</label>
-			<input
+			<Input
 				id="cp-confirm"
 				name="confirmPassword"
 				type="password"
@@ -158,7 +159,6 @@
 				data-testid="cp-confirm"
 				bind:value={$form.confirmPassword}
 				aria-invalid={$errors.confirmPassword ? 'true' : undefined}
-				class="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 			/>
 			{#if $errors.confirmPassword && $errors.confirmPassword[0]}
 				<p class="text-xs text-destructive" data-testid="cp-error-confirm">
@@ -168,25 +168,21 @@
 		</div>
 
 		{#if formError}
-			<p
-				class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-				data-testid="cp-form-error"
-			>
+			<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="cp-form-error">
 				{formError}
-			</p>
+			</Alert>
 		{/if}
 
 		<div class="flex items-center justify-end gap-2 pt-1">
-			<button
+			<Button
 				type="submit"
 				data-testid="cp-submit"
 				disabled={$submitting}
-				class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
 			>
 				{$submitting
 					? $_('user.security.changingPassword', { default: 'Changing…' })
 					: $_('user.security.changePasswordButton', { default: 'Change password' })}
-			</button>
+			</Button>
 		</div>
 	</form>
 </section>

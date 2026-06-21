@@ -18,10 +18,14 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { ShoppingBag, RotateCw, X, CreditCard } from '@lucide/svelte';
+	import { ShoppingBag, RotateCw, CreditCard } from '@lucide/svelte';
 	import { listPlans, type Plan } from '$lib/api/user/subscriptions';
 	import { showError, showInfo } from '$lib/stores/toast.svelte';
 	import PlanCard from '$lib/features/subscriptions/PlanCard.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	// ── state ───────────────────────────────────────────────────────────
 	let plans = $state<Plan[]>([]);
@@ -153,15 +157,16 @@
 			</p>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="icon"
 				aria-label={$_('user.purchase.refresh', { default: 'Refresh' })}
 				data-testid="purchase-refresh-btn"
 				onclick={loadPlans}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+				class="h-9 w-9 text-muted-foreground"
 			>
 				<RotateCw class="h-4 w-4" />
-			</button>
+			</Button>
 		</div>
 	</header>
 
@@ -173,7 +178,7 @@
 		<label for="promo-code" class="text-sm font-medium text-foreground">
 			{$_('user.purchase.promoLabel', { default: 'Promo code' })}
 		</label>
-		<input
+		<Input
 			id="promo-code"
 			data-testid="purchase-promo-input"
 			type="text"
@@ -181,27 +186,26 @@
 			placeholder={$_('user.purchase.promoPlaceholder', { default: 'Enter code (optional)' })}
 			bind:value={promoCode}
 			disabled={promoApplied}
-			class="block h-9 min-w-[12rem] flex-1 rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+			class="h-9 min-w-[12rem] flex-1"
 		/>
 		{#if promoApplied}
-			<button
-				type="button"
+			<Button
+				variant="outline"
 				data-testid="purchase-promo-clear"
 				onclick={handleClearPromo}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground hover:bg-accent"
+				class="h-9 px-3"
 			>
 				{$_('user.purchase.promoClear', { default: 'Clear' })}
-			</button>
+			</Button>
 		{:else}
-			<button
-				type="button"
+			<Button
 				data-testid="purchase-promo-apply"
 				disabled={!promoCode.trim()}
 				onclick={handleApplyPromo}
-				class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+				class="h-9 px-3"
 			>
 				{$_('user.purchase.promoApply', { default: 'Apply' })}
-			</button>
+			</Button>
 		{/if}
 	</div>
 
@@ -225,22 +229,24 @@
 			{/each}
 		</div>
 	{:else if loadError && plans.length === 0}
-		<div
-			class="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"
+		<Alert
+			variant="destructive"
+			class="p-8 text-center"
 			data-testid="purchase-error"
 		>
 			<p class="text-sm font-medium text-destructive">
 				{$_('user.purchase.failedToLoad', { default: 'Failed to load plans' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				onclick={loadPlans}
-				class="mt-4 inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-accent"
+				class="mt-4"
 			>
 				{$_('user.purchase.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{:else if plans.length === 0}
 		<div
 			class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12 text-center"
@@ -272,112 +278,92 @@
 	{/if}
 </section>
 
-<!-- Provider switch panel (inline modal, not bits-ui — light footprint) -->
-{#if providerOpen && selectedPlan}
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-		data-testid="purchase-provider-overlay"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="provider-title"
-	>
+<StandardDialog
+	open={providerOpen && Boolean(selectedPlan)}
+	width="sm"
+	title={$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
+	data-testid="purchase-provider-panel"
+>
+	{#if selectedPlan}
+		<p class="mt-2 text-xs text-muted-foreground" data-testid="purchase-provider-plan">
+			{selectedPlan.name} · ${selectedPlan.price.toFixed(2)}
+		</p>
+
 		<div
-			class="w-full max-w-[460px] rounded-lg border border-border bg-card p-6 shadow-lg"
-			data-testid="purchase-provider-panel"
+			class="mt-5 space-y-2"
+			role="radiogroup"
+			aria-label={$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
 		>
-			<header class="flex items-start justify-between gap-3">
-				<div class="space-y-1">
-					<h2 id="provider-title" class="text-base font-semibold text-foreground">
-						{$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
-					</h2>
-					<p class="text-xs text-muted-foreground" data-testid="purchase-provider-plan">
-						{selectedPlan.name} · ${selectedPlan.price.toFixed(2)}
-					</p>
-				</div>
-				<button
-					type="button"
-					aria-label={$_('user.purchase.close', { default: 'Close' })}
-					data-testid="purchase-provider-close"
-					onclick={closeProvider}
-					class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
-				>
-					<X class="h-4 w-4" />
-				</button>
-			</header>
-
-			<div class="mt-5 space-y-2" role="radiogroup" aria-labelledby="provider-title">
-				<button
-					type="button"
-					role="radio"
-					aria-checked={selectedProvider === 'stripe'}
-					data-testid="provider-stripe"
-					onclick={() => (selectedProvider = 'stripe')}
-					class="flex w-full items-center justify-between gap-3 rounded-md border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-accent {selectedProvider ===
+			<Button
+				variant="outline"
+				role="radio"
+				aria-checked={selectedProvider === 'stripe'}
+				data-testid="provider-stripe"
+				onclick={() => (selectedProvider = 'stripe')}
+				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
 					'stripe'
-						? 'border-primary ring-2 ring-primary/30'
-						: 'border-border'}"
-				>
-					<span class="flex items-center gap-2">
-						<CreditCard class="h-4 w-4 text-muted-foreground" />
-						{$_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' })}
-					</span>
-				</button>
-				<button
-					type="button"
-					role="radio"
-					aria-checked={selectedProvider === 'airwallex'}
-					data-testid="provider-airwallex"
-					onclick={() => (selectedProvider = 'airwallex')}
-					class="flex w-full items-center justify-between gap-3 rounded-md border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-accent {selectedProvider ===
+					? 'border-primary ring-2 ring-primary/30'
+					: 'border-border'}"
+			>
+				<span class="flex items-center gap-2">
+					<CreditCard class="h-4 w-4 text-muted-foreground" />
+					{$_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' })}
+				</span>
+			</Button>
+			<Button
+				variant="outline"
+				role="radio"
+				aria-checked={selectedProvider === 'airwallex'}
+				data-testid="provider-airwallex"
+				onclick={() => (selectedProvider = 'airwallex')}
+				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
 					'airwallex'
-						? 'border-primary ring-2 ring-primary/30'
-						: 'border-border'}"
-				>
-					<span class="flex items-center gap-2">
-						<CreditCard class="h-4 w-4 text-muted-foreground" />
-						{$_('user.purchase.providerAirwallex', { default: 'Airwallex' })}
-					</span>
-				</button>
-				<button
-					type="button"
-					role="radio"
-					aria-checked={selectedProvider === 'balance'}
-					data-testid="provider-balance"
-					onclick={() => (selectedProvider = 'balance')}
-					class="flex w-full items-center justify-between gap-3 rounded-md border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-accent {selectedProvider ===
+					? 'border-primary ring-2 ring-primary/30'
+					: 'border-border'}"
+			>
+				<span class="flex items-center gap-2">
+					<CreditCard class="h-4 w-4 text-muted-foreground" />
+					{$_('user.purchase.providerAirwallex', { default: 'Airwallex' })}
+				</span>
+			</Button>
+			<Button
+				variant="outline"
+				role="radio"
+				aria-checked={selectedProvider === 'balance'}
+				data-testid="provider-balance"
+				onclick={() => (selectedProvider = 'balance')}
+				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
 					'balance'
-						? 'border-primary ring-2 ring-primary/30'
-						: 'border-border'}"
-				>
-					<span class="flex items-center gap-2">
-						<CreditCard class="h-4 w-4 text-muted-foreground" />
-						{$_('user.purchase.providerBalance', { default: 'Pay with balance' })}
-					</span>
-				</button>
-			</div>
-
-			<div class="mt-6 flex items-center justify-end gap-2">
-				<button
-					type="button"
-					data-testid="purchase-provider-cancel"
-					disabled={checkoutSubmitting}
-					onclick={closeProvider}
-					class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-				>
-					{$_('user.purchase.cancel', { default: 'Cancel' })}
-				</button>
-				<button
-					type="button"
-					data-testid="purchase-provider-confirm"
-					disabled={!selectedProvider || checkoutSubmitting}
-					onclick={handleCheckout}
-					class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-				>
-					{checkoutSubmitting
-						? $_('user.purchase.processing', { default: 'Processing...' })
-						: $_('user.purchase.continueToPayment', { default: 'Continue to payment' })}
-				</button>
-			</div>
+					? 'border-primary ring-2 ring-primary/30'
+					: 'border-border'}"
+			>
+				<span class="flex items-center gap-2">
+					<CreditCard class="h-4 w-4 text-muted-foreground" />
+					{$_('user.purchase.providerBalance', { default: 'Pay with balance' })}
+				</span>
+			</Button>
 		</div>
-	</div>
-{/if}
+
+		<div class="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
+			<Button
+				variant="outline"
+				data-testid="purchase-provider-cancel"
+				disabled={checkoutSubmitting}
+				onclick={closeProvider}
+				class="h-9"
+			>
+				{$_('user.purchase.cancel', { default: 'Cancel' })}
+			</Button>
+			<Button
+				data-testid="purchase-provider-confirm"
+				disabled={!selectedProvider || checkoutSubmitting}
+				onclick={handleCheckout}
+				class="h-9"
+			>
+				{checkoutSubmitting
+					? $_('user.purchase.processing', { default: 'Processing...' })
+					: $_('user.purchase.continueToPayment', { default: 'Continue to payment' })}
+			</Button>
+		</div>
+	{/if}
+</StandardDialog>

@@ -14,6 +14,8 @@
 	import { z } from 'zod';
 	import { settingsApi, type SendTestEmailRequest } from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -64,24 +66,24 @@
 	<label class="block text-sm font-medium text-foreground" for="test-email-recipient">
 		{$_('admin.settings.testEmail.recipientEmail')}
 	</label>
-	<input
+	<Input
 		id="test-email-recipient"
 		type="email"
 		data-testid="test-email-recipient"
-		class="h-9 w-full max-w-md rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+		class="h-9 max-w-md"
 		placeholder="test@example.com"
 		bind:value={recipient}
 	/>
 
 	<div class="flex items-center gap-3">
-		<button
-			type="button"
+		<Button
+			variant="outline"
+			class="h-9"
 			data-testid="test-email-send"
 			onclick={handleSend}
 			disabled={sending}
-			class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent disabled:opacity-60"
 		>
 			{sending ? $_('admin.settings.testEmail.sending') : $_('admin.settings.testEmail.sendTestEmail')}
-		</button>
+		</Button>
 	</div>
 </div>

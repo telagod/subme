@@ -16,8 +16,10 @@
 	 *   - subscriptions group_id 仍为 number input（无 groups API）。
 	 *
 	 * Sentinel：不渲染 select。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -313,8 +315,9 @@
 				{$_('admin.settings.authSourceDefaults.requireEmailHint')}
 			</p>
 		</div>
-		<button
-			type="button"
+		<Button
+			variant="ghost"
+			size="icon"
 			role="switch"
 			aria-checked={forceEmail}
 			aria-label={$_('admin.settings.authSourceDefaults.requireEmailLabel')}
@@ -327,10 +330,10 @@
 		>
 			<span
 				class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {forceEmail
-					? 'translate-x-4'
-					: 'translate-x-0.5'}"
+				? 'translate-x-4'
+				: 'translate-x-0.5'}"
 			></span>
-		</button>
+		</Button>
 	</div>
 
 	<!-- Per-source cards -->
@@ -349,8 +352,9 @@
 						</p>
 					{/if}
 				</div>
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="icon"
 					role="switch"
 					aria-checked={sourceState[src].grant_on_signup}
 					aria-label={sourceTitle(src)}
@@ -369,7 +373,7 @@
 							? 'translate-x-4'
 							: 'translate-x-0.5'}"
 					></span>
-				</button>
+				</Button>
 			</div>
 
 			{#if sourceState[src].grant_on_signup}
@@ -387,12 +391,12 @@
 							<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 								{$_('admin.settings.defaults.defaultBalance')}
 							</span>
-							<input
+							<Input
 								type="number"
 								step="0.01"
 								min="0"
 								data-testid={`auth-source-${src}-balance`}
-								class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+								class="h-9"
 								value={String(sourceState[src].balance)}
 								placeholder="0.00"
 								oninput={(e) =>
@@ -403,11 +407,11 @@
 							<span class="mb-1 block text-[11.5px] font-medium text-muted-foreground">
 								{$_('admin.settings.defaults.defaultConcurrency')}
 							</span>
-							<input
+							<Input
 								type="number"
 								min="1"
 								data-testid={`auth-source-${src}-concurrency`}
-								class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+								class="h-9"
 								value={String(sourceState[src].concurrency)}
 								placeholder="5"
 								oninput={(e) =>
@@ -429,8 +433,9 @@
 								{$_('admin.settings.authSourceDefaults.grantOnFirstBindHint')}
 							</p>
 						</div>
-						<button
-							type="button"
+						<Button
+							variant="ghost"
+							size="icon"
 							role="switch"
 							aria-checked={sourceState[src].grant_on_first_bind}
 							aria-label={$_('admin.settings.authSourceDefaults.grantOnFirstBindLabel')}
@@ -449,7 +454,7 @@
 									? 'translate-x-4'
 									: 'translate-x-0.5'}"
 							></span>
-						</button>
+						</Button>
 					</div>
 
 					<!-- Subscriptions -->
@@ -463,14 +468,14 @@
 									{$_('admin.settings.authSourceDefaults.defaultSubscriptionsHint')}
 								</p>
 							</div>
-							<button
-								type="button"
+							<Button
+								variant="outline"
 								data-testid={`auth-source-${src}-sub-add`}
-								class="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
+								class="h-9 shrink-0 text-xs"
 								onclick={() => addSubscription(src)}
 							>
 								+ {$_('admin.settings.defaults.addDefaultSubscription')}
-							</button>
+							</Button>
 						</div>
 
 						{#if sourceState[src].subscriptions.length === 0}
@@ -493,10 +498,10 @@
 											>
 												{$_('admin.settings.defaults.subscriptionGroup')}
 											</span>
-											<input
+											<Input
 												type="number"
 												min="1"
-												class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+												class="h-9"
 												value={row.group_id === 0 ? '' : String(row.group_id)}
 												placeholder="ID"
 												oninput={(e) =>
@@ -513,11 +518,11 @@
 											>
 												{$_('admin.settings.defaults.subscriptionValidityDays')}
 											</span>
-											<input
+											<Input
 												type="number"
 												min="1"
 												max="36500"
-												class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+												class="h-9"
 												value={String(row.validity_days)}
 												oninput={(e) =>
 													patchSubValidity(
@@ -528,13 +533,13 @@
 											/>
 										</label>
 										<div class="flex items-end">
-											<button
-												type="button"
-												class="inline-flex h-9 w-full items-center justify-center rounded-md border border-input bg-background px-3 text-xs text-destructive hover:bg-destructive/10"
+											<Button
+												variant="outline"
+												class="h-9 w-full text-xs text-destructive hover:bg-destructive/10"
 												onclick={() => removeSubscription(src, i)}
 											>
 												{$_('common.delete')}
-											</button>
+											</Button>
 										</div>
 									</div>
 								{/each}
@@ -587,12 +592,12 @@
 												>
 											</td>
 											<td class="py-1 pr-3">
-												<input
+												<Input
 													type="number"
 													step="0.01"
 													min="0"
 													data-testid={`auth-source-${src}-quota-${p}-daily`}
-													class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+													class="h-8 w-28 px-2 text-xs"
 													value={sourceState[src].platform_quotas[p].daily === null
 														? ''
 														: String(sourceState[src].platform_quotas[p].daily)}
@@ -607,12 +612,12 @@
 												/>
 											</td>
 											<td class="py-1 pr-3">
-												<input
+												<Input
 													type="number"
 													step="0.01"
 													min="0"
 													data-testid={`auth-source-${src}-quota-${p}-weekly`}
-													class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+													class="h-8 w-28 px-2 text-xs"
 													value={sourceState[src].platform_quotas[p].weekly === null
 														? ''
 														: String(sourceState[src].platform_quotas[p].weekly)}
@@ -627,12 +632,12 @@
 												/>
 											</td>
 											<td class="py-1 pr-3">
-												<input
+												<Input
 													type="number"
 													step="0.01"
 													min="0"
 													data-testid={`auth-source-${src}-quota-${p}-monthly`}
-													class="h-8 w-28 rounded-md border border-input bg-background px-2 text-xs"
+													class="h-8 w-28 px-2 text-xs"
 													value={sourceState[src].platform_quotas[p].monthly === null
 														? ''
 														: String(sourceState[src].platform_quotas[p].monthly)}

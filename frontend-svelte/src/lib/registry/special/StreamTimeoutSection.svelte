@@ -18,6 +18,9 @@
 		type StreamTimeoutSettings
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -112,9 +115,10 @@
 					{$_('admin.settings.streamTimeout.enabledHint')}
 				</p>
 			</div>
-			<button
+			<Button
 				id="stream-timeout-enabled"
-				type="button"
+				variant="ghost"
+				size="icon"
 				role="switch"
 				aria-checked={form.enabled}
 				aria-label={$_('admin.settings.streamTimeout.enabled')}
@@ -130,7 +134,7 @@
 						? 'translate-x-4'
 						: 'translate-x-0.5'}"
 				></span>
-			</button>
+			</Button>
 		</div>
 
 		{#if form.enabled}
@@ -143,19 +147,19 @@
 					>
 						{$_('admin.settings.streamTimeout.action')}
 					</label>
-					<select
+					<NativeSelect
 						id="stream-timeout-action"
 						data-testid="stream-timeout-action"
 						value={form.action}
 						onchange={onActionChange}
-						class="h-9 w-64 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-64"
 					>
 						<option value="temp_unsched"
 							>{$_('admin.settings.streamTimeout.actionTempUnsched')}</option
 						>
 						<option value="error">{$_('admin.settings.streamTimeout.actionError')}</option>
 						<option value="none">{$_('admin.settings.streamTimeout.actionNone')}</option>
-					</select>
+					</NativeSelect>
 					<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.streamTimeout.actionHint')}
 					</p>
@@ -169,7 +173,7 @@
 						>
 							{$_('admin.settings.streamTimeout.tempUnschedMinutes')}
 						</label>
-						<input
+						<Input
 							id="stream-timeout-temp-unsched-minutes"
 							type="number"
 							min="1"
@@ -177,7 +181,7 @@
 							data-testid="stream-timeout-temp-unsched-minutes"
 							value={form.temp_unsched_minutes}
 							oninput={(e) => onNumberInput('temp_unsched_minutes', e)}
-							class="h-9 w-32 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+							class="h-9 w-32 font-mono"
 						/>
 						<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 							{$_('admin.settings.streamTimeout.tempUnschedMinutesHint')}
@@ -192,7 +196,7 @@
 					>
 						{$_('admin.settings.streamTimeout.thresholdCount')}
 					</label>
-					<input
+					<Input
 						id="stream-timeout-threshold-count"
 						type="number"
 						min="1"
@@ -200,7 +204,7 @@
 						data-testid="stream-timeout-threshold-count"
 						value={form.threshold_count}
 						oninput={(e) => onNumberInput('threshold_count', e)}
-						class="h-9 w-32 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-32 font-mono"
 					/>
 					<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.streamTimeout.thresholdCountHint')}
@@ -214,7 +218,7 @@
 					>
 						{$_('admin.settings.streamTimeout.thresholdWindowMinutes')}
 					</label>
-					<input
+					<Input
 						id="stream-timeout-threshold-window-minutes"
 						type="number"
 						min="1"
@@ -222,7 +226,7 @@
 						data-testid="stream-timeout-threshold-window-minutes"
 						value={form.threshold_window_minutes}
 						oninput={(e) => onNumberInput('threshold_window_minutes', e)}
-						class="h-9 w-32 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-9 w-32 font-mono"
 					/>
 					<p class="mt-0.5 text-xs leading-relaxed text-muted-foreground">
 						{$_('admin.settings.streamTimeout.thresholdWindowMinutesHint')}
@@ -232,15 +236,15 @@
 		{/if}
 
 		<div class="flex justify-end border-t border-border pt-4">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				class="h-9"
 				data-testid="stream-timeout-save"
 				disabled={saving}
 				onclick={save}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
 			>
 				{saving ? $_('common.saving') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	{/if}
 </div>

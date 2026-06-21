@@ -19,7 +19,10 @@
 	import AppShell from '$lib/shell/AppShell.svelte';
 	import { buildUserNavGroups } from '$lib/nav/user.config';
 	import { filterNavGroups } from '$lib/nav/filter';
+	import { enforceProtectedRoute, logoutToLogin } from '$lib/routing/protectedGuard';
 	import type { NavGroup as ShellNavGroup } from '$lib/shell/nav';
+	import { auth } from '$lib/stores/auth.svelte';
+	import { theme } from '$lib/stores/theme.svelte';
 
 	let { children }: { children?: Snippet } = $props();
 
@@ -31,8 +34,7 @@
 		'affiliate'
 	]);
 
-	// 简易模式开关（auth store 接入后再读真值）。
-	const isSimpleMode = false;
+	const isSimpleMode = $derived(auth.isSimpleMode);
 
 	const userGroupsRaw = $derived(buildUserNavGroups());
 	const userGroupsFiltered = $derived(
@@ -44,12 +46,15 @@
 	const activePath = $derived(page?.url?.pathname ?? '/');
 
 	onMount(() => {
-		// TODO(POC auth): 未登录跳 /login —— 当前 seed 阶段无 auth store，先不拦。
+		void enforceProtectedRoute(auth, goto, page.url.pathname, page.url.search);
 	});
 
-	function handleLogout() {
-		// TODO(POC auth): 调 auth store logout，再 goto('/login')。
-		goto('/login', { replaceState: true });
+	async function handleLogout() {
+		await logoutToLogin(auth, goto);
+	}
+
+	function handleToggleTheme() {
+		theme.toggle();
 	}
 </script>
 
@@ -58,6 +63,8 @@
 	variant="user"
 	density="comfortable"
 	{activePath}
+	isDark={theme.isDark}
+	onToggleTheme={handleToggleTheme}
 	onLogout={handleLogout}
 >
 	{@render children?.()}

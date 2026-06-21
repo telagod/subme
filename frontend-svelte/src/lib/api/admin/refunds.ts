@@ -5,7 +5,7 @@
  *   - Provide a lightweight queue façade over the refund-request workflow
  *     that exists on the orders surface (REFUND_REQUESTED → admin reviews →
  *     approved / rejected; downstream pipeline finishes REFUNDING → REFUNDED).
- *   - The queue is admin-only — it consumes a thin /api/admin/payment/refunds
+ *   - The queue is admin-only — it consumes a thin /api/v1/admin/payment/refunds
  *     listing endpoint plus per-id approve / reject sub-routes. Backend may
  *     route approve through the existing /admin/payment/orders/:order_id/refund
  *     pipeline internally; the frontend only needs a stable shape.
@@ -16,10 +16,10 @@
  *   - apiClient.delete 不接受 body，所有写操作走 POST sub-route。
  *
  * Endpoints:
- *   - listRefundQueue(filter)            : GET  /api/admin/payment/refunds
- *   - getRefund(id)                      : GET  /api/admin/payment/refunds/:id
- *   - approveRefund(id, payload)         : POST /api/admin/payment/refunds/:id/approve
- *   - rejectRefund(id, reason)           : POST /api/admin/payment/refunds/:id/reject
+ *   - listRefundQueue(filter)            : GET  /api/v1/admin/payment/refunds
+ *   - getRefund(id)                      : GET  /api/v1/admin/payment/refunds/:id
+ *   - approveRefund(id, payload)         : POST /api/v1/admin/payment/refunds/:id/approve
+ *   - rejectRefund(id, reason)           : POST /api/v1/admin/payment/refunds/:id/reject
  *
  * Backend listing shape tolerance:
  *   Same {data,total,page,page_size} envelope as orders. Bare array also
@@ -99,7 +99,7 @@ function buildQuery(filter: AdminRefundFilter | undefined): string {
 
 // ── 端点 ────────────────────────────────────────────────────────────────────
 
-const REFUNDS_BASE = '/api/admin/payment/refunds';
+const REFUNDS_BASE = '/api/v1/admin/payment/refunds';
 
 export async function listRefundQueue(
 	filter?: AdminRefundFilter

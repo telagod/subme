@@ -28,6 +28,7 @@
 	} from '@lucide/svelte';
 	import type { NavGroup } from './nav';
 	import { resolveNavItem } from './nav';
+	import Button from '$lib/ui/Button.svelte';
 
 	type Props = {
 		variant: 'user' | 'admin';
@@ -90,23 +91,24 @@
 	<!-- 右侧操作簇 -->
 	<div class="flex items-center gap-2">
 		<!-- 语言切换 -->
-		<button
-			type="button"
+		<Button
+			variant="outline"
 			onclick={onToggleLocale}
-			class="inline-flex items-center justify-center gap-1 rounded-md border bg-transparent text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			class="gap-1 bg-transparent text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); padding-left: var(--px); padding-right: var(--px);"
 			aria-label="Toggle language"
 			data-testid="topbar-locale"
 		>
 			<Languages class="h-4 w-4" />
 			<span>{localeShort}</span>
-		</button>
+		</Button>
 
 		<!-- 密度切换 -->
-		<button
-			type="button"
+		<Button
+			variant="outline"
+			size="icon"
 			onclick={onToggleDensity}
-			class="inline-flex items-center justify-center rounded-md border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			class="bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); width: var(--input-h);"
 			aria-label="Toggle density"
 			aria-pressed={density === 'compact'}
@@ -114,13 +116,14 @@
 			title={density}
 		>
 			<LayoutGrid class="h-4 w-4" />
-		</button>
+		</Button>
 
 		<!-- 主题切换 -->
-		<button
-			type="button"
+		<Button
+			variant="outline"
+			size="icon"
 			onclick={onToggleTheme}
-			class="inline-flex items-center justify-center rounded-md border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			class="bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); width: var(--input-h);"
 			aria-label="Toggle theme"
 			data-testid="topbar-theme"
@@ -130,7 +133,7 @@
 			{:else}
 				<Moon class="h-4 w-4" />
 			{/if}
-		</button>
+		</Button>
 
 		<!-- 头像 + 下拉 -->
 		{#if user}

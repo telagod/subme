@@ -12,8 +12,12 @@
 	 *
 	 * 之所以是 special：每条文档是 {id,title,content_md} 复合记录，FieldRenderer
 	 * 的 9 类原子字段无法表达；用 special 把"按文档分卡 + Markdown textarea"包成黑盒。
-	 */
+ */
 	import { _ } from 'svelte-i18n';
+	import { X } from '@lucide/svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import Textarea from '$lib/ui/Textarea.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -101,14 +105,14 @@
 		<p class="m-0 text-xs leading-relaxed text-muted-foreground">
 			{$_('admin.settings.agreement.docsHint')}
 		</p>
-		<button
-			type="button"
+		<Button
+			variant="outline"
+			size="sm"
 			data-testid="agreement-doc-add"
 			onclick={addDocument}
-			class="inline-flex h-8 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-xs hover:bg-accent"
 		>
 			+ {$_('admin.settings.agreement.addDoc')}
-		</button>
+		</Button>
 	</div>
 
 	<!-- documents -->
@@ -139,15 +143,16 @@
 								/legal/{doc.id || '…'}
 							</p>
 						</div>
-						<button
-							type="button"
+						<Button
+							variant="outline"
+							size="sm"
 							data-testid="agreement-doc-remove"
 							disabled={agreementEnabled && localDocs.length <= 1}
 							onclick={() => removeDocument(index)}
-							class="inline-flex h-7 items-center justify-center rounded-md border border-input bg-background px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"
+							class="h-7 px-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 						>
-							✕
-						</button>
+							<X class="h-3 w-3" />
+						</Button>
 					</div>
 
 					<!-- fields grid -->
@@ -159,14 +164,14 @@
 							>
 								{$_('admin.settings.agreement.docTitle')}
 							</label>
-							<input
+							<Input
 								id="agreement-doc-title-{index}"
 								type="text"
 								data-testid="agreement-doc-title"
 								placeholder={$_('admin.settings.agreement.docTitlePlaceholder')}
 								value={doc.title}
 								oninput={(e) => onTitleInput(index, e)}
-								class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+								class="h-9"
 							/>
 						</div>
 						<div class="flex flex-col gap-1">
@@ -184,14 +189,14 @@
 								>
 									/legal/
 								</span>
-								<input
+								<Input
 									id="agreement-doc-slug-{index}"
 									type="text"
 									data-testid="agreement-doc-slug"
 									placeholder="usage-policy"
 									value={doc.id}
 									oninput={(e) => onIdInput(index, e)}
-									class="min-w-0 flex-1 bg-transparent px-2 text-sm focus:outline-none"
+									class="h-full min-w-0 flex-1 border-none bg-transparent px-2 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
 								/>
 							</div>
 						</div>
@@ -205,15 +210,15 @@
 						>
 							{$_('admin.settings.agreement.docContent')}
 						</label>
-						<textarea
+						<Textarea
 							id="agreement-doc-content-{index}"
-							rows="8"
+							rows={8}
 							data-testid="agreement-doc-content"
 							placeholder={$_('admin.settings.agreement.docContentPlaceholder')}
 							value={doc.content_md}
 							oninput={(e) => onContentInput(index, e)}
-							class="resize-y rounded-md border border-input bg-background p-2 font-mono text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-						></textarea>
+							class="resize-y p-2 font-mono text-xs"
+						/>
 					</div>
 				</div>
 			{/each}

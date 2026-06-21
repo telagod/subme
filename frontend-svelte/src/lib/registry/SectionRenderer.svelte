@@ -17,6 +17,7 @@
 	import FieldRenderer from './FieldRenderer.svelte';
 	import SmtpSection from './special/SmtpSection.svelte';
 	import TestEmailSection from './special/TestEmailSection.svelte';
+	import EmailTemplatesSection from './special/EmailTemplatesSection.svelte';
 	import AdminApiKeySection from './special/AdminApiKeySection.svelte';
 	import EmailSuffixWhitelistSection from './special/EmailSuffixWhitelistSection.svelte';
 	import CustomMenuSection from './special/CustomMenuSection.svelte';
@@ -81,6 +82,8 @@
 		<SmtpSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'test-email'}
 		<TestEmailSection {values} {dirtyKeys} {onFieldUpdate} />
+	{:else if section.special === 'email-templates'}
+		<EmailTemplatesSection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'admin-api-key'}
 		<AdminApiKeySection {values} {dirtyKeys} {onFieldUpdate} />
 	{:else if section.special === 'email-suffix-whitelist'}

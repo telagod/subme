@@ -30,6 +30,7 @@ export default defineConfig({
 		environment: 'jsdom',
 		globals: false,
 		include: ['src/**/*.{test,spec}.{js,ts}'],
+		setupFiles: ['src/lib/test/setup.ts'],
 		// Sandbox CPU contention can push cold-import beforeEach past the 10s default;
 		// raise both timeouts so flake stays out of CI. Real failures still surface
 		// quickly — these are cold-start ceilings, not assertion deadlines.
@@ -38,8 +39,6 @@ export default defineConfig({
 		// Serialize test files: cold-import contention on parallel workers was the
 		// root cause of the 6 page-test hook-timeouts flagged in M10c/M11 verify.
 		// Isolated re-runs always pass — the only difference is parallel-mode pressure.
-		poolOptions: {
-			forks: { singleFork: true }
-		}
+		fileParallelism: false
 	}
 });

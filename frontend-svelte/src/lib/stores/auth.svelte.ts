@@ -141,6 +141,15 @@ class AuthStore {
 		this._user.value = user;
 	}
 
+	/**
+	 * OAuth fragment / pending completion only returns an access token. Store it first so
+	 * refreshUser() can call /auth/me, then let refreshUser() populate or clear user.
+	 */
+	setToken(token: string): void {
+		this._token.value = token;
+		this._user.clear();
+	}
+
 	/** 测试钩子：直接 clear 本地，不调用 server。 */
 	_clearLocal(): void {
 		this._token.clear();

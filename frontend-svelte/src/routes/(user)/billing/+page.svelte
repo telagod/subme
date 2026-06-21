@@ -38,6 +38,11 @@
 	} from '$lib/api/user/billing';
 	import { showError } from '$lib/stores/toast.svelte';
 	import TopUpDialog from '$lib/features/billing/TopUpDialog.svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 
 	// reshadcn-migration: '__all__' sentinel 禁空字符串 value。
 	const TYPE_ALL = '__all__' as const;
@@ -258,15 +263,16 @@
 			</p>
 		</div>
 		<div class="flex shrink-0 items-center gap-2">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="icon"
 				aria-label={$_('user.billing.refresh', { default: 'Refresh' })}
 				data-testid="billing-refresh-btn"
 				onclick={refreshAll}
-				class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground"
+				class="h-9 w-9 text-muted-foreground"
 			>
 				<RotateCw class="h-4 w-4" />
-			</button>
+			</Button>
 		</div>
 	</header>
 
@@ -313,15 +319,14 @@
 					{/if}
 				</div>
 			</div>
-			<button
-				type="button"
+			<Button
 				data-testid="billing-topup-btn"
 				onclick={openTopUp}
-				class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="h-9 gap-1.5"
 			>
 				<ArrowUpRight class="h-4 w-4" />
 				{$_('user.billing.topUp', { default: 'Top Up' })}
-			</button>
+			</Button>
 		</div>
 	</section>
 
@@ -337,12 +342,12 @@
 			>
 				{$_('user.billing.typeFilter', { default: 'Type' })}
 			</label>
-			<select
+			<NativeSelect
 				id="billing-type-filter"
 				data-testid="billing-type-filter"
-				value={typeFilter}
+				bind:value={typeFilter}
 				onchange={handleTypeChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9"
 			>
 				<option value={TYPE_ALL}
 					>{$_('user.billing.allTypes', { default: 'All types' })}</option
@@ -351,7 +356,7 @@
 				<option value="charge">{typeLabel('charge')}</option>
 				<option value="refund">{typeLabel('refund')}</option>
 				<option value="rebate">{typeLabel('rebate')}</option>
-			</select>
+			</NativeSelect>
 		</div>
 		<div class="space-y-1.5">
 			<label
@@ -360,13 +365,13 @@
 			>
 				{$_('user.billing.startDate', { default: 'From' })}
 			</label>
-			<input
+			<Input
 				id="billing-start-date"
 				data-testid="billing-start-date"
 				type="date"
 				value={startDate}
 				onchange={handleStartDateChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9"
 			/>
 		</div>
 		<div class="space-y-1.5">
@@ -376,24 +381,25 @@
 			>
 				{$_('user.billing.endDate', { default: 'To' })}
 			</label>
-			<input
+			<Input
 				id="billing-end-date"
 				data-testid="billing-end-date"
 				type="date"
 				value={endDate}
 				onchange={handleEndDateChange}
-				class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				class="h-9"
 			/>
 		</div>
 		{#if startDate || endDate}
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				data-testid="billing-clear-dates"
 				onclick={clearDateRange}
-				class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent"
+				class="h-9"
 			>
 				{$_('user.billing.clearDates', { default: 'Clear dates' })}
-			</button>
+			</Button>
 		{/if}
 	</section>
 
@@ -405,23 +411,25 @@
 			{/each}
 		</div>
 	{:else if txsError && txs.length === 0}
-		<div
-			class="rounded-lg border border-destructive/30 bg-destructive/5 p-8 text-center"
+		<Alert
+			variant="destructive"
+			class="p-8 text-center"
 			data-testid="billing-txs-error"
 		>
 			<p class="text-sm font-medium text-destructive">
 				{$_('user.billing.failedToLoadTxs', { default: 'Failed to load transactions' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{txsError}</p>
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				onclick={() => loadTxs()}
 				data-testid="billing-txs-retry"
-				class="mt-4 inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs text-foreground hover:bg-accent"
+				class="mt-4"
 			>
 				{$_('user.billing.retry', { default: 'Retry' })}
-			</button>
-		</div>
+			</Button>
+		</Alert>
 	{:else if txs.length === 0}
 		<div
 			class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-card p-12 text-center"
@@ -442,15 +450,14 @@
 					})}
 				</p>
 			</div>
-			<button
-				type="button"
+			<Button
 				data-testid="billing-empty-topup-btn"
 				onclick={openTopUp}
-				class="mt-1 inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+				class="mt-1 h-9 gap-1.5"
 			>
 				<ArrowUpRight class="h-4 w-4" />
 				{$_('user.billing.topUp', { default: 'Top Up' })}
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<div
@@ -494,27 +501,23 @@
 								{fmtDate(row.timestamp)}
 							</td>
 							<td class="px-4 py-3">
-								<span
-									class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium {typeBadgeClass(
-										row.type
-									)}"
+								<Badge
+									class="gap-1 {typeBadgeClass(row.type)}"
 								>
 									<Icon class="h-3 w-3" />
 									{typeLabel(row.type)}
-								</span>
+								</Badge>
 							</td>
 							<td class="px-4 py-3 text-right tabular-nums font-medium text-foreground">
 								{fmtMoney(row.amount, row.currency)}
 							</td>
 							<td class="px-4 py-3 text-muted-foreground">{row.currency}</td>
 							<td class="px-4 py-3">
-								<span
-									class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {statusBadgeClass(
-										row.status
-									)}"
+								<Badge
+									class={statusBadgeClass(row.status)}
 								>
 									{statusLabel(row.status)}
-								</span>
+								</Badge>
 							</td>
 							<td class="px-4 py-3 text-xs text-muted-foreground">
 								{#if row.ref}
@@ -547,24 +550,24 @@
 					})}
 				</span>
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						size="sm"
 						data-testid="billing-page-prev"
 						disabled={page <= 1}
 						onclick={gotoPrev}
-						class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						{$_('user.billing.prevPage', { default: 'Previous' })}
-					</button>
-					<button
-						type="button"
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
 						data-testid="billing-page-next"
 						disabled={totalPages > 0 && page >= totalPages}
 						onclick={gotoNext}
-						class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						{$_('user.billing.nextPage', { default: 'Next' })}
-					</button>
+					</Button>
 				</div>
 			</div>
 		{/if}

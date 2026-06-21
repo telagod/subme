@@ -3,7 +3,7 @@
 	 * AdminOrderDetail · 管理员订单详情抽屉（M12）
 	 *
 	 * 设计：
-	 *   - bits-ui Sheet（Dialog.Root + 右侧贴边 Content），对齐 M22
+	 *   - StandardDrawer 右侧贴边面板，对齐 M22
 	 *     SubscriptionDetailDrawer 视觉契约。
 	 *   - $effect 监听 open + order.id 变化 → 拉 detail + audit log。
 	 *   - 12 个 OrderStatus 全状态色带 + 行动按钮按状态门控：
@@ -12,13 +12,13 @@
 	 *       Refund → canRefund 判定（PAID / COMPLETED / RECHARGING /
 	 *                PARTIALLY_REFUNDED + 未全额退款）
 	 *   - Refund 不在抽屉内实现表单，仅 emit onRequestRefund(order)，
-	 *     由父页路由到 M11 RefundDialog（subscriptions-admin/RefundDialog.svelte）。
+	 *     由父页路由到订单原生 OrderRefundDialog（features/orders/OrderRefundDialog.svelte，
+	 *     POST /admin/payment/orders/:id/refund）。
 	 *
 	 * 红线（CLAUDE.md billing）：
 	 *   - 不引用计费核心服务、渠道定价、价格查询；
 	 *   - 不在模块顶层 import 任何 lazy island（chart.js / stripe / airwallex）。
 	 */
-	import { Dialog } from 'bits-ui';
 	import { _ } from 'svelte-i18n';
 	import {
 		X,
@@ -28,6 +28,10 @@
 		Trash2,
 		RotateCcw
 	} from '@lucide/svelte';
+	import Alert from '$lib/ui/Alert.svelte';
+	import Badge from '$lib/ui/Badge.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import {
 		getAdminOrder,
 		listOrderAuditLog,
@@ -223,22 +227,20 @@
 	});
 </script>
 
-<Dialog.Root bind:open>
-	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-			data-testid="order-detail-overlay"
-		/>
-		<Dialog.Content
-			class="fixed right-0 top-0 z-50 flex h-full w-full max-w-[560px] flex-col border-l border-border bg-card shadow-2xl"
-			data-testid="order-detail-drawer"
-		>
+<StandardDrawer
+	bind:open
+	width="md"
+	showHeader={false}
+	title={$_('admin.orders.detailTitle', { default: 'Order detail' })}
+	data-testid="order-detail-drawer"
+	class="gap-0 p-0"
+>
 			<!-- Head -->
 			<div class="flex items-center justify-between border-b border-border bg-muted px-4 py-3">
 				<div class="min-w-0">
-					<Dialog.Title class="truncate text-sm font-semibold tracking-tight text-foreground">
+					<h2 class="truncate text-sm font-semibold tracking-tight text-foreground">
 						{$_('admin.orders.detailTitle', { default: 'Order detail' })}
-					</Dialog.Title>
+					</h2>
 					<div
 						class="truncate font-mono text-[11px] text-muted-foreground"
 						title={String(order?.id ?? '')}
@@ -246,15 +248,16 @@
 						#{order?.out_trade_no ?? order?.id ?? '—'}
 					</div>
 				</div>
-				<button
-					type="button"
-					class="rounded-md p-1.5 text-muted-foreground hover:bg-card hover:text-foreground"
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-8 w-8 text-muted-foreground hover:bg-card hover:text-foreground"
 					aria-label={$_('common.close', { default: 'Close' })}
 					data-testid="order-detail-close"
 					onclick={close}
 				>
 					<X class="h-4 w-4" />
-				</button>
+				</Button>
 			</div>
 
 			<!-- Body -->
@@ -266,8 +269,8 @@
 						<div class="h-32 w-full animate-pulse rounded bg-muted"></div>
 					</div>
 				{:else if loadError}
-					<div
-						class="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
+					<Alert
+						variant="destructive"
 						data-testid="order-detail-error"
 					>
 						<div class="mb-2 flex items-center gap-2 font-medium">
@@ -275,30 +278,33 @@
 							<span>{loadError}</span>
 						</div>
 						{#if order}
-							<button
-								type="button"
-								class="rounded border border-destructive/40 px-2 py-1 text-xs hover:bg-destructive/20"
+							<Button
+								variant="outline"
+								size="sm"
+								class="border-destructive/40 text-destructive hover:bg-destructive/20"
 								onclick={() => loadDetail(order!.id)}
 							>
 								{$_('common.confirm', { default: 'Retry' })}
-							</button>
+							</Button>
 						{/if}
-					</div>
+					</Alert>
 				{:else if detail}
 					<!-- Status pill -->
 					<div class="mb-4 flex items-center gap-2">
-						<span
+						<Badge
+							variant="outline"
 							class="rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider {statusBadgeClass}"
 							data-testid="order-detail-status"
 						>
 							{detail.status}
-						</span>
+						</Badge>
 						{#if detail.order_type}
-							<span
+							<Badge
+								variant="outline"
 								class="rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground"
 							>
 								{detail.order_type}
-							</span>
+							</Badge>
 						{/if}
 					</div>
 
@@ -481,19 +487,19 @@
 			{#if detail}
 				<div class="flex flex-col gap-2 border-t border-border bg-card px-4 py-3">
 					<div class="flex flex-wrap items-center justify-end gap-2">
-						<button
-							type="button"
-							class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted"
+						<Button
+							variant="outline"
+							size="sm"
 							onclick={() => loadDetail(detail!.id)}
 							data-testid="order-detail-refresh"
 						>
 							<RefreshCw class="h-3.5 w-3.5" />
 							{$_('common.refresh', { default: 'Refresh' })}
-						</button>
+						</Button>
 						{#if canRetry}
-							<button
-								type="button"
-								class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted disabled:opacity-50"
+							<Button
+								variant="outline"
+								size="sm"
 								onclick={handleRetry}
 								disabled={retrying}
 								data-testid="order-detail-retry-btn"
@@ -502,23 +508,23 @@
 								{retrying
 									? $_('common.submitting', { default: 'Submitting…' })
 									: $_('admin.orders.retryBtn', { default: 'Retry' })}
-							</button>
+							</Button>
 						{/if}
 						{#if canRefund}
-							<button
-								type="button"
-								class="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-xs hover:bg-muted"
+							<Button
+								variant="outline"
+								size="sm"
 								onclick={handleRefund}
 								data-testid="order-detail-refund-btn"
 							>
 								<Banknote class="h-3.5 w-3.5" />
 								{$_('admin.orders.refundBtn', { default: 'Refund' })}
-							</button>
+							</Button>
 						{/if}
 						{#if canCancel}
-							<button
-								type="button"
-								class="inline-flex h-8 items-center gap-1 rounded-md bg-destructive px-2.5 text-xs text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+							<Button
+								variant="destructive"
+								size="sm"
 								onclick={handleCancel}
 								disabled={cancelling}
 								data-testid="order-detail-cancel-btn"
@@ -527,11 +533,9 @@
 								{cancelling
 									? $_('common.submitting', { default: 'Submitting…' })
 									: $_('admin.orders.cancelBtn', { default: 'Cancel order' })}
-							</button>
+							</Button>
 						{/if}
 					</div>
 				</div>
 			{/if}
-		</Dialog.Content>
-	</Dialog.Portal>
-</Dialog.Root>
+		</StandardDrawer>

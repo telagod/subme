@@ -13,9 +13,7 @@
 	 * 与 OverloadCooldown/RateLimit429 同框架。
 	 *
 	 * 简化点（与 Vue tree 差异）：
-	 *   - R2 引导弹窗 backlog（仅留 link 文本）—— Modal 组件未端口。
 	 *   - 轮询保留 polling timer + visibilitychange 暂停；恢复时刷新一次。
-	 *   - restoreConfirm + password prompt 用 window.confirm/prompt（与 BackupView.vue 同款）。
 	 */
 	import { onDestroy, onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
@@ -26,6 +24,10 @@
 		type BackupRecord
 	} from '$lib/api/admin/settingsRegistry';
 	import { showError, showInfo, showSuccess } from '$lib/stores/toast.svelte';
+	import Button from '$lib/ui/Button.svelte';
+	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
 	// 仓库内 toast 暂无 warning 通道，用 info 表达 (UX 落地同色系)。
 	const showWarning = showInfo;
@@ -54,6 +56,7 @@
 	let s3SecretConfigured = $state(false);
 	let savingS3 = $state(false);
 	let testingS3 = $state(false);
+	let showR2Guide = $state(false);
 
 	// ── Schedule form ────────────────────────────────────────────────────────
 	let scheduleForm = $state<BackupScheduleConfig>({
@@ -69,6 +72,12 @@
 	let loadingBackups = $state(false);
 	let creatingBackup = $state(false);
 	let restoringId = $state('');
+	let restoreDialogOpen = $state(false);
+	let restoreTargetId = $state('');
+	let restorePassword = $state('');
+	let deleteDialogOpen = $state(false);
+	let deleteTargetId = $state('');
+	let deletingId = $state('');
 	let manualExpireDays = $state(14);
 
 	let pollingTimer: ReturnType<typeof setInterval> | null = null;
@@ -293,15 +302,23 @@
 		}
 	}
 
-	async function restoreBackup(id: string) {
-		if (typeof window === 'undefined') return;
-		if (!window.confirm($_('admin.backup.actions.restoreConfirm'))) return;
-		const password = window.prompt($_('admin.backup.actions.restorePasswordPrompt'));
-		if (!password) return;
+	function openRestoreDialog(id: string) {
+		restoreTargetId = id;
+		restorePassword = '';
+		restoreDialogOpen = true;
+	}
+
+	async function submitRestore() {
+		const id = restoreTargetId;
+		const password = restorePassword.trim();
+		if (!id || !password) return;
 		restoringId = id;
 		try {
 			const rec = await settingsApi.restoreBackup(id, password);
 			updateRecordInList(rec);
+			restoreDialogOpen = false;
+			restorePassword = '';
+			restoreTargetId = '';
 			startRestorePolling(id);
 		} catch (err: unknown) {
 			const e = err as { response?: { status?: number }; message?: string };
@@ -314,15 +331,25 @@
 		}
 	}
 
-	async function removeBackup(id: string) {
-		if (typeof window === 'undefined') return;
-		if (!window.confirm($_('admin.backup.actions.deleteConfirm'))) return;
+	function openDeleteDialog(id: string) {
+		deleteTargetId = id;
+		deleteDialogOpen = true;
+	}
+
+	async function confirmDeleteBackup() {
+		const id = deleteTargetId;
+		if (!id) return;
+		deletingId = id;
 		try {
 			await settingsApi.deleteBackup(id);
 			showSuccess($_('admin.backup.actions.deleted'));
+			deleteDialogOpen = false;
+			deleteTargetId = '';
 			await loadBackups();
 		} catch (err) {
 			showError(err instanceof Error ? err.message : $_('errors.networkError'));
+		} finally {
+			deletingId = '';
 		}
 	}
 
@@ -443,8 +470,19 @@
 			<h3 class="text-sm font-semibold text-foreground">
 				{$_('admin.backup.s3.title')}
 			</h3>
-			<p class="mt-0.5 text-xs text-muted-foreground">
-				{$_('admin.backup.s3.description')}
+			<p class="mt-0.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+				<span>{$_('admin.backup.s3.descriptionPrefix')}</span>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					class="h-auto px-0 py-0 text-xs text-primary hover:bg-transparent hover:underline"
+					data-testid="backup-r2-guide-open"
+					onclick={() => (showR2Guide = true)}
+				>
+					Cloudflare R2
+				</Button>
+				<span>{$_('admin.backup.s3.descriptionSuffix')}</span>
 			</p>
 		</header>
 		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -452,113 +490,110 @@
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-endpoint">
 					{$_('admin.backup.s3.endpoint')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-endpoint"
 					data-testid="backup-s3-endpoint"
 					type="text"
 					placeholder="https://<account_id>.r2.cloudflarestorage.com"
 					value={s3Form.endpoint}
 					oninput={(e) => onS3Field('endpoint', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-region">
 					{$_('admin.backup.s3.region')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-region"
 					type="text"
 					placeholder="auto"
 					value={s3Form.region}
 					oninput={(e) => onS3Field('region', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-bucket">
 					{$_('admin.backup.s3.bucket')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-bucket"
 					data-testid="backup-s3-bucket"
 					type="text"
 					value={s3Form.bucket}
 					oninput={(e) => onS3Field('bucket', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-prefix">
 					{$_('admin.backup.s3.prefix')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-prefix"
 					type="text"
 					placeholder="backups/"
 					value={s3Form.prefix}
 					oninput={(e) => onS3Field('prefix', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-akid">
 					{$_('admin.backup.s3.accessKeyId')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-akid"
 					type="text"
 					value={s3Form.access_key_id}
 					oninput={(e) => onS3Field('access_key_id', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<div class="flex flex-col gap-1">
 				<label class="text-xs font-medium text-muted-foreground" for="backup-s3-secret">
 					{$_('admin.backup.s3.secretAccessKey')}
 				</label>
-				<input
+				<Input
 					id="backup-s3-secret"
 					type="password"
 					autocomplete="new-password"
 					placeholder={s3SecretConfigured ? $_('admin.backup.s3.secretConfigured') : ''}
 					value={s3Form.secret_access_key ?? ''}
 					oninput={(e) => onS3Field('secret_access_key', e)}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 			</div>
 			<label
 				class="inline-flex items-center gap-2 text-xs sm:col-span-2"
 			>
-				<input
-					type="checkbox"
+				<Checkbox
 					data-testid="backup-s3-force-path-style"
 					checked={s3Form.force_path_style}
 					onchange={onS3Checkbox}
-					class="h-4 w-4 rounded border-input"
 				/>
 				<span>{$_('admin.backup.s3.forcePathStyle')}</span>
 			</label>
 		</div>
 		<div class="mt-3 flex flex-wrap gap-2">
-			<button
-				type="button"
+			<Button
+				variant="outline"
+				size="sm"
 				data-testid="backup-s3-test"
 				disabled={testingS3}
 				onclick={testS3}
-				class="inline-flex h-8 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent disabled:opacity-50"
 			>
 				{testingS3 ? $_('common.loading') : $_('admin.backup.s3.testConnection')}
-			</button>
-			<button
-				type="button"
+			</Button>
+			<Button
+				size="sm"
 				data-testid="backup-s3-save"
 				disabled={savingS3}
 				onclick={saveS3Config}
-				class="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
 			>
 				{savingS3 ? $_('common.loading') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	</section>
 
@@ -574,12 +609,10 @@
 		</header>
 		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			<label class="inline-flex items-center gap-2 text-xs sm:col-span-2">
-				<input
-					type="checkbox"
+				<Checkbox
 					data-testid="backup-schedule-enabled"
 					checked={scheduleForm.enabled}
 					onchange={onScheduleEnabled}
-					class="h-4 w-4 rounded border-input"
 				/>
 				<span>{$_('admin.backup.schedule.enabled')}</span>
 			</label>
@@ -587,14 +620,14 @@
 				<label class="text-xs font-medium text-muted-foreground" for="backup-schedule-cron">
 					{$_('admin.backup.schedule.cronExpr')}
 				</label>
-				<input
+				<Input
 					id="backup-schedule-cron"
 					data-testid="backup-schedule-cron"
 					type="text"
 					placeholder="0 2 * * *"
 					value={scheduleForm.cron_expr}
 					oninput={onScheduleCron}
-					class="h-9 rounded-md border border-input bg-background px-3 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9 font-mono"
 				/>
 				<p class="text-[11px] text-muted-foreground">
 					{$_('admin.backup.schedule.cronHint')}
@@ -604,14 +637,14 @@
 				<label class="text-xs font-medium text-muted-foreground" for="backup-schedule-days">
 					{$_('admin.backup.schedule.retainDays')}
 				</label>
-				<input
+				<Input
 					id="backup-schedule-days"
 					data-testid="backup-schedule-retain-days"
 					type="number"
 					min="0"
 					value={scheduleForm.retain_days}
 					oninput={onScheduleRetainDays}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 				<p class="text-[11px] text-muted-foreground">
 					{$_('admin.backup.schedule.retainDaysHint')}
@@ -621,14 +654,14 @@
 				<label class="text-xs font-medium text-muted-foreground" for="backup-schedule-count">
 					{$_('admin.backup.schedule.retainCount')}
 				</label>
-				<input
+				<Input
 					id="backup-schedule-count"
 					data-testid="backup-schedule-retain-count"
 					type="number"
 					min="0"
 					value={scheduleForm.retain_count}
 					oninput={onScheduleRetainCount}
-					class="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+					class="h-9"
 				/>
 				<p class="text-[11px] text-muted-foreground">
 					{$_('admin.backup.schedule.retainCountHint')}
@@ -636,15 +669,14 @@
 			</div>
 		</div>
 		<div class="mt-3">
-			<button
-				type="button"
+			<Button
+				size="sm"
 				data-testid="backup-schedule-save"
 				disabled={savingSchedule}
 				onclick={saveSchedule}
-				class="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
 			>
 				{savingSchedule ? $_('common.loading') : $_('common.save')}
-			</button>
+			</Button>
 		</div>
 	</section>
 
@@ -664,35 +696,36 @@
 					<span class="text-muted-foreground">
 						{$_('admin.backup.operations.expireDays')}
 					</span>
-					<input
+					<Input
 						type="number"
 						min="0"
 						data-testid="backup-expire-days"
 						value={manualExpireDays}
 						oninput={onExpireDays}
-						class="h-7 w-20 rounded-md border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+						class="h-7 w-20 px-2 text-xs"
 					/>
 				</label>
-				<button
-					type="button"
+				<Button
+					size="sm"
+					class="h-7"
 					data-testid="backup-create"
 					disabled={creatingBackup}
 					onclick={createBackup}
-					class="inline-flex h-7 items-center rounded-md bg-primary px-3 text-xs text-primary-foreground hover:opacity-90 disabled:opacity-50"
 				>
 					{creatingBackup
 						? $_('admin.backup.operations.backing')
 						: $_('admin.backup.operations.createBackup')}
-				</button>
-				<button
-					type="button"
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					class="h-7"
 					data-testid="backup-refresh"
 					disabled={loadingBackups}
 					onclick={loadBackups}
-					class="inline-flex h-7 items-center rounded-md border border-input bg-background px-3 text-xs hover:bg-accent disabled:opacity-50"
 				>
 					{loadingBackups ? $_('common.loading') : $_('common.refresh')}
-				</button>
+				</Button>
 			</div>
 		</header>
 
@@ -733,34 +766,38 @@
 							<td class="py-2">
 								<div class="flex flex-wrap gap-1">
 									{#if rec.status === 'completed'}
-										<button
-											type="button"
+										<Button
+											variant="outline"
+											size="sm"
+											class="h-6 px-2 text-[11px]"
 											data-testid="backup-download"
 											onclick={() => downloadBackup(rec.id)}
-											class="inline-flex h-6 items-center rounded border border-input bg-background px-2 text-[11px] hover:bg-accent"
 										>
 											{$_('admin.backup.actions.download')}
-										</button>
-										<button
-											type="button"
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											class="h-6 px-2 text-[11px]"
 											data-testid="backup-restore"
 											disabled={restoringId === rec.id}
-											onclick={() => restoreBackup(rec.id)}
-											class="inline-flex h-6 items-center rounded border border-input bg-background px-2 text-[11px] hover:bg-accent disabled:opacity-50"
+											onclick={() => openRestoreDialog(rec.id)}
 										>
 											{restoringId === rec.id
 												? $_('common.loading')
 												: $_('admin.backup.actions.restore')}
-										</button>
+										</Button>
 									{/if}
-									<button
-										type="button"
+									<Button
+										variant="outline"
+										size="sm"
+										class="h-6 border-destructive/30 px-2 text-[11px] text-destructive hover:bg-destructive/10"
 										data-testid="backup-delete"
-										onclick={() => removeBackup(rec.id)}
-										class="inline-flex h-6 items-center rounded border border-destructive/30 bg-background px-2 text-[11px] text-destructive hover:bg-destructive/10"
+										disabled={deletingId === rec.id}
+										onclick={() => openDeleteDialog(rec.id)}
 									>
-										{$_('common.delete')}
-									</button>
+										{deletingId === rec.id ? $_('common.loading') : $_('common.delete')}
+									</Button>
 								</div>
 							</td>
 						</tr>
@@ -782,3 +819,159 @@
 	</section>
 	{/if}
 </div>
+
+<StandardDialog
+	bind:open={restoreDialogOpen}
+	width="sm"
+	title={$_('admin.backup.actions.restore')}
+	data-testid="backup-restore-dialog"
+>
+	<div class="mt-4 flex flex-col gap-4">
+		<p class="m-0 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+			{$_('admin.backup.actions.restoreConfirm')}
+		</p>
+		<label class="grid gap-1 text-sm">
+			<span class="font-medium text-foreground">
+				{$_('admin.backup.actions.restorePasswordPrompt')}
+			</span>
+			<Input
+				type="password"
+				autocomplete="current-password"
+				data-testid="backup-restore-password"
+				bind:value={restorePassword}
+				class="h-9"
+			/>
+		</label>
+		<div class="flex justify-end gap-2 border-t border-border pt-4">
+			<Button variant="outline" onclick={() => (restoreDialogOpen = false)}>
+				{$_('common.cancel')}
+			</Button>
+			<Button
+				variant="outline"
+				data-testid="backup-restore-confirm"
+				disabled={!restorePassword.trim() || restoringId === restoreTargetId}
+				onclick={submitRestore}
+			>
+				{restoringId === restoreTargetId ? $_('common.loading') : $_('admin.backup.actions.restore')}
+			</Button>
+		</div>
+	</div>
+</StandardDialog>
+
+<StandardDialog
+	bind:open={deleteDialogOpen}
+	width="sm"
+	title={$_('common.delete')}
+	data-testid="backup-delete-dialog"
+>
+	<div class="mt-4 flex flex-col gap-4">
+		<p class="m-0 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+			{$_('admin.backup.actions.deleteConfirm')}
+		</p>
+		<div class="flex justify-end gap-2 border-t border-border pt-4">
+			<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
+				{$_('common.cancel')}
+			</Button>
+			<Button
+				variant="outline"
+				class="border-destructive/30 text-destructive hover:bg-destructive/10"
+				data-testid="backup-delete-confirm"
+				disabled={deletingId === deleteTargetId}
+				onclick={confirmDeleteBackup}
+			>
+				{deletingId === deleteTargetId ? $_('common.loading') : $_('common.delete')}
+			</Button>
+		</div>
+	</div>
+</StandardDialog>
+
+<StandardDialog
+	bind:open={showR2Guide}
+	width="lg"
+	title={$_('admin.backup.r2Guide.title')}
+	data-testid="backup-r2-guide-dialog"
+>
+	<div class="mt-4 flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1 text-sm leading-relaxed">
+		<p class="m-0 text-muted-foreground">{$_('admin.backup.r2Guide.intro')}</p>
+
+		<section class="grid gap-2">
+			<h4 class="m-0 text-sm font-semibold text-foreground">
+				1. {$_('admin.backup.r2Guide.step1.title')}
+			</h4>
+			<ul class="m-0 grid gap-1 pl-5 text-muted-foreground">
+				<li>{$_('admin.backup.r2Guide.step1.line1')}</li>
+				<li>{$_('admin.backup.r2Guide.step1.line2')}</li>
+				<li>{$_('admin.backup.r2Guide.step1.line3')}</li>
+			</ul>
+		</section>
+
+		<section class="grid gap-2">
+			<h4 class="m-0 text-sm font-semibold text-foreground">
+				2. {$_('admin.backup.r2Guide.step2.title')}
+			</h4>
+			<ul class="m-0 grid gap-1 pl-5 text-muted-foreground">
+				<li>{$_('admin.backup.r2Guide.step2.line1')}</li>
+				<li>{$_('admin.backup.r2Guide.step2.line2')}</li>
+				<li>{$_('admin.backup.r2Guide.step2.line3')}</li>
+				<li>{$_('admin.backup.r2Guide.step2.line4')}</li>
+			</ul>
+			<p class="m-0 rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
+				{$_('admin.backup.r2Guide.step2.warning')}
+			</p>
+		</section>
+
+		<section class="grid gap-2">
+			<h4 class="m-0 text-sm font-semibold text-foreground">
+				3. {$_('admin.backup.r2Guide.step3.title')}
+			</h4>
+			<p class="m-0 text-muted-foreground">{$_('admin.backup.r2Guide.step3.desc')}</p>
+			<code class="rounded-md border border-border bg-muted px-3 py-2 text-xs text-foreground">
+				https://&lt;{$_('admin.backup.r2Guide.step3.accountId')}&gt;.r2.cloudflarestorage.com
+			</code>
+		</section>
+
+		<section class="grid gap-2">
+			<h4 class="m-0 text-sm font-semibold text-foreground">
+				4. {$_('admin.backup.r2Guide.step4.title')}
+			</h4>
+			<div class="overflow-hidden rounded-md border border-border">
+				<table class="w-full border-collapse text-xs">
+					<tbody>
+						<tr class="border-b border-border">
+							<td class="bg-muted/40 px-3 py-2 font-medium">Endpoint</td>
+							<td class="px-3 py-2 font-mono">
+								https://&lt;{$_('admin.backup.r2Guide.step3.accountId')}&gt;.r2.cloudflarestorage.com
+							</td>
+						</tr>
+						<tr class="border-b border-border">
+							<td class="bg-muted/40 px-3 py-2 font-medium">Region</td>
+							<td class="px-3 py-2 font-mono">auto</td>
+						</tr>
+						<tr class="border-b border-border">
+							<td class="bg-muted/40 px-3 py-2 font-medium">Bucket</td>
+							<td class="px-3 py-2">{$_('admin.backup.r2Guide.step4.bucketValue')}</td>
+						</tr>
+						<tr class="border-b border-border">
+							<td class="bg-muted/40 px-3 py-2 font-medium">Access Key ID / Secret</td>
+							<td class="px-3 py-2">{$_('admin.backup.r2Guide.step4.fromStep2')}</td>
+						</tr>
+						<tr>
+							<td class="bg-muted/40 px-3 py-2 font-medium">Force Path Style</td>
+							<td class="px-3 py-2">{$_('admin.backup.r2Guide.step4.unchecked')}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<p class="m-0 rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-500">
+			{$_('admin.backup.r2Guide.freeTier')}
+		</p>
+
+		<div class="flex justify-end border-t border-border pt-4">
+			<Button variant="outline" data-testid="backup-r2-guide-close" onclick={() => (showR2Guide = false)}>
+				{$_('common.close', { default: 'Close' })}
+			</Button>
+		</div>
+	</div>
+</StandardDialog>
