@@ -49,8 +49,8 @@ const fixture: UserAvailableChannel[] = [
 						platform: 'openai',
 						pricing: {
 							billing_mode: 'token',
-							input_price: 2,
-							output_price: 8,
+							input_price: 2e-6,
+							output_price: 8e-6,
 							cache_write_price: null,
 							cache_read_price: null,
 							image_output_price: null,
@@ -102,7 +102,7 @@ describe('available channels helpers', () => {
 		expect(publicGroups(section).map((g) => g.name)).toEqual(['Public']);
 		expect(exclusiveGroups(section).map((g) => g.name)).toEqual(['VIP']);
 		expect(groupRateLabel(section.groups[1], { 2: 0.5 })).toBe('0.50x');
-		expect(modelPricingLabel(section.supported_models[0])).toBe('in $2/1M · out $8/1M');
+		expect(modelPricingLabel(section.supported_models[0])).toBe('in $2/1M · out $8/1M'); // 2e-6 per-token → $2/MTok
 	});
 
 	it('keeps page and APIs wired to Vue available-channels contract', () => {

@@ -150,7 +150,7 @@
 					<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						class="pl-9"
-						placeholder="Search inviter, invitee, or code"
+						placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: 'Search inviter, invitee, or code' })}
 						bind:value={searchInput}
 						onkeydown={(event) => {
 							if (event.key === 'Enter') resetAndLoad();
@@ -167,8 +167,8 @@
 
 		<Card class="p-3">
 			<div class="flex items-center justify-between gap-3">
-				<h2 class="text-sm font-semibold">User overview</h2>
-				<span class="text-xs text-muted-foreground">{overviewLoading ? 'Loading' : overview ? `#${overview.user_id}` : 'Select user'}</span>
+				<h2 class="text-sm font-semibold">{$_('admin.affiliates.overview.title', { default: 'User overview' })}</h2>
+				<span class="text-xs text-muted-foreground">{overviewLoading ? $_('common.loading', { default: 'Loading' }) : overview ? `#${overview.user_id}` : $_('admin.affiliates.overview.selectUser', { default: 'Select user' })}</span>
 			</div>
 			{#if overview}
 				<div class="mt-3 space-y-3">
@@ -187,7 +187,7 @@
 					</div>
 				</div>
 			{:else}
-				<p class="mt-3 text-sm text-muted-foreground">Open an inviter or invitee to inspect affiliate totals.</p>
+				<p class="mt-3 text-sm text-muted-foreground">{$_('admin.affiliates.overview.selectHint', { default: 'Open an inviter or invitee to inspect affiliate totals.' })}</p>
 			{/if}
 		</Card>
 	</section>
@@ -200,11 +200,11 @@
 		<VirtualTable rows={rows} rowHeight={74} getRowKey={(row) => `${row.inviter_id}-${row.invitee_id}-${row.created_at}`} loading={loading}>
 			{#snippet header()}
 				<div class="grid min-w-[980px] grid-cols-[minmax(250px,1fr)_minmax(250px,1fr)_140px_130px_170px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Inviter</div>
-					<div>Invitee</div>
-					<div>Code</div>
-					<div>Total rebate</div>
-					<div>Invited at</div>
+					<div>{$_('admin.affiliates.records.inviter', { default: 'Inviter' })}</div>
+					<div>{$_('admin.affiliates.records.invitee', { default: 'Invitee' })}</div>
+					<div>{$_('admin.affiliates.records.affCode', { default: 'Code' })}</div>
+					<div>{$_('admin.affiliates.records.totalRebate', { default: 'Total rebate' })}</div>
+					<div>{$_('admin.affiliates.records.invitedAt', { default: 'Invited at' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -226,7 +226,7 @@
 			{/snippet}
 			{#snippet empty()}
 				<div class="p-6 text-center text-sm text-muted-foreground">
-					No invite records found
+					{$_('admin.affiliates.invitesEmpty', { default: 'No invite records found' })}
 				</div>
 			{/snippet}
 			{#snippet loadingSlot()}

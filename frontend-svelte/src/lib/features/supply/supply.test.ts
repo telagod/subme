@@ -871,7 +871,7 @@ describe('M13 supply pages', () => {
 
 		const { container } = render(page.default);
 		await waitFor(() => expect(container.textContent).toContain('pool-openai'));
-		const search = within(container).getByPlaceholderText('Search accounts') as HTMLInputElement;
+		const search = within(container).getByTestId('accounts-search') as HTMLInputElement;
 		await fireEvent.input(search, { target: { value: 'pool' } });
 		await waitFor(() => expect(container.textContent).toContain('1 filter'));
 
@@ -934,7 +934,7 @@ describe('M13 supply pages', () => {
 			})
 		);
 
-		const search = within(container).getByPlaceholderText('Search accounts') as HTMLInputElement;
+		const search = within(container).getByTestId('accounts-search') as HTMLInputElement;
 		await fireEvent.input(search, { target: { value: 'pool' } });
 		await waitFor(() => expect(container.textContent).toContain('1 filter'));
 		await fireEvent.click(within(container).getByRole('button', { name: /Edit filtered/ }));

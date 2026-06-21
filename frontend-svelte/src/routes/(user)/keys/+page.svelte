@@ -19,13 +19,13 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { Plus, Pencil, Trash2, KeyRound, RotateCw } from '@lucide/svelte';
+	import { Plus, Pencil, Trash2, KeyRound, RotateCw, Power } from '@lucide/svelte';
 	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
 	import CreateKeyDialog from '$lib/features/keys/CreateKeyDialog.svelte';
 	import EditKeyDialog from '$lib/features/keys/EditKeyDialog.svelte';
 	import RevokeKeyDialog from '$lib/features/keys/RevokeKeyDialog.svelte';
-	import { listKeys, type ApiKey, type ApiKeyStatus } from '$lib/api/user/apiKeys';
-	import { showError } from '$lib/stores/toast.svelte';
+	import { listKeys, toggleKeyStatus, type ApiKey, type ApiKeyStatus } from '$lib/api/user/apiKeys';
+	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -102,6 +102,26 @@
 	}
 	function handleRevoked(_id: number) {
 		refreshList();
+	}
+	let toggling = $state<Set<number>>(new Set());
+	async function handleToggleStatus(k: ApiKey) {
+		if (toggling.has(k.id)) return;
+		toggling = new Set([...toggling, k.id]);
+		try {
+			const updated = await toggleKeyStatus(k.id, k.status);
+			// Update the key in place
+			keys = keys.map(existing => existing.id === updated.id ? updated : existing);
+			const label = updated.status === 'active'
+				? $_('user.keys.enabled', { default: 'Key enabled' })
+				: $_('user.keys.disabled', { default: 'Key disabled' });
+			showSuccess(label);
+		} catch (err) {
+			showError((err as Error)?.message ?? $_('user.keys.toggleError', { default: 'Failed to toggle key status' }));
+		} finally {
+			const next = new Set(toggling);
+			next.delete(k.id);
+			toggling = next;
+		}
 	}
 
 	// 显示工具
@@ -249,13 +269,14 @@
 	{:else if useVirtual}
 		<!-- Virtual table 路径（> 50 行） -->
 		<div class="rounded-lg border border-border bg-card" data-testid="keys-virtual-wrap">
-			<div class="grid grid-cols-[1.4fr_1.6fr_1.4fr_0.9fr_1.1fr_1.1fr_0.7fr] gap-3 border-b border-border bg-muted/40 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+			<div class="grid grid-cols-[1.2fr_1.4fr_0.8fr_0.9fr_1fr_0.7fr_0.9fr_0.8fr] gap-3 border-b border-border bg-muted/40 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 				<div>{$_('user.keys.colName', { default: 'Name' })}</div>
 				<div>{$_('user.keys.colKey', { default: 'Key' })}</div>
+				<div>{$_('user.keys.colGroup', { default: 'Group' })}</div>
+				<div>{$_('user.keys.colUsage', { default: 'Usage' })}</div>
 				<div>{$_('user.keys.colQuota', { default: 'Quota' })}</div>
 				<div>{$_('user.keys.colStatus', { default: 'Status' })}</div>
 				<div>{$_('user.keys.colCreated', { default: 'Created' })}</div>
-				<div>{$_('user.keys.colLastUsed', { default: 'Last used' })}</div>
 				<div class="text-right">{$_('user.keys.colActions', { default: 'Actions' })}</div>
 			</div>
 			<div class="h-[60vh]">
@@ -264,13 +285,24 @@
 						<div
 							data-testid="keys-row"
 							data-key-id={k.id}
-							class="grid h-full grid-cols-[1.4fr_1.6fr_1.4fr_0.9fr_1.1fr_1.1fr_0.7fr] items-center gap-3 border-b border-border px-4 text-sm"
+							class="grid h-full grid-cols-[1.2fr_1.4fr_0.8fr_0.9fr_1fr_0.7fr_0.9fr_0.8fr] items-center gap-3 border-b border-border px-4 text-sm"
 						>
 							<div class="truncate font-medium text-foreground" title={k.name}>{k.name}</div>
 							<div>
 								<code class="rounded bg-muted px-2 py-0.5 font-mono text-xs text-foreground">
 									{maskKey(k)}
 								</code>
+							</div>
+							<div>
+								{#if k.group}
+									<span class="truncate text-sm text-foreground">{k.group.name}</span>
+								{:else}
+									<span class="text-sm text-muted-foreground">-</span>
+								{/if}
+							</div>
+							<div class="text-xs text-muted-foreground space-y-0.5">
+								<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+								<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
 							</div>
 							<div class="text-muted-foreground">{fmtQuota(k)}</div>
 							<div>
@@ -279,8 +311,20 @@
 								</Badge>
 							</div>
 							<div class="truncate text-muted-foreground">{fmtDate(k.createdAt)}</div>
-							<div class="truncate text-muted-foreground">{fmtDate(k.lastUsedAt)}</div>
 							<div class="flex justify-end gap-1">
+								<Button
+									variant="outline"
+									size="icon"
+									aria-label={k.status === 'active'
+										? $_('user.keys.disableAria', { default: 'Disable key' })
+										: $_('user.keys.enableAria', { default: 'Enable key' })}
+									data-testid="keys-toggle-btn"
+									onclick={() => handleToggleStatus(k)}
+									disabled={toggling.has(k.id)}
+									class="h-8 w-8 {k.status === 'active' ? 'text-emerald-600' : 'text-muted-foreground'}"
+								>
+									<Power class="h-3.5 w-3.5" />
+								</Button>
 								<Button
 									variant="outline"
 									size="icon"
@@ -316,10 +360,11 @@
 					<tr class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
 						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colName', { default: 'Name' })}</th>
 						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colKey', { default: 'Key' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colGroup', { default: 'Group' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colUsage', { default: 'Usage' })}</th>
 						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colQuota', { default: 'Quota' })}</th>
 						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colStatus', { default: 'Status' })}</th>
 						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colCreated', { default: 'Created' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colLastUsed', { default: 'Last used' })}</th>
 						<th class="px-4 py-2 text-right font-medium">{$_('user.keys.colActions', { default: 'Actions' })}</th>
 					</tr>
 				</thead>
@@ -338,6 +383,19 @@
 									{maskKey(k)}
 								</code>
 							</td>
+							<td class="px-4 py-3">
+								{#if k.group}
+									<span class="text-sm text-foreground">{k.group.name}</span>
+								{:else}
+									<span class="text-sm text-muted-foreground">-</span>
+								{/if}
+							</td>
+							<td class="px-4 py-3">
+								<div class="text-xs text-muted-foreground space-y-0.5">
+									<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+									<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
+								</div>
+							</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtQuota(k)}</td>
 							<td class="px-4 py-3">
 								<Badge class={statusBadgeClass(k.status)}>
@@ -345,9 +403,21 @@
 								</Badge>
 							</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtDate(k.createdAt)}</td>
-							<td class="px-4 py-3 text-muted-foreground">{fmtDate(k.lastUsedAt)}</td>
 							<td class="px-4 py-3 text-right">
 								<div class="flex justify-end gap-1">
+									<Button
+										variant="outline"
+										size="icon"
+										aria-label={k.status === 'active'
+											? $_('user.keys.disableAria', { default: 'Disable key' })
+											: $_('user.keys.enableAria', { default: 'Enable key' })}
+										data-testid="keys-toggle-btn"
+										onclick={() => handleToggleStatus(k)}
+										disabled={toggling.has(k.id)}
+										class="h-8 w-8 {k.status === 'active' ? 'text-emerald-600' : 'text-muted-foreground'}"
+									>
+										<Power class="h-3.5 w-3.5" />
+									</Button>
 									<Button
 										variant="outline"
 										size="icon"

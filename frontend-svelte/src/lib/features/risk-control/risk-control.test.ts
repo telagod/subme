@@ -4,14 +4,23 @@ import pageSrc from '../../../routes/admin/risk-control/+page.svelte?raw';
 import rerouteTestSrc from '$lib/routing/reroute.test.ts?raw';
 import {
 	DEFAULT_CONFIG,
+	RISK_THRESHOLD_DEFAULTS,
+	RISK_THRESHOLD_CATEGORIES,
+	SETTINGS_TABS,
+	AUTO_REFRESH_MS,
 	auditResultSummary,
+	clampPercent,
 	cloneConfig,
+	formatThresholdPercent,
 	isValidHash,
+	modelFilterSummary,
 	parseLines,
 	resultLabel,
 	resultTone,
 	runtimeEnabled,
-	summarizeRisk
+	summarizeRisk,
+	thresholdsFromConfig,
+	thresholdsToPayload
 } from './risk-control';
 import type {
 	ContentModerationLog,
@@ -110,6 +119,42 @@ describe('risk-control helpers', () => {
 		expect(isValidHash('not-a-hash')).toBe(false);
 	});
 
+	it('threshold helpers round-trip correctly', () => {
+		const raw: Record<string, number> = { harassment: 0.98, hate: 0.65, violence: 0.5 };
+		const local = thresholdsFromConfig(raw);
+		expect(local.harassment).toBeCloseTo(98, 1);
+		expect(local.hate).toBeCloseTo(65, 1);
+		expect(local.violence).toBeCloseTo(50, 1);
+		expect(local['self-harm']).toBeCloseTo(65, 1); // default
+
+		const payload = thresholdsToPayload(local);
+		expect(payload.harassment).toBeCloseTo(0.98, 3);
+		expect(payload.violence).toBeCloseTo(0.5, 3);
+
+		expect(clampPercent(-5)).toBe(0);
+		expect(clampPercent(200)).toBe(100);
+		expect(clampPercent('abc')).toBe(0);
+
+		expect(formatThresholdPercent(65)).toBe('65.0%');
+		expect(formatThresholdPercent(0)).toBe('0.0%');
+	});
+
+	it('exports correct constants', () => {
+		expect(RISK_THRESHOLD_CATEGORIES.length).toBeGreaterThan(10);
+		expect(RISK_THRESHOLD_DEFAULTS.harassment).toBe(98);
+		expect(SETTINGS_TABS.length).toBe(7);
+		expect(SETTINGS_TABS.map((t) => t.id)).toContain('response');
+		expect(SETTINGS_TABS.map((t) => t.id)).toContain('riskThresholds');
+		expect(SETTINGS_TABS.map((t) => t.id)).toContain('scope');
+		expect(AUTO_REFRESH_MS).toBe(15000);
+	});
+
+	it('model filter summary formats correctly', () => {
+		expect(modelFilterSummary('all', 0)).toBe('All models');
+		expect(modelFilterSummary('include', 3)).toBe('Include 3 models');
+		expect(modelFilterSummary('exclude', 1)).toBe('Exclude 1 model');
+	});
+
 	it('keeps risk-control page wired to backend contract', () => {
 		expect(apiSrc).toContain("const RISK_BASE = '/api/v1/admin/risk-control'");
 		expect(apiSrc).not.toContain("'/api/admin/risk-control'");
@@ -123,6 +168,8 @@ describe('risk-control helpers', () => {
 		expect(pageSrc).toContain('data-testid="risk-clear-hashes-dialog"');
 		expect(pageSrc).not.toMatch(/window\.confirm/);
 		expect(pageSrc).toContain('RiskLogsPanel');
+		expect(pageSrc).toContain('RuntimePanel');
+		expect(pageSrc).toContain('RiskSettingsDialog');
 		expect(rerouteTestSrc).toContain("'/admin/risk-control'");
 	});
 });

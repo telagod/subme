@@ -5,25 +5,36 @@
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
 	import UserFormDrawer from '$lib/features/users/UserFormDrawer.svelte';
 	import UserDetailDrawer from '$lib/features/users/UserDetailDrawer.svelte';
 	import BalanceAdjustDialog from '$lib/features/users/BalanceAdjustDialog.svelte';
-	import { ALL, PAGE_SIZE, formatMoney, formatDate, statusTone, roleTone, userDisplayName, userGroups, userInitial } from '$lib/features/users/users';
+	import UserFilterBar from '$lib/features/users/UserFilterBar.svelte';
+	import BulkActionDialog from '$lib/features/users/BulkActionDialog.svelte';
+	import { ALL, PAGE_SIZE, formatMoney, formatDate, statusTone, roleTone, userGroups, userInitial } from '$lib/features/users/users';
 
 	let users = $state<AdminUser[]>([]);
 	let total = $state(0);
 	let loading = $state(false);
 	let page = $state(1);
-	let search = $state('');
-	let statusFilter = $state(ALL);
-	let roleFilter = $state(ALL);
 	let sortBy = $state('created_at');
 	let sortOrder = $state<'asc' | 'desc'>('desc');
 
+	// Filter state (bound to UserFilterBar)
+	let search = $state('');
+	let statusFilter = $state(ALL);
+	let roleFilter = $state(ALL);
+	let groupFilter = $state(ALL);
+	let balanceMin = $state('');
+	let balanceMax = $state('');
+	let createdAfter = $state('');
+	let createdBefore = $state('');
+	let lastActiveAfter = $state('');
+	let lastActiveBefore = $state('');
+	let subscriptionStatus = $state(ALL);
+
+	// Selection + dialogs
 	let selected = $state<Set<number>>(new Set());
 	let showForm = $state(false);
 	let editUser = $state<AdminUser | null>(null);
@@ -34,12 +45,24 @@
 	let deleteTarget = $state<AdminUser | null>(null);
 	let showDeleteConfirm = $state(false);
 
+	// Bulk action dialog
+	let showBulkDialog = $state(false);
+	let bulkAction = $state<'enable' | 'disable' | 'delete'>('enable');
+
 	async function load() {
 		loading = true;
 		const filters: AdminUserFilters = {
 			search: search.trim() || undefined,
 			status: statusFilter !== ALL ? statusFilter as 'active' | 'disabled' : undefined,
 			role: roleFilter !== ALL ? roleFilter as 'admin' | 'user' : undefined,
+			group_name: groupFilter !== ALL ? groupFilter : undefined,
+			balance_min: balanceMin ? parseFloat(balanceMin) : undefined,
+			balance_max: balanceMax ? parseFloat(balanceMax) : undefined,
+			created_after: createdAfter || undefined,
+			created_before: createdBefore || undefined,
+			last_active_after: lastActiveAfter || undefined,
+			last_active_before: lastActiveBefore || undefined,
+			subscription_status: subscriptionStatus !== ALL ? subscriptionStatus as 'active' | 'expired' | 'none' : undefined,
 			sort_by: sortBy, sort_order: sortOrder,
 			include_subscriptions: true
 		};
@@ -51,9 +74,10 @@
 	}
 
 	onMount(load);
-	$effect(() => { void page; void statusFilter; void roleFilter; void sortBy; void sortOrder; load(); });
+	$effect(() => { void page; void sortBy; void sortOrder; load(); });
 
 	function commitSearch() { page = 1; load(); }
+	function onFiltersChanged() { page = 1; load(); }
 	function openCreate() { editUser = null; showForm = true; }
 	function openEdit(u: AdminUser) { editUser = u; showForm = true; }
 	function openDetail(u: AdminUser) { detailUserId = u.id; showDetail = true; }
@@ -69,24 +93,27 @@
 		} catch (e: unknown) { showError((e as Error)?.message || 'Delete failed'); }
 	}
 
-	async function bulkToggle(status: 'active' | 'disabled') {
-		const ids = [...selected];
-		if (!ids.length) return;
-		try {
-			await Promise.all(ids.map(id => toggleUserStatus(id, status)));
-			showSuccess($_('admin.users.bulkDone', { default: '{count} users updated', values: { count: ids.length } }));
-			selected = new Set(); load();
-		} catch (e: unknown) { showError((e as Error)?.message || 'Bulk action failed'); }
+	function openBulkDialog(action: 'enable' | 'disable' | 'delete') {
+		if (!selected.size) return;
+		bulkAction = action;
+		showBulkDialog = true;
 	}
 
-	async function bulkDelete() {
+	async function executeBulkAction() {
 		const ids = [...selected];
 		if (!ids.length) return;
+		showBulkDialog = false;
 		try {
-			await Promise.all(ids.map(id => deleteUser(id)));
-			showSuccess($_('admin.users.bulkDeleted', { default: '{count} users deleted', values: { count: ids.length } }));
+			if (bulkAction === 'delete') {
+				await Promise.all(ids.map(id => deleteUser(id)));
+				showSuccess($_('admin.users.bulkDeleted', { default: '{count} users deleted', values: { count: ids.length } }));
+			} else {
+				const status = bulkAction === 'enable' ? 'active' : 'disabled';
+				await Promise.all(ids.map(id => toggleUserStatus(id, status)));
+				showSuccess($_('admin.users.bulkDone', { default: '{count} users updated', values: { count: ids.length } }));
+			}
 			selected = new Set(); load();
-		} catch (e: unknown) { showError((e as Error)?.message || 'Bulk delete failed'); }
+		} catch (e: unknown) { showError((e as Error)?.message || 'Bulk action failed'); }
 	}
 
 	function toggleSelect(id: number) {
@@ -120,30 +147,19 @@
 		</div>
 	</div>
 
-	<div class="flex flex-wrap items-center gap-2">
-		<div class="flex-1">
-			<Input type="search" placeholder={$_('admin.users.searchPlaceholder', { default: 'Search email, username, ID...' })}
-				bind:value={search} onkeydown={(e: KeyboardEvent) => { if (e.key === 'Enter') commitSearch(); }}
-				data-testid="users-search" />
-		</div>
-		<NativeSelect bind:value={statusFilter} data-testid="users-status-filter">
-			<option value={ALL}>{$_('admin.users.allStatuses', { default: 'All Statuses' })}</option>
-			<option value="active">{$_('admin.users.statusActive', { default: 'Active' })}</option>
-			<option value="disabled">{$_('admin.users.statusDisabled', { default: 'Disabled' })}</option>
-		</NativeSelect>
-		<NativeSelect bind:value={roleFilter} data-testid="users-role-filter">
-			<option value={ALL}>{$_('admin.users.allRoles', { default: 'All Roles' })}</option>
-			<option value="admin">{$_('admin.users.roleAdmin', { default: 'Admin' })}</option>
-			<option value="user">{$_('admin.users.roleUser', { default: 'User' })}</option>
-		</NativeSelect>
-	</div>
+	<UserFilterBar
+		bind:search bind:statusFilter bind:roleFilter bind:groupFilter
+		bind:balanceMin bind:balanceMax bind:createdAfter bind:createdBefore
+		bind:lastActiveAfter bind:lastActiveBefore bind:subscriptionStatus
+		onCommitSearch={commitSearch} {onFiltersChanged}
+	/>
 
 	{#if selected.size > 0}
 		<div class="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
 			<span class="font-medium">{selected.size} {$_('admin.users.selected', { default: 'selected' })}</span>
-			<Button size="sm" variant="outline" onclick={() => bulkToggle('active')}>{$_('admin.users.bulkEnable', { default: 'Enable' })}</Button>
-			<Button size="sm" variant="outline" onclick={() => bulkToggle('disabled')}>{$_('admin.users.bulkDisable', { default: 'Disable' })}</Button>
-			<Button size="sm" variant="destructive" onclick={bulkDelete}>{$_('admin.users.bulkDelete', { default: 'Delete' })}</Button>
+			<Button size="sm" variant="outline" onclick={() => openBulkDialog('enable')}>{$_('admin.users.bulkEnable', { default: 'Enable' })}</Button>
+			<Button size="sm" variant="outline" onclick={() => openBulkDialog('disable')}>{$_('admin.users.bulkDisable', { default: 'Disable' })}</Button>
+			<Button size="sm" variant="destructive" onclick={() => openBulkDialog('delete')}>{$_('admin.users.bulkDelete', { default: 'Delete' })}</Button>
 			<Button size="sm" variant="ghost" onclick={() => (selected = new Set())}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 		</div>
 	{/if}
@@ -214,6 +230,8 @@
 	<BalanceAdjustDialog bind:open={showBalance} userId={balanceUser.id} currentBalance={balanceUser.balance ?? 0}
 		onClose={() => { showBalance = false; balanceUser = null; }} onUpdated={() => { showBalance = false; balanceUser = null; load(); }} />
 {/if}
+<BulkActionDialog bind:open={showBulkDialog} action={bulkAction} count={selected.size}
+	onClose={() => { showBulkDialog = false; }} onConfirm={executeBulkAction} />
 <StandardDialog bind:open={showDeleteConfirm} onOpenChange={(v) => { if (!v) { showDeleteConfirm = false; deleteTarget = null; }}}
 	title={$_('admin.users.confirmDelete', { default: 'Delete User' })} data-testid="user-delete-dialog">
 	<p class="text-sm text-muted-foreground">

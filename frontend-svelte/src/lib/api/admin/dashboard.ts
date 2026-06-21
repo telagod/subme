@@ -96,6 +96,58 @@ export interface DashboardSnapshotParams {
 	users_trend_limit?: number;
 }
 
+export interface UserSpendingRankingItem {
+	user_id: number;
+	username?: string;
+	email?: string;
+	requests?: number;
+	tokens?: number;
+	actual_cost?: number;
+	cost?: number;
+	[key: string]: unknown;
+}
+
+export interface UserSpendingRankingResponse {
+	ranking?: UserSpendingRankingItem[];
+	total_actual_cost?: number;
+	total_requests?: number;
+	total_tokens?: number;
+}
+
+export interface UserUsageTrendResponse {
+	trend?: UserUsageTrendDetailPoint[];
+}
+
+export interface UserUsageTrendDetailPoint {
+	user_id: number;
+	username?: string;
+	email?: string;
+	date: string;
+	tokens: number;
+	requests?: number;
+	cost?: number;
+	actual_cost?: number;
+	[key: string]: unknown;
+}
+
+export interface ModelStatsParams {
+	start_date?: string;
+	end_date?: string;
+	model_source?: 'requested' | 'upstream' | 'mapping';
+	user_id?: number;
+	model?: string;
+	api_key_id?: number;
+	account_id?: number;
+	group_id?: number;
+	request_type?: string;
+	stream?: boolean;
+	billing_type?: number | null;
+}
+
+export interface ModelStatsResponse {
+	models?: ModelStat[];
+}
+
 const DASHBOARD_BASE = '/api/v1/admin/dashboard';
 
 export async function getDashboardSnapshot(
@@ -115,8 +167,38 @@ export async function getDashboardSnapshot(
 	return unwrapData(raw) ?? {};
 }
 
+export async function getUserSpendingRanking(
+	params: { start_date?: string; end_date?: string; limit?: number } = {}
+): Promise<UserSpendingRankingResponse> {
+	const raw = await apiClient.get<UserSpendingRankingResponse | ApiEnvelope<UserSpendingRankingResponse>>(
+		`${DASHBOARD_BASE}/users-ranking${buildQuery({ limit: 12, ...params })}`
+	);
+	return unwrapData(raw) ?? {};
+}
+
+export async function getUserUsageTrend(
+	params: { start_date?: string; end_date?: string; granularity?: 'day' | 'hour'; limit?: number } = {}
+): Promise<UserUsageTrendResponse> {
+	const raw = await apiClient.get<UserUsageTrendResponse | ApiEnvelope<UserUsageTrendResponse>>(
+		`${DASHBOARD_BASE}/users-trend${buildQuery({ limit: 12, ...params })}`
+	);
+	return unwrapData(raw) ?? {};
+}
+
+export async function getModelStats(
+	params: ModelStatsParams = {}
+): Promise<ModelStatsResponse> {
+	const raw = await apiClient.get<ModelStatsResponse | ApiEnvelope<ModelStatsResponse>>(
+		`${DASHBOARD_BASE}/models${buildQuery({ ...params })}`
+	);
+	return unwrapData(raw) ?? {};
+}
+
 export const adminDashboardApi = {
-	getDashboardSnapshot
+	getDashboardSnapshot,
+	getUserSpendingRanking,
+	getUserUsageTrend,
+	getModelStats
 };
 
 export default adminDashboardApi;

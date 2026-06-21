@@ -9,6 +9,46 @@ import type {
 
 export const PAGE_SIZE = 20;
 export const RESULT_ALL = '__all__';
+export const AUTO_REFRESH_MS = 15_000;
+
+export type SettingsTab = 'basic' | 'scope' | 'runtime' | 'response' | 'riskThresholds' | 'keywords' | 'retention';
+
+export const SETTINGS_TABS: Array<{ id: SettingsTab; label: string }> = [
+	{ id: 'basic', label: 'Basic' },
+	{ id: 'scope', label: 'Scope' },
+	{ id: 'runtime', label: 'Runtime' },
+	{ id: 'response', label: 'Response' },
+	{ id: 'riskThresholds', label: 'Thresholds' },
+	{ id: 'keywords', label: 'Keywords' },
+	{ id: 'retention', label: 'Retention' }
+];
+
+export const RISK_THRESHOLD_DEFAULTS: Record<string, number> = {
+	harassment: 98,
+	'harassment/threatening': 90,
+	hate: 65,
+	'hate/threatening': 65,
+	illicit: 95,
+	'illicit/violent': 95,
+	'self-harm': 65,
+	'self-harm/intent': 85,
+	'self-harm/instructions': 65,
+	sexual: 65,
+	'sexual/minors': 65,
+	violence: 95,
+	'violence/graphic': 95
+};
+export const RISK_THRESHOLD_CATEGORIES = Object.keys(RISK_THRESHOLD_DEFAULTS);
+
+export const ENDPOINT_OPTIONS = [
+	{ value: '', label: 'All endpoints' },
+	{ value: '/v1/messages', label: '/v1/messages' },
+	{ value: '/v1/responses', label: '/v1/responses' },
+	{ value: '/v1/chat/completions', label: '/v1/chat/completions' },
+	{ value: '/v1beta/models', label: '/v1beta/models' },
+	{ value: '/v1/images/generations', label: '/v1/images/generations' },
+	{ value: '/v1/images/edits', label: '/v1/images/edits' }
+];
 
 export const DEFAULT_CONFIG: ContentModerationConfig = {
 	enabled: false,
@@ -171,4 +211,37 @@ export function formatDateTime(value?: string | null): string {
 
 export function isValidHash(value: string): boolean {
 	return /^[a-fA-F0-9]{64}$/.test(value.trim());
+}
+
+export function clampPercent(value: unknown): number {
+	const n = Number(value);
+	if (!Number.isFinite(n)) return 0;
+	return Math.min(100, Math.max(0, n));
+}
+
+export function formatThresholdPercent(value: number): string {
+	return `${clampPercent(value).toFixed(1)}%`;
+}
+
+export function thresholdsFromConfig(raw: Record<string, number> | null | undefined): Record<string, number> {
+	const out: Record<string, number> = { ...RISK_THRESHOLD_DEFAULTS };
+	for (const cat of RISK_THRESHOLD_CATEGORIES) {
+		const v = raw?.[cat];
+		if (Number.isFinite(v)) out[cat] = clampPercent(Number(v) * 100);
+	}
+	return out;
+}
+
+export function thresholdsToPayload(local: Record<string, number>): Record<string, number> {
+	const out: Record<string, number> = {};
+	for (const cat of RISK_THRESHOLD_CATEGORIES) {
+		out[cat] = Number((clampPercent(local[cat]) / 100).toFixed(4));
+	}
+	return out;
+}
+
+export function modelFilterSummary(type: string, count: number): string {
+	if (type === 'include') return `Include ${count} model${count === 1 ? '' : 's'}`;
+	if (type === 'exclude') return `Exclude ${count} model${count === 1 ? '' : 's'}`;
+	return 'All models';
 }

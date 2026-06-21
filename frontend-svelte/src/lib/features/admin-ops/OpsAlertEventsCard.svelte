@@ -41,9 +41,11 @@
 
 	type Props = {
 		refreshToken?: number;
+		platformFilter?: string;
+		groupIdFilter?: number | null;
 	};
 
-	let { refreshToken = 0 }: Props = $props();
+	let { refreshToken = 0, platformFilter = '', groupIdFilter = null }: Props = $props();
 
 	const PAGE_SIZE = 10;
 	const ALL = '__all__';
@@ -98,6 +100,8 @@
 		};
 		if (severity !== ALL) q.severity = severity;
 		if (status !== ALL) q.status = status;
+		if (platformFilter) q.platform = platformFilter;
+		if (typeof groupIdFilter === 'number' && groupIdFilter > 0) q.group_id = groupIdFilter;
 		return { ...q, ...overrides };
 	}
 
@@ -151,7 +155,7 @@
 	let lastFilterKey = $state('');
 	let lastRefresh = $state<number>(-1);
 	$effect(() => {
-		const key = `${timeRange}|${severity}|${status}`;
+		const key = `${timeRange}|${severity}|${status}|${platformFilter}|${groupIdFilter}`;
 		const refreshChanged = refreshToken !== lastRefresh;
 		if (key !== lastFilterKey || refreshChanged) {
 			lastFilterKey = key;

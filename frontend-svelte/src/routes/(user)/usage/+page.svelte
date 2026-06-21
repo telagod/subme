@@ -21,18 +21,23 @@
 		getUsageSummary,
 		getUsageTrend,
 		exportCsv,
+		listErrorRequests,
 		type PaginatedUsage,
+		type PaginatedErrors,
 		type UsageEntry,
 		type UsageFilter,
 		type UsageSummary,
 		type UsageTrendPoint,
-		type UsageGranularity
+		type UsageGranularity,
+		type UserErrorRequest
 	} from '$lib/api/user/usage';
+	import { authApi } from '$lib/api/auth';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import UsageFilterBar from '$lib/features/usage/UsageFilterBar.svelte';
 	import UsageStatsCards from '$lib/features/usage/UsageStatsCards.svelte';
 	import TimeseriesChart from '$lib/features/usage/TimeseriesChart.svelte';
 	import UsageModelTable from '$lib/features/usage/UsageModelTable.svelte';
+	import UserErrorsTable from '$lib/features/usage/UserErrorsTable.svelte';
 	import Button from '$lib/ui/Button.svelte';
 
 	const MODELS_ALL = '__all__' as const;
@@ -75,6 +80,17 @@
 	let summaryError = $state<string | null>(null);
 	let trendError = $state<string | null>(null);
 	let listError = $state<string | null>(null);
+
+	// ── error requests tab ─────────────────────────────────────────────────
+	type ActiveTab = 'usage' | 'errors';
+	let activeTab = $state<ActiveTab>('usage');
+	let errorViewEnabled = $state(false);
+	let errorRows = $state<UserErrorRequest[]>([]);
+	let errorTotal = $state(0);
+	let errorTotalPages = $state(0);
+	let errorPage = $state(1);
+	let errorLoading = $state(false);
+	let errorFilter = $state<{ model: string; category: string }>({ model: '', category: '' });
 
 	// ── helpers ────────────────────────────────────────────────────────
 
@@ -157,15 +173,57 @@
 		}
 	}
 
+	async function loadErrors() {
+		errorLoading = true;
+		try {
+			const resp: PaginatedErrors = await listErrorRequests({
+				page: errorPage,
+				pageSize: PAGE_SIZE,
+				startDate,
+				endDate,
+				model: errorFilter.model || undefined,
+				category: errorFilter.category || undefined
+			});
+			errorRows = resp.items;
+			errorTotal = resp.total;
+			errorTotalPages = resp.pages;
+		} catch (err) {
+			const msg = (err as Error)?.message ?? '';
+			if (msg !== 'unauthorized') {
+				showError($_('user.usage.errors.failedToLoad', { default: 'Failed to load error requests' }));
+			}
+			errorRows = [];
+			errorTotal = 0;
+			errorTotalPages = 0;
+		} finally {
+			errorLoading = false;
+		}
+	}
+
 	function refreshAll() {
 		page = 1;
 		void loadSummary();
 		void loadTrend();
 		void loadList();
+		// Reset error pagination on global refresh; lazy-load when tab opens.
+		errorPage = 1;
+		errorRows = [];
 	}
 
-	onMount(() => {
+	function switchToErrors() {
+		activeTab = 'errors';
+		if (errorRows.length === 0) void loadErrors();
+	}
+
+	onMount(async () => {
 		refreshAll();
+		// Check if error view is enabled via public settings.
+		try {
+			const settings = await authApi.getPublicSettings();
+			errorViewEnabled = settings.allow_user_view_error_requests === true;
+		} catch {
+			errorViewEnabled = false;
+		}
 	});
 
 	// ── handlers ───────────────────────────────────────────────────────
@@ -227,6 +285,23 @@
 			exporting = false;
 		}
 	}
+
+	// ── error tab handlers ─────────────────────────────────────────────────
+	function handleErrorFilter(f: { model: string; category: string }) {
+		errorFilter = f;
+		errorPage = 1;
+		void loadErrors();
+	}
+	function errorGotoPrev() {
+		if (errorPage <= 1) return;
+		errorPage -= 1;
+		void loadErrors();
+	}
+	function errorGotoNext() {
+		if (errorTotalPages > 0 && errorPage >= errorTotalPages) return;
+		errorPage += 1;
+		void loadErrors();
+	}
 </script>
 
 <svelte:head>
@@ -273,6 +348,33 @@
 		</div>
 	</header>
 
+	<!-- Tab bar (visible when error view is enabled) -->
+	{#if errorViewEnabled}
+		<div class="flex gap-1 border-b border-border">
+			<button
+				type="button"
+				class="rounded-t px-4 py-2 text-sm font-medium transition-all duration-150 {activeTab === 'usage'
+					? 'bg-secondary text-foreground'
+					: 'text-muted-foreground hover:text-foreground'}"
+				onclick={() => { activeTab = 'usage'; }}
+				data-testid="tab-usage"
+			>
+				{$_('user.usage.tabs.usage', { default: 'Usage' })}
+			</button>
+			<button
+				type="button"
+				class="rounded-t px-4 py-2 text-sm font-medium transition-all duration-150 {activeTab === 'errors'
+					? 'bg-secondary text-foreground'
+					: 'text-muted-foreground hover:text-foreground'}"
+				onclick={switchToErrors}
+				data-testid="tab-errors"
+			>
+				{$_('user.usage.tabs.errors', { default: 'Errors' })}
+			</button>
+		</div>
+	{/if}
+
+	{#if activeTab === 'usage'}
 	<!-- Filters -->
 	<UsageFilterBar
 		{startDate}
@@ -334,4 +436,18 @@
 		onPrev={gotoPrev}
 		onNext={gotoNext}
 	/>
+	{:else}
+	<!-- Error requests tab -->
+	<UserErrorsTable
+		rows={errorRows}
+		total={errorTotal}
+		totalPages={errorTotalPages}
+		loading={errorLoading}
+		page={errorPage}
+		pageSize={PAGE_SIZE}
+		onFilter={handleErrorFilter}
+		onPrev={errorGotoPrev}
+		onNext={errorGotoNext}
+	/>
+	{/if}
 </section>

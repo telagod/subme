@@ -329,3 +329,86 @@ describe('RED LINE · admin subscriptions surface must not reference billing cor
 		}
 	});
 });
+
+// ─────────────────────────────────────────────────────────────────
+// Test 6 · CONTRACT GUARD — no call targets an unregistered route
+// ─────────────────────────────────────────────────────────────────
+
+describe('CONTRACT GUARD · admin subscriptions API only targets registered backend routes', () => {
+	/**
+	 * Exhaustive allowlist of admin subscription routes from
+	 * backend/internal/server/routes/admin.go:517-535.
+	 *
+	 * Every API helper in $lib/api/admin/subscriptions.ts MUST hit one of
+	 * these and nothing else. If the backend adds a new route, add it here
+	 * first — forcing a deliberate opt-in rather than silent 404s.
+	 */
+	const REGISTERED_ROUTE_PATTERNS: RegExp[] = [
+		// GET  /admin/subscriptions           — List
+		/^\/api\/v1\/admin\/subscriptions(\?.*)?$/,
+		// GET  /admin/subscriptions/:id       — GetByID
+		/^\/api\/v1\/admin\/subscriptions\/\d+$/,
+		// GET  /admin/subscriptions/:id/progress — GetProgress
+		/^\/api\/v1\/admin\/subscriptions\/\d+\/progress$/,
+		// POST /admin/subscriptions/assign    — Assign
+		/^\/api\/v1\/admin\/subscriptions\/assign$/,
+		// POST /admin/subscriptions/bulk-assign — BulkAssign
+		/^\/api\/v1\/admin\/subscriptions\/bulk-assign$/,
+		// POST /admin/subscriptions/:id/extend — Extend
+		/^\/api\/v1\/admin\/subscriptions\/\d+\/extend$/,
+		// POST /admin/subscriptions/:id/reset-quota — ResetQuota
+		/^\/api\/v1\/admin\/subscriptions\/\d+\/reset-quota$/,
+		// DELETE /admin/subscriptions/:id     — Revoke
+		/^\/api\/v1\/admin\/subscriptions\/\d+$/,
+		// GET  /admin/groups/:id/subscriptions — ListByGroup
+		/^\/api\/v1\/admin\/groups\/\d+\/subscriptions(\?.*)?$/,
+		// GET  /admin/users/:id/subscriptions  — ListByUser
+		/^\/api\/v1\/admin\/users\/\d+\/subscriptions(\?.*)?$/
+	];
+
+	function isRegistered(path: string): boolean {
+		return REGISTERED_ROUTE_PATTERNS.some((re) => re.test(path));
+	}
+
+	it('API source only contains paths that match registered routes', () => {
+		// Extract all URL path literals from the API source code.
+		// Matches strings like '/api/v1/admin/subscriptions...' and template parts.
+		const pathLiterals = (apiSrc as unknown as string).match(
+			/['"`]\/api\/v1\/admin\/[^'"`$]+['"`]/g
+		) ?? [];
+
+		// Also extract template literal path prefixes (before ${...})
+		const templateParts = (apiSrc as unknown as string).match(
+			/`\/api\/v1\/admin\/[^`]*`/g
+		) ?? [];
+
+		// Combine and deduplicate, stripping quotes
+		const allPaths = [...new Set([...pathLiterals, ...templateParts])]
+			.map(p => p.replace(/^['"`]|['"`]$/g, ''));
+
+		expect(allPaths.length).toBeGreaterThan(0);
+
+		// For template literals with ${...}, replace interpolation with a sample numeric id
+		for (const raw of allPaths) {
+			const concrete = raw.replace(/\$\{[^}]+\}/g, '42');
+			expect(
+				isRegistered(concrete),
+				`API source contains path targeting unregistered route: ${raw} (resolved: ${concrete})`
+			).toBe(true);
+		}
+	});
+
+	it('explicitly rejects phantom routes that previously caused 404s', () => {
+		const phantomRoutes = [
+			'/api/v1/admin/subscriptions/1/cancel',
+			'/api/v1/admin/subscriptions/1/refund',
+			'/api/v1/admin/subscriptions/1/audit-log'
+		];
+		for (const route of phantomRoutes) {
+			expect(
+				isRegistered(route),
+				`Phantom route "${route}" should NOT match any registered pattern`
+			).toBe(false);
+		}
+	});
+});

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 	import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, Search, Users, Wallet } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -78,18 +79,18 @@
 </script>
 
 <svelte:head>
-	<title>Affiliate transfer records</title>
+	<title>{$_('admin.affiliates.transfersTitle', { default: 'Affiliate transfer records' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5" data-testid="admin-affiliate-transfers-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
-			<h1 class="text-xl font-semibold tracking-tight text-foreground">Affiliate transfer records</h1>
-			<p class="text-sm text-muted-foreground">Inspect affiliate quota transfers into user balance snapshots.</p>
+			<h1 class="text-xl font-semibold tracking-tight text-foreground">{$_('admin.affiliates.transfersTitle', { default: 'Affiliate transfer records' })}</h1>
+			<p class="text-sm text-muted-foreground">{$_('admin.affiliates.transfersDescription', { default: 'Inspect affiliate quota transfers into user balance snapshots.' })}</p>
 		</div>
 		<Button variant="outline" onclick={loadRows} disabled={loading}>
 			<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />
-			Refresh
+			{$_('common.refresh', { default: 'Refresh' })}
 		</Button>
 	</header>
 
@@ -115,11 +116,11 @@
 		<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
 			<div class="relative">
 				<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-				<Input class="pl-9" placeholder="Search user or ledger" bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
+				<Input class="pl-9" placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: 'Search user or ledger' })} bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
 			</div>
 			<Input type="date" bind:value={startAt} onchange={resetAndLoad} aria-label="Start date" />
 			<Input type="date" bind:value={endAt} onchange={resetAndLoad} aria-label="End date" />
-			<Button onclick={resetAndLoad}>Search</Button>
+			<Button onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
 		</div>
 	</Card>
 
@@ -133,14 +134,14 @@
 		<VirtualTable rows={rows} rowHeight={78} getRowKey={(row) => `${row.ledger_id}-${row.user_id}-${row.created_at}`} loading={loading}>
 			{#snippet header()}
 				<div class="grid min-w-[1100px] grid-cols-[110px_minmax(240px,1fr)_130px_140px_150px_150px_120px_170px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Ledger</div>
-					<div>User</div>
-					<div>Amount</div>
-					<div>Balance after</div>
-					<div>Available after</div>
-					<div>Frozen after</div>
-					<div>Snapshot</div>
-					<div>Created at</div>
+					<div>{$_('admin.affiliates.records.ledger', { default: 'Ledger' })}</div>
+					<div>{$_('admin.affiliates.records.user', { default: 'User' })}</div>
+					<div>{$_('admin.affiliates.records.transferAmount', { default: 'Amount' })}</div>
+					<div>{$_('admin.affiliates.records.balanceAfter', { default: 'Balance after' })}</div>
+					<div>{$_('admin.affiliates.records.availableQuotaAfter', { default: 'Available after' })}</div>
+					<div>{$_('admin.affiliates.records.frozenQuotaAfter', { default: 'Frozen after' })}</div>
+					<div>{$_('admin.affiliates.records.snapshot', { default: 'Snapshot' })}</div>
+					<div>{$_('admin.affiliates.records.transferredAt', { default: 'Created at' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -156,7 +157,7 @@
 				</div>
 			{/snippet}
 			{#snippet empty()}
-				<div class="p-6 text-center text-sm text-muted-foreground">No transfer records found</div>
+				<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.affiliates.transfersEmpty', { default: 'No transfer records found' })}</div>
 			{/snippet}
 		</VirtualTable>
 		<div class="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">

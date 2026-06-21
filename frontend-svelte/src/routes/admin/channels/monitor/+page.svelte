@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import {
-		Activity,
 		ChevronLeft,
 		ChevronRight,
+		FileText,
 		Play,
 		Plus,
 		RefreshCw,
@@ -15,10 +15,8 @@
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
-	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import Textarea from '$lib/ui/Textarea.svelte';
 	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
 	import {
 		createChannelMonitor,
@@ -26,7 +24,6 @@
 		listChannelMonitors,
 		runChannelMonitorNow,
 		updateChannelMonitor,
-		type APIMode,
 		type ChannelMonitor,
 		type CheckResult,
 		type Provider
@@ -38,27 +35,23 @@
 		formatAvailability,
 		formatDate,
 		formatLatency,
-		parseExtraModels,
 		providerLabel,
 		providerTone,
 		statusTone,
 		summarizeMonitors
 	} from '$lib/features/channel-monitor/channel-monitor';
+	import MonitorEditorCard from '$lib/features/channel-monitor/MonitorEditorCard.svelte';
+	import MonitorTemplateManagerDialog from '$lib/features/channel-monitor/MonitorTemplateManagerDialog.svelte';
 
 	const PROVIDERS: Provider[] = ['openai', 'anthropic', 'gemini'];
-	const ENABLED_OPTIONS = ['true', 'false'];
 	const providerOptions = $derived([
 		{ value: ALL, label: 'All providers' },
 		...PROVIDERS.map((value) => ({ value, label: providerLabel(value) }))
 	]);
-	const formProviderOptions = $derived(PROVIDERS.map((value) => ({ value, label: providerLabel(value) })));
 	const enabledOptions = [
 		{ value: ALL, label: 'All states' },
-		...ENABLED_OPTIONS.map((value) => ({ value, label: value === 'true' ? 'Enabled' : 'Disabled' }))
-	];
-	const apiModeOptions = [
-		{ value: 'chat_completions', label: 'Chat completions' },
-		{ value: 'responses', label: 'Responses' }
+		{ value: 'true', label: 'Enabled' },
+		{ value: 'false', label: 'Disabled' }
 	];
 
 	let rows = $state<ChannelMonitor[]>([]);
@@ -74,19 +67,7 @@
 	let showEditor = $state(false);
 	let editing = $state<ChannelMonitor | null>(null);
 	let runResults = $state<CheckResult[]>([]);
-	let form = $state({
-		name: '',
-		provider: 'openai' as Provider,
-		api_mode: 'chat_completions' as APIMode,
-		endpoint: '',
-		api_key: '',
-		primary_model: '',
-		extra_models: '',
-		group_name: '',
-		enabled: true,
-		interval_seconds: 300,
-		jitter_seconds: 0
-	});
+	let templateManagerOpen = $state(false);
 
 	const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)));
 	const summary = $derived(summarizeMonitors(rows));
@@ -100,8 +81,7 @@
 				page_size: PAGE_SIZE,
 				search: searchInput.trim() || undefined,
 				provider: providerFilter === ALL ? undefined : (providerFilter as Provider),
-				enabled:
-					enabledFilter === ALL ? undefined : enabledFilter === 'true'
+				enabled: enabledFilter === ALL ? undefined : enabledFilter === 'true'
 			});
 			rows = resp.items;
 			total = resp.total;
@@ -121,61 +101,21 @@
 
 	function openCreate() {
 		editing = null;
-		form = {
-			name: '',
-			provider: 'openai',
-			api_mode: 'chat_completions',
-			endpoint: '',
-			api_key: '',
-			primary_model: '',
-			extra_models: '',
-			group_name: '',
-			enabled: true,
-			interval_seconds: 300,
-			jitter_seconds: 0
-		};
 		showEditor = true;
 	}
 
 	function openEdit(row: ChannelMonitor) {
 		editing = row;
-		form = {
-			name: row.name,
-			provider: row.provider,
-			api_mode: row.api_mode,
-			endpoint: row.endpoint,
-			api_key: '',
-			primary_model: row.primary_model,
-			extra_models: row.extra_models.join('\n'),
-			group_name: row.group_name,
-			enabled: row.enabled,
-			interval_seconds: row.interval_seconds,
-			jitter_seconds: row.jitter_seconds
-		};
 		showEditor = true;
 	}
 
-	async function saveMonitor() {
-		if (!form.name.trim() || !form.endpoint.trim() || !form.primary_model.trim()) return;
+	async function handleEditorSave(payload: Record<string, unknown>) {
 		saving = true;
 		try {
-			const payload = {
-				name: form.name.trim(),
-				provider: form.provider,
-				api_mode: form.api_mode,
-				endpoint: form.endpoint.trim(),
-				api_key: form.api_key,
-				primary_model: form.primary_model.trim(),
-				extra_models: parseExtraModels(form.extra_models),
-				group_name: form.group_name.trim(),
-				enabled: form.enabled,
-				interval_seconds: Number(form.interval_seconds) || 300,
-				jitter_seconds: Number(form.jitter_seconds) || 0
-			};
 			if (editing) {
 				await updateChannelMonitor(editing.id, payload);
 			} else {
-				await createChannelMonitor(payload);
+				await createChannelMonitor(payload as unknown as Parameters<typeof createChannelMonitor>[0]);
 			}
 			showSuccess('Channel monitor saved');
 			showEditor = false;
@@ -246,6 +186,9 @@
 			<p class="text-sm text-muted-foreground">Track provider health, latency, and model availability.</p>
 		</div>
 		<div class="flex gap-2">
+			<Button variant="outline" onclick={() => (templateManagerOpen = true)} data-testid="open-template-manager">
+				<FileText size={15} />{$_('admin.channelMonitor.template.managerButton', { default: 'Templates' })}
+			</Button>
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
 				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
 			</Button>
@@ -265,62 +208,7 @@
 	</section>
 
 	{#if showEditor}
-		<Card class="p-4">
-			<div class="mb-3 flex items-center gap-2 text-sm font-semibold">
-				<Activity class="h-4 w-4 text-muted-foreground" />
-				{editing ? 'Edit monitor' : 'Create monitor'}
-			</div>
-			<div class="grid gap-3 lg:grid-cols-3">
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Name</span>
-					<Input bind:value={form.name} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Provider</span>
-					<NativeSelect bind:value={form.provider} options={formProviderOptions} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>API mode</span>
-					<NativeSelect bind:value={form.api_mode} options={apiModeOptions} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground lg:col-span-2">
-					<span>Endpoint</span>
-					<Input bind:value={form.endpoint} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>API key {editing ? '(blank keeps current)' : ''}</span>
-					<Input type="password" bind:value={form.api_key} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Primary model</span>
-					<Input bind:value={form.primary_model} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Group name</span>
-					<Input bind:value={form.group_name} />
-				</label>
-				<label class="flex items-center gap-2 pt-6 text-sm text-foreground">
-					<Checkbox bind:checked={form.enabled} />
-					<span>Enabled</span>
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Interval seconds</span>
-					<Input type="number" min="30" bind:value={form.interval_seconds} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Jitter seconds</span>
-					<Input type="number" min="0" bind:value={form.jitter_seconds} />
-				</label>
-				<label class="space-y-1 text-xs font-medium text-muted-foreground lg:col-span-3">
-					<span>Extra models</span>
-					<Textarea class="font-mono text-xs" placeholder="one model per line or comma separated" bind:value={form.extra_models} />
-				</label>
-			</div>
-			<div class="mt-3 flex justify-end gap-2">
-				<Button variant="outline" disabled={saving} onclick={() => showEditor = false}>Cancel</Button>
-				<Button disabled={saving || !form.name.trim() || !form.endpoint.trim() || !form.primary_model.trim()} onclick={saveMonitor}>Save</Button>
-			</div>
-		</Card>
+		<MonitorEditorCard {editing} {saving} onSave={handleEditorSave} onCancel={() => (showEditor = false)} />
 	{/if}
 
 	{#if runResults.length}
@@ -365,6 +253,11 @@
 						<div class="flex items-center gap-2">
 							<div class={`h-2 w-2 rounded-full ${row.enabled ? 'bg-emerald-500' : 'bg-muted-foreground'}`}></div>
 							<div class="truncate font-medium">{row.name}</div>
+							{#if row.template_id}
+								<Badge variant="outline" class="gap-1 text-xs border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300">
+									<FileText class="inline h-3 w-3" />TPL
+								</Badge>
+							{/if}
 						</div>
 						<div class="truncate text-xs text-muted-foreground">{row.endpoint}</div>
 					</div>
@@ -395,3 +288,5 @@
 		</div>
 	</Card>
 </div>
+
+<MonitorTemplateManagerDialog bind:open={templateManagerOpen} onUpdated={loadRows} />

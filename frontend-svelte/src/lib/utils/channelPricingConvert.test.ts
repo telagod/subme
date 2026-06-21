@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { MTOK, mTokToPerToken, perTokenToMTok } from './pricing';
+import channelFormSrc from '$lib/features/supply/ChannelFormDialog.svelte?raw';
+import pricingUtilSrc from '$lib/utils/pricing.ts?raw';
+import supplySrc from '$lib/features/supply/supply.ts?raw';
+import availableChannelsSrc from '$lib/features/available-channels/available-channels.ts?raw';
 
 /**
  * Billing red line: channel model-pricing is stored PER-TOKEN by the backend
@@ -141,5 +145,61 @@ describe('load -> save round-trip on a sample channel', () => {
 			per_request_price: null
 		};
 		expect(buildEntry(loadEntry(sparse))).toEqual(sparse);
+	});
+});
+
+/**
+ * Source-level red-line tests: assert that conversion functions exist in
+ * every file that handles channel pricing. A regression here means prices
+ * get written 1,000,000x wrong, corrupting billing data.
+ */
+describe('source-level conversion guards', () => {
+	it('pricing.ts exports mTokToPerToken and perTokenToMTok with 1e6 constant', () => {
+		expect(pricingUtilSrc).toContain('export function mTokToPerToken');
+		expect(pricingUtilSrc).toContain('export function perTokenToMTok');
+		expect(pricingUtilSrc).toContain('1_000_000');
+		expect(pricingUtilSrc).toMatch(/n\s*\/\s*MTOK/); // divides by MTOK on save
+		expect(pricingUtilSrc).toMatch(/val\s*\*\s*MTOK/); // multiplies by MTOK on load
+	});
+
+	it('ChannelFormDialog imports and uses both conversion functions', () => {
+		expect(channelFormSrc).toContain("import { mTokToPerToken, perTokenToMTok } from '$lib/utils/pricing'");
+		// LOAD path: perTokenToMTok on API data -> form
+		expect(channelFormSrc).toContain('perTokenToMTok(p.input_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(p.output_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(p.cache_write_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(p.cache_read_price)');
+		expect(channelFormSrc).toMatch(/perTokenToMTok\(p\.image_output_price/);
+		// SAVE path: mTokToPerToken on form -> API data
+		expect(channelFormSrc).toContain('mTokToPerToken(');
+		// per_request_price must NOT go through mTokToPerToken
+		expect(channelFormSrc).not.toMatch(/mTokToPerToken\([^)]*perRequestPrice/);
+		expect(channelFormSrc).not.toMatch(/mTokToPerToken\([^)]*per_request_price/);
+	});
+
+	it('ChannelFormDialog also converts interval prices on both load and save', () => {
+		// LOAD: intervals use perTokenToMTok
+		expect(channelFormSrc).toContain('perTokenToMTok(iv.input_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(iv.output_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(iv.cache_write_price)');
+		expect(channelFormSrc).toContain('perTokenToMTok(iv.cache_read_price)');
+		// SAVE: intervals use mTokToPerToken (via buildPricingEntry)
+		const idx = channelFormSrc.indexOf('function buildPricingEntry') !== -1
+			? channelFormSrc.indexOf('function buildPricingEntry')
+			: channelFormSrc.indexOf('function buildEntry');
+		const buildEntryBlock = channelFormSrc.slice(idx);
+		expect(buildEntryBlock).toContain('mTokToPerToken(');
+	});
+
+	it('read-only pricing table imports perTokenToMTok for display', () => {
+		// ChannelFormDialog must use perTokenToMTok on the load path
+		expect(channelFormSrc).toContain('perTokenToMTok');
+		// available-channels must import for display
+		expect(availableChannelsSrc).toContain('perTokenToMTok');
+	});
+
+	it('user-side available-channels converts per-token prices to $/MTok', () => {
+		expect(availableChannelsSrc).toContain("import { perTokenToMTok } from '$lib/utils/pricing'");
+		expect(availableChannelsSrc).toContain('perTokenToMTok(');
 	});
 });

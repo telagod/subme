@@ -20,14 +20,17 @@
 	 *   { open: boolean; errorId: number | null; errorType?: 'request' | 'upstream'; onClose: () => void }
 	 */
 	import { _ } from 'svelte-i18n';
-	import { RefreshCw, AlertTriangle, ChevronRight, ChevronDown, X } from '@lucide/svelte';
+	import { RefreshCw, AlertTriangle, ChevronRight, ChevronDown, X, CheckCircle2 } from '@lucide/svelte';
 	import {
 		getOpsRequestErrorDetail,
 		getOpsUpstreamErrorDetail,
 		listOpsRequestErrorUpstreamErrors,
+		resolveOpsRequestError,
+		resolveOpsUpstreamError,
 		type OpsErrorDetail
 	} from '$lib/api/admin/ops';
 	import { formatDateTime, formatDuration } from '$lib/features/admin-ops/ops';
+	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
@@ -47,6 +50,7 @@
 	// ── detail fetch state ───────────────────────────────────────────────────
 	let detail = $state<OpsErrorDetail | null>(null);
 	let loading = $state(false);
+	let resolving = $state(false);
 	let loadError = $state<string | null>(null);
 	let lastLoadedId = $state<number | null>(null);
 
@@ -283,6 +287,37 @@
 		}
 	});
 
+	const isResolved = $derived(detail?.resolved === true);
+
+	async function toggleResolve() {
+		const id = errorId;
+		if (id == null || resolving) return;
+		resolving = true;
+		try {
+			const next = !detail?.resolved;
+			const kind: ErrorType = errorType ?? (detail?.phase === 'upstream' ? 'upstream' : 'request');
+			if (kind === 'upstream') {
+				await resolveOpsUpstreamError(id, next);
+			} else {
+				await resolveOpsRequestError(id, next);
+			}
+			showSuccess(
+				next
+					? $_('admin.ops.errorDetail.resolveSuccess', { default: 'Error marked as resolved.' })
+					: $_('admin.ops.errorDetail.unresolveSuccess', { default: 'Error marked as unresolved.' })
+			);
+			await loadDetail(id);
+		} catch (err) {
+			showError(
+				err instanceof Error
+					? err.message
+					: $_('admin.ops.errorDetail.resolveFailed', { default: 'Failed to update resolution status.' })
+			);
+		} finally {
+			resolving = false;
+		}
+	}
+
 	function handleClose() {
 		open = false;
 		onClose();
@@ -471,6 +506,107 @@
 					{/if}
 				</div>
 
+				<!-- Classification + context -->
+				<div class="grid grid-cols-2 gap-2.5 md:grid-cols-4" data-testid="ops-error-detail-classification">
+					{#if detail.phase}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.phase', { default: 'Phase' })}
+							</div>
+							<div class="mt-0.5 text-base font-black">{detail.phase}</div>
+						</div>
+					{/if}
+					{#if detail.severity}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.severity', { default: 'Severity' })}
+							</div>
+							<div class="mt-0.5 text-base font-black">{detail.severity}</div>
+						</div>
+					{/if}
+					{#if detail.error_owner}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.errorOwner', { default: 'Error owner' })}
+							</div>
+							<div class="mt-0.5 text-base font-black">{detail.error_owner}</div>
+						</div>
+					{/if}
+					{#if detail.error_source}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.errorSource', { default: 'Error source' })}
+							</div>
+							<div class="mt-0.5 text-base font-black">{detail.error_source}</div>
+						</div>
+					{/if}
+					{#if detail.upstream_status_code != null}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.upstreamStatusCode', { default: 'Upstream status' })}
+							</div>
+							<div class="mt-1">
+								<Badge variant="outline" class={statusBadgeClass(detail.upstream_status_code)}>
+									{detail.upstream_status_code}
+								</Badge>
+							</div>
+						</div>
+					{/if}
+					{#if detail.client_ip}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.clientIp', { default: 'Client IP' })}
+							</div>
+							<div class="mt-0.5 font-mono text-base font-black tabular-nums">
+								{detail.client_ip}
+							</div>
+						</div>
+					{/if}
+					{#if detail.user_agent}
+						<div class="rounded-[10px] border border-border bg-card p-3 md:col-span-2">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.userAgent', { default: 'User agent' })}
+							</div>
+							<div class="mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-foreground" title={detail.user_agent}>
+								{detail.user_agent}
+							</div>
+						</div>
+					{/if}
+					<div class="rounded-[10px] border border-border bg-card p-3">
+						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+							{$_('admin.ops.errorDetail.resolved', { default: 'Resolved' })}
+						</div>
+						<div class="mt-1 flex items-center gap-2">
+							{#if isResolved}
+								<Badge variant="outline" class="border-emerald-500/40 bg-emerald-500/10 text-emerald-600">
+									{$_('admin.ops.errorDetail.resolvedYes', { default: 'Resolved' })}
+								</Badge>
+								{#if detail.resolved_by_user_name}
+									<span class="text-xs text-muted-foreground">
+										{$_('admin.ops.errorDetail.resolvedBy', { default: 'by' })} {detail.resolved_by_user_name}
+									</span>
+								{/if}
+							{:else}
+								<Badge variant="outline" class="border-border bg-muted text-muted-foreground">
+									{$_('admin.ops.errorDetail.resolvedNo', { default: 'Unresolved' })}
+								</Badge>
+							{/if}
+						</div>
+					</div>
+					{#if detail.is_business_limited}
+						<div class="rounded-[10px] border border-border bg-card p-3">
+							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+								{$_('admin.ops.errorDetail.businessLimited', { default: 'Business limited' })}
+							</div>
+							<div class="mt-1">
+								<Badge variant="destructive" class="text-[10px]">
+									{$_('common.yes', { default: 'Yes' })}
+								</Badge>
+							</div>
+						</div>
+					{/if}
+				</div>
+
 				<!-- Latency phases breakdown -->
 				{#if latencyPhases.length}
 					<div
@@ -608,10 +744,28 @@
 		{/if}
 	</div>
 
-	<div class="mt-4 flex items-center justify-end border-t border-border pt-4">
+	<div class="mt-4 flex items-center justify-between border-t border-border pt-4">
 		<Button variant="ghost" size="sm" onclick={handleClose} data-testid="ops-error-detail-close">
 			<X class="h-4 w-4" aria-hidden="true" />
 			{$_('common.close', { default: 'Close' })}
 		</Button>
+		{#if detail}
+			<Button
+				variant={isResolved ? 'outline' : 'default'}
+				size="sm"
+				disabled={resolving}
+				onclick={toggleResolve}
+				data-testid="ops-error-detail-resolve"
+			>
+				<CheckCircle2 class="h-4 w-4" aria-hidden="true" />
+				{#if resolving}
+					{$_('common.saving', { default: 'Saving...' })}
+				{:else if isResolved}
+					{$_('admin.ops.errorDetail.unresolve', { default: 'Mark unresolved' })}
+				{:else}
+					{$_('admin.ops.errorDetail.resolve', { default: 'Mark resolved' })}
+				{/if}
+			</Button>
+		{/if}
 	</div>
 </StandardDialog>

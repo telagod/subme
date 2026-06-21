@@ -49,6 +49,7 @@ export interface Channel {
 	model_mapping?: Record<string, Record<string, string>>;
 	apply_pricing_to_account_stats?: boolean;
 	account_stats_pricing_rules?: AccountStatsPricingRule[];
+	features_config?: Record<string, unknown>;
 	created_at?: string;
 	updated_at?: string;
 	[key: string]: unknown;

@@ -160,7 +160,7 @@ describe('admin infrastructure API facades', () => {
 		);
 
 		mockedApi.post.mockResolvedValueOnce({ code: 0, data: { affected: 2 } });
-		await expect(apply(1, { monitor_ids: [7, 8] })).resolves.toEqual({ affected: 2 });
+		await expect(apply(1, [7, 8])).resolves.toEqual({ affected: 2 });
 		expect(mockedApi.post).toHaveBeenCalledWith('/api/v1/admin/channel-monitor-templates/1/apply', {
 			monitor_ids: [7, 8]
 		});

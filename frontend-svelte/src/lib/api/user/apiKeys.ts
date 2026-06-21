@@ -23,6 +23,15 @@ import { apiClient } from '../client';
 
 export type ApiKeyStatus = 'active' | 'inactive' | 'quota_exhausted' | 'expired';
 
+/** Group info returned inline with each key. */
+export interface KeyGroup {
+	id: number;
+	name: string;
+	platform: string;
+	rate_multiplier: number;
+	subscription_type?: string;
+}
+
 /** UI-friendly ApiKey shape（camelCase）。listKeys / getKey 返回的就是这个。 */
 export interface ApiKey {
 	id: number;
@@ -41,6 +50,12 @@ export interface ApiKey {
 	createdAt: string;
 	lastUsedAt: string | null;
 	expiresAt: string | null;
+	/** Group association — populated from backend's embedded group object. */
+	groupId: number | null;
+	group: KeyGroup | null;
+	/** Per-key usage stats (from backend list response). */
+	usageToday: number;
+	usageTotal: number;
 }
 
 export interface ListKeysParams {
@@ -98,6 +113,13 @@ interface RawApiKey {
 	created_at: string;
 	last_used_at?: string | null;
 	expires_at?: string | null;
+	group_id?: number | null;
+	group?: KeyGroup | null;
+	/** Backend may return usage fields inline. */
+	usage_today?: number;
+	usage_total?: number;
+	today_actual_cost?: number;
+	total_actual_cost?: number;
 }
 
 interface RawPaginated {
@@ -132,8 +154,18 @@ function mapKey(raw: RawApiKey): ApiKey {
 		status: raw.status,
 		createdAt: raw.created_at,
 		lastUsedAt: raw.last_used_at ?? null,
-		expiresAt: raw.expires_at ?? null
+		expiresAt: raw.expires_at ?? null,
+		groupId: raw.group_id ?? null,
+		group: raw.group ?? null,
+		usageToday: raw.usage_today ?? raw.today_actual_cost ?? 0,
+		usageTotal: raw.usage_total ?? raw.total_actual_cost ?? 0
 	};
+}
+
+/** Toggle key status between active/inactive via PUT. */
+export async function toggleKeyStatus(id: number, currentStatus: ApiKeyStatus): Promise<ApiKey> {
+	const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+	return updateKey(id, { status: newStatus });
 }
 
 // ── API 入口 ─────────────────────────────────────────────────────────────
@@ -198,5 +230,6 @@ export const userApiKeysApi = {
 	createKey,
 	updateKey,
 	revokeKey,
+	toggleKeyStatus,
 	getAvailableGroups
 };

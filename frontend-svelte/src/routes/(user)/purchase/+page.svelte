@@ -18,9 +18,23 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { ShoppingBag, RotateCw, CreditCard } from '@lucide/svelte';
+	import { ShoppingBag, RotateCw, CreditCard, Wallet } from '@lucide/svelte';
 	import { listPlans, type Plan } from '$lib/api/user/subscriptions';
-	import { showError, showInfo } from '$lib/stores/toast.svelte';
+	import { showError, showInfo, showSuccess } from '$lib/stores/toast.svelte';
+	import {
+		type PaymentConfig,
+		type PaymentMethod,
+		getPaymentConfig,
+		listPaymentMethods
+	} from '$lib/api/user/payment';
+	import {
+		buildCreateOrderPayload,
+		decidePaymentLaunch,
+		writePaymentRecoverySnapshot,
+		PAYMENT_RECOVERY_STORAGE_KEY,
+		type CreateOrderFlowResult,
+		type OrderType
+	} from '$lib/features/payment-flow/payment-flow';
 	import PlanCard from '$lib/features/subscriptions/PlanCard.svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -32,15 +46,32 @@
 	let loading = $state(true);
 	let loadError = $state<string | null>(null);
 
+	// Payment config + methods from backend
+	let paymentConfig = $state<PaymentConfig | null>(null);
+	let paymentMethods = $state<PaymentMethod[]>([]);
+
 	// Provider 切换面板
 	let providerOpen = $state(false);
 	let selectedPlan = $state<Plan | null>(null);
-	let selectedProvider = $state<'stripe' | 'airwallex' | 'balance' | null>(null);
+	let selectedProvider = $state<string | null>(null);
 	let checkoutSubmitting = $state(false);
 
 	// Promo code
 	let promoCode = $state('');
 	let promoApplied = $state(false);
+
+	// Derive available providers from backend methods; fallback to static list
+	const availableProviders = $derived.by(() => {
+		if (paymentMethods.length > 0) {
+			return paymentMethods.filter(m => m.available);
+		}
+		// Fallback: show stripe + balance always, airwallex if config hints at it
+		return [
+			{ id: 'stripe', kind: 'stripe' as const, label: 'Stripe', available: true },
+			{ id: 'airwallex', kind: 'airwallex' as const, label: 'Airwallex', available: true },
+			{ id: 'balance', kind: 'balance' as const, label: 'Balance', available: !(paymentConfig?.balance_disabled) }
+		].filter(m => m.available);
+	});
 
 	// ── loaders ─────────────────────────────────────────────────────────
 
@@ -48,7 +79,11 @@
 		loading = true;
 		loadError = null;
 		try {
-			plans = await listPlans();
+			const [plansResult] = await Promise.all([
+				listPlans(),
+				loadPaymentConfig()
+			]);
+			plans = plansResult;
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg === 'unauthorized') return;
@@ -59,9 +94,51 @@
 		}
 	}
 
+	async function loadPaymentConfig() {
+		try {
+			const [config, methods] = await Promise.all([
+				getPaymentConfig(),
+				listPaymentMethods()
+			]);
+			paymentConfig = config;
+			paymentMethods = methods;
+		} catch {
+			// Non-fatal: provider buttons fall back to static list
+		}
+	}
+
 	onMount(() => {
 		loadPlans();
 	});
+
+	// ── helpers ──────────────────────────────────────────────────────────
+
+	function isMobile(): boolean {
+		if (typeof navigator === 'undefined') return false;
+		return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	}
+
+	function isWechat(): boolean {
+		if (typeof navigator === 'undefined') return false;
+		return /MicroMessenger/i.test(navigator.userAgent);
+	}
+
+	function providerIcon(kind: string) {
+		return kind === 'balance' ? Wallet : CreditCard;
+	}
+
+	function providerLabel(kind: string): string {
+		switch (kind) {
+			case 'stripe':
+				return $_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' });
+			case 'airwallex':
+				return $_('user.purchase.providerAirwallex', { default: 'Airwallex' });
+			case 'balance':
+				return $_('user.purchase.providerBalance', { default: 'Pay with balance' });
+			default:
+				return kind;
+		}
+	}
 
 	// ── handlers ────────────────────────────────────────────────────────
 
@@ -82,33 +159,118 @@
 		if (!selectedPlan || !selectedProvider || checkoutSubmitting) return;
 		checkoutSubmitting = true;
 		try {
-			// 预热 SDK lazy facade —— 让 vendor-stripe / vendor-airwallex chunk
-			// 能在 Rollup 静态分析里被「可达」，从而被切成独立 lazy chunk。
-			// 真正的 SDK 调用由后续 payment agent 在 success/cancel 页或弹窗中
-			// 接管；这里 await 但不抛错，失败也不阻塞主流程。
+			// SDK warm-up (non-blocking, just ensures lazy chunks are reachable)
 			if (selectedProvider === 'stripe') {
-				try {
-					await import('$lib/payments/stripe');
-				} catch {
-					/* warm-up failure is non-fatal */
-				}
+				try { await import('$lib/payments/stripe'); } catch { /* non-fatal */ }
 			} else if (selectedProvider === 'airwallex') {
-				try {
-					await import('$lib/payments/airwallex');
-				} catch {
-					/* warm-up failure is non-fatal */
-				}
+				try { await import('$lib/payments/airwallex'); } catch { /* non-fatal */ }
 			}
 
-			// Lazy facade —— 真实支付路径由 payment agent 实装。这里走 dynamic import
-			// 让本路由的 eager bundle 不背 Stripe / Airwallex 的体积。
-			const mod = await import('$lib/api/user/payment');
-			await mod.startCheckout({
+			// Build order payload using the payment flow engine
+			const origin = typeof window !== 'undefined' ? window.location.origin : '';
+			const payload = buildCreateOrderPayload({
+				amount: selectedPlan.price,
+				paymentType: selectedProvider,
+				orderType: 'subscription' as OrderType,
 				planId: selectedPlan.id,
-				provider: selectedProvider,
-				promoCode: promoApplied ? promoCode.trim() : undefined
+				origin,
+				isMobile: isMobile(),
+				isWechatBrowser: isWechat()
 			});
-			// 成功路径通常会 redirect 或 polling；本页只收口 UI 状态。
+			if (promoApplied && promoCode.trim()) {
+				payload.promo_code = promoCode.trim();
+			}
+
+			// Create order via backend
+			const { apiClient } = await import('$lib/api/client');
+			const result = await apiClient.post<CreateOrderFlowResult>(
+				'/api/v1/payment/orders',
+				payload
+			);
+
+			// Balance deduction: backend handles it server-side, just show success
+			if (selectedProvider === 'balance') {
+				showSuccess($_('user.purchase.balanceSuccess', { default: 'Payment completed via balance' }));
+				closeProvider();
+				return;
+			}
+
+			// Build router URLs for Stripe/Airwallex landing pages
+			const stripeRouteUrl = result.client_secret
+				? `/payment/stripe?order_id=${result.order_id}&client_secret=${encodeURIComponent(result.client_secret)}${result.resume_token ? `&resume_token=${encodeURIComponent(result.resume_token)}` : ''}`
+				: '';
+			const airwallexRouteUrl = result.client_secret && result.intent_id
+				? `/payment/airwallex?order_id=${result.order_id}${result.out_trade_no ? `&out_trade_no=${encodeURIComponent(result.out_trade_no)}` : ''}${result.resume_token ? `&resume_token=${encodeURIComponent(result.resume_token)}` : ''}`
+				: '';
+
+			// Decide launch strategy
+			const decision = decidePaymentLaunch(result, {
+				visibleMethod: selectedProvider,
+				orderType: 'subscription',
+				isMobile: isMobile(),
+				isWechatBrowser: isWechat(),
+				stripePopupUrl: stripeRouteUrl,
+				stripeRouteUrl,
+				airwallexRouteUrl
+			});
+
+			// Persist recovery snapshot
+			if (typeof window !== 'undefined') {
+				writePaymentRecoverySnapshot(window.localStorage, decision.recovery, PAYMENT_RECOVERY_STORAGE_KEY);
+			}
+
+			// Execute launch decision
+			if (decision.kind === 'unhandled') {
+				showError($_('user.purchase.checkoutError', { default: 'Payment method not supported for this order' }));
+				return;
+			}
+
+			if (
+				decision.kind === 'stripe_route' ||
+				decision.kind === 'airwallex_route' ||
+				decision.kind === 'redirect_waiting'
+			) {
+				if (typeof window !== 'undefined' && decision.paymentState.payUrl) {
+					window.location.href = decision.paymentState.payUrl;
+				}
+				return;
+			}
+
+			if (decision.kind === 'stripe_popup' && decision.paymentState.payUrl) {
+				if (typeof window !== 'undefined') {
+					const win = window.open(decision.paymentState.payUrl, 'paymentPopup', 'width=500,height=700');
+					if (!win || win.closed) {
+						window.location.href = decision.paymentState.payUrl;
+					}
+				}
+				return;
+			}
+
+			if (decision.kind === 'qr_waiting' && decision.paymentState.qrCode) {
+				// Navigate to QR code display page
+				if (typeof window !== 'undefined') {
+					const params = new URLSearchParams();
+					params.set('order_id', String(decision.paymentState.orderId));
+					if (decision.paymentState.resumeToken) params.set('resume_token', decision.paymentState.resumeToken);
+					window.location.href = `/payment/qrcode?${params.toString()}`;
+				}
+				return;
+			}
+
+			// Fallback: if pay_url exists, redirect
+			if (decision.paymentState.payUrl && typeof window !== 'undefined') {
+				window.location.href = decision.paymentState.payUrl;
+				return;
+			}
+
+			// Navigate to payment result page for polling
+			if (typeof window !== 'undefined') {
+				const params = new URLSearchParams();
+				if (decision.paymentState.orderId) params.set('order_id', String(decision.paymentState.orderId));
+				if (decision.paymentState.outTradeNo) params.set('out_trade_no', decision.paymentState.outTradeNo);
+				if (decision.paymentState.resumeToken) params.set('resume_token', decision.paymentState.resumeToken);
+				window.location.href = `/payment/result?${params.toString()}`;
+			}
 		} catch (err) {
 			const e = err as Error;
 			showError(
@@ -294,54 +456,30 @@
 			role="radiogroup"
 			aria-label={$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
 		>
-			<Button
-				variant="outline"
-				role="radio"
-				aria-checked={selectedProvider === 'stripe'}
-				data-testid="provider-stripe"
-				onclick={() => (selectedProvider = 'stripe')}
-				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
-					'stripe'
-					? 'border-primary ring-2 ring-primary/30'
-					: 'border-border'}"
-			>
-				<span class="flex items-center gap-2">
-					<CreditCard class="h-4 w-4 text-muted-foreground" />
-					{$_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' })}
-				</span>
-			</Button>
-			<Button
-				variant="outline"
-				role="radio"
-				aria-checked={selectedProvider === 'airwallex'}
-				data-testid="provider-airwallex"
-				onclick={() => (selectedProvider = 'airwallex')}
-				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
-					'airwallex'
-					? 'border-primary ring-2 ring-primary/30'
-					: 'border-border'}"
-			>
-				<span class="flex items-center gap-2">
-					<CreditCard class="h-4 w-4 text-muted-foreground" />
-					{$_('user.purchase.providerAirwallex', { default: 'Airwallex' })}
-				</span>
-			</Button>
-			<Button
-				variant="outline"
-				role="radio"
-				aria-checked={selectedProvider === 'balance'}
-				data-testid="provider-balance"
-				onclick={() => (selectedProvider = 'balance')}
-				class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
-					'balance'
-					? 'border-primary ring-2 ring-primary/30'
-					: 'border-border'}"
-			>
-				<span class="flex items-center gap-2">
-					<CreditCard class="h-4 w-4 text-muted-foreground" />
-					{$_('user.purchase.providerBalance', { default: 'Pay with balance' })}
-				</span>
-			</Button>
+			{#each availableProviders as provider (provider.id)}
+				{@const Icon = providerIcon(provider.kind)}
+				<Button
+					variant="outline"
+					role="radio"
+					aria-checked={selectedProvider === provider.kind}
+					data-testid="provider-{provider.kind}"
+					onclick={() => (selectedProvider = provider.kind)}
+					class="h-auto w-full justify-between px-4 py-3 {selectedProvider ===
+						provider.kind
+						? 'border-primary ring-2 ring-primary/30'
+						: 'border-border'}"
+				>
+					<span class="flex items-center gap-2">
+						<Icon class="h-4 w-4 text-muted-foreground" />
+						{providerLabel(provider.kind)}
+					</span>
+				</Button>
+			{/each}
+			{#if availableProviders.length === 0}
+				<p class="py-4 text-center text-sm text-muted-foreground">
+					{$_('user.purchase.noPaymentMethods', { default: 'No payment methods available.' })}
+				</p>
+			{/if}
 		</div>
 
 		<div class="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">

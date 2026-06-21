@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
 	import { createUser, updateUser, type AdminUser, type CreateAdminUserRequest, type UpdateAdminUserRequest } from '$lib/api/admin/users';
-	import { listGroups } from '$lib/api/admin/groups';
+	import { listGroups, type AdminGroup } from '$lib/api/admin/groups';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -23,6 +23,7 @@
 	let email = $state('');
 	let password = $state('');
 	let username = $state('');
+	let displayName = $state('');
 	let balance = $state(0);
 	let concurrency = $state(5);
 	let rpmLimit = $state(0);
@@ -30,26 +31,40 @@
 	let status = $state<'active' | 'disabled'>('active');
 	let notes = $state('');
 	let selectedGroups = $state<number[]>([]);
+	let groupRates = $state<Record<number, string>>({});
 	let submitting = $state(false);
-	let allGroups = $state<Array<{ id: number; name: string }>>([]);
+	let allGroups = $state<AdminGroup[]>([]);
+	let showGroupRates = $state(false);
 
 	async function loadGroups() {
 		try {
-			const res = await listGroups();
+			const res = await listGroups(1, 100);
 			allGroups = res?.items ?? [];
 		} catch { /* ignore */ }
 	}
 
 	function populate(u: AdminUser | null) {
 		if (u) {
-			email = u.email; username = u.username ?? ''; concurrency = u.concurrency ?? 5;
+			email = u.email; username = u.username ?? '';
+			displayName = (u as Record<string, unknown>).display_name as string ?? '';
+			concurrency = u.concurrency ?? 5;
 			rpmLimit = u.rpm_limit ?? 0; role = u.role as 'admin' | 'user'; status = u.status as 'active' | 'disabled';
 			notes = u.notes ?? '';
 			selectedGroups = u.allowed_groups?.slice() ?? u.groups?.map(g => g.id) ?? [];
 			password = ''; balance = 0;
+			// Populate group_rates from user data if present
+			const existingRates = (u as Record<string, unknown>).group_rates as Record<number, number | null> | undefined;
+			groupRates = {};
+			if (existingRates) {
+				for (const [gid, rate] of Object.entries(existingRates)) {
+					if (rate != null) groupRates[Number(gid)] = String(rate);
+				}
+			}
+			showGroupRates = Object.keys(groupRates).length > 0;
 		} else {
-			email = ''; password = ''; username = ''; balance = 0; concurrency = 5;
+			email = ''; password = ''; username = ''; displayName = ''; balance = 0; concurrency = 5;
 			rpmLimit = 0; role = 'user'; status = 'active'; notes = ''; selectedGroups = [];
+			groupRates = {}; showGroupRates = false;
 		}
 	}
 
@@ -65,6 +80,25 @@
 		else selectedGroups = [...selectedGroups, id];
 	}
 
+	function buildGroupRatesPayload(): Record<number, number | null> | undefined {
+		const result: Record<number, number | null> = {};
+		let hasAny = false;
+		for (const [gid, rateStr] of Object.entries(groupRates)) {
+			const trimmed = rateStr.trim();
+			if (trimmed === '') {
+				result[Number(gid)] = null;
+				hasAny = true;
+			} else {
+				const parsed = parseFloat(trimmed);
+				if (Number.isFinite(parsed)) {
+					result[Number(gid)] = parsed;
+					hasAny = true;
+				}
+			}
+		}
+		return hasAny ? result : undefined;
+	}
+
 	async function submit() {
 		if (!email.trim()) { showError($_('admin.users.emailRequired', { default: 'Email is required' })); return; }
 		if (!isEdit && !password.trim()) { showError($_('admin.users.passwordRequired', { default: 'Password is required for new users' })); return; }
@@ -74,8 +108,10 @@
 				const payload: UpdateAdminUserRequest = {
 					email: email.trim(), username: username.trim() || undefined,
 					notes: notes.trim() || undefined, role, status,
-					concurrency, allowed_groups: selectedGroups.length ? selectedGroups : null
+					concurrency, allowed_groups: selectedGroups.length ? selectedGroups : null,
+					group_rates: buildGroupRatesPayload()
 				};
+				if (displayName.trim()) (payload as unknown as Record<string, unknown>).display_name = displayName.trim();
 				if (password.trim()) payload.password = password.trim();
 				if (rpmLimit > 0) (payload as unknown as Record<string, unknown>).rpm_limit = rpmLimit;
 				await updateUser(user.id, payload);
@@ -87,6 +123,7 @@
 					balance: balance || undefined, concurrency,
 					allowed_groups: selectedGroups.length ? selectedGroups : null
 				};
+				if (displayName.trim()) (payload as unknown as Record<string, unknown>).display_name = displayName.trim();
 				if (rpmLimit > 0) (payload as unknown as Record<string, unknown>).rpm_limit = rpmLimit;
 				await createUser(payload);
 				showSuccess($_('admin.users.created', { default: 'User created' }));
@@ -133,8 +170,17 @@
 				{$_('admin.users.username', { default: 'Username' })}
 			</span>
 			<Input type="text" autocomplete="off" bind:value={username}
-				placeholder={$_('admin.users.usernamePlaceholder', { default: 'Optional display name' })}
+				placeholder={$_('admin.users.usernamePlaceholder', { default: 'Optional login name' })}
 				data-testid="user-form-username" />
+		</div>
+
+		<div class="flex flex-col gap-1.5">
+			<span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.displayName', { default: 'Display Name' })}
+			</span>
+			<Input type="text" autocomplete="off" bind:value={displayName}
+				placeholder={$_('admin.users.displayNamePlaceholder', { default: 'Optional display name' })}
+				data-testid="user-form-display-name" />
 		</div>
 
 		{#if !isEdit}
@@ -199,6 +245,38 @@
 						</label>
 					{/each}
 				</div>
+			</div>
+		{/if}
+
+		{#if isEdit && selectedGroups.length > 0}
+			<div class="flex flex-col gap-1.5">
+				<div class="flex items-center justify-between">
+					<span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						{$_('admin.users.groupRates', { default: 'Group Rate Overrides' })}
+					</span>
+					<Button type="button" variant="ghost" size="sm" class="h-6 text-xs"
+						onclick={() => { showGroupRates = !showGroupRates; }}>
+						{showGroupRates ? $_('common.hide', { default: 'Hide' }) : $_('common.show', { default: 'Show' })}
+					</Button>
+				</div>
+				{#if showGroupRates}
+					<div class="flex flex-col gap-1.5 rounded-md border border-border p-2">
+						<p class="text-[10.5px] text-muted-foreground">
+							{$_('admin.users.groupRatesHint', { default: 'Leave blank to use group default rate. Values are multipliers (e.g. 0.8 = 20% discount).' })}
+						</p>
+						{#each selectedGroups as gid}
+							{@const group = allGroups.find(g => g.id === gid)}
+							<div class="flex items-center gap-2">
+								<span class="min-w-[80px] truncate text-xs text-muted-foreground">{group?.name ?? `#${gid}`}</span>
+								<Input type="number" step="0.01" min="0" class="h-7 text-xs"
+									placeholder={group?.rate_multiplier != null ? String(group.rate_multiplier) : '1.0'}
+									value={groupRates[gid] ?? ''}
+									oninput={(e: Event) => { groupRates[gid] = (e.target as HTMLInputElement).value; groupRates = { ...groupRates }; }}
+									data-testid="user-form-group-rate-{gid}" />
+							</div>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		{/if}
 

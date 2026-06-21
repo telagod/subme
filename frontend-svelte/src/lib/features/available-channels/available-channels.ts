@@ -4,6 +4,7 @@ import type {
 	UserChannelPlatformSection,
 	UserSupportedModel
 } from '$lib/api/user/channels';
+import { perTokenToMTok } from '$lib/utils/pricing';
 
 export function filterAvailableChannels(
 	channels: UserAvailableChannel[],
@@ -56,8 +57,11 @@ export function modelPricingLabel(model: UserSupportedModel): string {
 	}
 }
 
-function pricePart(label: string, value: number | null, unit: string): string {
-	return value == null ? '' : `${label} $${value}${unit}`;
+function pricePart(label: string, perTokenValue: number | null, unit: string): string {
+	if (perTokenValue == null) return '';
+	const mtok = perTokenToMTok(perTokenValue);
+	if (mtok === null) return '';
+	return `${label} $${mtok}${unit}`;
 }
 
 export function groupRateLabel(group: UserAvailableGroup, userRates: Record<number, number>): string {

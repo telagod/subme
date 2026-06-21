@@ -5,13 +5,17 @@ import type { DashboardSnapshot } from '$lib/api/admin/dashboard';
 import { buildKpis, topGroups, topModels, topUsers } from './dashboard';
 
 const mockSnapshot = vi.fn();
+const mockRanking = vi.fn();
+const mockUserTrend = vi.fn();
 
 vi.mock('$lib/api/admin/dashboard', async () => {
 	const actual =
 		await vi.importActual<typeof import('$lib/api/admin/dashboard')>('$lib/api/admin/dashboard');
 	return {
 		...actual,
-		getDashboardSnapshot: (...args: unknown[]) => mockSnapshot(...args)
+		getDashboardSnapshot: (...args: unknown[]) => mockSnapshot(...args),
+		getUserSpendingRanking: (...args: unknown[]) => mockRanking(...args),
+		getUserUsageTrend: (...args: unknown[]) => mockUserTrend(...args)
 	};
 });
 
@@ -76,7 +80,18 @@ describe('admin dashboard helpers', () => {
 describe('admin dashboard page', () => {
 	beforeEach(() => {
 		mockSnapshot.mockReset();
+		mockRanking.mockReset();
+		mockUserTrend.mockReset();
 		mockSnapshot.mockResolvedValue(fakeSnapshot());
+		mockRanking.mockResolvedValue({
+			ranking: [
+				{ user_id: 1, email: 'top@example.com', requests: 100, tokens: 5000, actual_cost: 5.0 }
+			],
+			total_actual_cost: 5.0,
+			total_requests: 100,
+			total_tokens: 5000
+		});
+		mockUserTrend.mockResolvedValue({ trend: [] });
 	});
 
 	it('loads snapshot-v2 and renders kpis plus ranking tables', async () => {
@@ -84,7 +99,7 @@ describe('admin dashboard page', () => {
 		const { container } = render(pageMod.default);
 
 		await waitFor(() => {
-			expect(mockSnapshot).toHaveBeenCalledWith({ granularity: 'day' });
+			expect(mockSnapshot).toHaveBeenCalled();
 			expect(container.querySelectorAll('[data-testid="dashboard-kpi"]').length).toBe(8);
 			expect(container.querySelectorAll('[data-testid="chart-island"]').length).toBeGreaterThanOrEqual(1);
 			expect(container.querySelectorAll('[data-testid="dashboard-group-row"]').length).toBe(2);

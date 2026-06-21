@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { onMount } from 'svelte';
 	import { Pencil } from '@lucide/svelte';
 	import { updateKey, getAvailableGroups, type ApiKey, type AvailableGroup } from '$lib/api/user/apiKeys';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
@@ -20,14 +19,27 @@
 	let name = $state('');
 	let groupId = $state('__none__');
 	let quota = $state('');
+	let expiresAt = $state('');
 	let submitting = $state(false);
 	let groups = $state<AvailableGroup[]>([]);
 
 	$effect(() => {
 		if (open && apiKey) {
 			name = apiKey.name;
-			groupId = '__none__';
+			// Pre-select current group from key data
+			groupId = apiKey.groupId ? String(apiKey.groupId) : '__none__';
 			quota = apiKey.quotaTotal > 0 ? String(apiKey.quotaTotal) : '';
+			// Pre-fill expiry as local datetime string for input[type=datetime-local]
+			if (apiKey.expiresAt) {
+				try {
+					const d = new Date(apiKey.expiresAt);
+					expiresAt = d.toISOString().slice(0, 16);
+				} catch {
+					expiresAt = '';
+				}
+			} else {
+				expiresAt = '';
+			}
 		}
 	});
 
@@ -46,8 +58,19 @@
 		submitting = true;
 		try {
 			const payload: Record<string, unknown> = { name: name.trim() };
-			if (groupId && groupId !== '__none__') payload.group_id = Number(groupId);
+			if (groupId && groupId !== '__none__') {
+				payload.group_id = Number(groupId);
+			} else if (groupId === '__none__' && apiKey.groupId) {
+				// Clearing group assignment
+				payload.group_id = null;
+			}
 			if (quota !== '' && Number(quota) >= 0) payload.quota = Number(quota);
+			// Expiry: send null to clear, ISO string to set
+			if (expiresAt) {
+				payload.expires_at = new Date(expiresAt).toISOString();
+			} else if (apiKey.expiresAt && !expiresAt) {
+				payload.expires_at = null;
+			}
 			const updated = await updateKey(apiKey.id, payload as never);
 			showSuccess($_('user.keys.editSuccess', { default: 'API key updated' }));
 			onUpdated?.(updated);
@@ -105,6 +128,21 @@
 				{$_('user.keys.quotaLabel', { default: 'Quota (USD, optional)' })}
 			</label>
 			<Input id="edit-key-quota" data-testid="edit-key-quota" type="number" step="0.01" min="0" bind:value={quota} />
+		</div>
+
+		<div class="space-y-1.5">
+			<label for="edit-key-expires" class="text-sm font-medium text-foreground">
+				{$_('user.keys.expiresAtLabel', { default: 'Expires at (optional)' })}
+			</label>
+			<Input
+				id="edit-key-expires"
+				data-testid="edit-key-expires"
+				type="datetime-local"
+				bind:value={expiresAt}
+			/>
+			<p class="text-xs text-muted-foreground">
+				{$_('user.keys.expiresAtHint', { default: 'Leave empty for no expiration. Clear to remove existing expiry.' })}
+			</p>
 		</div>
 
 		<div class="flex items-center justify-end gap-2 pt-2">

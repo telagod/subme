@@ -108,7 +108,7 @@
 
 	<Card class="p-3">
 		<div class="grid gap-3 lg:grid-cols-[minmax(220px,1.5fr)_150px_150px_150px_160px_150px_150px_150px_auto]">
-			<label class="relative"><Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} /><Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: 'Search name, email, note' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && apply()} /></label>
+			<label class="relative"><Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} /><Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: 'Search name, email, note' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && apply()} data-testid="accounts-search" /></label>
 			<NativeSelect bind:value={platformF} options={platformOptions} onchange={apply} data-testid="accounts-platform-filter" />
 			<NativeSelect bind:value={typeF} options={typeOptions} onchange={apply} data-testid="accounts-type-filter" />
 			<NativeSelect bind:value={statusF} options={statusOptions} onchange={apply} data-testid="accounts-status-filter" />

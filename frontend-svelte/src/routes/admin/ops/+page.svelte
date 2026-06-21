@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import Alert from '$lib/ui/Alert.svelte';
+	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import OpsFilterBar from '$lib/features/admin-ops/OpsFilterBar.svelte';
 	import OpsHealthCard from '$lib/features/admin-ops/OpsHealthCard.svelte';
 	import OpsConcurrencyCard from '$lib/features/admin-ops/OpsConcurrencyCard.svelte';
@@ -19,7 +20,6 @@
 	import OpsErrorDetailModal from '$lib/features/admin-ops/OpsErrorDetailModal.svelte';
 	import OpsErrorDetailsModal from '$lib/features/admin-ops/OpsErrorDetailsModal.svelte';
 	import OpsRequestDetailsModal from '$lib/features/admin-ops/OpsRequestDetailsModal.svelte';
-	import OpsAlertEventDetailDrawer from '$lib/features/admin-ops/OpsAlertEventDetailDrawer.svelte';
 	import type { OpsRequestDetailsPreset } from '$lib/features/admin-ops/OpsRequestDetailsModal.svelte';
 	import { settingsApi } from '$lib/api/admin/settingsRegistry';
 	import {
@@ -36,8 +36,7 @@
 		type OpsLatencyHistogramResponse,
 		type OpsErrorTrendResponse,
 		type OpsErrorDistributionResponse,
-		type OpsMetricThresholds,
-		type AlertEvent
+		type OpsMetricThresholds
 	} from '$lib/api/admin/ops';
 
 	type TimeRange = '5m' | '30m' | '1h' | '6h' | '24h' | 'custom';
@@ -75,8 +74,6 @@
 	let errorDetailsType = $state<'request' | 'upstream'>('request');
 	let showRequestDetails = $state(false);
 	let requestPreset = $state<OpsRequestDetailsPreset>({ title: 'Request Details' });
-	let showAlertEventDrawer = $state(false);
-	let alertEvent = $state<AlertEvent | null>(null);
 
 	// ── Auto-refresh ─────────────────────────────────────────────────────────
 	let autoRefreshEnabled = $state(true);
@@ -202,7 +199,7 @@
 		</div>
 
 		<OpsOpenAITokenStatsCard platformFilter={platform} groupIdFilter={groupId} {refreshToken} />
-		<OpsAlertEventsCard {refreshToken} />
+		<OpsAlertEventsCard {refreshToken} platformFilter={platform} groupIdFilter={groupId} />
 
 		<OpsErrorLogTable errorType="request" {timeRange} platform={platform || undefined}
 			groupId={groupId} onOpenErrorDetail={openErrorDetail} />
@@ -210,7 +207,23 @@
 			groupId={groupId} onOpenErrorDetail={openErrorDetail} />
 
 		<OpsSystemLogTable platformFilter={platform} {refreshToken} />
+
+		<!-- Alert rules: always rendered inline at the bottom of the dashboard -->
 		<OpsAlertRulesCard />
+
+		<!-- Alert rules management dialog (opened from filter bar button) -->
+		<StandardDialog
+			bind:open={showAlertRules}
+			width="lg"
+			title={$_('admin.ops.alertRules.title', { default: 'Alert rules' })}
+			description={$_('admin.ops.alertRules.description', { default: 'Define metric thresholds that trigger ops alerts.' })}
+			class="!max-w-5xl"
+			data-testid="ops-alert-rules-dialog"
+		>
+			<div class="mt-3 min-h-0 max-h-[75vh] overflow-y-auto">
+				<OpsAlertRulesCard />
+			</div>
+		</StandardDialog>
 
 		<OpsSettingsDialog open={showSettings}
 			onClose={() => (showSettings = false)}
@@ -225,8 +238,5 @@
 			preset={requestPreset} platform={platform || undefined} groupId={groupId}
 			onClose={() => (showRequestDetails = false)}
 			onOpenErrorDetail={(id) => openErrorDetail(id, 'request')} />
-		<OpsAlertEventDetailDrawer open={showAlertEventDrawer} event={alertEvent}
-			onClose={() => (showAlertEventDrawer = false)}
-			onResolved={() => { showAlertEventDrawer = false; refreshToken++; }} />
 	{/if}
 </div>

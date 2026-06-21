@@ -192,14 +192,14 @@
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
 				{$_('nav.quench.announcements', { default: 'Announcements' })}
 			</h1>
-			<p class="text-sm text-muted-foreground">Publish popup or silent notices with optional targeting windows.</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.announcements.description', { default: 'Publish popup or silent notices with optional targeting windows.' })}</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
-				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
+				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}
 			</Button>
 			<Button onclick={openCreate}>
-				<Plus size={15} />Create
+				<Plus size={15} />{$_('common.create', { default: 'Create' })}
 			</Button>
 		</div>
 	</header>
@@ -217,45 +217,45 @@
 		<Card class="p-4">
 			<div class="mb-3 flex items-center gap-2 text-sm font-semibold">
 				<Megaphone class="h-4 w-4 text-muted-foreground" />
-				{editing ? 'Edit announcement' : 'Create announcement'}
+				{editing ? $_('admin.announcements.editAnnouncement', { default: 'Edit announcement' }) : $_('admin.announcements.createAnnouncement', { default: 'Create announcement' })}
 			</div>
 			<div class="grid gap-3 lg:grid-cols-2">
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Title</span>
+					<span>{$_('admin.announcements.columns.title', { default: 'Title' })}</span>
 					<Input bind:value={form.title} />
 				</label>
 				<div class="grid gap-3 sm:grid-cols-2">
 					<label class="space-y-1 text-xs font-medium text-muted-foreground">
-						<span>Status</span>
+						<span>{$_('admin.announcements.columns.status', { default: 'Status' })}</span>
 						<NativeSelect bind:value={form.status} options={formStatusOptions} />
 					</label>
 					<label class="space-y-1 text-xs font-medium text-muted-foreground">
-						<span>Notify mode</span>
+						<span>{$_('admin.announcements.columns.notifyMode', { default: 'Notify mode' })}</span>
 						<NativeSelect bind:value={form.notify_mode} options={notifyOptions} />
 					</label>
 				</div>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground lg:col-span-2">
-					<span>Content</span>
+					<span>{$_('admin.announcements.columns.content', { default: 'Content' })}</span>
 					<Textarea class="min-h-24" bind:value={form.content} />
 				</label>
 				<div class="grid gap-3 sm:grid-cols-2">
 					<label class="space-y-1 text-xs font-medium text-muted-foreground">
-						<span>Starts at</span>
+						<span>{$_('admin.announcements.columns.startsAt', { default: 'Starts at' })}</span>
 						<Input type="datetime-local" bind:value={form.starts_at} />
 					</label>
 					<label class="space-y-1 text-xs font-medium text-muted-foreground">
-						<span>Ends at</span>
+						<span>{$_('admin.announcements.columns.endsAt', { default: 'Ends at' })}</span>
 						<Input type="datetime-local" bind:value={form.ends_at} />
 					</label>
 				</div>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Targeting JSON</span>
+					<span>{$_('admin.announcements.columns.targeting', { default: 'Targeting JSON' })}</span>
 					<Textarea class="min-h-24 font-mono text-xs" bind:value={form.targeting} />
 				</label>
 			</div>
 			<div class="mt-3 flex justify-end gap-2">
-				<Button variant="outline" disabled={saving} onclick={() => showEditor = false}>Cancel</Button>
-				<Button disabled={saving || !form.title.trim() || !form.content.trim()} onclick={saveAnnouncement}>Save</Button>
+				<Button variant="outline" disabled={saving} onclick={() => showEditor = false}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+				<Button disabled={saving || !form.title.trim() || !form.content.trim()} onclick={saveAnnouncement}>{$_('common.save', { default: 'Save' })}</Button>
 			</div>
 		</Card>
 	{/if}
@@ -263,11 +263,11 @@
 	<Card class="flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
 		<div class="relative flex-1">
 			<Search class="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-			<Input class="pl-9" placeholder="Search announcements" bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
+			<Input class="pl-9" placeholder={$_('admin.announcements.searchPlaceholder', { default: 'Search announcements' })} bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={resetAndLoad} data-testid="admin-announcements-status-filter" />
-			<Button onclick={resetAndLoad}>Search</Button>
+			<Button onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
 		</div>
 	</Card>
 
@@ -279,7 +279,7 @@
 		<VirtualTable rows={rows} rowHeight={76} getRowKey={(row) => row.id} loading={loading}>
 			{#snippet header()}
 				<div class="grid grid-cols-[minmax(260px,1.4fr)_110px_110px_minmax(170px,1fr)_170px_160px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Title</div><div>Status</div><div>Notify</div><div>Targeting</div><div>Window</div><div class="text-right">Actions</div>
+					<div>{$_('admin.announcements.columns.title', { default: 'Title' })}</div><div>{$_('admin.announcements.columns.status', { default: 'Status' })}</div><div>{$_('admin.announcements.columns.notifyMode', { default: 'Notify' })}</div><div>{$_('admin.announcements.columns.targeting', { default: 'Targeting' })}</div><div>{$_('admin.announcements.columns.window', { default: 'Window' })}</div><div class="text-right">{$_('admin.announcements.columns.actions', { default: 'Actions' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -293,13 +293,13 @@
 					<div class="truncate text-xs text-muted-foreground" title={targetingSummary(row.targeting)}>{targetingSummary(row.targeting)}</div>
 					<div class="text-xs text-muted-foreground">{formatDate(row.starts_at)} → {formatDate(row.ends_at)}</div>
 					<div class="flex justify-end gap-1.5">
-						<Button variant="outline" size="sm" disabled={saving} onclick={() => openEdit(row)}>Edit</Button>
+						<Button variant="outline" size="sm" disabled={saving} onclick={() => openEdit(row)}>{$_('common.edit', { default: 'Edit' })}</Button>
 						<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => removeAnnouncement(row)}><Trash2 class="inline h-3.5 w-3.5" /></Button>
 					</div>
 				</div>
 			{/snippet}
-			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">No announcements found</div>{/snippet}
-			{#snippet loadingSlot()}<div class="p-4 text-sm text-muted-foreground">Loading announcements…</div>{/snippet}
+			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.announcements.empty', { default: 'No announcements found' })}</div>{/snippet}
+			{#snippet loadingSlot()}<div class="p-4 text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</div>{/snippet}
 		</VirtualTable>
 		<div class="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">
 			<span>{total} announcements · page {page} / {totalPages}</span>
