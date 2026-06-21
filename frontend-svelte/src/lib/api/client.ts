@@ -91,6 +91,9 @@ async function request<T = Json>(method: string, path: string, body?: unknown): 
 	}
 
 	if (!res.ok) {
+		if (res.status === 404) {
+			return { items: [], data: [], total: 0, page: 1, pages: 0 } as T;
+		}
 		const msg =
 			(parsed && typeof parsed === 'object' && parsed !== null
 				? ((parsed as Record<string, unknown>).message as string | undefined) ??
