@@ -97,7 +97,7 @@
 						<span class="font-medium text-muted-foreground">
 							{$_('user.usage.errors.time', { default: 'Time' })}
 						</span>
-						<p class="mt-0.5 text-foreground">{fmtDate(detail.createdAt)}</p>
+						<p class="mt-0.5 text-foreground">{fmtDate(detail.createdAt ?? '')}</p>
 					</div>
 					<!-- Model -->
 					<div>
@@ -119,7 +119,7 @@
 							{$_('user.usage.errors.status', { default: 'Status' })}
 						</span>
 						<p class="mt-0.5">
-							<Badge variant={statusVariant(detail.statusCode)}>
+							<Badge variant={statusVariant(detail.statusCode ?? 0)}>
 								{detail.statusCode || '-'}
 							</Badge>
 						</p>
@@ -129,7 +129,7 @@
 						<span class="font-medium text-muted-foreground">
 							{$_('user.usage.errors.category', { default: 'Category' })}
 						</span>
-						<p class="mt-0.5 text-foreground">{categoryLabel(detail.category)}</p>
+						<p class="mt-0.5 text-foreground">{categoryLabel(detail.category ?? '')}</p>
 					</div>
 					<!-- Platform -->
 					<div>

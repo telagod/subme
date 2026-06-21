@@ -191,16 +191,16 @@
 								</td>
 								<td class="px-4 py-2.5 text-foreground">{row.inboundEndpoint || '-'}</td>
 								<td class="px-4 py-2.5">
-									<Badge variant={statusVariant(row.statusCode)}>
+									<Badge variant={statusVariant(row.statusCode ?? row.status_code ?? 0)}>
 										{row.statusCode || '-'}
 									</Badge>
 								</td>
-								<td class="px-4 py-2.5 text-foreground">{categoryLabel(row.category)}</td>
+								<td class="px-4 py-2.5 text-foreground">{categoryLabel(row.category ?? '')}</td>
 								<td class="max-w-[280px] truncate px-4 py-2.5 text-foreground" title={row.message}>
 									{row.message || '-'}
 								</td>
 								<td class="px-4 py-2.5 text-foreground">{row.platform || '-'}</td>
-								<td class="whitespace-nowrap px-4 py-2.5 text-foreground">{fmtDate(row.createdAt)}</td>
+								<td class="whitespace-nowrap px-4 py-2.5 text-foreground">{fmtDate(row.createdAt ?? '')}</td>
 							</tr>
 						{/each}
 					{/if}

@@ -29,7 +29,10 @@
 		billingModeFilter: string;
 		sortChoice: string;
 		exactTotal: boolean;
+		accountFilter: string;
+		groupFilter: string;
 		onSearchChange: (value: string) => void;
+		onSearch: () => void;
 		onDateChange: () => void;
 		onFilterChange: () => void;
 	}
@@ -43,7 +46,10 @@
 		billingModeFilter = $bindable(),
 		sortChoice = $bindable(),
 		exactTotal = $bindable(),
+		accountFilter = $bindable(''),
+		groupFilter = $bindable(''),
 		onSearchChange,
+		onSearch,
 		onDateChange,
 		onFilterChange
 	}: Props = $props();

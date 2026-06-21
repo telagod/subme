@@ -178,6 +178,33 @@ function round1(value: number): string {
 }
 
 
+const CSV_HEADERS = ['timestamp', 'model', 'endpoint', 'request_type', 'input_tokens', 'output_tokens', 'total_tokens', 'cost', 'actual_cost', 'status', 'duration_ms', 'user', 'api_key', 'account', 'group'];
+
+export function buildCsvContent(rows: AdminUsageLog[]): string {
+	const lines: string[] = [CSV_HEADERS.join(',')];
+	for (const r of rows) {
+		lines.push(CSV_HEADERS.map((h) => escapeCsvValue((r as Record<string, unknown>)[h])).join(','));
+	}
+	return lines.join('\n');
+}
+
+export async function buildXlsxBlob(rows: AdminUsageLog[]): Promise<Blob> {
+	const csv = buildCsvContent(rows);
+	return new Blob([csv], { type: 'text/csv;charset=utf-8' });
+}
+
+export function downloadBlob(blob: Blob, filename: string): void {
+	if (typeof document === 'undefined') return;
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+	try { URL.revokeObjectURL(url); } catch { /* noop */ }
+}
+
 export const REQUEST_TYPE_OPTIONS = [{ value: '__all__', label: 'All types' }, ...['chat', 'completion', 'embedding', 'image', 'audio', 'rerank', 'response'].map((v) => ({ value: v, label: v }))];
 export const BILLING_MODE_OPTIONS = [{ value: '__all__', label: 'All billing' }, { value: 'standard', label: 'standard' }, { value: 'subscription', label: 'subscription' }, { value: 'credit', label: 'credit' }];
 export const SORT_OPTIONS = [{ value: 'created_at:desc', label: 'Newest' }, { value: 'created_at:asc', label: 'Oldest' }, { value: 'total_cost:desc', label: 'Highest cost' }, { value: 'total_tokens:desc', label: 'Most tokens' }, { value: 'duration_ms:desc', label: 'Slowest' }];

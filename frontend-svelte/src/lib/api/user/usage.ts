@@ -358,9 +358,80 @@ function csvTimestamp(): string {
 	);
 }
 
+// ── Error requests ─────────────────────────────────────────────────────
+
+export interface UserErrorRequest {
+	id: number;
+	timestamp: string;
+	created_at?: string;
+	model: string;
+	endpoint: string;
+	inboundEndpoint?: string;
+	inbound_endpoint?: string;
+	status_code: number;
+	statusCode?: number;
+	error_type: string;
+	category?: string;
+	error_message: string;
+	message?: string;
+	latency_ms: number;
+	platform?: string;
+	createdAt?: string;
+	api_key_name?: string;
+	apiKeyName?: string;
+	keyName?: string;
+	api_key_deleted?: boolean;
+	apiKeyDeleted?: boolean;
+	keyDeleted?: boolean;
+}
+
+export interface UserErrorRequestDetail extends UserErrorRequest {
+	request_body?: string;
+	response_body?: string;
+	request_headers?: Record<string, string>;
+	response_headers?: Record<string, string>;
+	headers?: Record<string, string>;
+	upstream_error?: string;
+	upstreamError?: string;
+	upstreamStatusCode?: number;
+	upstream_status_code?: number;
+	errorBody?: string;
+	error_body?: string;
+	account_name?: string;
+	accountName?: string;
+	duration_ms?: number;
+}
+
+export interface PaginatedErrors {
+	items: UserErrorRequest[];
+	total: number;
+	page: number;
+	page_size: number;
+}
+
+export async function listErrorRequests(
+	page = 1,
+	pageSize = 20,
+	filters: Record<string, string | undefined> = {}
+): Promise<PaginatedErrors> {
+	const usp = new URLSearchParams();
+	usp.set('page', String(page));
+	usp.set('page_size', String(pageSize));
+	for (const [k, v] of Object.entries(filters)) {
+		if (v) usp.set(k, v);
+	}
+	return apiClient.get<PaginatedErrors>(`/api/v1/usage/errors?${usp}`);
+}
+
+export async function getErrorDetail(id: number): Promise<UserErrorRequestDetail> {
+	return apiClient.get<UserErrorRequestDetail>(`/api/v1/usage/errors/${id}`);
+}
+
 export const userUsageApi = {
 	listUsage,
 	getUsageSummary,
 	getUsageTrend,
-	exportCsv
+	exportCsv,
+	listErrorRequests,
+	getErrorDetail
 };

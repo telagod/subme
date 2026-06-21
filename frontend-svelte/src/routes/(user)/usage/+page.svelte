@@ -186,7 +186,7 @@
 			});
 			errorRows = resp.items;
 			errorTotal = resp.total;
-			errorTotalPages = resp.pages;
+			errorTotalPages = Math.max(1, Math.ceil(resp.total / 20));
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg !== 'unauthorized') {
