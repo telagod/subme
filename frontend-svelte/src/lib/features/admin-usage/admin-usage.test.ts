@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import usageApiSrc from '$lib/api/admin/usage.ts?raw';
-import usagePageSrc from '../../../routes/admin/usage/+page.svelte?raw';
+import usagePageSrcRaw from '../../../routes/admin/usage/+page.svelte?raw';
+import usageTableSrc from './UsageTable.svelte?raw';
+import usageLogTableSrc from './UsageLogTable.svelte?raw';
+
+const usagePageSrc = [usagePageSrcRaw, usageTableSrc, usageLogTableSrc].join('\n');
 import {
 	ALL,
 	accountBilled,

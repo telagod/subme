@@ -467,8 +467,8 @@ describe('profile page · OAuth bindings', () => {
 		});
 	});
 
-	it('OAuthBindingsList uses StandardDialog instead of a hand-rolled bits overlay', () => {
-		expect(oauthBindingsListSrc).toContain('StandardDialog');
+	it('OAuthBindingsList uses StandardDialog or ConfirmDialog instead of a hand-rolled bits overlay', () => {
+		expect(oauthBindingsListSrc).toMatch(/StandardDialog|ConfirmDialog/);
 		expect(oauthBindingsListSrc).toContain('data-testid="oauth-unbind-dialog"');
 		expect(oauthBindingsListSrc).not.toContain('Dialog.Overlay');
 		expect(oauthBindingsListSrc).not.toContain('fixed inset-0');

@@ -114,14 +114,14 @@
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
 				{$_('nav.quench.promoCodes', { default: 'Promo codes' })}
 			</h1>
-			<p class="text-sm text-muted-foreground">Create, search, disable, and remove balance promo codes.</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.promo.description', { default: 'Create, search, disable, and remove balance promo codes.' })}</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
-				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
+				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}
 			</Button>
 			<Button onclick={() => (showCreate = !showCreate)}>
-				<Plus size={15} />Create
+				<Plus size={15} />{$_('common.create', { default: 'Create' })}
 			</Button>
 		</div>
 	</header>
@@ -139,28 +139,28 @@
 		<Card>
 			<div class="grid gap-3 md:grid-cols-5">
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Code</span>
-					<Input class="h-9 px-2" placeholder="auto when blank" bind:value={form.code} />
+					<span>{$_('admin.promo.code', { default: 'Code' })}</span>
+					<Input class="h-9 px-2" placeholder={$_('admin.promo.autoWhenBlank', { default: 'auto when blank' })} bind:value={form.code} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Bonus</span>
+					<span>{$_('admin.promo.bonus', { default: 'Bonus' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" step="0.01" bind:value={form.bonus_amount} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Max uses</span>
+					<span>{$_('admin.promo.maxUses', { default: 'Max uses' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" bind:value={form.max_uses} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Expires</span>
+					<span>{$_('admin.promo.expires', { default: 'Expires' })}</span>
 					<Input class="h-9 px-2" type="date" bind:value={form.expires_at} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Notes</span>
+					<span>{$_('common.notes', { default: 'Notes' })}</span>
 					<Input class="h-9 px-2" bind:value={form.notes} />
 				</label>
 			</div>
 			<div class="mt-3 flex justify-end">
-				<Button disabled={saving || form.bonus_amount <= 0} onclick={submitCreate}>Save promo code</Button>
+				<Button disabled={saving || form.bonus_amount <= 0} onclick={submitCreate}>{$_('admin.promo.saveCode', { default: 'Save promo code' })}</Button>
 			</div>
 		</Card>
 	{/if}
@@ -172,7 +172,7 @@
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<NativeSelect class="h-9" bind:value={statusFilter} options={statusOptions} onchange={resetAndLoad} data-testid="admin-promo-status-filter" />
-			<Button class="h-9" onclick={resetAndLoad}>Search</Button>
+			<Button class="h-9" onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
 		</div>
 	</Card>
 
@@ -184,7 +184,7 @@
 		<VirtualTable rows={rows} rowHeight={64} getRowKey={(row) => row.id} loading={loading}>
 			{#snippet header()}
 				<div class="grid grid-cols-[220px_120px_120px_110px_140px_160px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Code</div><div>Bonus</div><div>Usage</div><div>Status</div><div>Expires</div><div class="text-right">Actions</div>
+					<div>{$_('admin.promo.code', { default: 'Code' })}</div><div>{$_('admin.promo.bonus', { default: 'Bonus' })}</div><div>{$_('common.usage', { default: 'Usage' })}</div><div>{$_('common.status', { default: 'Status' })}</div><div>{$_('admin.promo.expires', { default: 'Expires' })}</div><div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -195,8 +195,8 @@
 					<div><Badge variant="outline" class={statusTone(row.status)}>{row.status}</Badge></div>
 					<div class="text-xs text-muted-foreground">{formatDate(row.expires_at)}</div>
 					<div class="flex justify-end gap-1.5">
-						<Button variant="outline" size="sm" disabled={saving} onclick={() => runAction('Promo status updated', () => updatePromoCode(row.id, { status: row.status === 'active' ? 'disabled' : 'active' }))}>
-							{row.status === 'active' ? 'Disable' : 'Enable'}
+						<Button variant="outline" size="sm" disabled={saving} onclick={() => runAction($_('admin.promo.statusUpdated', { default: 'Promo status updated' }), () => updatePromoCode(row.id, { status: row.status === 'active' ? 'disabled' : 'active' }))}>
+							{row.status === 'active' ? $_('common.disable', { default: 'Disable' }) : $_('common.enable', { default: 'Enable' })}
 						</Button>
 						<Button
 							variant="outline"

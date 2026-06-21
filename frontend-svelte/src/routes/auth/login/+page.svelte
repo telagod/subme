@@ -1,17 +1,15 @@
 <script lang="ts">
 	/**
-	 * /auth/login · M6 minimal login form
+	 * /auth/login · M6 login form + Turnstile CAPTCHA + Login Agreement
 	 *
-	 * 设计：
-	 *   - sveltekit-superforms SPA 模式 + zod schema：客户端校验 + 提交。
-	 *     SPA: true 关键 —— 本仓库纯 SPA（adapter-static fallback），没有 +page.server.ts。
-	 *   - 提交流程：
-	 *       1. superValidate 通过 → 调 auth.login()
-	 *       2. 成功 → goto(query.next || '/dashboard')
-	 *       3. TOTP_REQUIRED → 切显 totp 字段（同表单提交即可，schema 允许可选）
-	 *       4. 其他错误 → showError(toast) + 表单红色错误条
-	 *   - 视觉：参考 Vue LoginView 中心卡片，~360px 宽，Zinc 中性，亮色默认。
+	 * Features:
+	 *   - superforms SPA + zod schema for client validation
+	 *   - Turnstile CAPTCHA widget (conditional on backend setting)
+	 *   - Login agreement consent gate (modal or checkbox mode)
+	 *   - TOTP 2FA challenge support
+	 *   - OAuth providers section
 	 */
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { z } from 'zod';
@@ -19,11 +17,17 @@
 	import { zod4, zod4Client } from 'sveltekit-superforms/adapters';
 	import { _ } from 'svelte-i18n';
 	import { auth } from '$lib/stores/auth.svelte';
-	import { showError } from '$lib/stores/toast.svelte';
+	import { showError, showSuccess } from '$lib/stores/toast.svelte';
+	import { authApi, type PublicSettings, type LoginAgreementDocument } from '$lib/api/auth';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import OAuthProvidersSection from '$lib/features/auth/OAuthProvidersSection.svelte';
+	import TurnstileWidget from '$lib/features/auth/TurnstileWidget.svelte';
+	import LoginAgreementPrompt from '$lib/features/auth/LoginAgreementPrompt.svelte';
+
+	// ── Constants ──────────────────────────────────────────────────────
+	const LOGIN_AGREEMENT_STORAGE_KEY = 'sub2api_login_agreement_consent';
 
 	// ── schema ─────────────────────────────────────────────────────────
 	const schema = z.object({
@@ -34,7 +38,6 @@
 
 	type LoginForm = z.infer<typeof schema>;
 
-	// defaults() 需要带 jsonSchema 的 server-adapter（zod4），validators 走 zod4Client。
 	const initial = defaults<LoginForm>(zod4(schema));
 
 	const { form, errors, enhance, submitting } = superForm<LoginForm>(initial, {
@@ -43,16 +46,33 @@
 		resetForm: false,
 		clearOnSubmit: 'errors-and-message',
 		onUpdate: async ({ form: validated, cancel }) => {
-			cancel(); // SPA：禁用默认 server-action 提交。
+			cancel();
 			if (!validated.valid) return;
+
+			// Agreement gate check.
+			if (agreementGateActive) {
+				showError($_('auth.agreement.mustAccept', { default: 'Please accept the terms before signing in.' }));
+				if (loginAgreementMode !== 'checkbox') {
+					showAgreementModal = true;
+				}
+				return;
+			}
+
+			// Turnstile gate check.
+			if (turnstileEnabled && turnstileSiteKey && !turnstileToken) {
+				showError($_('auth.turnstile.required', { default: 'Please complete the verification.' }));
+				return;
+			}
 
 			try {
 				await auth.login({
 					email: validated.data.email,
 					password: validated.data.password,
-					totp: validated.data.totp || undefined
+					totp: validated.data.totp || undefined,
+					turnstile_token: turnstileEnabled ? turnstileToken || undefined : undefined
 				});
 				const next = page.url.searchParams.get('next') || '/dashboard';
+				showSuccess($_('auth.login.success', { default: 'Signed in successfully.' }));
 				await goto(next, { replaceState: true });
 			} catch (err) {
 				const e = err as Error & { code?: string };
@@ -62,7 +82,10 @@
 					return;
 				}
 				const msg = (e?.message ?? '').toLowerCase();
-				if (msg.includes('401') || msg.includes('unauthorized') || msg.includes('credentials')) {
+				if (msg.includes('turnstile')) {
+					formError = $_('auth.turnstile.failed', { default: 'CAPTCHA verification failed. Please try again.' });
+					turnstileToken = '';
+				} else if (msg.includes('401') || msg.includes('unauthorized') || msg.includes('credentials')) {
 					formError = $_('auth.errors.INVALID_CREDENTIALS', { default: 'Invalid credentials' });
 				} else if (msg.includes('network') || msg.includes('failed to fetch')) {
 					formError = $_('auth.errors.NETWORK_ERROR', { default: 'Network error' });
@@ -74,12 +97,137 @@
 		}
 	});
 
+	// ── State ──────────────────────────────────────────────────────────
 	let needsTotp = $state(false);
 	let formError = $state<string>('');
+	let settingsLoaded = $state(false);
 
+	// Turnstile state.
+	let turnstileEnabled = $state(false);
+	let turnstileSiteKey = $state('');
+	let turnstileToken = $state('');
+
+	// Login agreement state.
+	let loginAgreementEnabled = $state(false);
+	let loginAgreementMode = $state<'modal' | 'checkbox' | string>('modal');
+	let loginAgreementUpdatedAt = $state('');
+	let loginAgreementRevision = $state('');
+	let loginAgreementDocuments = $state<LoginAgreementDocument[]>([]);
+	let agreementAccepted = $state(false);
+	let showAgreementModal = $state(false);
+
+	// ── Derived ───────────────────────────────────────────────────────
+	const agreementGateActive = $derived(loginAgreementEnabled && !agreementAccepted);
+	const authActionsDisabled = $derived(
+		$submitting || !settingsLoaded || agreementGateActive
+	);
+	const submitDisabled = $derived(
+		authActionsDisabled || (turnstileEnabled && !!turnstileSiteKey && !turnstileToken)
+	);
+
+	// ── Lifecycle ─────────────────────────────────────────────────────
+	onMount(async () => {
+		// Check for expired session flag.
+		if (typeof window !== 'undefined') {
+			try {
+				const expired = window.sessionStorage.getItem('auth_expired');
+				if (expired) {
+					window.sessionStorage.removeItem('auth_expired');
+					const msg = $_('auth.login.sessionExpired', { default: 'Session expired. Please sign in again.' });
+					formError = msg;
+					showError(msg);
+				}
+			} catch { /* storage disabled */ }
+		}
+
+		try {
+			const s = await authApi.getPublicSettings();
+			applyTurnstileSettings(s);
+			applyAgreementSettings(s);
+		} catch {
+			// Settings fetch failed — allow login without gates.
+			loginAgreementEnabled = false;
+			agreementAccepted = true;
+		} finally {
+			settingsLoaded = true;
+		}
+	});
+
+	// ── Turnstile ─────────────────────────────────────────────────────
+	function applyTurnstileSettings(s: PublicSettings) {
+		turnstileEnabled = s.turnstile_enabled === true;
+		turnstileSiteKey = s.turnstile_site_key || '';
+	}
+
+	function onTurnstileVerify(token: string) {
+		turnstileToken = token;
+	}
+
+	function onTurnstileExpire() {
+		turnstileToken = '';
+	}
+
+	function onTurnstileError() {
+		turnstileToken = '';
+	}
+
+	// ── Login Agreement ───────────────────────────────────────────────
+	function applyAgreementSettings(s: PublicSettings) {
+		const docs = Array.isArray(s.login_agreement_documents)
+			? s.login_agreement_documents.filter((d) => d.title?.trim())
+			: [];
+		loginAgreementDocuments = docs;
+		loginAgreementEnabled = s.login_agreement_enabled === true && docs.length > 0;
+		loginAgreementMode = s.login_agreement_mode === 'checkbox' ? 'checkbox' : 'modal';
+		loginAgreementUpdatedAt = s.login_agreement_updated_at || '';
+		loginAgreementRevision =
+			s.login_agreement_revision ||
+			`${loginAgreementUpdatedAt}:${docs.map((d) => `${d.id}:${d.title}`).join('|')}`;
+
+		agreementAccepted = !loginAgreementEnabled || hasAcceptedAgreement(loginAgreementRevision);
+		showAgreementModal =
+			loginAgreementEnabled && !agreementAccepted && loginAgreementMode !== 'checkbox';
+	}
+
+	function hasAcceptedAgreement(revision: string): boolean {
+		if (!revision || typeof window === 'undefined') return false;
+		try {
+			const raw = window.localStorage.getItem(LOGIN_AGREEMENT_STORAGE_KEY);
+			if (!raw) return false;
+			const parsed = JSON.parse(raw) as { revision?: string };
+			return parsed.revision === revision;
+		} catch {
+			return false;
+		}
+	}
+
+	function acceptAgreement() {
+		if (loginAgreementRevision && typeof window !== 'undefined') {
+			try {
+				window.localStorage.setItem(
+					LOGIN_AGREEMENT_STORAGE_KEY,
+					JSON.stringify({ revision: loginAgreementRevision, accepted_at: new Date().toISOString() })
+				);
+			} catch {
+				// Storage full — accept for current session anyway.
+			}
+		}
+		agreementAccepted = true;
+		showAgreementModal = false;
+	}
+
+	function rejectAgreement() {
+		if (typeof window !== 'undefined') {
+			try { window.localStorage.removeItem(LOGIN_AGREEMENT_STORAGE_KEY); } catch { /* */ }
+		}
+		agreementAccepted = false;
+		showAgreementModal = false;
+		showError($_('auth.agreement.rejectedWarning', { default: 'You must accept the terms before signing in.' }));
+	}
+
+	// ── Helpers ────────────────────────────────────────────────────────
 	function tr(key: string | undefined, fallback: string): string {
 		if (!key) return '';
-		// zod 错误已经是 i18n key 形式（auth.errors.*）；翻译失败时回落 fallback。
 		return $_(key, { default: fallback });
 	}
 </script>
@@ -114,6 +262,7 @@
 					placeholder={$_('auth.login.emailPlaceholder', { default: 'you@example.com' })}
 					bind:value={$form.email}
 					aria-invalid={$errors.email ? 'true' : undefined}
+					disabled={authActionsDisabled}
 				/>
 				{#if $errors.email && $errors.email[0]}
 					<p class="text-xs text-destructive" data-testid="error-email">
@@ -135,6 +284,7 @@
 					placeholder={$_('auth.login.passwordPlaceholder', { default: 'Your password' })}
 					bind:value={$form.password}
 					aria-invalid={$errors.password ? 'true' : undefined}
+					disabled={authActionsDisabled}
 				/>
 				{#if $errors.password && $errors.password[0]}
 					<p class="text-xs text-destructive" data-testid="error-password">
@@ -143,7 +293,7 @@
 				{/if}
 			</div>
 
-			<!-- TOTP（仅在 2FA challenge 后显示） -->
+			<!-- TOTP (only after 2FA challenge) -->
 			{#if needsTotp}
 				<div class="space-y-1.5">
 					<label for="totp" class="text-sm font-medium text-foreground">
@@ -163,7 +313,31 @@
 				</div>
 			{/if}
 
-			<!-- 表单级错误 -->
+			<!-- Turnstile CAPTCHA -->
+			{#if turnstileEnabled && turnstileSiteKey}
+				<TurnstileWidget
+					siteKey={turnstileSiteKey}
+					onVerify={onTurnstileVerify}
+					onExpire={onTurnstileExpire}
+					onError={onTurnstileError}
+				/>
+			{/if}
+
+			<!-- Login Agreement -->
+			{#if loginAgreementEnabled}
+				<LoginAgreementPrompt
+					accepted={agreementAccepted}
+					documents={loginAgreementDocuments}
+					mode={loginAgreementMode}
+					updatedAt={loginAgreementUpdatedAt}
+					visible={showAgreementModal}
+					onAccept={acceptAgreement}
+					onReject={rejectAgreement}
+					onOpen={() => (showAgreementModal = true)}
+				/>
+			{/if}
+
+			<!-- form error -->
 			{#if formError}
 				<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="error-form">
 					{formError}
@@ -172,7 +346,7 @@
 
 			<Button
 				type="submit"
-				disabled={$submitting}
+				disabled={submitDisabled}
 				class="w-full"
 			>
 				{$submitting
@@ -180,7 +354,7 @@
 					: $_('auth.login.submit', { default: 'Sign in' })}
 			</Button>
 
-			<OAuthProvidersSection disabled={$submitting} />
+			<OAuthProvidersSection disabled={authActionsDisabled} />
 
 			<div class="flex items-center justify-between text-xs text-muted-foreground">
 				<a class="hover:text-foreground hover:underline" href="/auth/forgot">

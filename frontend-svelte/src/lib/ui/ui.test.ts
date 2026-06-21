@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/svelte';
 import Button from './Button.svelte';
 import Checkbox from './Checkbox.svelte';
+import ConfirmDialog from './ConfirmDialog.svelte';
 import FileInput from './FileInput.svelte';
 import InteractiveRow from './InteractiveRow.svelte';
 import NativeSelect from './NativeSelect.svelte';
@@ -93,6 +94,44 @@ describe('standard UI primitives', () => {
 				}
 			})
 		).toThrow(/NativeSelect sentinel/);
+	});
+
+	it('renders ConfirmDialog with danger variant and action buttons', () => {
+		render(ConfirmDialog, {
+			props: {
+				open: true,
+				title: 'Delete item?',
+				description: 'This action cannot be undone.',
+				'data-testid': 'confirm-dialog-test'
+			}
+		});
+
+		const dialog = document.body.querySelector('[data-testid="confirm-dialog-test"]');
+		expect(dialog).not.toBeNull();
+		expect(document.body.textContent).toContain('Delete item?');
+		expect(document.body.textContent).toContain('This action cannot be undone.');
+		// Default buttons: Cancel + Delete
+		const buttons = dialog?.querySelectorAll('button');
+		expect(buttons?.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it('renders ConfirmDialog with warning variant amber button', () => {
+		render(ConfirmDialog, {
+			props: {
+				open: true,
+				title: 'Regenerate key?',
+				variant: 'warning',
+				confirmLabel: 'Regenerate',
+				'data-testid': 'confirm-dialog-warning'
+			}
+		});
+
+		const dialog = document.body.querySelector('[data-testid="confirm-dialog-warning"]');
+		expect(dialog).not.toBeNull();
+		const buttons = [...(dialog?.querySelectorAll('button') ?? [])];
+		const confirmBtn = buttons.find((b) => b.textContent?.includes('Regenerate'));
+		expect(confirmBtn).not.toBeUndefined();
+		expect(confirmBtn?.className).toContain('amber');
 	});
 
 	it('renders StandardDialog through the shared bits-ui shell', async () => {

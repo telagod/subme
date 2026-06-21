@@ -146,14 +146,14 @@
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
 				{$_('nav.quench.redeem', { default: 'Redeem codes' })}
 			</h1>
-			<p class="text-sm text-muted-foreground">Generate, search, expire, and remove user redeem codes.</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.redeem.description', { default: 'Generate, search, expire, and remove user redeem codes.' })}</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
-				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
+				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}
 			</Button>
 			<Button onclick={() => (showGenerate = !showGenerate)}>
-				<Zap size={15} />Generate
+				<Zap size={15} />{$_('admin.redeem.generate', { default: 'Generate' })}
 			</Button>
 		</div>
 	</header>
@@ -171,15 +171,15 @@
 		<Card>
 			<div class="grid gap-3 md:grid-cols-6">
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Count</span>
+					<span>{$_('admin.redeem.count', { default: 'Count' })}</span>
 					<Input class="h-9 px-2" type="number" min="1" bind:value={form.count} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Type</span>
+					<span>{$_('common.type', { default: 'Type' })}</span>
 					<NativeSelect class="h-9 w-full px-2" bind:value={formType} options={typeOptions} onchange={() => (form.type = formType as RedeemCodeType)} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Value</span>
+					<span>{$_('common.value', { default: 'Value' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" step="0.01" bind:value={form.value} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
@@ -187,17 +187,17 @@
 					<Input class="h-9 px-2" disabled={form.type !== 'subscription'} bind:value={form.group_id} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Validity days</span>
+					<span>{$_('admin.redeem.validityDays', { default: 'Validity days' })}</span>
 					<Input class="h-9 px-2" type="number" min="1" disabled={form.type !== 'subscription'} bind:value={form.validity_days} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>Expires in</span>
+					<span>{$_('admin.redeem.expiresIn', { default: 'Expires in' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" bind:value={form.expires_in_days} />
 				</label>
 			</div>
 			<div class="mt-3 flex items-center justify-between gap-3">
 				<div class="truncate font-mono text-xs text-muted-foreground">{generatedCodes.map((c) => c.code).join(', ')}</div>
-				<Button disabled={saving || form.count < 1} onclick={submitGenerate}>Generate</Button>
+				<Button disabled={saving || form.count < 1} onclick={submitGenerate}>{$_('admin.redeem.generate', { default: 'Generate' })}</Button>
 			</div>
 		</Card>
 	{/if}
@@ -210,7 +210,7 @@
 		<div class="flex flex-wrap gap-2">
 			<NativeSelect class="h-9" bind:value={typeFilter} options={typeFilterOptions} onchange={resetAndLoad} data-testid="admin-redeem-type-filter" />
 			<NativeSelect class="h-9" bind:value={statusFilter} options={statusFilterOptions} onchange={resetAndLoad} data-testid="admin-redeem-status-filter" />
-			<Button class="h-9" onclick={resetAndLoad}>Search</Button>
+			<Button class="h-9" onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
 		</div>
 	</Card>
 
@@ -222,7 +222,7 @@
 		<VirtualTable rows={rows} rowHeight={64} getRowKey={(row) => row.id} loading={loading}>
 			{#snippet header()}
 				<div class="grid grid-cols-[210px_120px_140px_110px_120px_120px_160px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Code</div><div>Type</div><div>Value</div><div>Status</div><div>Used by</div><div>Expires</div><div class="text-right">Actions</div>
+					<div>{$_('admin.redeem.code', { default: 'Code' })}</div><div>{$_('common.type', { default: 'Type' })}</div><div>{$_('common.value', { default: 'Value' })}</div><div>{$_('common.status', { default: 'Status' })}</div><div>{$_('admin.redeem.usedBy', { default: 'Used by' })}</div><div>{$_('admin.redeem.expires', { default: 'Expires' })}</div><div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -234,13 +234,13 @@
 					<div class="text-xs text-muted-foreground">{row.used_by ?? '—'}</div>
 					<div class="text-xs text-muted-foreground">{formatDate(row.expires_at)}</div>
 					<div class="flex justify-end gap-1.5">
-						<Button variant="outline" size="sm" disabled={saving || row.status === 'expired'} onclick={() => runAction('Redeem code expired', () => expireRedeemCode(row.id))}>Expire</Button>
+						<Button variant="outline" size="sm" disabled={saving || row.status === 'expired'} onclick={() => runAction($_('admin.redeem.codeExpired', { default: 'Redeem code expired' }), () => expireRedeemCode(row.id))}>{$_('admin.redeem.expire', { default: 'Expire' })}</Button>
 						<Button
 							variant="outline"
 							size="icon"
 							class="text-destructive"
 							disabled={saving}
-							onclick={() => runAction('Redeem code deleted', () => deleteRedeemCode(row.id))}
+							onclick={() => runAction($_('admin.redeem.codeDeleted', { default: 'Redeem code deleted' }), () => deleteRedeemCode(row.id))}
 							aria-label="Delete redeem code"
 						>
 							<Trash2 class="h-3.5 w-3.5" />
@@ -248,8 +248,8 @@
 					</div>
 				</div>
 			{/snippet}
-			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">No redeem codes found</div>{/snippet}
-			{#snippet loadingSlot()}<div class="p-4 text-sm text-muted-foreground">Loading redeem codes…</div>{/snippet}
+			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.redeem.noCodesFound', { default: 'No redeem codes found' })}</div>{/snippet}
+			{#snippet loadingSlot()}<div class="p-4 text-sm text-muted-foreground">{$_('admin.redeem.loadingCodes', { default: 'Loading redeem codes...' })}</div>{/snippet}
 		</VirtualTable>
 		<div class="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">
 			<span>{total} codes · page {page} / {totalPages}</span>

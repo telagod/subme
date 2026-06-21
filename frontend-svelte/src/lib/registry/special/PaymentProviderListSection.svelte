@@ -28,6 +28,7 @@
 	import { adminPaymentApi, type ProviderInstance } from '$lib/api/admin/payment';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
@@ -699,29 +700,13 @@
 	</div>
 	</StandardDialog>
 
-	<StandardDialog
+	<ConfirmDialog
 		bind:open={deleteDialogOpen}
-		width="sm"
 		title={$_('common.delete')}
+		description={$_('admin.settings.payment.deleteProviderConfirm')}
+		confirmLabel={busyId === deleteProviderTarget?.id ? $_('common.loading') : $_('common.delete')}
+		loading={busyId === deleteProviderTarget?.id}
+		onConfirm={confirmDeleteProvider}
 		data-testid="payment-provider-delete-dialog"
-	>
-		<div class="mt-4 space-y-4">
-			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-				{$_('admin.settings.payment.deleteProviderConfirm')}
-			</p>
-			<div class="flex justify-end gap-2 border-t border-border pt-4">
-				<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
-					{$_('common.cancel')}
-				</Button>
-				<Button
-					variant="outline"
-					class="border-destructive/30 text-destructive hover:bg-destructive/10"
-					disabled={busyId === deleteProviderTarget?.id}
-					onclick={confirmDeleteProvider}
-					data-testid="payment-provider-delete-confirm"
-				>
-					{busyId === deleteProviderTarget?.id ? $_('common.loading') : $_('common.delete')}
-				</Button>
-			</div>
-		</div>
-	</StandardDialog>
+		confirmTestId="payment-provider-delete-confirm"
+	/>

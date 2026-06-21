@@ -6,8 +6,9 @@
 	 * UI delegated to feature components:
 	 *   - SubscriptionStatsCards
 	 *   - SubscriptionFilterBar
-	 *   - SubscriptionTable
+	 *   - SubscriptionTable (with bulk selection + bulk actions)
 	 *   - SubscriptionDetailDrawer
+	 *   - AssignSubscriptionDialog
 	 *
 	 * 红线（subscription surface only）：
 	 *   - subscription management only —— 严禁引用计费核心、渠道定价、价格查询 service。
@@ -17,13 +18,14 @@
 	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { RefreshCw, AlertTriangle } from '@lucide/svelte';
+	import { RefreshCw, AlertTriangle, UserPlus } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import SubscriptionStatsCards from '$lib/features/monetization/subscriptions-admin/SubscriptionStatsCards.svelte';
 	import SubscriptionFilterBar from '$lib/features/monetization/subscriptions-admin/SubscriptionFilterBar.svelte';
 	import SubscriptionTable from '$lib/features/monetization/subscriptions-admin/SubscriptionTable.svelte';
 	import SubscriptionDetailDrawer from '$lib/features/monetization/subscriptions-admin/SubscriptionDetailDrawer.svelte';
+	import AssignSubscriptionDialog from '$lib/features/monetization/subscriptions-admin/AssignSubscriptionDialog.svelte';
 	import {
 		listAdminSubs,
 		type AdminSubscription,
@@ -56,6 +58,9 @@
 	// Drawer
 	let drawerOpen = $state(false);
 	let drawerSub = $state<AdminSubscription | null>(null);
+
+	// Assign dialog
+	let assignOpen = $state(false);
 
 	async function loadPlansOnce() {
 		try {
@@ -184,6 +189,15 @@
 			<Button
 				variant="outline"
 				size="sm"
+				onclick={() => (assignOpen = true)}
+				data-testid="admin-subs-assign-btn"
+			>
+				<UserPlus class="h-3.5 w-3.5" />
+				{$_('admin.subscriptions.assignBtn', { default: 'Assign' })}
+			</Button>
+			<Button
+				variant="outline"
+				size="sm"
 				disabled={loading}
 				onclick={() => loadSubs()}
 				data-testid="admin-subs-refresh"
@@ -232,7 +246,7 @@
 		onSearch={handleSearch}
 	/>
 
-	<!-- Table + pagination + empty state -->
+	<!-- Table + pagination + empty state + bulk actions -->
 	<SubscriptionTable
 		{rows}
 		{loading}
@@ -240,6 +254,7 @@
 		{totalPages}
 		onRowClick={openDrawer}
 		onPageChange={handlePageChange}
+		onBulkChanged={handleChanged}
 	/>
 </section>
 
@@ -249,3 +264,6 @@
 	subscription={drawerSub}
 	onChanged={handleChanged}
 />
+
+<!-- Assign dialog -->
+<AssignSubscriptionDialog bind:open={assignOpen} onAssigned={handleChanged} />

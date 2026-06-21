@@ -26,7 +26,7 @@
 	} from '$lib/api/user/profile';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 
 	export type BindingState = {
 		bound: boolean;
@@ -206,37 +206,19 @@
 	{/if}
 </section>
 
-<StandardDialog
+<ConfirmDialog
 	bind:open={confirmOpen}
-	width="sm"
 	title={$_('user.connections.unbindTitle', { default: 'Unlink this sign-in method?' })}
 	description={$_('user.connections.unbindDescription', {
 		default:
 			'You will no longer be able to log in with {provider}. Make sure another sign-in method is available.',
 		values: { provider: pendingProvider ? providerLabel(pendingProvider) : '' }
 	})}
+	confirmLabel={submitting
+		? $_('user.connections.unbinding', { default: 'Unlinking…' })
+		: $_('user.connections.confirmUnbind', { default: 'Unlink' })}
+	loading={submitting}
+	onConfirm={handleUnbind}
 	data-testid="oauth-unbind-dialog"
->
-	<div class="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
-		<Button
-			type="button"
-			variant="outline"
-			data-testid="oauth-unbind-cancel"
-			disabled={submitting}
-			onclick={() => (confirmOpen = false)}
-		>
-			{$_('user.connections.cancel', { default: 'Cancel' })}
-		</Button>
-		<Button
-			type="button"
-			variant="destructive"
-			data-testid="oauth-unbind-confirm"
-			disabled={submitting}
-			onclick={handleUnbind}
-		>
-			{submitting
-				? $_('user.connections.unbinding', { default: 'Unlinking…' })
-				: $_('user.connections.confirmUnbind', { default: 'Unlink' })}
-		</Button>
-	</div>
-</StandardDialog>
+	confirmTestId="oauth-unbind-confirm"
+/>

@@ -1,27 +1,30 @@
 /**
- * /(admin)/monetization/subscriptions · vitest 覆盖（M22）
+ * /(admin)/monetization/subscriptions · vitest coverage（M22）
  *
- * 覆盖点：
- *   1. Subscriptions list mock 10 行 → 渲染 admin-subs-row 数 = 10
- *   2. Status filter Select 使用 '__all__' 哨兵 + DOM 不含 <option value="">
- *   3. Row click → SubscriptionDetailDrawer 打开 + getAdminSub 被调用（detail fetch）
- *   4. Revoke 确认面板 → revokeSub(id) API 被调用（DELETE /admin/subscriptions/:id，无 reason）
- *   5. 红线 grep：subscription surface 不出现 billing_service / channels/model-pricing / GetModelPricing
+ * Coverage:
+ *   1. Subscriptions list mock 10 rows -> renders admin-subs-row count = 10
+ *   2. Status filter Select uses '__all__' sentinel + DOM has no <option value="">
+ *   3. Row click -> SubscriptionDetailDrawer opens + getAdminSub called (detail fetch)
+ *   4. Revoke confirm panel -> revokeSub(id) API called (DELETE /admin/subscriptions/:id, no reason)
+ *   5. RED LINE grep: subscription surface must not reference billing core
+ *   6. CONTRACT GUARD: API only targets registered backend routes
+ *   7. Assign button renders on the page header
+ *   8. Bulk selection: checkboxes render, select-all toggles all rows
+ *   9. AssignSubscriptionDialog source guard: uses StandardDialog + correct testids
  *
- * 注：subscription 后端无 refund/cancel/audit-log 端点（只有 assign/extend/reset-quota/revoke）；
- *    旧的 refundSub/forceCancelSub/getAuditLog/RefundDialog 已在 B0 止血批次删除。
- *
- * Mock 策略：
+ * Mock strategy:
  *   - vi.mock '$lib/api/admin/subscriptions' / '$lib/api/admin/plans'
- *   - 各 describe 在 beforeEach 重置 mock + 重新 import page 模块
+ *   - Each describe resets mock + re-imports page module in beforeEach
  */
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { render, fireEvent, waitFor, cleanup } from '@testing-library/svelte';
 import { addMessages, init, locale } from 'svelte-i18n';
 
-// 红线 grep：?raw 把源码字符串带进测试
+// RED LINE grep: ?raw pulls source code strings into tests
 import pageSrc from '../../../../routes/admin/monetization/subscriptions/+page.svelte?raw';
 import drawerSrc from '$lib/features/monetization/subscriptions-admin/SubscriptionDetailDrawer.svelte?raw';
+import assignDialogSrc from '$lib/features/monetization/subscriptions-admin/AssignSubscriptionDialog.svelte?raw';
+import tableSrc from '$lib/features/monetization/subscriptions-admin/SubscriptionTable.svelte?raw';
 import apiSrc from '$lib/api/admin/subscriptions.ts?raw';
 
 import type { AdminSubscription } from '$lib/api/admin/subscriptions';
@@ -33,12 +36,16 @@ vi.mock('$lib/api/admin/subscriptions', () => {
 		revokeSub: vi.fn(),
 		extendSub: vi.fn(),
 		resetQuotaSub: vi.fn(),
+		assignSub: vi.fn(),
+		bulkAssignSub: vi.fn(),
 		adminSubscriptionsApi: {
 			listAdminSubs: vi.fn(),
 			getAdminSub: vi.fn(),
 			revokeSub: vi.fn(),
 			extendSub: vi.fn(),
-			resetQuotaSub: vi.fn()
+			resetQuotaSub: vi.fn(),
+			assignSub: vi.fn(),
+			bulkAssignSub: vi.fn()
 		}
 	};
 });
@@ -106,16 +113,15 @@ function fakeListResponse(n: number) {
 	return { data, total: n, page: 1, page_size: 20 };
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Test 1 · list renders 10 rows
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 1: list renders 10 rows
+// -----------------------------------------------------------------
 
-describe('admin subscriptions · list rendering', () => {
+describe('admin subscriptions - list rendering', () => {
 	let api: typeof import('$lib/api/admin/subscriptions');
 	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
 
 	beforeEach(async () => {
-		// 受 i18n parity test 并发拖累，beforeEach 默认 10s 会超时；给到 30s
 		api = await import('$lib/api/admin/subscriptions');
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockResolvedValue(fakeListResponse(10));
@@ -135,16 +141,15 @@ describe('admin subscriptions · list rendering', () => {
 	});
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Test 2 · status filter sentinel
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 2: status filter sentinel
+// -----------------------------------------------------------------
 
-describe('admin subscriptions · status filter sentinel', () => {
+describe('admin subscriptions - status filter sentinel', () => {
 	let api: typeof import('$lib/api/admin/subscriptions');
 	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
 
 	beforeEach(async () => {
-		// 受 i18n parity test 并发拖累，beforeEach 默认 10s 会超时
 		api = await import('$lib/api/admin/subscriptions');
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockResolvedValue(fakeListResponse(5));
@@ -169,16 +174,15 @@ describe('admin subscriptions · status filter sentinel', () => {
 	});
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Test 3 · row click → drawer open + audit log fetched
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 3: row click -> drawer open + detail fetched
+// -----------------------------------------------------------------
 
-describe('admin subscriptions · detail drawer wiring', () => {
+describe('admin subscriptions - detail drawer wiring', () => {
 	let api: typeof import('$lib/api/admin/subscriptions');
 	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
 
 	beforeEach(async () => {
-		// 受 i18n parity test 并发拖累，beforeEach 默认 10s 会超时
 		api = await import('$lib/api/admin/subscriptions');
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
 		(api.getAdminSub as ReturnType<typeof vi.fn>).mockReset();
@@ -226,16 +230,15 @@ describe('admin subscriptions · detail drawer wiring', () => {
 	});
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Test 4 · revoke confirm → revokeSub(id) (DELETE /admin/subscriptions/:id)
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 4: revoke confirm -> revokeSub(id) (DELETE /admin/subscriptions/:id)
+// -----------------------------------------------------------------
 
-describe('admin subscriptions · revoke', () => {
+describe('admin subscriptions - revoke', () => {
 	let api: typeof import('$lib/api/admin/subscriptions');
 	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
 
 	beforeEach(async () => {
-		// 受 i18n parity test 并发拖累，beforeEach 默认 10s 会超时
 		api = await import('$lib/api/admin/subscriptions');
 		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
 		(api.getAdminSub as ReturnType<typeof vi.fn>).mockReset();
@@ -272,7 +275,7 @@ describe('admin subscriptions · revoke', () => {
 			expect(api.getAdminSub).toHaveBeenCalled();
 		});
 
-		// 打开 revoke 确认面板（无 reason —— DELETE 不带 body）
+		// Open revoke confirm panel (no reason -- DELETE has no body)
 		await waitFor(() => {
 			const cancelBtn = document.body.querySelector(
 				'[data-testid="sub-detail-cancel-btn"]'
@@ -303,15 +306,17 @@ describe('admin subscriptions · revoke', () => {
 	});
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Test 5 · RED LINE grep
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 5: RED LINE grep
+// -----------------------------------------------------------------
 
-describe('RED LINE · admin subscriptions surface must not reference billing core', () => {
+describe('RED LINE - admin subscriptions surface must not reference billing core', () => {
 	it('no source file under subscriptions surface references forbidden strings', () => {
 		const sources: Array<[string, string]> = [
 			['subscriptions/+page.svelte', pageSrc as unknown as string],
 			['SubscriptionDetailDrawer.svelte', drawerSrc as unknown as string],
+			['AssignSubscriptionDialog.svelte', assignDialogSrc as unknown as string],
+			['SubscriptionTable.svelte', tableSrc as unknown as string],
 			['api/admin/subscriptions.ts', apiSrc as unknown as string]
 		];
 		const forbidden = [
@@ -330,39 +335,31 @@ describe('RED LINE · admin subscriptions surface must not reference billing cor
 	});
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Test 6 · CONTRACT GUARD — no call targets an unregistered route
-// ─────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------
+// Test 6: CONTRACT GUARD - API only targets registered backend routes
+// -----------------------------------------------------------------
 
-describe('CONTRACT GUARD · admin subscriptions API only targets registered backend routes', () => {
-	/**
-	 * Exhaustive allowlist of admin subscription routes from
-	 * backend/internal/server/routes/admin.go:517-535.
-	 *
-	 * Every API helper in $lib/api/admin/subscriptions.ts MUST hit one of
-	 * these and nothing else. If the backend adds a new route, add it here
-	 * first — forcing a deliberate opt-in rather than silent 404s.
-	 */
+describe('CONTRACT GUARD - admin subscriptions API only targets registered backend routes', () => {
 	const REGISTERED_ROUTE_PATTERNS: RegExp[] = [
-		// GET  /admin/subscriptions           — List
+		// GET  /admin/subscriptions           - List
 		/^\/api\/v1\/admin\/subscriptions(\?.*)?$/,
-		// GET  /admin/subscriptions/:id       — GetByID
+		// GET  /admin/subscriptions/:id       - GetByID
 		/^\/api\/v1\/admin\/subscriptions\/\d+$/,
-		// GET  /admin/subscriptions/:id/progress — GetProgress
+		// GET  /admin/subscriptions/:id/progress - GetProgress
 		/^\/api\/v1\/admin\/subscriptions\/\d+\/progress$/,
-		// POST /admin/subscriptions/assign    — Assign
+		// POST /admin/subscriptions/assign    - Assign
 		/^\/api\/v1\/admin\/subscriptions\/assign$/,
-		// POST /admin/subscriptions/bulk-assign — BulkAssign
+		// POST /admin/subscriptions/bulk-assign - BulkAssign
 		/^\/api\/v1\/admin\/subscriptions\/bulk-assign$/,
-		// POST /admin/subscriptions/:id/extend — Extend
+		// POST /admin/subscriptions/:id/extend - Extend
 		/^\/api\/v1\/admin\/subscriptions\/\d+\/extend$/,
-		// POST /admin/subscriptions/:id/reset-quota — ResetQuota
+		// POST /admin/subscriptions/:id/reset-quota - ResetQuota
 		/^\/api\/v1\/admin\/subscriptions\/\d+\/reset-quota$/,
-		// DELETE /admin/subscriptions/:id     — Revoke
+		// DELETE /admin/subscriptions/:id     - Revoke
 		/^\/api\/v1\/admin\/subscriptions\/\d+$/,
-		// GET  /admin/groups/:id/subscriptions — ListByGroup
+		// GET  /admin/groups/:id/subscriptions - ListByGroup
 		/^\/api\/v1\/admin\/groups\/\d+\/subscriptions(\?.*)?$/,
-		// GET  /admin/users/:id/subscriptions  — ListByUser
+		// GET  /admin/users/:id/subscriptions  - ListByUser
 		/^\/api\/v1\/admin\/users\/\d+\/subscriptions(\?.*)?$/
 	];
 
@@ -371,24 +368,20 @@ describe('CONTRACT GUARD · admin subscriptions API only targets registered back
 	}
 
 	it('API source only contains paths that match registered routes', () => {
-		// Extract all URL path literals from the API source code.
-		// Matches strings like '/api/v1/admin/subscriptions...' and template parts.
-		const pathLiterals = (apiSrc as unknown as string).match(
-			/['"`]\/api\/v1\/admin\/[^'"`$]+['"`]/g
-		) ?? [];
+		const pathLiterals =
+			(apiSrc as unknown as string).match(
+				/['"`]\/api\/v1\/admin\/[^'"`$]+['"`]/g
+			) ?? [];
 
-		// Also extract template literal path prefixes (before ${...})
-		const templateParts = (apiSrc as unknown as string).match(
-			/`\/api\/v1\/admin\/[^`]*`/g
-		) ?? [];
+		const templateParts =
+			(apiSrc as unknown as string).match(/`\/api\/v1\/admin\/[^`]*`/g) ?? [];
 
-		// Combine and deduplicate, stripping quotes
-		const allPaths = [...new Set([...pathLiterals, ...templateParts])]
-			.map(p => p.replace(/^['"`]|['"`]$/g, ''));
+		const allPaths = [...new Set([...pathLiterals, ...templateParts])].map((p) =>
+			p.replace(/^['"`]|['"`]$/g, '')
+		);
 
 		expect(allPaths.length).toBeGreaterThan(0);
 
-		// For template literals with ${...}, replace interpolation with a sample numeric id
 		for (const raw of allPaths) {
 			const concrete = raw.replace(/\$\{[^}]+\}/g, '42');
 			expect(
@@ -410,5 +403,131 @@ describe('CONTRACT GUARD · admin subscriptions API only targets registered back
 				`Phantom route "${route}" should NOT match any registered pattern`
 			).toBe(false);
 		}
+	});
+});
+
+// -----------------------------------------------------------------
+// Test 7: Assign button renders on the page header
+// -----------------------------------------------------------------
+
+describe('admin subscriptions - assign button', () => {
+	let api: typeof import('$lib/api/admin/subscriptions');
+	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
+
+	beforeEach(async () => {
+		api = await import('$lib/api/admin/subscriptions');
+		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
+		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockResolvedValue(fakeListResponse(3));
+
+		pageMod = await import(
+			'../../../../routes/admin/monetization/subscriptions/+page.svelte'
+		);
+	}, 30000);
+
+	it('renders assign button in page header', async () => {
+		const { container } = render(pageMod.default);
+		await waitFor(() => expect(api.listAdminSubs).toHaveBeenCalled());
+
+		const assignBtn = container.querySelector(
+			'[data-testid="admin-subs-assign-btn"]'
+		);
+		expect(assignBtn).not.toBeNull();
+	});
+});
+
+// -----------------------------------------------------------------
+// Test 8: Bulk selection checkboxes render
+// -----------------------------------------------------------------
+
+describe('admin subscriptions - bulk selection', () => {
+	let api: typeof import('$lib/api/admin/subscriptions');
+	let pageMod: typeof import('../../../../routes/admin/monetization/subscriptions/+page.svelte');
+
+	beforeEach(async () => {
+		api = await import('$lib/api/admin/subscriptions');
+		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockReset();
+		(api.listAdminSubs as ReturnType<typeof vi.fn>).mockResolvedValue(fakeListResponse(5));
+
+		pageMod = await import(
+			'../../../../routes/admin/monetization/subscriptions/+page.svelte'
+		);
+	}, 30000);
+
+	it('renders select-all checkbox and per-row checkboxes', async () => {
+		const { container } = render(pageMod.default);
+		await waitFor(() => {
+			const rows = container.querySelectorAll('[data-testid="admin-subs-row"]');
+			expect(rows.length).toBe(5);
+		});
+
+		const selectAll = container.querySelector('[data-testid="admin-subs-select-all"]');
+		expect(selectAll).not.toBeNull();
+
+		const rowCheckboxes = container.querySelectorAll(
+			'[data-testid="admin-subs-row-checkbox"]'
+		);
+		expect(rowCheckboxes.length).toBe(5);
+	});
+
+	it('clicking select-all shows the bulk actions bar', async () => {
+		render(pageMod.default);
+		await waitFor(() => {
+			const rows = document.querySelectorAll('[data-testid="admin-subs-row"]');
+			expect(rows.length).toBe(5);
+		});
+
+		const selectAll = document.querySelector(
+			'[data-testid="admin-subs-select-all"]'
+		) as HTMLInputElement;
+		expect(selectAll).not.toBeNull();
+
+		await fireEvent.click(selectAll);
+
+		await waitFor(() => {
+			const bulkBar = document.querySelector('[data-testid="admin-subs-bulk-bar"]');
+			expect(bulkBar).not.toBeNull();
+		});
+	});
+});
+
+// -----------------------------------------------------------------
+// Test 9: AssignSubscriptionDialog source guard
+// -----------------------------------------------------------------
+
+describe('admin subscriptions - AssignSubscriptionDialog source guard', () => {
+	it('uses StandardDialog with correct data-testid', () => {
+		expect(assignDialogSrc).toContain('StandardDialog');
+		expect(assignDialogSrc).toContain('data-testid="assign-sub-dialog"');
+		expect(assignDialogSrc).toContain('data-testid="assign-sub-form"');
+		expect(assignDialogSrc).toContain('data-testid="assign-submit-btn"');
+	});
+
+	it('calls assignSub from the subscriptions API', () => {
+		expect(assignDialogSrc).toContain("from '$lib/api/admin/subscriptions'");
+		expect(assignDialogSrc).toContain('assignSub');
+	});
+
+	it('page source imports AssignSubscriptionDialog', () => {
+		expect(pageSrc as unknown as string).toContain('AssignSubscriptionDialog');
+		expect(pageSrc as unknown as string).toContain('admin-subs-assign-btn');
+	});
+});
+
+// -----------------------------------------------------------------
+// Test 10: SubscriptionTable source includes bulk action testids
+// -----------------------------------------------------------------
+
+describe('admin subscriptions - SubscriptionTable bulk actions source guard', () => {
+	it('table source includes bulk action data-testids', () => {
+		expect(tableSrc).toContain('data-testid="admin-subs-bulk-bar"');
+		expect(tableSrc).toContain('data-testid="admin-subs-bulk-extend-btn"');
+		expect(tableSrc).toContain('data-testid="admin-subs-bulk-revoke-btn"');
+		expect(tableSrc).toContain('data-testid="admin-subs-select-all"');
+		expect(tableSrc).toContain('data-testid="admin-subs-row-checkbox"');
+	});
+
+	it('table source imports extendSub and revokeSub for bulk actions', () => {
+		expect(tableSrc).toContain('extendSub');
+		expect(tableSrc).toContain('revokeSub');
 	});
 });

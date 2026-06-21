@@ -2,6 +2,7 @@
 	import { _ } from 'svelte-i18n';
 	import { RotateCw, ShieldCheck, Download, Trash2, Pencil } from '@lucide/svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import Textarea from '$lib/ui/Textarea.svelte';
 	import {
@@ -163,19 +164,16 @@
 </div>
 
 <!-- Delete confirmation -->
-<StandardDialog bind:open={deleteOpen} title={$_('admin.accounts.deleteTitle', { default: 'Delete selected accounts' })} width="sm" data-testid="accounts-delete-dialog">
-	<div class="mt-4 space-y-4">
-		<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-			{$_('admin.accounts.deleteConfirm', { default: 'Delete {count} accounts? This cannot be undone.', values: { count: selectedIds.size } })}
-		</p>
-		<div class="flex justify-end gap-2">
-			<Button variant="outline" onclick={() => (deleteOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
-			<Button variant="outline" class="border-destructive/30 text-destructive" disabled={busy} onclick={confirmDelete} data-testid="accounts-delete-confirm">
-				{busy ? $_('common.deleting', { default: 'Deleting...' }) : $_('common.delete', { default: 'Delete' })}
-			</Button>
-		</div>
-	</div>
-</StandardDialog>
+<ConfirmDialog
+	bind:open={deleteOpen}
+	title={$_('admin.accounts.deleteTitle', { default: 'Delete selected accounts' })}
+	description={$_('admin.accounts.deleteConfirm', { default: 'Delete {count} accounts? This cannot be undone.', values: { count: selectedIds.size } })}
+	confirmLabel={busy ? $_('common.deleting', { default: 'Deleting...' }) : $_('common.delete', { default: 'Delete' })}
+	loading={busy}
+	onConfirm={confirmDelete}
+	data-testid="accounts-delete-dialog"
+	confirmTestId="accounts-delete-confirm"
+/>
 
 <!-- Temp unschedulable -->
 <StandardDialog bind:open={tempOpen} title={$_('admin.accounts.tempUnschedulable', { default: 'Temporary unschedulable' })} width="md" data-testid="account-temp-unsched-dialog">

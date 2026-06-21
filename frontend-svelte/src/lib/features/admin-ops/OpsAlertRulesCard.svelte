@@ -39,6 +39,7 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
 	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import OpsAlertRuleEditDialog, {
 		METRIC_DEFINITIONS
@@ -318,40 +319,25 @@
 />
 
 <!-- Delete confirmation dialog. -->
-<StandardDialog
+<ConfirmDialog
 	bind:open={deleteOpen}
-	width="sm"
 	title={$_('admin.ops.alertRules.deleteConfirmTitle', { default: 'Delete alert rule' })}
+	description={$_('admin.ops.alertRules.deleteConfirmMessage', {
+		default: 'This alert rule will be permanently removed. This action cannot be undone.'
+	})}
+	confirmLabel={deleting
+		? $_('common.deleting', { default: 'Deleting…' })
+		: $_('common.delete', { default: 'Delete' })}
+	loading={deleting}
+	onConfirm={confirmDelete}
 	data-testid="ops-alert-rule-delete-confirm"
 >
-	<div class="mt-3 flex flex-col gap-3.5">
-		<p class="text-sm text-muted-foreground">
-			{$_('admin.ops.alertRules.deleteConfirmMessage', {
-				default: 'This alert rule will be permanently removed. This action cannot be undone.'
-			})}
-		</p>
-		{#if pendingDelete}
-			<div class="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm font-medium text-foreground">
-				{pendingDelete.name}
-			</div>
-		{/if}
-		{#if deleteError}
-			<Alert variant="destructive" class="text-xs">{deleteError}</Alert>
-		{/if}
-		<div class="flex items-center justify-end gap-2">
-			<Button variant="outline" disabled={deleting} onclick={() => (deleteOpen = false)}>
-				{$_('common.cancel', { default: 'Cancel' })}
-			</Button>
-			<Button
-				variant="destructive"
-				disabled={deleting}
-				onclick={confirmDelete}
-				data-testid="ops-alert-rule-delete-confirm-btn"
-			>
-				{deleting
-					? $_('common.deleting', { default: 'Deleting…' })
-					: $_('common.delete', { default: 'Delete' })}
-			</Button>
+	{#if pendingDelete}
+		<div class="mt-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm font-medium text-foreground">
+			{pendingDelete.name}
 		</div>
-	</div>
-</StandardDialog>
+	{/if}
+	{#if deleteError}
+		<Alert variant="destructive" class="mt-2 text-xs">{deleteError}</Alert>
+	{/if}
+</ConfirmDialog>

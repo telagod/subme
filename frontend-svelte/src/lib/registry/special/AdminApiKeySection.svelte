@@ -14,7 +14,7 @@
 	import { settingsApi } from '$lib/api/admin/settingsRegistry';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 
 	type FieldUpdate = { key: string; value: unknown };
 
@@ -210,34 +210,19 @@
 		</div>
 	{/if}
 
-	<StandardDialog
+	<ConfirmDialog
 		bind:open={confirmOpen}
-		width="sm"
 		title={confirmMode === 'regenerate'
 			? $_('admin.settings.adminApiKey.regenerate')
 			: $_('admin.settings.adminApiKey.delete')}
+		description={confirmMode === 'regenerate'
+			? $_('admin.settings.adminApiKey.regenerateConfirm')
+			: $_('admin.settings.adminApiKey.deleteConfirm')}
+		confirmLabel={operating ? $_('common.loading') : $_('common.confirm')}
+		variant={confirmMode === 'delete' ? 'danger' : 'warning'}
+		loading={operating}
+		onConfirm={confirmAdminApiKeyAction}
 		data-testid="admin-api-key-confirm-dialog"
-	>
-		<div class="mt-4 space-y-4">
-			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-				{confirmMode === 'regenerate'
-					? $_('admin.settings.adminApiKey.regenerateConfirm')
-					: $_('admin.settings.adminApiKey.deleteConfirm')}
-			</p>
-			<div class="flex justify-end gap-2 border-t border-border pt-4">
-				<Button variant="outline" onclick={() => (confirmOpen = false)}>
-					{$_('common.cancel')}
-				</Button>
-				<Button
-					variant="outline"
-					class="border-destructive/30 text-destructive hover:bg-destructive/10"
-					disabled={operating}
-					onclick={confirmAdminApiKeyAction}
-					data-testid="admin-api-key-confirm-action"
-				>
-					{operating ? $_('common.loading') : $_('common.confirm')}
-				</Button>
-			</div>
-		</div>
-	</StandardDialog>
+		confirmTestId="admin-api-key-confirm-action"
+	/>
 </div>

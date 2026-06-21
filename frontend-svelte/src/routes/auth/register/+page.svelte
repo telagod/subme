@@ -1,17 +1,13 @@
 <script lang="ts">
 	/**
-	 * /auth/register · M7 静态注册页
+	 * /auth/register · M7 register page + Turnstile CAPTCHA
 	 *
-	 * 设计：
-	 *   - superforms SPA 模式 + zod (registerSchema)：email + password + confirmPassword + agreement
-	 *     + turnstile + 自动捕获 affiliate code。
-	 *   - 提交流程：
-	 *       1. superValidate 通过 → POST /api/v1/auth/register
-	 *       2. 后端返回 access_token + user → auth store setSession → goto /dashboard
-	 *       3. 后端返回 verify_required=true → goto /auth/verify-email-sent?email=<email>
-	 *       4. 其他错误 → mapAuthError → showError + 表单红色错误条
-	 *   - Layout 复用 AuthLayout（与 LoginView 视觉一致）。
-	 *   - OAuth provider row 读取 public settings，当前接入 GitHub / Google email OAuth。
+	 * Features:
+	 *   - superforms SPA + zod (registerSchema)
+	 *   - Turnstile CAPTCHA widget (conditional on backend setting)
+	 *   - Agreement consent checkbox (static)
+	 *   - Affiliate code capture
+	 *   - OAuth providers (GitHub/Google email + full providers)
 	 */
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -22,6 +18,7 @@
 	import AuthLayout from '$lib/features/auth/AuthLayout.svelte';
 	import EmailOAuthButtons from '$lib/features/auth/EmailOAuthButtons.svelte';
 	import OAuthProvidersSection from '$lib/features/auth/OAuthProvidersSection.svelte';
+	import TurnstileWidget from '$lib/features/auth/TurnstileWidget.svelte';
 	import {
 		registerSchema,
 		captureAffiliateFromUrl,
@@ -30,7 +27,7 @@
 		mapAuthError,
 		type RegisterForm
 	} from '$lib/features/auth/forms';
-	import { authApi } from '$lib/api/auth';
+	import { authApi, type PublicSettings } from '$lib/api/auth';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
 	import Alert from '$lib/ui/Alert.svelte';
@@ -38,7 +35,7 @@
 	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 
-	// ── 表单初值 ───────────────────────────────────────────────
+	// ── Form ──────────────────────────────────────────────────────────
 	const initial = defaults<RegisterForm>(zod4(registerSchema));
 
 	const { form, errors, enhance, submitting } = superForm<RegisterForm>(initial, {
@@ -50,16 +47,22 @@
 			cancel();
 			if (!validated.valid) return;
 
+			// Turnstile gate check.
+			if (turnstileEnabled && turnstileSiteKey && !turnstileToken) {
+				showError($_('auth.turnstile.required', { default: 'Please complete the verification.' }));
+				return;
+			}
+
 			try {
 				const resp = await authApi.register({
 					email: validated.data.email,
 					password: validated.data.password,
 					aff_code: validated.data.affCode || undefined,
-					turnstile_token: validated.data.turnstileToken || undefined,
+					turnstile_token: turnstileEnabled ? turnstileToken || undefined : validated.data.turnstileToken || undefined,
 					agreement_consent: validated.data.agreementConsent || undefined
 				});
 
-				// 分支 A：后端立即返回 token（无邮件验证）。
+				// Branch A: immediate token (no email verification).
 				if (resp && typeof resp === 'object' && 'access_token' in resp && resp.access_token) {
 					auth.setSession(resp.access_token as string, (resp.user ?? { id: 0, email: validated.data.email }));
 					clearStoredAffiliateCode();
@@ -68,30 +71,74 @@
 					return;
 				}
 
-				// 分支 B：需要邮件验证 —— 转去“已发送”页。
+				// Branch B: email verification required.
 				clearStoredAffiliateCode();
 				const email = encodeURIComponent(validated.data.email);
 				await goto(`/auth/verify-email-sent?email=${email}`, { replaceState: true });
 			} catch (err) {
-				const key = mapAuthError(err, 'register');
-				formError = $_(key, { default: 'Registration failed' });
+				const msg = ((err as Error)?.message ?? '').toLowerCase();
+				if (msg.includes('turnstile')) {
+					formError = $_('auth.turnstile.failed', { default: 'CAPTCHA verification failed. Please try again.' });
+					turnstileToken = '';
+				} else {
+					const key = mapAuthError(err, 'register');
+					formError = $_(key, { default: 'Registration failed' });
+				}
 				showError(formError);
 			}
 		}
 	});
 
+	// ── State ──────────────────────────────────────────────────────────
 	let formError = $state<string>('');
 	let showPassword = $state(false);
 	let showConfirmPassword = $state(false);
+	let settingsLoaded = $state(false);
 
-	// ── onMount：抓 ?aff= 写 sessionStorage + 回填表单 ────────────────
-	onMount(() => {
+	// Turnstile state.
+	let turnstileEnabled = $state(false);
+	let turnstileSiteKey = $state('');
+	let turnstileToken = $state('');
+
+	// ── Derived ───────────────────────────────────────────────────────
+	const submitDisabled = $derived(
+		$submitting || (turnstileEnabled && !!turnstileSiteKey && !turnstileToken)
+	);
+
+	// ── Lifecycle ─────────────────────────────────────────────────────
+	onMount(async () => {
+		// Capture affiliate code from URL.
 		const aff = captureAffiliateFromUrl(page.url) || readStoredAffiliateCode();
 		if (aff) {
 			$form.affCode = aff;
 		}
+
+		// Fetch public settings for Turnstile.
+		try {
+			const s = await authApi.getPublicSettings();
+			turnstileEnabled = s.turnstile_enabled === true;
+			turnstileSiteKey = s.turnstile_site_key || '';
+		} catch {
+			// Settings fetch failed — allow registration without Turnstile.
+		} finally {
+			settingsLoaded = true;
+		}
 	});
 
+	// ── Turnstile handlers ────────────────────────────────────────────
+	function onTurnstileVerify(token: string) {
+		turnstileToken = token;
+	}
+
+	function onTurnstileExpire() {
+		turnstileToken = '';
+	}
+
+	function onTurnstileError() {
+		turnstileToken = '';
+	}
+
+	// ── Helpers ────────────────────────────────────────────────────────
 	function tr(key: string | undefined, fallback: string): string {
 		if (!key) return '';
 		return $_(key, { default: fallback });
@@ -204,6 +251,16 @@
 			{/if}
 		</div>
 
+		<!-- Turnstile CAPTCHA -->
+		{#if turnstileEnabled && turnstileSiteKey}
+			<TurnstileWidget
+				siteKey={turnstileSiteKey}
+				onVerify={onTurnstileVerify}
+				onExpire={onTurnstileExpire}
+				onError={onTurnstileError}
+			/>
+		{/if}
+
 		<!-- agreement -->
 		<label class="flex items-start gap-2 text-xs text-muted-foreground">
 			<Checkbox
@@ -224,10 +281,10 @@
 			</span>
 		</label>
 
-		<!-- affiliate code (hidden, surface-only debug) -->
+		<!-- affiliate code (hidden) -->
 		<Input type="hidden" name="affCode" bind:value={$form.affCode} data-testid="register-aff" />
 
-		<!-- 表单级错误 -->
+		<!-- form error -->
 		{#if formError}
 			<Alert variant="destructive" class="px-3 py-2 text-xs" data-testid="error-form">
 				{formError}
@@ -236,7 +293,7 @@
 
 		<Button
 			type="submit"
-			disabled={$submitting}
+			disabled={submitDisabled}
 			data-testid="register-submit"
 			class="w-full"
 		>

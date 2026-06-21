@@ -131,12 +131,56 @@ export async function resetQuotaSub(id: number | string): Promise<AdminSubscript
 	return apiClient.post<AdminSubscription>(`${SUBS_BASE}/${id}/reset-quota`);
 }
 
+// ── Assign / Bulk-Assign 类型 ──────────────────────────────────────────────
+
+export interface AssignSubPayload {
+	user_id: number;
+	group_id: number;
+	validity_days?: number;
+	notes?: string;
+}
+
+export interface BulkAssignSubPayload {
+	user_ids: number[];
+	group_id: number;
+	validity_days?: number;
+	notes?: string;
+}
+
+export interface BulkAssignResult {
+	success_count: number;
+	created_count: number;
+	reused_count: number;
+	failed_count: number;
+	subscriptions: AdminSubscription[];
+	errors: string[];
+	statuses?: Record<string, string>;
+}
+
+/**
+ * Assign a subscription to a single user.
+ *   - POST /admin/subscriptions/assign  body { user_id, group_id, validity_days?, notes? }
+ */
+export async function assignSub(payload: AssignSubPayload): Promise<AdminSubscription> {
+	return apiClient.post<AdminSubscription>(`${SUBS_BASE}/assign`, payload);
+}
+
+/**
+ * Bulk-assign subscriptions to multiple users.
+ *   - POST /admin/subscriptions/bulk-assign  body { user_ids, group_id, validity_days?, notes? }
+ */
+export async function bulkAssignSub(payload: BulkAssignSubPayload): Promise<BulkAssignResult> {
+	return apiClient.post<BulkAssignResult>(`${SUBS_BASE}/bulk-assign`, payload);
+}
+
 export const adminSubscriptionsApi = {
 	listAdminSubs,
 	getAdminSub,
 	revokeSub,
 	extendSub,
-	resetQuotaSub
+	resetQuotaSub,
+	assignSub,
+	bulkAssignSub
 };
 
 export default adminSubscriptionsApi;

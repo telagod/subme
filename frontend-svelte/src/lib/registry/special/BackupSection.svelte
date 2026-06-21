@@ -26,6 +26,7 @@
 	import { showError, showInfo, showSuccess } from '$lib/stores/toast.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Checkbox from '$lib/ui/Checkbox.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 
@@ -858,32 +859,16 @@
 	</div>
 </StandardDialog>
 
-<StandardDialog
+<ConfirmDialog
 	bind:open={deleteDialogOpen}
-	width="sm"
 	title={$_('common.delete')}
+	description={$_('admin.backup.actions.deleteConfirm')}
+	confirmLabel={deletingId === deleteTargetId ? $_('common.loading') : $_('common.delete')}
+	loading={deletingId === deleteTargetId}
+	onConfirm={confirmDeleteBackup}
 	data-testid="backup-delete-dialog"
->
-	<div class="mt-4 flex flex-col gap-4">
-		<p class="m-0 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-			{$_('admin.backup.actions.deleteConfirm')}
-		</p>
-		<div class="flex justify-end gap-2 border-t border-border pt-4">
-			<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
-				{$_('common.cancel')}
-			</Button>
-			<Button
-				variant="outline"
-				class="border-destructive/30 text-destructive hover:bg-destructive/10"
-				data-testid="backup-delete-confirm"
-				disabled={deletingId === deleteTargetId}
-				onclick={confirmDeleteBackup}
-			>
-				{deletingId === deleteTargetId ? $_('common.loading') : $_('common.delete')}
-			</Button>
-		</div>
-	</div>
-</StandardDialog>
+	confirmTestId="backup-delete-confirm"
+/>
 
 <StandardDialog
 	bind:open={showR2Guide}
