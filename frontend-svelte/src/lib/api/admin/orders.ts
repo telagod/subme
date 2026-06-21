@@ -123,22 +123,20 @@ export async function listAdminOrders(
 	filter?: AdminOrderFilter
 ): Promise<AdminOrderListResponse> {
 	const qs = buildQuery(filter);
-	const raw = await apiClient.get<AdminOrderListResponse | AdminOrder[]>(
+	const raw = await apiClient.get<Record<string, unknown>>(
 		`${ORDERS_BASE}${qs}`
 	);
-	if (Array.isArray(raw)) {
-		return {
-			data: raw,
-			total: raw.length,
-			page: filter?.page ?? 1,
-			page_size: filter?.page_size ?? raw.length
-		};
-	}
+	// Backend wraps in {code, data: {items, total}} — unwrap
+	const envelope = (raw && typeof raw === 'object' && 'data' in raw && raw.data && typeof raw.data === 'object')
+		? raw.data as Record<string, unknown>
+		: raw;
+	const items = (envelope as Record<string, unknown>).items ?? (envelope as Record<string, unknown>).data;
+	const list = Array.isArray(items) ? items as AdminOrder[] : [];
 	return {
-		data: raw?.data ?? [],
-		total: raw?.total ?? 0,
-		page: raw?.page ?? filter?.page ?? 1,
-		page_size: raw?.page_size ?? filter?.page_size ?? 20
+		data: list,
+		total: Number((envelope as Record<string, unknown>).total ?? list.length),
+		page: Number((envelope as Record<string, unknown>).page ?? filter?.page ?? 1),
+		page_size: Number((envelope as Record<string, unknown>).page_size ?? filter?.page_size ?? 20)
 	};
 }
 
