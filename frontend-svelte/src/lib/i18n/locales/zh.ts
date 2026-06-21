@@ -388,14 +388,14 @@ export default {
     // Quench Shell 导航
     quench: {
       group: {
-        cockpit: '驾驶舱',
+        cockpit: '总览',
         customers: '客户',
         monetization: '商业化',
         supply: '供给',
         reliability: '可靠性',
         platform: '平台',
       },
-      dashboard: '驾驶舱',
+      dashboard: '总览',
       users: '用户',
       affiliates: '邀请返利',
       pricingDesk: 'PayGo 计价',
@@ -7478,8 +7478,8 @@ export default {
     },
 
     dashboardQuench: {
-      title: '驾驶舱',
-      desc: '运营第一屏 · 数据 5s 心跳刷新',
+      title: '管理控制台',
+      desc: '系统概览与统计数据',
       refresh: '刷新',
       live: '实时',
       updatedAt: '更新于 {time}',
@@ -7497,7 +7497,7 @@ export default {
       kpiTokenAccum: '累计 {n}',
       kpiAvgResponse: '平均响应',
       kpiActiveUsers: '{n} 活跃用户',
-      loadFailed: '驾驶舱数据加载失败',
+      loadFailed: '控制台数据加载失败',
       // anomaly row
       anomalyAccountPool: '账号池',
       anomalyViewMore: '查看 →',
@@ -7836,7 +7836,7 @@ export default {
       domains: {
         title: '业务域导航',
         description:
-          '<div class="q-tour"><p>左侧导航按业务域分组，不再是平铺的功能清单。</p><p>日常运营的动线：<b>驾驶舱</b>看大盘 → <b>供给</b>保水位 → <b>客户/商业化</b>做增长 → <b>可靠性</b>兜底。</p></div>'
+          '<div class="q-tour"><p>左侧导航按业务域分组，不再是平铺的功能清单。</p><p>日常运营的动线：<b>总览</b>看大盘 → <b>供给</b>保水位 → <b>客户/商业化</b>做增长 → <b>可靠性</b>兜底。</p></div>'
       },
       cmdk: {
         title: '命令面板 ⌘K',
