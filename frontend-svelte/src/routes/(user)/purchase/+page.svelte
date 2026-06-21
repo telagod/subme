@@ -332,6 +332,17 @@
 		</div>
 	</header>
 
+	<!-- Balance quick-top-up link -->
+	<div class="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3">
+		<div class="flex items-center gap-2 text-sm text-muted-foreground">
+			<Wallet class="h-4 w-4" />
+			<span>{$_('user.purchase.currentBalance', { default: 'Current balance' })}</span>
+		</div>
+		<a href="/billing" class="text-sm font-medium text-primary hover:underline" data-testid="purchase-topup-link">
+			{$_('user.purchase.goTopUp', { default: 'Top up balance →' })}
+		</a>
+	</div>
+
 	<!-- Promo code row -->
 	<div
 		class="flex flex-wrap items-center gap-2 rounded-md border border-border bg-card p-3"

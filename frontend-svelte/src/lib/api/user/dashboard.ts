@@ -23,6 +23,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw) return (raw as { data: T }).data;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 export interface DashboardSummary {
@@ -161,12 +166,10 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 	const { start, end } = past7DayRange();
 
 	const [statsR, trendR, quotasR, subsR] = await Promise.allSettled([
-		apiClient.get<RawDashboardStats>('/api/v1/usage/dashboard/stats'),
-		apiClient.get<RawTrendResponse>(
-			`/api/v1/usage/dashboard/trend?start_date=${start}&end_date=${end}&granularity=day`
-		),
-		apiClient.get<RawPlatformQuotas>('/api/v1/user/platform-quotas'),
-		apiClient.get<RawSubscriptionList>('/api/v1/subscriptions/me')
+		apiClient.get('/api/v1/usage/dashboard/stats').then(r => unwrap<RawDashboardStats>(r)),
+		apiClient.get('/api/v1/usage/dashboard/trend?start_date=' + start + '&end_date=' + end + '&granularity=day').then(r => unwrap<RawTrendResponse>(r)),
+		apiClient.get('/api/v1/user/platform-quotas').then(r => unwrap<RawPlatformQuotas>(r)),
+		apiClient.get('/api/v1/subscriptions').then(r => unwrap<RawSubscriptionList>(r))
 	]);
 
 	// quota: 优先 platform-quotas（精确）；否则退回 stats.used_quota / total_quota；
@@ -216,10 +219,10 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
  */
 export async function getRecentUsage(limit: number): Promise<UsageEntry[]> {
 	const { start, end } = past7DayRange();
-	const resp = await apiClient.get<RawUsageList>(
+	const raw = await apiClient.get(
 		`/api/v1/usage?start_date=${start}&end_date=${end}&page=1&page_size=100`
 	);
-	return mapUsage(resp, limit);
+	return mapUsage(unwrap<RawUsageList>(raw), limit);
 }
 
 export const userDashboardApi = {

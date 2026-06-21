@@ -206,7 +206,7 @@
 								{#snippet child({ props })}
 									<a
 										{...props}
-										href="/admin/orders"
+										href="/admin/dashboard"
 										data-testid="topbar-switch-to-admin"
 									>
 										<ShieldCheck class="h-4 w-4" />
