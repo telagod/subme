@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { ChevronDown, ChevronLeft, ChevronRight, Filter, Grid3x3, LayoutList, MoreHorizontal, Plus, RefreshCw, X } from '@lucide/svelte';
+	import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Fingerprint, Grid3x3, LayoutList, MoreHorizontal, Plus, RefreshCw, ShieldAlert, Upload, X } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -249,19 +249,32 @@
 				<MoreHorizontal size={15} />
 			</Button>
 			{#if showToolsMenu}
-				<div class="absolute right-0 top-[calc(100%+4px)] z-50 min-w-[150px] rounded-lg border border-border bg-popover p-1 shadow-lg">
+				<div class="absolute right-0 top-[calc(100%+4px)] z-50 min-w-[180px] rounded-lg border border-border bg-popover p-1 shadow-lg">
 					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
 						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
+						<RefreshCw size={13} />
 						{$_('admin.accounts.toolsSync', { default: 'Sync models' })}
 					</Button>
 					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
 						onclick={() => { showToolsMenu = false; handleOpenData(); }}>
-						{$_('admin.accounts.toolsImport', { default: 'Import / Export' })}
+						<Upload size={13} />
+						{$_('admin.accounts.toolsImport', { default: 'Import data' })}
+					</Button>
+					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
+						onclick={() => { showToolsMenu = false; handleOpenData(); }}>
+						<Download size={13} />
+						{$_('admin.accounts.toolsExport', { default: 'Export data' })}
 					</Button>
 					<div class="my-1 h-px bg-border"></div>
 					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
 						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
-						{$_('admin.accounts.toolsAdvanced', { default: 'Advanced tools' })}
+						<ShieldAlert size={13} />
+						{$_('admin.accounts.toolsErrorPassthrough', { default: 'Error passthrough' })}
+					</Button>
+					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
+						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
+						<Fingerprint size={13} />
+						{$_('admin.accounts.toolsTLS', { default: 'TLS profiles' })}
 					</Button>
 				</div>
 			{/if}
