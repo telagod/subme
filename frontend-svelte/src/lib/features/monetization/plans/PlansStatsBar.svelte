@@ -21,7 +21,7 @@
 			>{total}</span
 		>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.plansCatalog.statTotal', { default: 'Total Plans' })}
+			{$_('admin.plansCatalog.statTotal', { default: '方案总数' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -33,7 +33,7 @@
 			{activeCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.plansCatalog.statOnSale', { default: 'On Sale' })}
+			{$_('admin.plansCatalog.statOnSale', { default: '在售' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -45,7 +45,7 @@
 			{archivedCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.plansCatalog.statOffSale', { default: 'Archived' })}
+			{$_('admin.plansCatalog.statOffSale', { default: '已归档' })}
 		</span>
 	</div>
 </Card>

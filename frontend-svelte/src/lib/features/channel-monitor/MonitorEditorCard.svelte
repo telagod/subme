@@ -212,7 +212,7 @@
 		</div>
 	</div>
 	<div class="mt-3 flex justify-end gap-2">
-		<Button variant="outline" disabled={saving} onclick={onCancel}>Cancel</Button>
-		<Button disabled={!canSave} onclick={handleSave}>Save</Button>
+		<Button variant="outline" disabled={saving} onclick={onCancel}>{$_('common.cancel', { default: '取消' })}</Button>
+		<Button disabled={!canSave} onclick={handleSave}>{$_('common.save', { default: '保存' })}</Button>
 	</div>
 </Card>

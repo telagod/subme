@@ -26,13 +26,13 @@
 		try {
 			await deleteAccount({ email: confirmEmail.trim(), password: deletePassword });
 			showSuccess(
-				$_('user.danger.deleteSuccess', { default: 'Account deleted. Logging out…' })
+				$_('user.danger.deleteSuccess', { default: '账户已删除，正在登出…' })
 			);
 			await auth.logout();
 		} catch (err) {
 			const e = err as Error;
 			showError(
-				e?.message ?? $_('user.danger.deleteFailed', { default: 'Failed to delete account' })
+				e?.message ?? $_('user.danger.deleteFailed', { default: '删除账户失败' })
 			);
 		} finally {
 			deletingAccount = false;
@@ -51,7 +51,7 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-destructive">
-				{$_('user.danger.title', { default: 'Delete account' })}
+				{$_('user.danger.title', { default: '删除账户' })}
 			</h2>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.danger.description', {
@@ -66,7 +66,7 @@
 		<div class="space-y-1.5">
 			<label for="dz-email" class="text-sm font-medium text-foreground">
 				{$_('user.danger.confirmEmail', {
-					default: 'Type your email to confirm ({email})',
+					default: '输入您的邮箱以确认 ({email})',
 					values: { email }
 				})}
 			</label>
@@ -81,7 +81,7 @@
 		</div>
 		<div class="space-y-1.5">
 			<label for="dz-password" class="text-sm font-medium text-foreground">
-				{$_('user.danger.password', { default: 'Current password' })}
+				{$_('user.danger.password', { default: '当前密码' })}
 			</label>
 			<Input
 				id="dz-password"
@@ -101,8 +101,8 @@
 				onclick={handleDeleteAccount}
 			>
 				{deletingAccount
-					? $_('user.danger.deleting', { default: 'Deleting…' })
-					: $_('user.danger.deleteButton', { default: 'Delete my account' })}
+					? $_('user.danger.deleting', { default: '删除中…' })
+					: $_('user.danger.deleteButton', { default: '删除我的账户' })}
 			</Button>
 		</div>
 	</div>

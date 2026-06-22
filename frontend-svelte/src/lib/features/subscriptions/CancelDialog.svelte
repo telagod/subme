@@ -37,7 +37,7 @@
 			await cancelSubscription(subscription.id);
 			showSuccess(
 				$_('user.subscriptions.cancelSuccess', {
-					default: 'Subscription cancelled successfully'
+					default: '订阅已成功取消'
 				})
 			);
 			onCancelCompleted?.(subscription.id);
@@ -46,7 +46,7 @@
 			const e = err as Error;
 			showError(
 				$_('user.subscriptions.cancelError', {
-					default: 'Failed to cancel subscription',
+					default: '取消订阅失败',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -64,7 +64,7 @@
 <StandardDialog
 	bind:open
 	width="sm"
-	title={$_('user.subscriptions.cancelTitle', { default: 'Cancel subscription?' })}
+	title={$_('user.subscriptions.cancelTitle', { default: '取消订阅？' })}
 	description={$_('user.subscriptions.cancelDescription', {
 		default:
 			'You will keep access to {planName} until the end of the current billing period. This action cannot be undone.',
@@ -94,7 +94,7 @@
 					onclick={handleCancel}
 					class="h-9"
 				>
-					{$_('user.subscriptions.keepSubscription', { default: 'Keep subscription' })}
+					{$_('user.subscriptions.keepSubscription', { default: '保留订阅' })}
 				</Button>
 				<Button
 					variant="destructive"
@@ -104,8 +104,8 @@
 					class="h-9"
 				>
 					{submitting
-						? $_('user.subscriptions.cancelling', { default: 'Cancelling...' })
-						: $_('user.subscriptions.confirmCancel', { default: 'Cancel subscription' })}
+						? $_('user.subscriptions.cancelling', { default: '取消中...' })
+						: $_('user.subscriptions.confirmCancel', { default: '取消订阅' })}
 				</Button>
 			</div>
 	</div>

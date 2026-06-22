@@ -70,16 +70,16 @@
 	<div class="grid gap-3 lg:grid-cols-[minmax(220px,1.5fr)_150px_150px_150px_160px_150px_150px_150px_auto]">
 		<label class="relative">
 			<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
-			<Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: 'Search name, email, note' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-search" />
+			<Input class="pl-9" placeholder={$_('admin.accountsQuench.searchPlaceholder', { default: '搜索名称、邮箱、备注' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-search" />
 		</label>
 		<NativeSelect bind:value={platform} options={platformOptions} onchange={onApply} data-testid="accounts-platform-filter" />
 		<NativeSelect bind:value={type} options={typeOptions} onchange={onApply} data-testid="accounts-type-filter" />
 		<NativeSelect bind:value={status} options={statusOptions} onchange={onApply} data-testid="accounts-status-filter" />
-		<Input placeholder="Group ID" bind:value={group} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-group-filter" />
+		<Input placeholder={$_('admin.accounts.groupIdPlaceholder', { default: '分组 ID' })} bind:value={group} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-group-filter" />
 		<NativeSelect bind:value={privacy} options={privacyModeOptions} onchange={onApply} data-testid="accounts-privacy-filter" />
 		<NativeSelect bind:value={schedulable} options={boolOpts} onchange={onApply} data-testid="accounts-schedulable-filter" />
 		<NativeSelect bind:value={hasProxy} options={boolOpts} onchange={onApply} data-testid="accounts-has-proxy-filter" />
-		<Button onclick={onApply}>Apply</Button>
+		<Button onclick={onApply}>{$_('common.apply', { default: 'Apply' })}</Button>
 	</div>
 </Card>
 

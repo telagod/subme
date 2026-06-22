@@ -117,7 +117,7 @@
 		labels: pts.map((p) => formatHistoryLabel(p.bucket_start, timeRange)),
 		datasets: [
 			{
-				label: $_('admin.ops.errorTotal', { default: 'Total errors' }),
+				label: $_('admin.ops.errorTotal', { default: '总错误数' }),
 				data: pts.map((p) => n(p.error_count_total)),
 				borderColor: '#71717a', // zinc-500
 				backgroundColor: 'rgba(113,113,122,0.12)',
@@ -127,7 +127,7 @@
 				pointHitRadius: 10
 			},
 			{
-				label: $_('admin.ops.errorsSla', { default: 'SLA errors' }),
+				label: $_('admin.ops.errorsSla', { default: 'SLA 错误' }),
 				data: pts.map((p) => n(p.error_count_sla)),
 				borderColor: '#ef4444', // red-500
 				backgroundColor: 'rgba(239,68,68,0.15)',
@@ -137,7 +137,7 @@
 				pointHitRadius: 10
 			},
 			{
-				label: $_('admin.ops.businessLimited', { default: 'Business limited' }),
+				label: $_('admin.ops.businessLimited', { default: '业务受限' }),
 				data: pts.map((p) => n(p.business_limited_count)),
 				borderColor: '#a1a1aa', // zinc-400
 				backgroundColor: 'transparent',
@@ -148,7 +148,7 @@
 				pointHitRadius: 10
 			},
 			{
-				label: $_('admin.ops.upstreamExcl429529', { default: 'Upstream (excl 429/529)' }),
+				label: $_('admin.ops.upstreamExcl429529', { default: '上游（不含 429/529）' }),
 				data: pts.map((p) => n(p.upstream_error_count_excl_429_529)),
 				borderColor: '#f97316', // orange-500
 				backgroundColor: 'rgba(249,115,22,0.12)',
@@ -158,7 +158,7 @@
 				pointHitRadius: 10
 			},
 			{
-				label: $_('admin.ops.upstream429', { default: 'Upstream 429' }),
+				label: $_('admin.ops.upstream429', { default: '上游 429' }),
 				data: pts.map((p) => n(p.upstream_429_count)),
 				borderColor: '#eab308', // yellow-500
 				backgroundColor: 'transparent',
@@ -168,7 +168,7 @@
 				pointHitRadius: 10
 			},
 			{
-				label: $_('admin.ops.upstream529', { default: 'Upstream 529' }),
+				label: $_('admin.ops.upstream529', { default: '上游 529' }),
 				data: pts.map((p) => n(p.upstream_529_count)),
 				borderColor: '#52525b', // zinc-600
 				backgroundColor: 'transparent',
@@ -236,7 +236,7 @@
 <Card class="flex h-full flex-col" data-testid="ops-error-trend-chart">
 	<div class="mb-3 flex flex-shrink-0 items-center justify-between gap-2">
 		<h3 class="text-sm font-semibold text-foreground">
-			{$_('admin.ops.errorTrend', { default: 'Error trend' })}
+			{$_('admin.ops.errorTrend', { default: '错误趋势' })}
 		</h3>
 		<div class="flex items-center gap-1.5">
 			<Button
@@ -247,7 +247,7 @@
 				data-testid="ops-error-trend-open-request"
 				onclick={() => onOpenRequestErrors?.()}
 			>
-				{$_('admin.ops.errorDetails.requestErrors', { default: 'Request errors' })}
+				{$_('admin.ops.errorDetails.requestErrors', { default: '请求错误' })}
 			</Button>
 			<Button
 				type="button"
@@ -257,7 +257,7 @@
 				data-testid="ops-error-trend-open-upstream"
 				onclick={() => onOpenUpstreamErrors?.()}
 			>
-				{$_('admin.ops.errorDetails.upstreamErrors', { default: 'Upstream errors' })}
+				{$_('admin.ops.errorDetails.upstreamErrors', { default: '上游错误' })}
 			</Button>
 		</div>
 	</div>
@@ -268,14 +268,14 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-error-trend-loading"
 			>
-				{$_('common.loading', { default: 'Loading…' })}
+				{$_('common.loading', { default: '加载中…' })}
 			</div>
 		{:else if chartError}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 				data-testid="ops-error-trend-error"
 			>
-				{$_('admin.ops.charts.emptyError', { default: 'Failed to load chart' })}
+				{$_('admin.ops.charts.emptyError', { default: '加载图表失败' })}
 			</div>
 		{:else if isEmpty}
 			<div
@@ -283,10 +283,10 @@
 				data-testid="ops-error-trend-empty"
 			>
 				<span class="text-sm font-medium text-foreground">
-					{$_('common.noData', { default: 'No data' })}
+					{$_('common.noData', { default: '暂无数据' })}
 				</span>
 				<span class="text-xs text-muted-foreground">
-					{$_('admin.ops.charts.emptyError', { default: 'No errors in this range' })}
+					{$_('admin.ops.charts.emptyError', { default: '该范围内无错误' })}
 				</span>
 			</div>
 		{:else if !chartReady || !LineCmp}
@@ -294,7 +294,7 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-error-trend-loading"
 			>
-				{$_('common.loading', { default: 'Loading…' })}
+				{$_('common.loading', { default: '加载中…' })}
 			</div>
 		{:else}
 			{@const LC = LineCmp as unknown as import('svelte').Component<{

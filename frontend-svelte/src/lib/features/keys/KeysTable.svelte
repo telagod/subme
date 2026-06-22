@@ -39,7 +39,7 @@
 	}
 	function fmtQuota(k: ApiKey): string {
 		if (!k.quotaTotal) {
-			return `$${k.quotaUsed.toFixed(2)} / ${$_('user.keys.unlimited', { default: 'Unlimited' })}`;
+			return `$${k.quotaUsed.toFixed(2)} / ${$_('user.keys.unlimited', { default: '不限' })}`;
 		}
 		return `$${k.quotaUsed.toFixed(2)} / $${k.quotaTotal.toFixed(2)}`;
 	}
@@ -73,8 +73,8 @@
 		variant="outline"
 		size="icon"
 		aria-label={k.status === 'active'
-			? $_('user.keys.disableAria', { default: 'Disable key' })
-			: $_('user.keys.enableAria', { default: 'Enable key' })}
+			? $_('user.keys.disableAria', { default: '禁用密钥' })
+			: $_('user.keys.enableAria', { default: '启用密钥' })}
 		data-testid="keys-toggle-btn"
 		onclick={() => onToggleStatus(k)}
 		disabled={toggling.has(k.id)}
@@ -85,7 +85,7 @@
 	<Button
 		variant="outline"
 		size="icon"
-		aria-label={$_('user.keys.editAria', { default: 'Edit key' })}
+		aria-label={$_('user.keys.editAria', { default: '编辑密钥' })}
 		data-testid="keys-edit-btn"
 		onclick={() => onEdit(k)}
 		class="h-8 w-8"
@@ -95,7 +95,7 @@
 	<Button
 		variant="outline"
 		size="icon"
-		aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
+		aria-label={$_('user.keys.revokeAria', { default: '撤销密钥' })}
 		data-testid="keys-revoke-btn"
 		data-key-id={k.id}
 		onclick={() => onRevoke(k)}
@@ -107,16 +107,16 @@
 
 {#if loading}
 	<div class="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground" data-testid="keys-loading">
-		{$_('user.keys.loading', { default: 'Loading…' })}
+		{$_('user.keys.loading', { default: '加载中…' })}
 	</div>
 {:else if loadError && keys.length === 0}
 	<Alert variant="destructive" class="p-8 text-center" data-testid="keys-error">
 		<p class="text-sm font-medium text-destructive">
-			{$_('user.keys.failedToLoad', { default: 'Failed to load API keys' })}
+			{$_('user.keys.failedToLoad', { default: '加载 API 密钥失败' })}
 		</p>
 		<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
 		<Button variant="outline" size="sm" onclick={onRefresh} class="mt-4">
-			{$_('user.keys.retry', { default: 'Retry' })}
+			{$_('user.keys.retry', { default: '重试' })}
 		</Button>
 	</Alert>
 {:else if keys.length === 0}
@@ -130,11 +130,11 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.keys.emptyTitle', { default: 'No API keys yet' })}
+				{$_('user.keys.emptyTitle', { default: '暂无 API 密钥' })}
 			</h2>
 			<p class="max-w-sm text-sm text-muted-foreground">
 				{$_('user.keys.emptyDescription', {
-					default: 'Create your first key to start calling the API.'
+					default: '创建您的第一个密钥以开始调用 API。'
 				})}
 			</p>
 		</div>
@@ -144,21 +144,21 @@
 			class="mt-1 h-9 gap-1.5"
 		>
 			<Plus class="h-4 w-4" />
-			{$_('user.keys.createFirstKey', { default: 'Create your first key' })}
+			{$_('user.keys.createFirstKey', { default: '创建您的第一个密钥' })}
 		</Button>
 	</div>
 {:else if useVirtual}
 	<!-- Virtual table path (> 50 rows) -->
 	<div class="rounded-lg border border-border bg-card" data-testid="keys-virtual-wrap">
 		<div class="grid grid-cols-[1.2fr_1.4fr_0.8fr_0.9fr_1fr_0.7fr_0.9fr_0.8fr] gap-3 border-b border-border bg-muted/40 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-			<div>{$_('user.keys.colName', { default: 'Name' })}</div>
-			<div>{$_('user.keys.colKey', { default: 'Key' })}</div>
-			<div>{$_('user.keys.colGroup', { default: 'Group' })}</div>
-			<div>{$_('user.keys.colUsage', { default: 'Usage' })}</div>
-			<div>{$_('user.keys.colQuota', { default: 'Quota' })}</div>
-			<div>{$_('user.keys.colStatus', { default: 'Status' })}</div>
-			<div>{$_('user.keys.colCreated', { default: 'Created' })}</div>
-			<div class="text-right">{$_('user.keys.colActions', { default: 'Actions' })}</div>
+			<div>{$_('user.keys.colName', { default: '名称' })}</div>
+			<div>{$_('user.keys.colKey', { default: '密钥' })}</div>
+			<div>{$_('user.keys.colGroup', { default: '分组' })}</div>
+			<div>{$_('user.keys.colUsage', { default: '用量' })}</div>
+			<div>{$_('user.keys.colQuota', { default: '配额' })}</div>
+			<div>{$_('user.keys.colStatus', { default: '状态' })}</div>
+			<div>{$_('user.keys.colCreated', { default: '创建时间' })}</div>
+			<div class="text-right">{$_('user.keys.colActions', { default: '操作' })}</div>
 		</div>
 		<div class="h-[60vh]">
 			<VirtualTable rows={keys} rowHeight={56} getRowKey={(r) => r.id}>
@@ -178,8 +178,8 @@
 							{/if}
 						</div>
 						<div class="text-xs text-muted-foreground space-y-0.5">
-							<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
-							<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
+							<div>{$_('user.keys.today', { default: '今天' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+							<div>{$_('user.keys.total', { default: '总计' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
 						</div>
 						<div class="text-muted-foreground">{fmtQuota(k)}</div>
 						<div><Badge class={statusBadgeClass(k.status)}>{statusLabel(k.status)}</Badge></div>
@@ -198,14 +198,14 @@
 		<table class="w-full text-sm" data-testid="keys-table">
 			<thead>
 				<tr class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colName', { default: 'Name' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colKey', { default: 'Key' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colGroup', { default: 'Group' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colUsage', { default: 'Usage' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colQuota', { default: 'Quota' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colStatus', { default: 'Status' })}</th>
-					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colCreated', { default: 'Created' })}</th>
-					<th class="px-4 py-2 text-right font-medium">{$_('user.keys.colActions', { default: 'Actions' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colName', { default: '名称' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colKey', { default: '密钥' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colGroup', { default: '分组' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colUsage', { default: '用量' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colQuota', { default: '配额' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colStatus', { default: '状态' })}</th>
+					<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colCreated', { default: '创建时间' })}</th>
+					<th class="px-4 py-2 text-right font-medium">{$_('user.keys.colActions', { default: '操作' })}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -230,8 +230,8 @@
 						</td>
 						<td class="px-4 py-3">
 							<div class="text-xs text-muted-foreground space-y-0.5">
-								<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
-								<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
+								<div>{$_('user.keys.today', { default: '今天' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+								<div>{$_('user.keys.total', { default: '总计' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
 							</div>
 						</td>
 						<td class="px-4 py-3 text-muted-foreground">{fmtQuota(k)}</td>

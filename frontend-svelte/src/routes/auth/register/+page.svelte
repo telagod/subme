@@ -49,7 +49,7 @@
 
 			// Turnstile gate check.
 			if (turnstileEnabled && turnstileSiteKey && !turnstileToken) {
-				showError($_('auth.turnstile.required', { default: 'Please complete the verification.' }));
+				showError($_('auth.turnstile.required', { default: '请完成验证。' }));
 				return;
 			}
 
@@ -66,7 +66,7 @@
 				if (resp && typeof resp === 'object' && 'access_token' in resp && resp.access_token) {
 					auth.setSession(resp.access_token as string, (resp.user ?? { id: 0, email: validated.data.email }));
 					clearStoredAffiliateCode();
-					showSuccess($_('auth.accountCreatedSuccess', { default: 'Account created!', values: { siteName: 'sub2api' } }));
+					showSuccess($_('auth.accountCreatedSuccess', { default: '账户创建成功！', values: { siteName: 'sub2api' } }));
 					await goto('/dashboard', { replaceState: true });
 					return;
 				}
@@ -78,11 +78,11 @@
 			} catch (err) {
 				const msg = ((err as Error)?.message ?? '').toLowerCase();
 				if (msg.includes('turnstile')) {
-					formError = $_('auth.turnstile.failed', { default: 'CAPTCHA verification failed. Please try again.' });
+					formError = $_('auth.turnstile.failed', { default: '验证码校验失败，请重试。' });
 					turnstileToken = '';
 				} else {
 					const key = mapAuthError(err, 'register');
-					formError = $_(key, { default: 'Registration failed' });
+					formError = $_(key, { default: '注册失败' });
 				}
 				showError(formError);
 			}
@@ -146,18 +146,18 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.register.title', { default: 'Create account' })} · sub2api</title>
+	<title>{$_('auth.register.title', { default: '创建账户' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.register.title', { default: 'Create account' })}
-	subtitle={$_('auth.register.subtitle', { default: 'Get started with sub2api in seconds.' })}
+	title={$_('auth.register.title', { default: '创建账户' })}
+	subtitle={$_('auth.register.subtitle', { default: '几秒钟即可开始使用 sub2api。' })}
 >
 	<form method="POST" use:enhance class="space-y-4" data-testid="register-form">
 		<!-- email -->
 		<div class="space-y-1.5">
 			<label for="reg-email" class="text-sm font-medium text-foreground">
-				{$_('auth.register.emailLabel', { default: 'Email' })}
+				{$_('auth.register.emailLabel', { default: '邮箱' })}
 			</label>
 			<Input
 				id="reg-email"
@@ -179,7 +179,7 @@
 		<!-- password -->
 		<div class="space-y-1.5">
 			<label for="reg-password" class="text-sm font-medium text-foreground">
-				{$_('auth.register.passwordLabel', { default: 'Password' })}
+				{$_('auth.register.passwordLabel', { default: '密码' })}
 			</label>
 			<div class="relative">
 				<Input
@@ -187,7 +187,7 @@
 					name="password"
 					type={showPassword ? 'text' : 'password'}
 					autocomplete="new-password"
-					placeholder={$_('auth.register.passwordPlaceholder', { default: 'At least 8 characters' })}
+					placeholder={$_('auth.register.passwordPlaceholder', { default: '至少 8 个字符' })}
 					bind:value={$form.password}
 					aria-invalid={$errors.password ? 'true' : undefined}
 					data-testid="register-password"
@@ -202,7 +202,7 @@
 					data-testid="toggle-password"
 					class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 				>
-					{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
+					{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: '显示' })}
 				</Button>
 			</div>
 			{#if $errors.password && $errors.password[0]}
@@ -211,7 +211,7 @@
 				</p>
 			{:else}
 				<p class="text-[11px] text-muted-foreground">
-					{$_('auth.register.passwordHint', { default: 'At least 8 chars, mix letters and numbers.' })}
+					{$_('auth.register.passwordHint', { default: '至少 8 个字符，混合字母和数字。' })}
 				</p>
 			{/if}
 		</div>
@@ -219,7 +219,7 @@
 		<!-- confirm password -->
 		<div class="space-y-1.5">
 			<label for="reg-confirm" class="text-sm font-medium text-foreground">
-				{$_('auth.register.confirmPasswordLabel', { default: 'Confirm password' })}
+				{$_('auth.register.confirmPasswordLabel', { default: '确认密码' })}
 			</label>
 			<div class="relative">
 				<Input
@@ -227,7 +227,7 @@
 					name="confirmPassword"
 					type={showConfirmPassword ? 'text' : 'password'}
 					autocomplete="new-password"
-					placeholder={$_('auth.register.confirmPasswordPlaceholder', { default: 'Repeat the password' })}
+					placeholder={$_('auth.register.confirmPasswordPlaceholder', { default: '再次输入密码' })}
 					bind:value={$form.confirmPassword}
 					aria-invalid={$errors.confirmPassword ? 'true' : undefined}
 					data-testid="register-confirm"
@@ -241,7 +241,7 @@
 					onclick={() => (showConfirmPassword = !showConfirmPassword)}
 					class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 				>
-					{showConfirmPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
+					{showConfirmPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: '显示' })}
 				</Button>
 			</div>
 			{#if $errors.confirmPassword && $errors.confirmPassword[0]}
@@ -270,13 +270,13 @@
 				class="mt-0.5 h-3.5 w-3.5 rounded border-input"
 			/>
 			<span>
-				{$_('auth.register.agreementPrefix', { default: 'I agree to the' })}
+				{$_('auth.register.agreementPrefix', { default: '我同意' })}
 				<a href="/legal/terms" class="text-foreground underline-offset-4 hover:underline">
-					{$_('auth.register.termsLink', { default: 'Terms' })}
+					{$_('auth.register.termsLink', { default: '条款' })}
 				</a>
 				{$_('auth.register.and', { default: 'and' })}
 				<a href="/legal/privacy" class="text-foreground underline-offset-4 hover:underline">
-					{$_('auth.register.privacyLink', { default: 'Privacy Policy' })}
+					{$_('auth.register.privacyLink', { default: '隐私政策' })}
 				</a>.
 			</span>
 		</label>
@@ -298,8 +298,8 @@
 			class="w-full"
 		>
 			{$submitting
-				? $_('auth.register.submitting', { default: 'Creating account...' })
-				: $_('auth.register.submit', { default: 'Create account' })}
+				? $_('auth.register.submitting', { default: '创建账户中...' })
+				: $_('auth.register.submit', { default: '创建账户' })}
 		</Button>
 
 		<EmailOAuthButtons
@@ -312,9 +312,9 @@
 	</form>
 
 	{#snippet footer()}
-		{$_('auth.register.alreadyHaveAccount', { default: 'Already have an account?' })}
+		{$_('auth.register.alreadyHaveAccount', { default: '已有账户？' })}
 		<a class="ml-1 text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.register.signInLink', { default: 'Sign in' })}
+			{$_('auth.register.signInLink', { default: '登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

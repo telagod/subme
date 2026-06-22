@@ -56,7 +56,7 @@
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg !== 'unauthorized') {
-				loadError = msg || $_('channelStatus.loadError', { default: 'Failed to load channel status' });
+				loadError = msg || $_('channelStatus.loadError', { default: '加载渠道状态失败' });
 				showError(loadError);
 			}
 			items = [];
@@ -73,7 +73,7 @@
 			detail = await getUserChannelMonitorStatus(row.id);
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
-			if (msg !== 'unauthorized') showError(msg || $_('channelStatus.detailLoadError', { default: 'Failed to load channel detail' }));
+			if (msg !== 'unauthorized') showError(msg || $_('channelStatus.detailLoadError', { default: '加载渠道详情失败' }));
 		} finally {
 			detailLoading = false;
 		}
@@ -90,17 +90,17 @@
 </script>
 
 <svelte:head>
-	<title>{$_('channelStatus.title', { default: 'Channel Status' })} · sub2api</title>
+	<title>{$_('channelStatus.title', { default: '渠道状态' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-5" data-testid="channel-status-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('channelStatus.title', { default: 'Channel Status' })}
+				{$_('channelStatus.title', { default: '渠道状态' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('channelStatus.description', { default: 'Inspect channel availability, latency and recent status' })}
+				{$_('channelStatus.description', { default: '检查渠道可用性、延迟和最近状态' })}
 			</p>
 		</div>
 		<Button
@@ -110,7 +110,7 @@
 			disabled={loading}
 		>
 			<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</header>
 
@@ -137,7 +137,7 @@
 				type="search"
 				bind:value={searchQuery}
 				data-testid="channel-status-search"
-				placeholder={$_('channelStatus.searchPlaceholder', { default: 'Search channels...' })}
+				placeholder={$_('channelStatus.searchPlaceholder', { default: '搜索渠道...' })}
 			/>
 		</label>
 		<div class="inline-flex rounded-md border border-border bg-background p-1">
@@ -168,8 +168,8 @@
 	{:else if filteredItems.length === 0}
 		<div class="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed border-border text-center" data-testid="channel-status-empty">
 			<Activity class="mb-3 h-10 w-10 text-muted-foreground" />
-			<p class="font-medium">{$_('channelStatus.empty.title', { default: 'No channels available' })}</p>
-			<p class="mt-1 text-sm text-muted-foreground">{$_('channelStatus.empty.description', { default: 'No monitored channels have been configured yet.' })}</p>
+			<p class="font-medium">{$_('channelStatus.empty.title', { default: '暂无可用渠道' })}</p>
+			<p class="mt-1 text-sm text-muted-foreground">{$_('channelStatus.empty.description', { default: '尚未配置任何监控渠道。' })}</p>
 		</div>
 	{:else}
 		<div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_420px]">
@@ -192,11 +192,11 @@
 						</div>
 						<div class="mt-4 grid grid-cols-2 gap-2 text-sm">
 							<div>
-								<p class="text-xs text-muted-foreground">{$_('channelStatus.columns.primaryModel', { default: 'Primary Model' })}</p>
+								<p class="text-xs text-muted-foreground">{$_('channelStatus.columns.primaryModel', { default: '主模型' })}</p>
 								<p class="truncate font-medium">{item.primary_model}</p>
 							</div>
 							<div>
-								<p class="text-xs text-muted-foreground">{$_('channelStatus.columns.latency', { default: 'Latency (ms)' })}</p>
+								<p class="text-xs text-muted-foreground">{$_('channelStatus.columns.latency', { default: '延迟 (ms)' })}</p>
 								<p class="font-medium">{formatLatency(item.primary_latency_ms)}</p>
 							</div>
 							<div>
@@ -224,11 +224,11 @@
 			<aside class="rounded-lg border border-border bg-card" data-testid="channel-status-detail">
 				<div class="flex items-center justify-between border-b border-border px-4 py-3">
 					<div>
-						<p class="text-sm font-semibold">{selected?.name ?? $_('channelStatus.detailTitle', { default: 'Channel Detail' })}</p>
+						<p class="text-sm font-semibold">{selected?.name ?? $_('channelStatus.detailTitle', { default: '渠道详情' })}</p>
 						<p class="text-xs text-muted-foreground">{selected?.group_name ?? ''}</p>
 					</div>
 					{#if selected}
-						<Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground" onclick={closeDetail} aria-label={$_('channelStatus.closeDetail', { default: 'Close' })}>
+						<Button variant="ghost" size="icon" class="h-7 w-7 text-muted-foreground" onclick={closeDetail} aria-label={$_('channelStatus.closeDetail', { default: '关闭' })}>
 							<X class="h-4 w-4" />
 						</Button>
 					{/if}

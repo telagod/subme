@@ -38,49 +38,49 @@
 	<div class="text-center">
 		<Server class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 		<h2 class="text-xl font-semibold tracking-normal text-foreground">
-			{$_('setup.redis.title', { default: 'Redis Configuration' })}
+			{$_('setup.redis.title', { default: 'Redis 配置' })}
 		</h2>
 		<p class="mt-1 text-sm text-muted-foreground">
-			{$_('setup.redis.description', { default: 'Connect to your Redis server' })}
+			{$_('setup.redis.description', { default: '连接到您的 Redis 服务器' })}
 		</p>
 	</div>
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<div>
-			<label class={labelClass} for="setup-redis-host">{$_('setup.redis.host', { default: 'Host' })}</label>
+			<label class={labelClass} for="setup-redis-host">{$_('setup.redis.host', { default: '主机' })}</label>
 			<Input id="setup-redis-host" data-testid="setup-redis-host" bind:value={formData.host} />
 		</div>
 		<div>
-			<label class={labelClass} for="setup-redis-port">{$_('setup.redis.port', { default: 'Port' })}</label>
+			<label class={labelClass} for="setup-redis-port">{$_('setup.redis.port', { default: '端口' })}</label>
 			<Input id="setup-redis-port" type="number" bind:value={formData.port} />
 		</div>
 	</div>
 	<div class="grid gap-4 sm:grid-cols-2">
 		<div>
-			<label class={labelClass} for="setup-redis-password">{$_('setup.redis.password', { default: 'Password (optional)' })}</label>
+			<label class={labelClass} for="setup-redis-password">{$_('setup.redis.password', { default: '密码（可选）' })}</label>
 			<Input id="setup-redis-password" type="password" bind:value={formData.password} />
 		</div>
 		<div>
-			<label class={labelClass} for="setup-redis-db">{$_('setup.redis.database', { default: 'Database' })}</label>
+			<label class={labelClass} for="setup-redis-db">{$_('setup.redis.database', { default: '数据库' })}</label>
 			<Input id="setup-redis-db" type="number" bind:value={formData.db} />
 		</div>
 	</div>
 	<label class="flex items-center justify-between gap-4 rounded-md border border-border p-3">
 		<span>
-			<span class="block text-sm font-medium text-foreground">{$_('setup.redis.enableTls', { default: 'Enable TLS' })}</span>
-			<span class="block text-xs text-muted-foreground">{$_('setup.redis.enableTlsHint', { default: 'Use TLS when connecting to Redis' })}</span>
+			<span class="block text-sm font-medium text-foreground">{$_('setup.redis.enableTls', { default: '启用 TLS' })}</span>
+			<span class="block text-xs text-muted-foreground">{$_('setup.redis.enableTlsHint', { default: '连接 Redis 时使用 TLS' })}</span>
 		</span>
 		<Checkbox bind:checked={formData.enable_tls} />
 	</label>
 	<Button variant="outline" class="w-full" data-testid="setup-test-redis" disabled={testingRedis} onclick={() => void testRedisConnection()}>
 		{#if testingRedis}
 			<Loader2 class="h-4 w-4 animate-spin" />
-			{$_('setup.status.testing', { default: 'Testing...' })}
+			{$_('setup.status.testing', { default: '测试中...' })}
 		{:else if redisConnected}
 			<CheckCircle2 class="h-4 w-4 text-emerald-500" />
-			{$_('setup.status.success', { default: 'Connection Successful' })}
+			{$_('setup.status.success', { default: '连接成功' })}
 		{:else}
-			{$_('setup.status.testConnection', { default: 'Test Connection' })}
+			{$_('setup.status.testConnection', { default: '测试连接' })}
 		{/if}
 	</Button>
 </div>

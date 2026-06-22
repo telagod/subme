@@ -138,7 +138,7 @@
 	}
 
 	function fmtLimit(v: number | null | undefined): string {
-		if (v == null) return $_('admin.plansCatalog.unlimited', { default: 'Unlimited' });
+		if (v == null) return $_('admin.plansCatalog.unlimited', { default: '不限' });
 		return `$${v}`;
 	}
 
@@ -148,23 +148,23 @@
 
 		// Validation — mirror Vue tree.
 		if (!name.trim()) {
-			showError($_('payment.admin.planName', { default: 'Plan name required' }));
+			showError($_('payment.admin.planName', { default: '方案名称必填' }));
 			return;
 		}
 		if (groupIdStr === GROUP_NONE) {
-			showError($_('payment.admin.groupRequired', { default: 'Please select a group' }));
+			showError($_('payment.admin.groupRequired', { default: '请选择分组' }));
 			return;
 		}
 		if (!price || price <= 0) {
 			showError(
-				$_('payment.admin.priceRequired', { default: 'Price must be greater than 0' })
+				$_('payment.admin.priceRequired', { default: '价格必须大于 0' })
 			);
 			return;
 		}
 		if (!validityDays || validityDays < 1) {
 			showError(
 				$_('payment.admin.validityDaysRequired', {
-					default: 'Validity days must be greater than 0'
+					default: '有效天数必须大于 0'
 				})
 			);
 			return;
@@ -190,12 +190,12 @@
 			} else {
 				await createPlan(payload);
 			}
-			showSuccess($_('common.saved', { default: 'Saved successfully' }));
+			showSuccess($_('common.saved', { default: '保存成功' }));
 			onSaved?.();
 			open = false;
 		} catch (err) {
 			const e = err as Error;
-			showError(e?.message ?? $_('common.error', { default: 'Error' }));
+			showError(e?.message ?? $_('common.error', { default: '错误' }));
 		} finally {
 			saving = false;
 		}
@@ -219,10 +219,10 @@
 	width="lg"
 	showHeader={false}
 	title={plan
-		? $_('payment.admin.editPlan', { default: 'Edit Plan' })
-		: $_('payment.admin.createPlan', { default: 'Create Plan' })}
+		? $_('payment.admin.editPlan', { default: '编辑方案' })
+		: $_('payment.admin.createPlan', { default: '创建方案' })}
 	description={$_('admin.plansCatalog.dialogDesc', {
-		default: 'Configure plan metadata, pricing and entitlements'
+		default: '配置方案元数据、定价和权限'
 	})}
 	data-testid="plan-edit-dialog"
 	class="flex max-h-[90vh] flex-col p-0"
@@ -231,12 +231,12 @@
 				<div class="min-w-0">
 					<h2 class="text-base font-semibold text-foreground">
 						{plan
-							? $_('payment.admin.editPlan', { default: 'Edit Plan' })
-							: $_('payment.admin.createPlan', { default: 'Create Plan' })}
+							? $_('payment.admin.editPlan', { default: '编辑方案' })
+							: $_('payment.admin.createPlan', { default: '创建方案' })}
 					</h2>
 					<p class="text-xs text-muted-foreground">
 						{$_('admin.plansCatalog.dialogDesc', {
-							default: 'Configure plan metadata, pricing and entitlements'
+							default: '配置方案元数据、定价和权限'
 						})}
 					</p>
 				</div>
@@ -245,7 +245,7 @@
 					size="icon"
 					class="h-7 w-7 text-muted-foreground hover:bg-muted hover:text-foreground"
 					onclick={handleClose}
-					aria-label={$_('common.close', { default: 'Close' })}
+					aria-label={$_('common.close', { default: '关闭' })}
 					data-testid="plan-edit-close"
 				>
 					<X class="h-4 w-4" />
@@ -287,7 +287,7 @@
 								for="plan-name"
 								class="mb-1 block text-xs font-medium text-foreground"
 							>
-								{$_('payment.admin.planName', { default: 'Plan Name' })}
+								{$_('payment.admin.planName', { default: '方案名称' })}
 								<span class="text-destructive">*</span>
 							</label>
 							<Input
@@ -305,7 +305,7 @@
 								for="plan-group"
 								class="mb-1 block text-xs font-medium text-foreground"
 							>
-								{$_('payment.admin.group', { default: 'Group' })}
+								{$_('payment.admin.group', { default: '分组' })}
 								<span class="text-destructive">*</span>
 							</label>
 							<!-- Group Select uses a non-empty sentinel for the unset state. -->
@@ -316,7 +316,7 @@
 								data-testid="plan-edit-group"
 							>
 								<option value={GROUP_NONE} disabled hidden>
-									{$_('payment.admin.selectGroup', { default: 'Select a group' })}
+									{$_('payment.admin.selectGroup', { default: '选择分组' })}
 								</option>
 								{#each eligibleGroups as g (g.id)}
 									<option value={String(g.id)}>
@@ -331,7 +331,7 @@
 								for="plan-description"
 								class="mb-1 block text-xs font-medium text-foreground"
 							>
-								{$_('payment.admin.planDescription', { default: 'Plan Description' })}
+								{$_('payment.admin.planDescription', { default: '方案描述' })}
 							</label>
 							<Textarea
 								id="plan-description"
@@ -348,12 +348,12 @@
 									bind:checked={forSale}
 									data-testid="plan-edit-for-sale"
 								/>
-								<span>{$_('payment.admin.forSale', { default: 'For Sale' })}</span>
+								<span>{$_('payment.admin.forSale', { default: '在售' })}</span>
 							</label>
 							<span class="text-xs text-muted-foreground">
 								{forSale
-									? $_('admin.plansCatalog.onSale', { default: 'On Sale' })
-									: $_('admin.plansCatalog.offSale', { default: 'Archived' })}
+									? $_('admin.plansCatalog.onSale', { default: '在售' })
+									: $_('admin.plansCatalog.offSale', { default: '已归档' })}
 							</span>
 						</div>
 
@@ -362,7 +362,7 @@
 								for="plan-sort-order"
 								class="mb-1 block text-xs font-medium text-foreground"
 							>
-								{$_('payment.admin.sortOrder', { default: 'Sort Order' })}
+								{$_('payment.admin.sortOrder', { default: '排序方式' })}
 							</label>
 							<Input
 								id="plan-sort-order"
@@ -385,7 +385,7 @@
 									for="plan-price"
 									class="mb-1 block text-xs font-medium text-foreground"
 								>
-									{$_('payment.admin.price', { default: 'Price' })}
+									{$_('payment.admin.price', { default: '价格' })}
 									<span class="text-destructive">*</span>
 								</label>
 								<Input
@@ -404,7 +404,7 @@
 									for="plan-original-price"
 									class="mb-1 block text-xs font-medium text-foreground"
 								>
-									{$_('payment.admin.originalPrice', { default: 'Original Price' })}
+									{$_('payment.admin.originalPrice', { default: '原价' })}
 								</label>
 								<Input
 									id="plan-original-price"
@@ -424,7 +424,7 @@
 									for="plan-validity-days"
 									class="mb-1 block text-xs font-medium text-foreground"
 								>
-									{$_('payment.admin.validityDays', { default: 'Validity (days)' })}
+									{$_('payment.admin.validityDays', { default: '有效期（天）' })}
 									<span class="text-destructive">*</span>
 								</label>
 								<Input
@@ -442,7 +442,7 @@
 									for="plan-validity-unit"
 									class="mb-1 block text-xs font-medium text-foreground"
 								>
-									{$_('payment.admin.validityUnit', { default: 'Validity Unit' })}
+									{$_('payment.admin.validityUnit', { default: '有效期单位' })}
 								</label>
 								<NativeSelect
 									id="plan-validity-unit"
@@ -451,13 +451,13 @@
 									data-testid="plan-edit-validity-unit"
 								>
 									<option value="days">
-										{$_('admin.plansCatalog.unitDays', { default: 'Days' })}
+										{$_('admin.plansCatalog.unitDays', { default: '天' })}
 									</option>
 									<option value="weeks">
-										{$_('admin.plansCatalog.unitWeeks', { default: 'Weeks' })}
+										{$_('admin.plansCatalog.unitWeeks', { default: '周' })}
 									</option>
 									<option value="months">
-										{$_('admin.plansCatalog.unitMonths', { default: 'Months' })}
+										{$_('admin.plansCatalog.unitMonths', { default: '月' })}
 									</option>
 								</NativeSelect>
 							</div>
@@ -469,17 +469,17 @@
 								data-testid="plan-edit-rate-mirror"
 							>
 								<div class="mb-1 font-medium text-foreground">
-									{$_('payment.admin.groupInfo', { default: 'Group Info' })}
+									{$_('payment.admin.groupInfo', { default: '分组信息' })}
 								</div>
 								<div class="grid grid-cols-2 gap-1.5 text-muted-foreground">
 									<div>
-										<span>{$_('payment.admin.rateMultiplierLabel', { default: 'Rate' })}:</span>
+										<span>{$_('payment.admin.rateMultiplierLabel', { default: '费率' })}:</span>
 										<span class="ml-1 tabular-nums text-foreground">
 											{selectedGroup.rate_multiplier}x
 										</span>
 									</div>
 									<div>
-										<span>{$_('payment.admin.platform', { default: 'Platform' })}:</span>
+										<span>{$_('payment.admin.platform', { default: '平台' })}:</span>
 										<span class="ml-1 text-foreground">{selectedGroup.platform}</span>
 									</div>
 								</div>
@@ -495,13 +495,13 @@
 							<div class="rounded-md border border-border bg-muted/30 p-3">
 								<div class="mb-2 text-xs font-medium text-foreground">
 									{$_('admin.plansCatalog.quotasFromGroup', {
-										default: 'Quotas are inherited from the selected group'
+										default: '配额继承自所选分组'
 									})}
 								</div>
 								<div class="grid grid-cols-3 gap-3 text-xs">
 									<div>
 										<div class="text-muted-foreground">
-											{$_('payment.admin.dailyLimit', { default: 'Daily Limit' })}
+											{$_('payment.admin.dailyLimit', { default: '日限额' })}
 										</div>
 										<div class="tabular-nums text-foreground" data-testid="plan-quota-daily">
 											{fmtLimit(selectedGroup.daily_limit_usd)}
@@ -509,7 +509,7 @@
 									</div>
 									<div>
 										<div class="text-muted-foreground">
-											{$_('payment.admin.weeklyLimit', { default: 'Weekly Limit' })}
+											{$_('payment.admin.weeklyLimit', { default: '周限额' })}
 										</div>
 										<div class="tabular-nums text-foreground" data-testid="plan-quota-weekly">
 											{fmtLimit(selectedGroup.weekly_limit_usd)}
@@ -517,7 +517,7 @@
 									</div>
 									<div>
 										<div class="text-muted-foreground">
-											{$_('payment.admin.monthlyLimit', { default: 'Monthly Limit' })}
+											{$_('payment.admin.monthlyLimit', { default: '月限额' })}
 										</div>
 										<div class="tabular-nums text-foreground" data-testid="plan-quota-monthly">
 											{fmtLimit(selectedGroup.monthly_limit_usd)}
@@ -531,7 +531,7 @@
 								data-testid="plan-quota-empty"
 							>
 								{$_('admin.plansCatalog.quotasNeedGroup', {
-									default: 'Select a group on the Basic Info tab to view inherited quotas'
+									default: '在基本信息页签选择分组以查看继承配额'
 								})}
 							</p>
 						{/if}
@@ -547,13 +547,13 @@
 									for="plan-new-feature"
 									class="mb-1 block text-xs font-medium text-foreground"
 								>
-									{$_('payment.admin.features', { default: 'Features' })}
+									{$_('payment.admin.features', { default: '功能' })}
 								</label>
 								<Input
 									id="plan-new-feature"
 									type="text"
 									placeholder={$_('payment.admin.featuresPlaceholder', {
-										default: 'Enter plan features...'
+										default: '输入方案功能...'
 									})}
 									class="h-9 px-2.5"
 									bind:value={newFeatureText}
@@ -574,7 +574,7 @@
 								data-testid="plan-edit-add-feature"
 							>
 								<Plus class="h-3 w-3" />
-								{$_('common.create', { default: 'Add' })}
+								{$_('common.create', { default: '添加' })}
 							</Button>
 						</div>
 
@@ -595,7 +595,7 @@
 										class="h-6 w-6 text-muted-foreground hover:bg-muted hover:text-foreground"
 										disabled={i === 0}
 										onclick={() => moveFeature(i, -1)}
-										aria-label={$_('admin.plansCatalog.moveUp', { default: 'Move Up' })}
+										aria-label={$_('admin.plansCatalog.moveUp', { default: '上移' })}
 									>
 										<ChevronUp class="h-3 w-3" />
 									</Button>
@@ -605,7 +605,7 @@
 										class="h-6 w-6 text-muted-foreground hover:bg-muted hover:text-foreground"
 										disabled={i === features.length - 1}
 										onclick={() => moveFeature(i, 1)}
-										aria-label={$_('admin.plansCatalog.moveDown', { default: 'Move Down' })}
+										aria-label={$_('admin.plansCatalog.moveDown', { default: '下移' })}
 									>
 										<ChevronDown class="h-3 w-3" />
 									</Button>
@@ -614,7 +614,7 @@
 										size="icon"
 										class="h-6 w-6 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 										onclick={() => removeFeature(i)}
-										aria-label={$_('common.delete', { default: 'Delete' })}
+										aria-label={$_('common.delete', { default: '删除' })}
 										data-testid="plan-edit-remove-feature"
 									>
 										<Trash2 class="h-3 w-3" />
@@ -625,7 +625,7 @@
 
 						{#if features.length === 0}
 							<p class="text-xs text-muted-foreground" data-testid="plan-edit-features-empty">
-								{$_('payment.admin.featuresHint', { default: 'One feature per line' })}
+								{$_('payment.admin.featuresHint', { default: '每行一个功能' })}
 							</p>
 						{/if}
 					</div>
@@ -640,7 +640,7 @@
 					onclick={handleClose}
 					data-testid="plan-edit-cancel"
 				>
-					{$_('common.cancel', { default: 'Cancel' })}
+					{$_('common.cancel', { default: '取消' })}
 				</Button>
 				<Button
 					type="submit"
@@ -650,8 +650,8 @@
 					data-testid="plan-edit-submit"
 				>
 					{saving
-						? $_('common.submitting', { default: 'Submitting...' })
-						: $_('common.save', { default: 'Save' })}
+						? $_('common.submitting', { default: '提交中...' })
+						: $_('common.save', { default: '保存' })}
 				</Button>
 			</footer>
 		</StandardDialog>

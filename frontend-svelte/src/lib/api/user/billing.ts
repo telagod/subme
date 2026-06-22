@@ -25,6 +25,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 /** Transaction 业务类型枚举。 */
@@ -228,7 +233,7 @@ function buildQuery(filter: ListTransactionsFilter = {}): string {
  * 后端未返回 balance → amount=0，UI 自行降级显示 $0.00。
  */
 export async function getBalance(): Promise<Balance> {
-	const raw = await apiClient.get<RawBalance>('/api/v1/user/billing/balance');
+	const raw = unwrapEnvelope<RawBalance>(await apiClient.get('/api/v1/user/billing/balance'));
 	return mapBalance(raw);
 }
 
@@ -240,9 +245,9 @@ export async function getBalance(): Promise<Balance> {
 export async function listTransactions(
 	filter: ListTransactionsFilter = {}
 ): Promise<PaginatedTransactions> {
-	const resp = await apiClient.get<RawPaginatedTransactions | RawTransaction[]>(
+	const resp = unwrapEnvelope<RawPaginatedTransactions | RawTransaction[]>(await apiClient.get(
 		`/api/v1/user/billing/transactions${buildQuery(filter)}`
-	);
+	));
 	if (Array.isArray(resp)) {
 		const items = resp.map(mapTransaction);
 		return { items, total: items.length, pages: 1 };
@@ -256,9 +261,9 @@ export async function listTransactions(
 
 /** 取单笔交易明细。 */
 export async function getTransaction(id: string): Promise<BillingTransaction> {
-	const raw = await apiClient.get<RawTransaction>(
+	const raw = unwrapEnvelope<RawTransaction>(await apiClient.get(
 		`/api/v1/user/billing/transactions/${encodeURIComponent(id)}`
-	);
+	));
 	return mapTransaction(raw);
 }
 

@@ -128,7 +128,7 @@
 					values: { id: String(errorId) },
 					default: `Error detail #${String(errorId)}`
 				})
-			: $_('admin.ops.errorDetail.title', { default: 'Error detail' })
+			: $_('admin.ops.errorDetail.title', { default: '错误详情' })
 	);
 
 	function isUpstreamError(d: OpsErrorDetail | null): boolean {
@@ -141,13 +141,13 @@
 	function requestTypeLabel(t: number | null | undefined): string {
 		switch (t) {
 			case 1:
-				return $_('admin.ops.errorDetail.requestTypeSync', { default: 'Sync' });
+				return $_('admin.ops.errorDetail.requestTypeSync', { default: '同步' });
 			case 2:
-				return $_('admin.ops.errorDetail.requestTypeStream', { default: 'Stream' });
+				return $_('admin.ops.errorDetail.requestTypeStream', { default: '流式' });
 			case 3:
 				return $_('admin.ops.errorDetail.requestTypeWs', { default: 'WebSocket' });
 			default:
-				return $_('admin.ops.errorDetail.requestTypeUnknown', { default: 'Unknown' });
+				return $_('admin.ops.errorDetail.requestTypeUnknown', { default: '未知' });
 		}
 	}
 
@@ -190,27 +190,27 @@
 			? [
 					{
 						key: 'auth',
-						label: $_('admin.ops.errorDetail.latency.auth', { default: 'Auth' }),
+						label: $_('admin.ops.errorDetail.latency.auth', { default: '认证' }),
 						ms: detail.auth_latency_ms
 					},
 					{
 						key: 'routing',
-						label: $_('admin.ops.errorDetail.latency.routing', { default: 'Routing' }),
+						label: $_('admin.ops.errorDetail.latency.routing', { default: '路由' }),
 						ms: detail.routing_latency_ms
 					},
 					{
 						key: 'ttft',
-						label: $_('admin.ops.errorDetail.latency.ttft', { default: 'Time to first token' }),
+						label: $_('admin.ops.errorDetail.latency.ttft', { default: '首令牌时间' }),
 						ms: detail.time_to_first_token_ms
 					},
 					{
 						key: 'upstream',
-						label: $_('admin.ops.errorDetail.latency.upstream', { default: 'Upstream' }),
+						label: $_('admin.ops.errorDetail.latency.upstream', { default: '上游' }),
 						ms: detail.upstream_latency_ms
 					},
 					{
 						key: 'response',
-						label: $_('admin.ops.errorDetail.latency.response', { default: 'Response' }),
+						label: $_('admin.ops.errorDetail.latency.response', { default: '响应' }),
 						ms: detail.response_latency_ms
 					}
 				].filter((p) => typeof p.ms === 'number')
@@ -246,7 +246,7 @@
 			loadError =
 				err instanceof Error
 					? err.message
-					: $_('admin.ops.failedToLoadErrorDetail', { default: 'Failed to load error detail.' });
+					: $_('admin.ops.failedToLoadErrorDetail', { default: '加载错误详情失败。' });
 		} finally {
 			loading = false;
 		}
@@ -303,15 +303,15 @@
 			}
 			showSuccess(
 				next
-					? $_('admin.ops.errorDetail.resolveSuccess', { default: 'Error marked as resolved.' })
-					: $_('admin.ops.errorDetail.unresolveSuccess', { default: 'Error marked as unresolved.' })
+					? $_('admin.ops.errorDetail.resolveSuccess', { default: '错误已标记为已解决。' })
+					: $_('admin.ops.errorDetail.unresolveSuccess', { default: '错误已标记为未解决。' })
 			);
 			await loadDetail(id);
 		} catch (err) {
 			showError(
 				err instanceof Error
 					? err.message
-					: $_('admin.ops.errorDetail.resolveFailed', { default: 'Failed to update resolution status.' })
+					: $_('admin.ops.errorDetail.resolveFailed', { default: '更新解决状态失败。' })
 			);
 		} finally {
 			resolving = false;
@@ -343,7 +343,7 @@
 			>
 				<RefreshCw class="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
 				<div class="text-[13px] text-muted-foreground">
-					{$_('admin.ops.errorDetail.loading', { default: 'Loading error detail…' })}
+					{$_('admin.ops.errorDetail.loading', { default: '加载错误详情中…' })}
 				</div>
 			</div>
 		{:else if !detail}
@@ -351,7 +351,7 @@
 				{#if loadError}
 					{loadError}
 				{:else}
-					{$_('admin.ops.errorDetail.noErrorSelected', { default: 'No error selected.' })}
+					{$_('admin.ops.errorDetail.noErrorSelected', { default: '未选择错误。' })}
 				{/if}
 			</div>
 		{:else}
@@ -367,7 +367,7 @@
 				<div class="grid grid-cols-2 gap-2.5 md:grid-cols-4" data-testid="ops-error-detail-summary">
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.requestId', { default: 'Request ID' })}
+							{$_('admin.ops.errorDetail.requestId', { default: '请求 ID' })}
 						</div>
 						<div class="mt-0.5 break-all font-mono text-base font-black tabular-nums">
 							{requestIdText || '—'}
@@ -375,16 +375,16 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.time', { default: 'Time' })}
+							{$_('admin.ops.errorDetail.time', { default: '时间' })}
 						</div>
 						<div class="mt-0.5 text-base font-black">{formatDateTime(detail.created_at)}</div>
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
 							{#if isUpstreamError(detail)}
-								{$_('admin.ops.errorDetail.account', { default: 'Account' })}
+								{$_('admin.ops.errorDetail.account', { default: '账户' })}
 							{:else}
-								{$_('admin.ops.errorDetail.user', { default: 'User' })}
+								{$_('admin.ops.errorDetail.user', { default: '用户' })}
 							{/if}
 						</div>
 						<div class="mt-0.5 text-base font-black">
@@ -397,13 +397,13 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.platform', { default: 'Platform' })}
+							{$_('admin.ops.errorDetail.platform', { default: '平台' })}
 						</div>
 						<div class="mt-0.5 text-base font-black">{detail.platform || '—'}</div>
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.group', { default: 'Group' })}
+							{$_('admin.ops.errorDetail.group', { default: '分组' })}
 						</div>
 						<div class="mt-0.5 text-base font-black">
 							{detail.group_name || (detail.group_id != null ? String(detail.group_id) : '—')}
@@ -411,7 +411,7 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.model', { default: 'Model' })}
+							{$_('admin.ops.errorDetail.model', { default: '模型' })}
 						</div>
 						<div class="mt-0.5 text-base font-black">
 							{#if hasModelMapping(detail)}
@@ -425,7 +425,7 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.inboundEndpoint', { default: 'Inbound endpoint' })}
+							{$_('admin.ops.errorDetail.inboundEndpoint', { default: '入站端点' })}
 						</div>
 						<div class="mt-0.5 break-all font-mono text-base font-black tabular-nums">
 							{detail.inbound_endpoint || '—'}
@@ -433,7 +433,7 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.upstreamEndpoint', { default: 'Upstream endpoint' })}
+							{$_('admin.ops.errorDetail.upstreamEndpoint', { default: '上游端点' })}
 						</div>
 						<div class="mt-0.5 break-all font-mono text-base font-black tabular-nums">
 							{detail.upstream_endpoint || '—'}
@@ -441,7 +441,7 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.status', { default: 'Status' })}
+							{$_('admin.ops.errorDetail.status', { default: '状态' })}
 						</div>
 						<div class="mt-1">
 							<Badge variant="outline" class={statusBadgeClass(detail.status_code)}>
@@ -451,13 +451,13 @@
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.requestType', { default: 'Request type' })}
+							{$_('admin.ops.errorDetail.requestType', { default: '请求类型' })}
 						</div>
 						<div class="mt-0.5 text-base font-black">{requestTypeLabel(detail.request_type)}</div>
 					</div>
 					<div class="rounded-[10px] border border-border bg-card p-3 md:col-span-2">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.message', { default: 'Message' })}
+							{$_('admin.ops.errorDetail.message', { default: '消息' })}
 						</div>
 						<div
 							class="mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-base font-black"
@@ -469,7 +469,7 @@
 					{#if detail.api_key_prefix}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.apiKeyPrefix', { default: 'API key prefix' })}
+								{$_('admin.ops.errorDetail.apiKeyPrefix', { default: 'API 密钥前缀' })}
 							</div>
 							<div class="mt-0.5 font-mono text-base font-black tabular-nums">
 								{detail.api_key_prefix}
@@ -479,7 +479,7 @@
 					{#if detail.attempted_key_prefix}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.attemptedKeyPrefix', { default: 'Attempted key prefix' })}
+								{$_('admin.ops.errorDetail.attemptedKeyPrefix', { default: '尝试的密钥前缀' })}
 							</div>
 							<div class="mt-0.5 font-mono text-base font-black tabular-nums">
 								{detail.attempted_key_prefix}
@@ -489,7 +489,7 @@
 					{#if detail.deleted_key_owner_email}
 						<div class="rounded-[10px] border border-border bg-card p-3 md:col-span-2">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.deletedKeyOwner', { default: 'Deleted key owner' })}
+								{$_('admin.ops.errorDetail.deletedKeyOwner', { default: '已删除的密钥所有者' })}
 							</div>
 							<div class="mt-0.5 text-base font-black">
 								{detail.deleted_key_owner_email}
@@ -499,7 +499,7 @@
 									>
 								{/if}
 								<Badge variant="destructive" class="ml-1.5 text-[10px]">
-									{$_('admin.ops.errorDetail.keyDeletedBadge', { default: 'Key deleted' })}
+									{$_('admin.ops.errorDetail.keyDeletedBadge', { default: '密钥已删除' })}
 								</Badge>
 							</div>
 						</div>
@@ -511,7 +511,7 @@
 					{#if detail.phase}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.phase', { default: 'Phase' })}
+								{$_('admin.ops.errorDetail.phase', { default: '阶段' })}
 							</div>
 							<div class="mt-0.5 text-base font-black">{detail.phase}</div>
 						</div>
@@ -519,7 +519,7 @@
 					{#if detail.severity}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.severity', { default: 'Severity' })}
+								{$_('admin.ops.errorDetail.severity', { default: '严重度' })}
 							</div>
 							<div class="mt-0.5 text-base font-black">{detail.severity}</div>
 						</div>
@@ -527,7 +527,7 @@
 					{#if detail.error_owner}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.errorOwner', { default: 'Error owner' })}
+								{$_('admin.ops.errorDetail.errorOwner', { default: '错误归属' })}
 							</div>
 							<div class="mt-0.5 text-base font-black">{detail.error_owner}</div>
 						</div>
@@ -535,7 +535,7 @@
 					{#if detail.error_source}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.errorSource', { default: 'Error source' })}
+								{$_('admin.ops.errorDetail.errorSource', { default: '错误来源' })}
 							</div>
 							<div class="mt-0.5 text-base font-black">{detail.error_source}</div>
 						</div>
@@ -543,7 +543,7 @@
 					{#if detail.upstream_status_code != null}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.upstreamStatusCode', { default: 'Upstream status' })}
+								{$_('admin.ops.errorDetail.upstreamStatusCode', { default: '上游状态' })}
 							</div>
 							<div class="mt-1">
 								<Badge variant="outline" class={statusBadgeClass(detail.upstream_status_code)}>
@@ -555,7 +555,7 @@
 					{#if detail.client_ip}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.clientIp', { default: 'Client IP' })}
+								{$_('admin.ops.errorDetail.clientIp', { default: '客户端 IP' })}
 							</div>
 							<div class="mt-0.5 font-mono text-base font-black tabular-nums">
 								{detail.client_ip}
@@ -565,7 +565,7 @@
 					{#if detail.user_agent}
 						<div class="rounded-[10px] border border-border bg-card p-3 md:col-span-2">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.userAgent', { default: 'User agent' })}
+								{$_('admin.ops.errorDetail.userAgent', { default: '用户代理' })}
 							</div>
 							<div class="mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-sm text-foreground" title={detail.user_agent}>
 								{detail.user_agent}
@@ -574,12 +574,12 @@
 					{/if}
 					<div class="rounded-[10px] border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-							{$_('admin.ops.errorDetail.resolved', { default: 'Resolved' })}
+							{$_('admin.ops.errorDetail.resolved', { default: '已解决' })}
 						</div>
 						<div class="mt-1 flex items-center gap-2">
 							{#if isResolved}
 								<Badge variant="outline" class="border-emerald-500/40 bg-emerald-500/10 text-emerald-600">
-									{$_('admin.ops.errorDetail.resolvedYes', { default: 'Resolved' })}
+									{$_('admin.ops.errorDetail.resolvedYes', { default: '已解决' })}
 								</Badge>
 								{#if detail.resolved_by_user_name}
 									<span class="text-xs text-muted-foreground">
@@ -588,7 +588,7 @@
 								{/if}
 							{:else}
 								<Badge variant="outline" class="border-border bg-muted text-muted-foreground">
-									{$_('admin.ops.errorDetail.resolvedNo', { default: 'Unresolved' })}
+									{$_('admin.ops.errorDetail.resolvedNo', { default: '未解决' })}
 								</Badge>
 							{/if}
 						</div>
@@ -596,11 +596,11 @@
 					{#if detail.is_business_limited}
 						<div class="rounded-[10px] border border-border bg-card p-3">
 							<div class="text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-								{$_('admin.ops.errorDetail.businessLimited', { default: 'Business limited' })}
+								{$_('admin.ops.errorDetail.businessLimited', { default: '业务受限' })}
 							</div>
 							<div class="mt-1">
 								<Badge variant="destructive" class="text-[10px]">
-									{$_('common.yes', { default: 'Yes' })}
+									{$_('common.yes', { default: '是' })}
 								</Badge>
 							</div>
 						</div>
@@ -614,7 +614,7 @@
 						data-testid="ops-error-detail-latency"
 					>
 						<h3 class="text-[11.5px] font-bold uppercase tracking-[.05em] text-foreground">
-							{$_('admin.ops.errorDetail.latency.title', { default: 'Latency breakdown' })}
+							{$_('admin.ops.errorDetail.latency.title', { default: '延迟分布' })}
 						</h3>
 						<div class="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-3">
 							{#each latencyPhases as phase (phase.key)}
@@ -634,7 +634,7 @@
 				<!-- Response body -->
 				<div class="rounded-xl border border-border bg-card p-4" data-testid="ops-error-detail-body">
 					<h3 class="text-[11.5px] font-bold uppercase tracking-[.05em] text-foreground">
-						{$_('admin.ops.errorDetail.responseBody', { default: 'Response body' })}
+						{$_('admin.ops.errorDetail.responseBody', { default: '响应体' })}
 					</h3>
 					<pre
 						class="mt-3 max-h-[480px] overflow-auto rounded-md border border-border bg-muted p-3.5 text-[11.5px] text-muted-foreground"><code
@@ -650,18 +650,18 @@
 					>
 						<div class="flex flex-wrap items-center justify-between gap-2">
 							<h3 class="text-[11.5px] font-bold uppercase tracking-[.05em] text-foreground">
-								{$_('admin.ops.errorDetails.upstreamErrors', { default: 'Upstream errors' })}
+								{$_('admin.ops.errorDetails.upstreamErrors', { default: '上游错误' })}
 							</h3>
 							{#if correlatedLoading}
 								<div class="text-[11px] text-muted-foreground">
-									{$_('common.loading', { default: 'Loading…' })}
+									{$_('common.loading', { default: '加载中…' })}
 								</div>
 							{/if}
 						</div>
 
 						{#if !correlatedLoading && !correlatedUpstream.length}
 							<div class="mt-2.5 text-[13px] text-muted-foreground">
-								{$_('common.noData', { default: 'No data' })}
+								{$_('common.noData', { default: '暂无数据' })}
 							</div>
 						{:else}
 							<div class="mt-3 flex flex-col gap-2.5">
@@ -686,18 +686,18 @@
 													size="sm"
 													class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px]"
 													disabled={!preview}
-													title={preview ? '' : $_('common.noData', { default: 'No data' })}
+													title={preview ? '' : $_('common.noData', { default: '暂无数据' })}
 													onclick={() => toggleUpstream(ev.id)}
 												>
 													{#if expandedIds.has(ev.id)}
 														<ChevronDown class="h-3 w-3" aria-hidden="true" />
 														{$_('admin.ops.errorDetail.responsePreview.collapse', {
-															default: 'Collapse'
+															default: '折叠'
 														})}
 													{:else}
 														<ChevronRight class="h-3 w-3" aria-hidden="true" />
 														{$_('admin.ops.errorDetail.responsePreview.expand', {
-															default: 'Expand'
+															default: '展开'
 														})}
 													{/if}
 												</Button>
@@ -707,7 +707,7 @@
 											<div>
 												<span class="text-muted-foreground"
 													>{$_('admin.ops.errorDetail.upstreamEvent.status', {
-														default: 'Status'
+														default: '状态'
 													})}:</span
 												>
 												<span class="ml-1 font-mono tabular-nums">{ev.status_code ?? '—'}</span>
@@ -715,7 +715,7 @@
 											<div>
 												<span class="text-muted-foreground"
 													>{$_('admin.ops.errorDetail.upstreamEvent.requestId', {
-														default: 'Request ID'
+														default: '请求 ID'
 													})}:</span
 												>
 												<span class="ml-1 font-mono tabular-nums"
@@ -747,7 +747,7 @@
 	<div class="mt-4 flex items-center justify-between border-t border-border pt-4">
 		<Button variant="ghost" size="sm" onclick={handleClose} data-testid="ops-error-detail-close">
 			<X class="h-4 w-4" aria-hidden="true" />
-			{$_('common.close', { default: 'Close' })}
+			{$_('common.close', { default: '关闭' })}
 		</Button>
 		{#if detail}
 			<Button
@@ -759,11 +759,11 @@
 			>
 				<CheckCircle2 class="h-4 w-4" aria-hidden="true" />
 				{#if resolving}
-					{$_('common.saving', { default: 'Saving...' })}
+					{$_('common.saving', { default: '保存中...' })}
 				{:else if isResolved}
-					{$_('admin.ops.errorDetail.unresolve', { default: 'Mark unresolved' })}
+					{$_('admin.ops.errorDetail.unresolve', { default: '标记为未解决' })}
 				{:else}
-					{$_('admin.ops.errorDetail.resolve', { default: 'Mark resolved' })}
+					{$_('admin.ops.errorDetail.resolve', { default: '标记为已解决' })}
 				{/if}
 			</Button>
 		{/if}

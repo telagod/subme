@@ -67,13 +67,13 @@
 		const amt = parseFloat(amountStr);
 		if (!Number.isFinite(amt) || amt <= 0) {
 			errorAmount = $_('admin.refund.errorAmountInvalid', {
-				default: 'Amount must be greater than 0'
+				default: '金额必须大于 0'
 			});
 			return false;
 		}
 		if (Number.isFinite(maxAmount) && amt > maxAmount) {
 			errorAmount = $_('admin.refund.errorAmountExceeds', {
-				default: 'Amount exceeds refundable balance',
+				default: '金额超过可退余额',
 				values: { max: maxAmount.toFixed(2) }
 			});
 			return false;
@@ -81,7 +81,7 @@
 		const trimmed = reason.trim();
 		if (trimmed.length < 4) {
 			errorReason = $_('admin.refund.errorReasonRequired', {
-				default: 'Reason is required (≥ 4 characters)'
+				default: '原因必填（至少 4 个字符）'
 			});
 			return false;
 		}
@@ -97,14 +97,14 @@
 				amount: parseFloat(amountStr),
 				reason: reason.trim()
 			});
-			showSuccess($_('admin.refund.success', { default: 'Refund issued' }));
+			showSuccess($_('admin.refund.success', { default: '退款已发放' }));
 			onRefunded?.(order.id);
 			open = false;
 		} catch (err) {
 			const e = err as Error;
 			showError(
 				$_('admin.refund.error', {
-					default: 'Refund failed: {error}',
+					default: '退款失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -122,9 +122,9 @@
 <StandardDialog
 	bind:open
 	width="md"
-	title={$_('admin.refund.title', { default: 'Issue refund' })}
+	title={$_('admin.refund.title', { default: '发起退款' })}
 	description={$_('admin.refund.description', {
-		default: 'Refund will be processed via the original payment channel.'
+		default: '退款将通过原支付渠道处理。'
 	})}
 	data-testid="order-refund-dialog"
 >
@@ -137,7 +137,7 @@
 			</div>
 			<p class="m-0 text-sm text-amber-700 dark:text-amber-300">
 				{$_('admin.refund.warning', {
-					default: 'Review the amount and reason before issuing the refund.'
+					default: '在发起退款前请确认金额和原因。'
 				})}
 			</p>
 		</div>
@@ -149,7 +149,7 @@
 					for="order-refund-amount"
 					class="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
 				>
-					{$_('admin.refund.amount', { default: 'Amount' })}
+					{$_('admin.refund.amount', { default: '金额' })}
 				</label>
 				<div class="flex items-center gap-2">
 					<span class="text-sm text-muted-foreground">$</span>
@@ -186,7 +186,7 @@
 					for="order-refund-reason"
 					class="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
 				>
-					{$_('admin.refund.reason', { default: 'Reason' })}
+					{$_('admin.refund.reason', { default: '原因' })}
 				</label>
 				<Textarea
 					id="order-refund-reason"
@@ -194,7 +194,7 @@
 					maxlength={500}
 					class="px-2 py-1.5"
 					placeholder={$_('admin.refund.reasonPlaceholder', {
-						default: 'Why is this refund being issued?'
+						default: '为什么要发起此退款？'
 					})}
 					bind:value={reason}
 					data-testid="order-refund-reason-input"
@@ -215,7 +215,7 @@
 				disabled={submitting}
 				onclick={handleCancel}
 			>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				data-testid="order-refund-confirm-btn"
@@ -223,8 +223,8 @@
 				onclick={handleSubmit}
 			>
 				{submitting
-					? $_('admin.refund.submitting', { default: 'Refunding…' })
-					: $_('admin.refund.confirm', { default: 'Refund' })}
+					? $_('admin.refund.submitting', { default: '退款中…' })
+					: $_('admin.refund.confirm', { default: '退款' })}
 			</Button>
 		</div>
 	</div>

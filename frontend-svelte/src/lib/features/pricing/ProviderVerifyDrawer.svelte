@@ -323,7 +323,7 @@
 					variant="ghost"
 					size="icon"
 					class="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
-					aria-label={$_('admin.providerVerify.close', { default: 'Close' })}
+					aria-label={$_('admin.providerVerify.close', { default: '关闭' })}
 					data-testid="provider-verify-close"
 					onclick={close}
 				>
@@ -345,7 +345,7 @@
 						data-testid="provider-verify-error"
 					>
 						<div class="mb-2 font-medium">
-							{$_('admin.providerVerify.loadError', { default: 'Load failed: ' })}{error}
+							{$_('admin.providerVerify.loadError', { default: '加载失败：' })}{error}
 						</div>
 						{#if slug}
 							<Button
@@ -354,7 +354,7 @@
 								class="h-7 border-destructive/40 px-2 hover:bg-destructive/20"
 								onclick={() => load(slug!)}
 							>
-								{$_('admin.providerVerify.retry', { default: 'Retry' })}
+								{$_('admin.providerVerify.retry', { default: '重试' })}
 							</Button>
 						{/if}
 					</div>
@@ -382,7 +382,7 @@
 								data-testid="provider-verify-overridden-badge"
 							>
 								<ShieldCheck class="h-2.5 w-2.5" />
-								{$_('admin.providerVerify.overriddenBadge', { default: 'Overridden' })}
+								{$_('admin.providerVerify.overriddenBadge', { default: '已覆盖' })}
 							</span>
 						{/if}
 					</div>
@@ -404,8 +404,8 @@
 									onclick={() => (descExpanded = !descExpanded)}
 								>
 									{descExpanded
-										? $_('admin.providerVerify.showLess', { default: 'Show less' })
-										: $_('admin.providerVerify.showMore', { default: 'Show more' })}
+										? $_('admin.providerVerify.showLess', { default: '收起' })
+										: $_('admin.providerVerify.showMore', { default: '展开更多' })}
 								</Button>
 							{/if}
 						</div>
@@ -419,7 +419,7 @@
 					>
 						<Info class="h-3 w-3 flex-shrink-0 text-primary" />
 						<span>
-							{$_('admin.providerVerify.baselineNote', { default: 'Baseline source: ' })}
+							{$_('admin.providerVerify.baselineNote', { default: '基准来源：' })}
 						</span>
 						<span
 							class="rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10.5px] font-semibold text-primary"
@@ -444,7 +444,7 @@
 							<AlertTriangle class="h-3.5 w-3.5" />
 							<span>
 								{$_('admin.providerVerify.syncFailed', {
-									default: 'Sync failed, list may not be up to date'
+									default: '同步失败，列表可能不是最新的'
 								})}
 							</span>
 							<Button
@@ -454,7 +454,7 @@
 								onclick={retrySync}
 								disabled={syncing}
 							>
-								{$_('admin.providerVerify.retry', { default: 'Retry' })}
+								{$_('admin.providerVerify.retry', { default: '重试' })}
 							</Button>
 						</div>
 					{/if}
@@ -466,25 +466,25 @@
 								<thead class="bg-muted text-[9.5px] uppercase tracking-wider text-muted-foreground">
 									<tr>
 										<th class="px-2.5 py-2 text-left">
-											{$_('admin.providerVerify.colProvider', { default: 'Provider' })}
+											{$_('admin.providerVerify.colProvider', { default: '供应商' })}
 										</th>
 										<th class="px-2.5 py-2 text-right">
-											{$_('admin.providerVerify.colIn', { default: 'In /M' })}
+											{$_('admin.providerVerify.colIn', { default: '输入 /M' })}
 										</th>
 										<th class="px-2.5 py-2 text-right">
-											{$_('admin.providerVerify.colOut', { default: 'Out /M' })}
+											{$_('admin.providerVerify.colOut', { default: '输出 /M' })}
 										</th>
 										<th class="px-2.5 py-2 text-right">
-											{$_('admin.providerVerify.colCacheRead', { default: 'Cache R /M' })}
+											{$_('admin.providerVerify.colCacheRead', { default: '缓存读取 /M' })}
 										</th>
 										<th class="px-2.5 py-2 text-right">
-											{$_('admin.providerVerify.colCacheWrite', { default: 'Cache W /M' })}
+											{$_('admin.providerVerify.colCacheWrite', { default: '缓存写入 /M' })}
 										</th>
 										<th class="px-2.5 py-2 text-right">
-											{$_('admin.providerVerify.colUptime', { default: 'Uptime' })}
+											{$_('admin.providerVerify.colUptime', { default: '运行时间' })}
 										</th>
 										<th class="px-2.5 py-2 text-center">
-											{$_('admin.providerVerify.colQuant', { default: 'Quant' })}
+											{$_('admin.providerVerify.colQuant', { default: '量化' })}
 										</th>
 									</tr>
 								</thead>
@@ -508,14 +508,14 @@
 														<span
 															class="rounded bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary"
 														>
-															{$_('admin.providerVerify.baselineBadge', { default: 'Baseline' })}
+															{$_('admin.providerVerify.baselineBadge', { default: '基准' })}
 														</span>
 													{/if}
 													{#if pinnedRow}
 														<span
 															class="rounded bg-primary/25 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary"
 														>
-															{$_('admin.providerVerify.pinnedBadge', { default: 'Pinned' })}
+															{$_('admin.providerVerify.pinnedBadge', { default: '已固定' })}
 														</span>
 													{/if}
 												</div>
@@ -561,7 +561,7 @@
 							class="rounded-md border bg-muted p-4 text-center text-xs text-muted-foreground"
 							data-testid="provider-verify-no-providers"
 						>
-							{$_('admin.providerVerify.noProviders', { default: 'No provider data yet' })}
+							{$_('admin.providerVerify.noProviders', { default: '暂无供应商数据' })}
 						</div>
 					{/if}
 
@@ -576,7 +576,7 @@
 							aria-expanded={editOpen}
 						>
 							<Edit class="h-3.5 w-3.5" />
-							{$_('admin.providerVerify.editBtn', { default: 'Override price' })}
+							{$_('admin.providerVerify.editBtn', { default: '覆盖价格' })}
 							<ChevronDown class="h-3.5 w-3.5 transition-transform {editOpen ? 'rotate-180' : ''}" />
 						</Button>
 					</div>
@@ -590,7 +590,7 @@
 							<h3
 								class="m-0 mb-3 text-[11.5px] font-bold uppercase tracking-wider text-primary"
 							>
-								{$_('admin.providerVerify.panelTitle', { default: 'Edit price override' })}
+								{$_('admin.providerVerify.panelTitle', { default: '编辑价格覆盖' })}
 							</h3>
 
 							<!-- RadioGroup -->
@@ -609,10 +609,10 @@
 									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
-										{$_('admin.providerVerify.modeAuto', { default: 'Auto lowest price' })}
+										{$_('admin.providerVerify.modeAuto', { default: '自动最低价' })}
 									</span>
 									<span class="ml-auto text-[10.5px] text-muted-foreground">
-										{$_('admin.providerVerify.modeAutoHint', { default: 'Restore default' })}
+										{$_('admin.providerVerify.modeAutoHint', { default: '恢复默认' })}
 									</span>
 								</label>
 
@@ -630,7 +630,7 @@
 									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
-										{$_('admin.providerVerify.modePinned', { default: 'Pin provider' })}
+										{$_('admin.providerVerify.modePinned', { default: '固定供应商' })}
 									</span>
 								</label>
 
@@ -667,7 +667,7 @@
 									/>
 									<span class="radio-dot"></span>
 									<span class="text-[12.5px] font-semibold">
-										{$_('admin.providerVerify.modeManual', { default: 'Manual input' })}
+										{$_('admin.providerVerify.modeManual', { default: '手动输入' })}
 									</span>
 									<span class="ml-auto text-[10.5px] text-muted-foreground">
 										{$_('admin.providerVerify.modeManualHint', { default: 'per-MTok' })}
@@ -681,7 +681,7 @@
 												for="pvd-manual-input"
 												class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 											>
-												{$_('admin.providerVerify.fieldInput', { default: 'Input' })}
+												{$_('admin.providerVerify.fieldInput', { default: '输入' })}
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
@@ -704,7 +704,7 @@
 												for="pvd-manual-output"
 												class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 											>
-												{$_('admin.providerVerify.fieldOutput', { default: 'Output' })}
+												{$_('admin.providerVerify.fieldOutput', { default: '输出' })}
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
@@ -727,7 +727,7 @@
 												for="pvd-manual-cr"
 												class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 											>
-												{$_('admin.providerVerify.fieldCacheRead', { default: 'Cache Read' })}
+												{$_('admin.providerVerify.fieldCacheRead', { default: '缓存读取' })}
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
@@ -749,7 +749,7 @@
 												for="pvd-manual-cw"
 												class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 											>
-												{$_('admin.providerVerify.fieldCacheWrite', { default: 'Cache Write' })}
+												{$_('admin.providerVerify.fieldCacheWrite', { default: '缓存写入' })}
 											</label>
 											<div class="flex items-center gap-1">
 												<span class="text-[10.5px] text-muted-foreground">$</span>
@@ -775,7 +775,7 @@
 										for="pvd-note"
 										class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 									>
-										{$_('admin.providerVerify.noteLabel', { default: 'Note (optional)' })}
+										{$_('admin.providerVerify.noteLabel', { default: '备注（可选）' })}
 									</label>
 									<Input
 										id="pvd-note"
@@ -808,12 +808,12 @@
 												data-testid="provider-verify-restore"
 											>
 												<Trash2 class="h-3.5 w-3.5" />
-												{$_('admin.providerVerify.restoreBtn', { default: 'Restore auto' })}
+												{$_('admin.providerVerify.restoreBtn', { default: '自动恢复' })}
 											</Button>
 										{:else}
 											<span class="text-[11px] text-muted-foreground">
 												{$_('admin.providerVerify.modeAutoHint', {
-													default: 'Already using auto pricing'
+													default: '已使用自动定价'
 												})}
 											</span>
 										{/if}
@@ -827,8 +827,8 @@
 										>
 											<Save class="h-3.5 w-3.5" />
 											{saving
-												? $_('admin.providerVerify.saving', { default: 'Saving…' })
-												: $_('admin.providerVerify.saveBtn', { default: 'Save' })}
+												? $_('admin.providerVerify.saving', { default: '保存中…' })
+												: $_('admin.providerVerify.saveBtn', { default: '保存' })}
 										</Button>
 									{/if}
 								</div>
@@ -837,7 +837,7 @@
 					{/if}
 				{:else if !slug}
 					<div class="p-6 text-center text-sm text-muted-foreground">
-						{$_('admin.providerVerify.noSlug', { default: 'No model slug specified' })}
+						{$_('admin.providerVerify.noSlug', { default: '未指定模型标识' })}
 					</div>
 				{/if}
 
@@ -847,7 +847,7 @@
 						data-testid="provider-verify-syncing"
 					>
 						<RefreshCw class="h-3.5 w-3.5 animate-spin text-primary" />
-						{$_('admin.providerVerify.syncing', { default: 'Syncing provider prices…' })}
+						{$_('admin.providerVerify.syncing', { default: '正在同步供应商价格…' })}
 					</div>
 				{/if}
 			</div>

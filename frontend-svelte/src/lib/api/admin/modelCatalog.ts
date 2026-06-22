@@ -16,6 +16,7 @@
  *   - 类型 1:1 verbatim 自 frontend/src/api/v1/admin/modelCatalog.ts。
  */
 import { apiClient } from '../client';
+import { unwrapData, type ApiEnvelope } from './supply';
 
 // ── 类型契约（与 backend handler model catalog 对齐） ────────────────────
 
@@ -109,19 +110,19 @@ const BASE = '/api/v1/admin/model-catalog';
 export const modelCatalogApi = {
 	/** GET /admin/model-catalog —— 列出全部 catalog 模型 */
 	async listModels(): Promise<CatalogListResponse> {
-		return apiClient.get<CatalogListResponse>(BASE);
+		return unwrapData(await apiClient.get<CatalogListResponse | ApiEnvelope<CatalogListResponse>>(BASE));
 	},
 
 	/** GET /admin/model-catalog/detail?model=<slug> —— 拉模型详情 + providers + override */
 	async getModel(slug: string): Promise<CatalogModelDetail> {
-		return apiClient.get<CatalogModelDetail>(
+		return unwrapData(await apiClient.get<CatalogModelDetail | ApiEnvelope<CatalogModelDetail>>(
 			`${BASE}/detail?model=${encodeURIComponent(slug)}`
-		);
+		));
 	},
 
 	/** POST /admin/model-catalog/sync （空 body）—— 同步全 catalog */
 	async syncCatalog(): Promise<SyncModelCatalogResult> {
-		return apiClient.post<SyncModelCatalogResult>(`${BASE}/sync`, {});
+		return unwrapData(await apiClient.post<SyncModelCatalogResult | ApiEnvelope<SyncModelCatalogResult>>(`${BASE}/sync`, {}));
 	},
 
 	/** POST /admin/model-catalog/sync {models:[slug]} —— 单模型 lazy endpoint 同步 */
@@ -131,7 +132,7 @@ export const modelCatalogApi = {
 
 	/** PUT /admin/model-catalog/override —— upsert override（pinned 或 manual） */
 	async upsertOverride(payload: UpsertOverridePayload): Promise<ModelPriceOverride> {
-		return apiClient.put<ModelPriceOverride>(`${BASE}/override`, payload);
+		return unwrapData(await apiClient.put<ModelPriceOverride | ApiEnvelope<ModelPriceOverride>>(`${BASE}/override`, payload));
 	},
 
 	/** DELETE /admin/model-catalog/override?model=<slug> —— 删除 override 恢复 auto */

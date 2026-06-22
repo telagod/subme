@@ -73,21 +73,21 @@
 			if (ok) {
 				showSuccess(successMsg);
 			} else {
-				showError($_('user.affiliates.copyFailed', { default: 'Failed to copy' }));
+				showError($_('user.affiliates.copyFailed', { default: '复制失败' }));
 			}
 		} catch {
-			showError($_('user.affiliates.copyFailed', { default: 'Failed to copy' }));
+			showError($_('user.affiliates.copyFailed', { default: '复制失败' }));
 		}
 	}
 
 	function copyCode() {
 		if (!referral?.code) return;
-		void copyText(referral.code, $_('user.affiliates.codeCopied', { default: 'Code copied' }));
+		void copyText(referral.code, $_('user.affiliates.codeCopied', { default: '代码已复制' }));
 	}
 
 	function copyLink() {
 		if (!referral?.link) return;
-		void copyText(referral.link, $_('user.affiliates.linkCopied', { default: 'Link copied' }));
+		void copyText(referral.link, $_('user.affiliates.linkCopied', { default: '链接已复制' }));
 	}
 </script>
 
@@ -108,7 +108,7 @@
 		>
 			<AlertTriangle class="h-4 w-4" />
 			<span>
-				{$_('user.affiliates.loadFailed', { default: 'Failed to load affiliate info' })}
+				{$_('user.affiliates.loadFailed', { default: '加载联盟信息失败' })}
 			</span>
 		</div>
 	{:else if referral}
@@ -116,7 +116,7 @@
 			<div class="space-y-4">
 				<div>
 					<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-						{$_('user.affiliates.yourCode', { default: 'Your referral code' })}
+						{$_('user.affiliates.yourCode', { default: '您的推荐码' })}
 					</p>
 					<div class="mt-1.5 flex items-center gap-2">
 						<code
@@ -130,17 +130,17 @@
 							size="sm"
 							data-testid="affiliates-copy-code-btn"
 							onclick={copyCode}
-							aria-label={$_('user.affiliates.copyCode', { default: 'Copy code' })}
+							aria-label={$_('user.affiliates.copyCode', { default: '复制代码' })}
 							class="h-9 gap-1 px-3"
 						>
 							<Copy class="h-3.5 w-3.5" />
-							{$_('user.affiliates.copyCode', { default: 'Copy' })}
+							{$_('user.affiliates.copyCode', { default: '复制' })}
 						</Button>
 					</div>
 				</div>
 				<div>
 					<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-						{$_('user.affiliates.inviteLink', { default: 'Invite link' })}
+						{$_('user.affiliates.inviteLink', { default: '邀请链接' })}
 					</p>
 					<div class="mt-1.5 flex items-center gap-2">
 						<code
@@ -154,11 +154,11 @@
 							size="sm"
 							data-testid="affiliates-copy-link-btn"
 							onclick={copyLink}
-							aria-label={$_('user.affiliates.copyLink', { default: 'Copy link' })}
+							aria-label={$_('user.affiliates.copyLink', { default: '复制链接' })}
 							class="h-9 gap-1 px-3"
 						>
 							<Copy class="h-3.5 w-3.5" />
-							{$_('user.affiliates.copyLink', { default: 'Copy' })}
+							{$_('user.affiliates.copyLink', { default: '复制' })}
 						</Button>
 					</div>
 				</div>

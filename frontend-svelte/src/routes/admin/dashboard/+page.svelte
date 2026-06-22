@@ -50,8 +50,8 @@
 		datasets: [{ label: 'Cost', data: models.map((m) => Number(m.actual_cost ?? m.cost ?? 0)), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'] }]
 	});
 	const granularityOptions = [
-		{ value: 'day', label: 'Day' },
-		{ value: 'hour', label: 'Hour' }
+		{ value: 'day', label: $_('common.day', { default: '日' }) },
+		{ value: 'hour', label: $_('common.hour', { default: '小时' }) }
 	];
 
 	async function loadDashboard() {
@@ -75,19 +75,19 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.dashboard.title', { default: 'Admin Dashboard' })}</title>
+	<title>{$_('admin.dashboard.title', { default: '管理后台' })}</title>
 </svelte:head>
 
 <section class="space-y-5" data-testid="admin-dashboard-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 		<div>
-			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">M14 · Operations</p>
+			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{$_('admin.dashboard.phase', { default: 'M14 · 运维' })}</p>
 			<h1 class="text-2xl font-semibold tracking-normal text-foreground">
-				{$_('admin.dashboard.title', { default: 'Admin Dashboard' })}
+				{$_('admin.dashboard.title', { default: '管理后台' })}
 			</h1>
 			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
 				{$_('admin.dashboard.description', {
-					default: 'System-wide usage, account health, spend, and high-volume model activity.'
+					default: '全站用量、账户健康度、消费和高流量模型活动。'
 				})}
 			</p>
 		</div>
@@ -99,7 +99,7 @@
 				data-testid="dashboard-granularity"
 			/>
 			<Button variant="outline" class="px-3" onclick={loadDashboard} disabled={loading}>
-				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} /> Refresh
+				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} /> {$_('common.refresh', { default: '刷新' })}
 			</Button>
 		</div>
 	</header>
@@ -118,7 +118,7 @@
 					<div>
 						<p class="text-xs font-medium uppercase text-muted-foreground">{item.label}</p>
 						<p class="mt-2 text-2xl font-semibold">{loading ? '-' : item.value}</p>
-						<p class="mt-1 text-xs text-muted-foreground">{loading ? 'Loading...' : item.sub}</p>
+						<p class="mt-1 text-xs text-muted-foreground">{loading ? $_('common.loading', { default: '加载中...' }) : item.sub}</p>
 					</div>
 					<Icon size={18} class="text-muted-foreground" />
 				</div>
@@ -129,8 +129,8 @@
 	<div class="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
 		<div class="rounded-lg border bg-card">
 			<div class="border-b p-4">
-				<h2 class="text-sm font-semibold">Recent Usage Trend</h2>
-				<p class="mt-1 text-xs text-muted-foreground">Last {trend.length} buckets from the dashboard snapshot.</p>
+				<h2 class="text-sm font-semibold">{$_('admin.dashboard.usageTrend', { default: '近期用量趋势' })}</h2>
+				<p class="mt-1 text-xs text-muted-foreground">{$_('admin.dashboard.usageTrendDesc', { default: '面板快照的最近 {count} 个时间桶。', values: { count: trend.length } })}</p>
 			</div>
 			<div class="p-4">
 				<ChartIsland type="line" data={trendChartData} loading={loading} empty={trend.length === 0}
@@ -140,12 +140,12 @@
 
 		<div class="rounded-lg border bg-card">
 			<div class="border-b p-4">
-				<h2 class="text-sm font-semibold">Top Users</h2>
-				<p class="mt-1 text-xs text-muted-foreground">Ranked by actual spend in the selected range.</p>
+				<h2 class="text-sm font-semibold">{$_('admin.dashboard.topUsers', { default: '用量最高用户' })}</h2>
+				<p class="mt-1 text-xs text-muted-foreground">{$_('admin.dashboard.topUsersDesc', { default: '按所选范围内的实际消费排名。' })}</p>
 			</div>
 			<div class="divide-y">
 				{#if users.length === 0}
-					<p class="p-6 text-sm text-muted-foreground">No user ranking data available.</p>
+					<p class="p-6 text-sm text-muted-foreground">{$_('admin.dashboard.noUserData', { default: '暂无用户排名数据。' })}</p>
 				{:else}
 					{#each users as user}
 						<div class="flex items-center justify-between gap-3 p-3 text-sm" data-testid="dashboard-user-row">
@@ -164,7 +164,7 @@
 	<div class="grid gap-4 xl:grid-cols-2">
 		<div class="rounded-lg border bg-card">
 			<div class="border-b p-4">
-				<h2 class="text-sm font-semibold">Top Models</h2>
+				<h2 class="text-sm font-semibold">{$_('admin.dashboard.topModels', { default: '热门模型' })}</h2>
 			</div>
 			<div class="p-4">
 				<ChartIsland type="doughnut" data={modelChartData} loading={loading} empty={models.length === 0}
@@ -174,11 +174,11 @@
 
 		<div class="rounded-lg border bg-card">
 			<div class="border-b p-4">
-				<h2 class="text-sm font-semibold">Top Groups</h2>
+				<h2 class="text-sm font-semibold">{$_('admin.dashboard.topGroups', { default: '热门分组' })}</h2>
 			</div>
 			<div class="divide-y">
 				{#if groups.length === 0}
-					<p class="p-6 text-sm text-muted-foreground">No group data available.</p>
+					<p class="p-6 text-sm text-muted-foreground">{$_('admin.dashboard.noGroupData', { default: '暂无分组数据。' })}</p>
 				{:else}
 					{#each groups as group}
 						<div class="flex items-center justify-between gap-3 p-3 text-sm" data-testid="dashboard-group-row">

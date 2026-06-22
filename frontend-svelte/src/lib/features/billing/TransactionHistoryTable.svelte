@@ -156,7 +156,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="billing-type-filter"
 		>
-			{$_('user.billing.typeFilter', { default: 'Type' })}
+			{$_('user.billing.typeFilter', { default: '类型' })}
 		</label>
 		<NativeSelect
 			id="billing-type-filter"
@@ -166,7 +166,7 @@
 			class="h-9"
 		>
 			<option value={TYPE_ALL}
-				>{$_('user.billing.allTypes', { default: 'All types' })}</option
+				>{$_('user.billing.allTypes', { default: '全部类型' })}</option
 			>
 			<option value="topup">{typeLabel('topup')}</option>
 			<option value="charge">{typeLabel('charge')}</option>
@@ -179,7 +179,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="billing-start-date"
 		>
-			{$_('user.billing.startDate', { default: 'From' })}
+			{$_('user.billing.startDate', { default: '从' })}
 		</label>
 		<Input
 			id="billing-start-date"
@@ -195,7 +195,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="billing-end-date"
 		>
-			{$_('user.billing.endDate', { default: 'To' })}
+			{$_('user.billing.endDate', { default: '至' })}
 		</label>
 		<Input
 			id="billing-end-date"
@@ -214,7 +214,7 @@
 			onclick={onClearDates}
 			class="h-9"
 		>
-			{$_('user.billing.clearDates', { default: 'Clear dates' })}
+			{$_('user.billing.clearDates', { default: '清除日期' })}
 		</Button>
 	{/if}
 </section>
@@ -233,7 +233,7 @@
 		data-testid="billing-txs-error"
 	>
 		<p class="text-sm font-medium text-destructive">
-			{$_('user.billing.failedToLoadTxs', { default: 'Failed to load transactions' })}
+			{$_('user.billing.failedToLoadTxs', { default: '加载交易记录失败' })}
 		</p>
 		<p class="mt-1 text-xs text-muted-foreground">{error}</p>
 		<Button
@@ -243,7 +243,7 @@
 			data-testid="billing-txs-retry"
 			class="mt-4"
 		>
-			{$_('user.billing.retry', { default: 'Retry' })}
+			{$_('user.billing.retry', { default: '重试' })}
 		</Button>
 	</Alert>
 {:else if txs.length === 0}
@@ -258,11 +258,11 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.billing.emptyTitle', { default: 'No transactions yet' })}
+				{$_('user.billing.emptyTitle', { default: '暂无交易记录' })}
 			</h2>
 			<p class="max-w-sm text-sm text-muted-foreground">
 				{$_('user.billing.emptyDescription', {
-					default: 'Top up your balance to start using paid features.'
+					default: '充值余额以开始使用付费功能。'
 				})}
 			</p>
 		</div>
@@ -272,7 +272,7 @@
 			class="mt-1 h-9 gap-1.5"
 		>
 			<ArrowUpRight class="h-4 w-4" />
-			{$_('user.billing.topUp', { default: 'Top Up' })}
+			{$_('user.billing.topUp', { default: '充值' })}
 		</Button>
 	</div>
 {:else}
@@ -286,22 +286,22 @@
 					class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground"
 				>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.billing.colTimestamp', { default: 'Timestamp' })}
+						{$_('user.billing.colTimestamp', { default: '时间戳' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.billing.colType', { default: 'Type' })}
+						{$_('user.billing.colType', { default: '类型' })}
 					</th>
 					<th class="px-4 py-2 text-right font-medium">
-						{$_('user.billing.colAmount', { default: 'Amount' })}
+						{$_('user.billing.colAmount', { default: '金额' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.billing.colCurrency', { default: 'Currency' })}
+						{$_('user.billing.colCurrency', { default: '币种' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.billing.colStatus', { default: 'Status' })}
+						{$_('user.billing.colStatus', { default: '状态' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.billing.colRef', { default: 'Reference' })}
+						{$_('user.billing.colRef', { default: '参考' })}
 					</th>
 				</tr>
 			</thead>
@@ -361,7 +361,7 @@
 		>
 			<span>
 				{$_('user.billing.pageOf', {
-					default: 'Page {page} of {pages}',
+					default: '第 {page} / {pages} 页',
 					values: { page, pages: Math.max(totalPages, 1) }
 				})}
 			</span>
@@ -373,7 +373,7 @@
 					disabled={page <= 1}
 					onclick={onPrevPage}
 				>
-					{$_('user.billing.prevPage', { default: 'Previous' })}
+					{$_('user.billing.prevPage', { default: '上一页' })}
 				</Button>
 				<Button
 					variant="outline"
@@ -382,7 +382,7 @@
 					disabled={totalPages > 0 && page >= totalPages}
 					onclick={onNextPage}
 				>
-					{$_('user.billing.nextPage', { default: 'Next' })}
+					{$_('user.billing.nextPage', { default: '下一步' })}
 				</Button>
 			</div>
 		</div>

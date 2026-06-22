@@ -18,6 +18,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 /** 邀请记录中单个被邀请人。 */
@@ -132,7 +137,7 @@ function mapReferralInfo(raw: RawUserAffiliateDetail): ReferralInfo {
  * ReferralInfo camelCase 形态。invitees 直接来自 detail，无独立列表端点。
  */
 export async function getReferralInfo(): Promise<ReferralInfo> {
-	const raw = await apiClient.get<RawUserAffiliateDetail>('/api/v1/user/aff');
+	const raw = unwrapEnvelope<RawUserAffiliateDetail>(await apiClient.get('/api/v1/user/aff'));
 	return mapReferralInfo(raw);
 }
 
@@ -143,10 +148,10 @@ export async function getReferralInfo(): Promise<ReferralInfo> {
  * 可用 quota，返回 { transferred_quota, balance }。
  */
 export async function transferAffiliateQuota(): Promise<TransferResult> {
-	const raw = await apiClient.post<{
+	const raw = unwrapEnvelope<{
 		transferred_quota?: number | string;
 		balance?: number | string;
-	}>('/api/v1/user/aff/transfer', {});
+	}>(await apiClient.post('/api/v1/user/aff/transfer', {}));
 	return {
 		transferredQuota: num(raw.transferred_quota),
 		balance: num(raw.balance)

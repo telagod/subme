@@ -89,16 +89,16 @@
 	});
 </script>
 
-<StandardDialog bind:open title={$_('admin.usage.balanceHistory', { default: 'Balance History' })} width="lg">
+<StandardDialog bind:open title={$_('admin.usage.balanceHistory', { default: '余额历史' })} width="lg">
 	<div class="mt-3 space-y-3">
 		<!-- Header with user label and filter -->
 		<div class="flex items-center justify-between gap-3">
 			<div class="text-sm">
-				<span class="text-muted-foreground">{$_('admin.usage.userLabel', { default: 'User' })}:</span>
+				<span class="text-muted-foreground">{$_('admin.usage.userLabel', { default: '用户' })}:</span>
 				<span class="ml-1 font-medium">{userLabel}</span>
 				{#if totalRecharged > 0}
 					<span class="ml-2 text-xs text-muted-foreground">
-						({$_('admin.usage.totalRecharged', { default: 'Total recharged' })}: ${totalRecharged.toFixed(2)})
+						({$_('admin.usage.totalRecharged', { default: '总充值' })}: ${totalRecharged.toFixed(2)})
 					</span>
 				{/if}
 			</div>
@@ -114,18 +114,18 @@
 			</div>
 		{:else if items.length === 0}
 			<div class="py-8 text-center text-sm text-muted-foreground">
-				{$_('admin.users.noBalanceHistory', { default: 'No records found for this user' })}
+				{$_('admin.users.noBalanceHistory', { default: '暂无该用户记录' })}
 			</div>
 		{:else}
 			<div class="overflow-x-auto">
 				<table class="w-full text-left text-sm">
 					<thead>
 						<tr class="border-b border-border text-xs text-muted-foreground">
-							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceTime', { default: 'Time' })}</th>
-							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceType', { default: 'Type' })}</th>
-							<th class="whitespace-nowrap px-2 py-2 text-right">{$_('admin.usage.balanceAmount', { default: 'Amount' })}</th>
-							<th class="whitespace-nowrap px-2 py-2 text-right">{$_('admin.usage.balanceAfter', { default: 'After' })}</th>
-							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceNotes', { default: 'Notes' })}</th>
+							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceTime', { default: '时间' })}</th>
+							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceType', { default: '类型' })}</th>
+							<th class="whitespace-nowrap px-2 py-2 text-right">{$_('admin.usage.balanceAmount', { default: '金额' })}</th>
+							<th class="whitespace-nowrap px-2 py-2 text-right">{$_('admin.usage.balanceAfter', { default: '之后' })}</th>
+							<th class="whitespace-nowrap px-2 py-2">{$_('admin.usage.balanceNotes', { default: '备注' })}</th>
 						</tr>
 					</thead>
 					<tbody>

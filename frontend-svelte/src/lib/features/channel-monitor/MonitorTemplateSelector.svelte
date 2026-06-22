@@ -87,7 +87,7 @@
 	<div class="flex items-center gap-2">
 		<FileText class="h-4 w-4 text-muted-foreground" />
 		<span class="text-xs font-medium text-muted-foreground">
-			{$_('admin.channelMonitor.template.selectorLabel', { default: 'Request template' })}
+			{$_('admin.channelMonitor.template.selectorLabel', { default: '请求模板' })}
 		</span>
 	</div>
 	<div class="flex items-center gap-2">
@@ -103,7 +103,7 @@
 				variant="ghost"
 				size="icon"
 				class="h-7 w-7 text-muted-foreground hover:text-destructive"
-				title={$_('admin.channelMonitor.template.clearTemplate', { default: 'Clear template' })}
+				title={$_('admin.channelMonitor.template.clearTemplate', { default: '清除模板' })}
 				onclick={clearTemplate}
 			>
 				<X class="h-4 w-4" />

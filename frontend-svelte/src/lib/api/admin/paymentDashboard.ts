@@ -114,7 +114,8 @@ async function fetchDashboard(range: DashboardRange): Promise<DashboardWire> {
 	const promise = (async () => {
 		try {
 			const qs = `?days=${encodeURIComponent(String(range.days))}`;
-			const raw = await apiClient.get<DashboardWire>(`/api/v1/admin/payment/dashboard${qs}`);
+			const resp = await apiClient.get<DashboardWire | { code?: number; data?: DashboardWire }>(`/api/v1/admin/payment/dashboard${qs}`);
+			const raw = (resp && typeof resp === 'object' && 'data' in resp && (resp as Record<string, unknown>).code !== undefined) ? (resp as Record<string, unknown>).data as DashboardWire : resp as DashboardWire;
 			return raw ?? {};
 		} finally {
 			// 同步窗口结束后清缓存：下一次调用会重新打后端。

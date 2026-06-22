@@ -61,7 +61,7 @@
 			type="search"
 			class="h-8 w-56 pl-7 pr-2"
 			placeholder={$_('admin.pricingList.search.placeholder', {
-				default: 'Search by model id or name…'
+				default: '按模型 ID 或名称搜索…'
 			})}
 			bind:value={searchInput}
 			data-testid="pricing-search"
@@ -69,7 +69,7 @@
 	</div>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="pricing-sort">
-		{$_('admin.pricingList.sort.label', { default: 'Sort' })}
+		{$_('admin.pricingList.sort.label', { default: '排序' })}
 	</label>
 	<!--
 		Sort NativeSelect — uses enum values directly. Memory `reshadcn-migration`:
@@ -82,22 +82,22 @@
 		data-testid="pricing-sort"
 	>
 		<option value="alpha-asc">
-			{$_('admin.pricingList.sort.alphaAsc', { default: 'Model A-Z' })}
+			{$_('admin.pricingList.sort.alphaAsc', { default: '模型 A-Z' })}
 		</option>
 		<option value="input-asc">
-			{$_('admin.pricingList.sort.inputAsc', { default: 'Input price asc' })}
+			{$_('admin.pricingList.sort.inputAsc', { default: '输入价格升序' })}
 		</option>
 		<option value="input-desc">
-			{$_('admin.pricingList.sort.inputDesc', { default: 'Input price desc' })}
+			{$_('admin.pricingList.sort.inputDesc', { default: '输入价格降序' })}
 		</option>
 		<option value="output-asc">
-			{$_('admin.pricingList.sort.outputAsc', { default: 'Output price asc' })}
+			{$_('admin.pricingList.sort.outputAsc', { default: '输出价格升序' })}
 		</option>
 		<option value="output-desc">
-			{$_('admin.pricingList.sort.outputDesc', { default: 'Output price desc' })}
+			{$_('admin.pricingList.sort.outputDesc', { default: '输出价格降序' })}
 		</option>
 		<option value="context-desc">
-			{$_('admin.pricingList.sort.contextDesc', { default: 'Context window desc' })}
+			{$_('admin.pricingList.sort.contextDesc', { default: '上下文窗口描述' })}
 		</option>
 	</NativeSelect>
 
@@ -107,7 +107,7 @@
 		this select exists for screen reader / keyboard fallback.
 	-->
 	<label class="ml-2 text-xs text-muted-foreground" for="pricing-provider-filter">
-		{$_('admin.pricingList.provider.label', { default: 'Provider' })}
+		{$_('admin.pricingList.provider.label', { default: '供应商' })}
 	</label>
 	<NativeSelect
 		id="pricing-provider-filter"
@@ -116,7 +116,7 @@
 		data-testid="pricing-provider-filter"
 	>
 		<option value={ALL_SENTINEL}>
-			{$_('admin.pricingList.provider.allOption', { default: 'All providers' })}
+			{$_('admin.pricingList.provider.allOption', { default: '全部供应商' })}
 		</option>
 	{#each providerTabs.slice(1) as t (t.key)}
 		<option value={t.key}>{t.label}</option>
@@ -130,7 +130,7 @@
 			bind:checked={onlyOverridden}
 			data-testid="pricing-only-overridden"
 		/>
-		{$_('admin.pricingList.onlyOverridden', { default: 'Only overridden' })}
+		{$_('admin.pricingList.onlyOverridden', { default: '仅覆盖项' })}
 	</label>
 
 	<div class="ml-auto text-xs text-muted-foreground tabular-nums">

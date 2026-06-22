@@ -48,7 +48,7 @@
 	async function handleRedeem() {
 		const trimmed = code.trim();
 		if (!trimmed || submitting) {
-			showError($_('redeem.pleaseEnterCode', { default: 'Please enter a redeem code' }));
+			showError($_('redeem.pleaseEnterCode', { default: '请输入兑换码' }));
 			return;
 		}
 		submitting = true;
@@ -60,12 +60,12 @@
 			code = '';
 			await auth.refreshUser();
 			await loadHistory();
-			showSuccess($_('redeem.codeRedeemSuccess', { default: 'Code redeemed successfully!' }));
+			showSuccess($_('redeem.codeRedeemSuccess', { default: '兑换码兑换成功！' }));
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg === 'unauthorized') return;
-			errorMessage = msg || $_('redeem.failedToRedeem', { default: 'Failed to redeem code. Please check the code and try again.' });
-			showError($_('redeem.redeemFailed', { default: 'Redemption Failed' }));
+			errorMessage = msg || $_('redeem.failedToRedeem', { default: '兑换码兑换失败，请检查后重试。' });
+			showError($_('redeem.redeemFailed', { default: '兑换失败' }));
 		} finally {
 			submitting = false;
 		}
@@ -77,17 +77,17 @@
 </script>
 
 <svelte:head>
-	<title>{$_('redeem.title', { default: 'Redeem Code' })} · sub2api</title>
+	<title>{$_('redeem.title', { default: '兑换码' })} · sub2api</title>
 </svelte:head>
 
 <section class="mx-auto max-w-3xl space-y-5" data-testid="redeem-page">
 	<header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('redeem.title', { default: 'Redeem Code' })}
+				{$_('redeem.title', { default: '兑换码' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('redeem.description', { default: 'Enter your redeem code to add balance or increase concurrency' })}
+				{$_('redeem.description', { default: '输入兑换码以增加余额或提高并发数' })}
 			</p>
 		</div>
 		<Button
@@ -97,7 +97,7 @@
 			disabled={loadingHistory}
 		>
 			<RotateCw class={`h-4 w-4 ${loadingHistory ? 'animate-spin' : ''}`} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</header>
 
@@ -108,7 +108,7 @@
 					<CreditCard class="h-5 w-5 text-muted-foreground" />
 				</div>
 				<div>
-					<p class="text-xs text-muted-foreground">{$_('redeem.currentBalance', { default: 'Current Balance' })}</p>
+					<p class="text-xs text-muted-foreground">{$_('redeem.currentBalance', { default: '当前余额' })}</p>
 					<p class="text-2xl font-semibold" data-testid="redeem-balance-value">{formatMoney(balance)}</p>
 				</div>
 			</div>
@@ -119,7 +119,7 @@
 					<Zap class="h-5 w-5 text-muted-foreground" />
 				</div>
 				<div>
-					<p class="text-xs text-muted-foreground">{$_('redeem.concurrency', { default: 'Concurrency' })}</p>
+					<p class="text-xs text-muted-foreground">{$_('redeem.concurrency', { default: '并发数' })}</p>
 					<p class="text-2xl font-semibold" data-testid="redeem-concurrency-value">
 						{concurrency} <span class="text-sm font-normal text-muted-foreground">{$_('redeem.requests', { default: 'requests' })}</span>
 					</p>
@@ -130,7 +130,7 @@
 
 	<form class="rounded-lg border border-border bg-card p-4" onsubmit={(event) => { event.preventDefault(); void handleRedeem(); }}>
 		<label for="redeem-code" class="text-sm font-medium">
-			{$_('redeem.redeemCodeLabel', { default: 'Redeem Code' })}
+			{$_('redeem.redeemCodeLabel', { default: '兑换码' })}
 		</label>
 		<div class="mt-2 flex flex-col gap-2 sm:flex-row">
 			<div class="relative min-w-0 flex-1">
@@ -144,7 +144,7 @@
 					required
 					bind:value={code}
 					disabled={submitting}
-					placeholder={$_('redeem.redeemCodePlaceholder', { default: 'Enter your redeem code' })}
+					placeholder={$_('redeem.redeemCodePlaceholder', { default: '输入兑换码' })}
 				/>
 			</div>
 			<Button
@@ -155,15 +155,15 @@
 			>
 				{#if submitting}
 					<Loader2 class="h-4 w-4 animate-spin" />
-					{$_('redeem.redeeming', { default: 'Redeeming...' })}
+					{$_('redeem.redeeming', { default: '兑换中...' })}
 				{:else}
 					<CheckCircle2 class="h-4 w-4" />
-					{$_('redeem.redeemButton', { default: 'Redeem Code' })}
+					{$_('redeem.redeemButton', { default: '兑换码' })}
 				{/if}
 			</Button>
 		</div>
 		<p class="mt-2 text-xs text-muted-foreground">
-			{$_('redeem.redeemCodeHint', { default: 'Redeem codes are case-sensitive' })}
+			{$_('redeem.redeemCodeHint', { default: '兑换码区分大小写' })}
 		</p>
 	</form>
 
@@ -173,7 +173,7 @@
 				<CheckCircle2 class="mt-0.5 h-5 w-5 text-emerald-600 dark:text-emerald-300" />
 				<div>
 					<h2 class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-						{$_('redeem.redeemSuccess', { default: 'Code Redeemed Successfully!' })}
+						{$_('redeem.redeemSuccess', { default: '兑换码兑换成功！' })}
 					</h2>
 					<p class="mt-1 text-sm text-emerald-700/80 dark:text-emerald-200/80">{result.message}</p>
 					<p class="mt-2 text-sm font-medium text-emerald-800 dark:text-emerald-100">
@@ -181,12 +181,12 @@
 					</p>
 					{#if result.new_balance !== undefined}
 						<p class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-							{$_('redeem.newBalance', { default: 'New Balance' })}: {formatMoney(result.new_balance)}
+							{$_('redeem.newBalance', { default: '新余额' })}: {formatMoney(result.new_balance)}
 						</p>
 					{/if}
 					{#if result.new_concurrency !== undefined}
 						<p class="mt-1 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-							{$_('redeem.newConcurrency', { default: 'New Concurrency' })}: {result.new_concurrency}
+							{$_('redeem.newConcurrency', { default: '新并发数' })}: {result.new_concurrency}
 						</p>
 					{/if}
 				</div>
@@ -196,14 +196,14 @@
 
 	{#if errorMessage}
 		<section class="rounded-lg border border-destructive/30 bg-destructive/10 p-4" data-testid="redeem-error">
-			<p class="text-sm font-semibold text-destructive">{$_('redeem.redeemFailed', { default: 'Redemption Failed' })}</p>
+			<p class="text-sm font-semibold text-destructive">{$_('redeem.redeemFailed', { default: '兑换失败' })}</p>
 			<p class="mt-1 text-sm text-destructive/85">{errorMessage}</p>
 		</section>
 	{/if}
 
 	<section class="rounded-lg border border-border bg-card">
 		<div class="border-b border-border px-4 py-3">
-			<h2 class="text-base font-semibold">{$_('redeem.recentActivity', { default: 'Recent Activity' })}</h2>
+			<h2 class="text-base font-semibold">{$_('redeem.recentActivity', { default: '近期活动' })}</h2>
 		</div>
 		<div class="p-4">
 			{#if loadingHistory}
@@ -234,7 +234,7 @@
 							<div class="text-right">
 								<p class="text-sm font-semibold">{formatHistoryValue(item)}</p>
 								{#if isAdminAdjustment(item.type)}
-									<p class="text-xs text-muted-foreground">{$_('redeem.adminAdjustment', { default: 'Admin Adjustment' })}</p>
+									<p class="text-xs text-muted-foreground">{$_('redeem.adminAdjustment', { default: '管理员调整' })}</p>
 								{:else}
 									<p class="font-mono text-xs text-muted-foreground">{item.code.slice(0, 8)}...</p>
 								{/if}
@@ -249,7 +249,7 @@
 				<div class="flex flex-col items-center py-8 text-center" data-testid="redeem-history-empty">
 					<Clock3 class="mb-3 h-10 w-10 text-muted-foreground" />
 					<p class="text-sm text-muted-foreground">
-						{$_('redeem.historyWillAppear', { default: 'Your redemption history will appear here' })}
+						{$_('redeem.historyWillAppear', { default: '您的兑换记录将在此显示' })}
 					</p>
 				</div>
 			{/if}

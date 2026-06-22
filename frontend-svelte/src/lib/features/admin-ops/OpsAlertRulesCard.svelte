@@ -86,7 +86,7 @@
 			loadState = 'error';
 			loadError =
 				(err as { message?: string })?.message ??
-				$_('admin.ops.alertRules.loadFailed', { default: 'Failed to load alert rules' });
+				$_('admin.ops.alertRules.loadFailed', { default: '加载告警规则失败' });
 		}
 	}
 
@@ -108,13 +108,13 @@
 			rules = [...rules];
 			showSuccess(
 				nextEnabled
-					? $_('admin.ops.alertRules.enabled', { default: 'Alert rule enabled.' })
-					: $_('admin.ops.alertRules.disabled', { default: 'Alert rule disabled.' })
+					? $_('admin.ops.alertRules.enabled', { default: '告警规则已启用。' })
+					: $_('admin.ops.alertRules.disabled', { default: '告警规则已禁用。' })
 			);
 		} catch (err) {
 			showError(
 				(err as { message?: string })?.message ??
-					$_('admin.ops.alertRules.toggleFailed', { default: 'Failed to toggle alert rule.' })
+					$_('admin.ops.alertRules.toggleFailed', { default: '切换告警规则失败。' })
 			);
 		} finally {
 			togglingIds.delete(id);
@@ -173,7 +173,7 @@
 		} catch (err) {
 			deleteError =
 				(err as { message?: string })?.message ??
-				$_('admin.ops.alertRules.deleteFailed', { default: 'Failed to delete alert rule' });
+				$_('admin.ops.alertRules.deleteFailed', { default: '删除告警规则失败' });
 		} finally {
 			deleting = false;
 		}
@@ -184,11 +184,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div>
 			<h3 class="text-sm font-semibold text-foreground">
-				{$_('admin.ops.alertRules.title', { default: 'Alert rules' })}
+				{$_('admin.ops.alertRules.title', { default: '告警规则' })}
 			</h3>
 			<p class="mt-0.5 text-xs text-muted-foreground">
 				{$_('admin.ops.alertRules.description', {
-					default: 'Define metric thresholds that trigger ops alerts.'
+					default: '定义触发运维告警的指标阈值。'
 				})}
 			</p>
 		</div>
@@ -201,14 +201,14 @@
 				data-testid="ops-alert-rule-create"
 			>
 				<Plus class="h-3.5 w-3.5" />
-				{$_('admin.ops.alertRules.create', { default: 'New rule' })}
+				{$_('admin.ops.alertRules.create', { default: '新建规则' })}
 			</Button>
 			<Button
 				variant="outline"
 				size="icon"
 				disabled={loadState === 'loading'}
 				onclick={load}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 				data-testid="ops-alert-rule-refresh"
 			>
 				<RefreshCw class={'h-3.5 w-3.5' + (loadState === 'loading' ? ' animate-spin' : '')} />
@@ -222,28 +222,28 @@
 
 	{#if loadState === 'loading' || loadState === 'idle'}
 		<div class="py-7 text-center text-sm text-muted-foreground">
-			{$_('admin.ops.alertRules.loading', { default: 'Loading…' })}
+			{$_('admin.ops.alertRules.loading', { default: '加载中…' })}
 		</div>
 	{:else if sortedRules.length === 0}
 		<div
 			class="rounded-lg border border-dashed border-border px-7 py-7 text-center text-sm text-muted-foreground"
 			data-testid="ops-alert-rule-empty"
 		>
-			{$_('admin.ops.alertRules.empty', { default: 'No alert rules yet.' })}
+			{$_('admin.ops.alertRules.empty', { default: '暂无告警规则。' })}
 		</div>
 	{:else}
 		<div class="overflow-auto rounded-lg border border-border" style="max-height:520px;">
 			<table class="w-full border-collapse text-sm" data-testid="ops-alert-rule-table">
 				<thead class="sticky top-0 z-10 bg-muted">
 					<tr class="text-left text-[10px] font-bold uppercase tracking-[.06em] text-muted-foreground">
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.name', { default: 'Name' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.metric', { default: 'Metric' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.condition', { default: 'Condition' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.window', { default: 'Window / Sustained' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.severity', { default: 'Severity' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.enabled', { default: 'Enabled' })}</th>
-						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.lastTriggered', { default: 'Last triggered' })}</th>
-						<th class="px-3.5 py-2.5 text-right">{$_('admin.ops.alertRules.table.actions', { default: 'Actions' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.name', { default: '名称' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.metric', { default: '指标' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.condition', { default: '条件' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.window', { default: '窗口 / 持续' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.severity', { default: '严重度' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.enabled', { default: '已启用' })}</th>
+						<th class="px-3.5 py-2.5">{$_('admin.ops.alertRules.table.lastTriggered', { default: '最后触发' })}</th>
+						<th class="px-3.5 py-2.5 text-right">{$_('admin.ops.alertRules.table.actions', { default: '操作' })}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -272,7 +272,7 @@
 								<Checkbox
 									checked={row.enabled}
 									disabled={togglingIds.has(row.id ?? -1)}
-									aria-label={$_('admin.ops.alertRules.table.enabled', { default: 'Enabled' })}
+									aria-label={$_('admin.ops.alertRules.table.enabled', { default: '已启用' })}
 									data-testid="ops-alert-rule-toggle"
 									onchange={() => toggleEnabled(row)}
 								/>
@@ -286,7 +286,7 @@
 									size="icon"
 									class="h-7 w-7"
 									onclick={() => openEdit(row)}
-									aria-label={$_('common.edit', { default: 'Edit' })}
+									aria-label={$_('common.edit', { default: '编辑' })}
 									data-testid="ops-alert-rule-edit"
 								>
 									<Pencil class="h-3.5 w-3.5" />
@@ -296,7 +296,7 @@
 									size="icon"
 									class="ml-1.5 h-7 w-7 text-destructive hover:border-destructive/40 hover:text-destructive"
 									onclick={() => requestDelete(row)}
-									aria-label={$_('common.delete', { default: 'Delete' })}
+									aria-label={$_('common.delete', { default: '删除' })}
 									data-testid="ops-alert-rule-delete"
 								>
 									<Trash2 class="h-3.5 w-3.5" />
@@ -321,13 +321,13 @@
 <!-- Delete confirmation dialog. -->
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title={$_('admin.ops.alertRules.deleteConfirmTitle', { default: 'Delete alert rule' })}
+	title={$_('admin.ops.alertRules.deleteConfirmTitle', { default: '删除告警规则' })}
 	description={$_('admin.ops.alertRules.deleteConfirmMessage', {
-		default: 'This alert rule will be permanently removed. This action cannot be undone.'
+		default: '此告警规则将被永久删除，此操作不可撤销。'
 	})}
 	confirmLabel={deleting
-		? $_('common.deleting', { default: 'Deleting…' })
-		: $_('common.delete', { default: 'Delete' })}
+		? $_('common.deleting', { default: '删除中…' })
+		: $_('common.delete', { default: '删除' })}
 	loading={deleting}
 	onConfirm={confirmDelete}
 	data-testid="ops-alert-rule-delete-confirm"

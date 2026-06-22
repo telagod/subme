@@ -32,19 +32,19 @@
 	const isWxpay = $derived(paymentType.toLowerCase().includes('wxpay'));
 	const scanTitle = $derived(
 		isAlipay
-			? $_('payment.qr.scanAlipay', { default: 'Alipay QR Payment' })
+			? $_('payment.qr.scanAlipay', { default: '支付宝扫码支付' })
 			: isWxpay
-				? $_('payment.qr.scanWxpay', { default: 'WeChat QR Payment' })
-				: $_('payment.qr.scanToPay', { default: 'Scan to Pay' })
+				? $_('payment.qr.scanWxpay', { default: '微信扫码支付' })
+				: $_('payment.qr.scanToPay', { default: '扫码支付' })
 	);
 	const scanHint = $derived(
 		isAlipay
 			? $_('payment.qr.scanAlipayHint', {
-					default: 'Open Alipay on your phone and scan the QR code to pay'
+					default: '打开手机支付宝扫描二维码支付'
 				})
 			: isWxpay
 				? $_('payment.qr.scanWxpayHint', {
-						default: 'Open WeChat on your phone and scan the QR code to pay'
+						default: '打开手机微信扫描二维码支付'
 					})
 				: ''
 	);
@@ -140,12 +140,12 @@
 </script>
 
 <svelte:head>
-	<title>{$_('payment.qr.scanToPay', { default: 'Scan to Pay' })} · sub2api</title>
+	<title>{$_('payment.qr.scanToPay', { default: '扫码支付' })} · sub2api</title>
 </svelte:head>
 
 <section class="mx-auto flex max-w-md flex-col items-center space-y-6 py-8" data-testid="payment-qrcode-page">
 	<h1 class="text-center text-xl font-semibold text-foreground">
-		{qrUrl ? scanTitle : $_('payment.qr.payInNewWindow', { default: 'Complete Payment in New Window' })}
+		{qrUrl ? scanTitle : $_('payment.qr.payInNewWindow', { default: '在新窗口完成支付' })}
 	</h1>
 
 	{#if qrUrl}
@@ -166,25 +166,25 @@
 		<div class="text-center" data-testid="payment-qrcode-expired">
 			<XCircle class="mx-auto h-8 w-8 text-destructive" />
 			<p class="mt-2 text-lg font-medium text-destructive">
-				{$_('payment.qr.expired', { default: 'Order Expired' })}
+				{$_('payment.qr.expired', { default: '订单已过期' })}
 			</p>
 			<Button class="mt-4" onclick={goPurchase}>
-				{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+				{$_('payment.result.backToRecharge', { default: '返回充值' })}
 			</Button>
 		</div>
 	{:else}
 		<div class="text-center">
 			<p class="text-sm text-muted-foreground">
 				{qrUrl
-					? $_('payment.qr.expiresIn', { default: 'Expires in' })
+					? $_('payment.qr.expiresIn', { default: '有效期' })
 					: $_('payment.qr.payInNewWindowHint', {
 							default:
-								'The payment page has opened in a new window. Please complete the payment there and return to this page.'
+								'支付页面已在新窗口中打开，请在新窗口完成支付后返回此页面。'
 						})}
 			</p>
 			<p class="mt-1 text-2xl font-bold tabular-nums text-foreground">{displayCountdown}</p>
 			<p class="mt-2 text-sm text-muted-foreground">
-				{$_('payment.qr.waitingPayment', { default: 'Waiting for payment...' })}
+				{$_('payment.qr.waitingPayment', { default: '等待支付中...' })}
 			</p>
 		</div>
 	{/if}
@@ -192,7 +192,7 @@
 	{#if payUrl && !qrUrl && !expired}
 		<Button href={payUrl} target="_blank" rel="noopener noreferrer" class="w-full gap-2" data-testid="payment-qrcode-open-window">
 			<ExternalLink class="h-4 w-4" />
-			{$_('payment.qr.openPayWindow', { default: 'Reopen Payment Page' })}
+			{$_('payment.qr.openPayWindow', { default: '重新打开支付页面' })}
 		</Button>
 	{/if}
 
@@ -200,9 +200,9 @@
 		<Button variant="outline" class="w-full gap-2" disabled={cancelling} onclick={handleCancel} data-testid="payment-qrcode-cancel">
 			{#if cancelling}
 				<Loader2 class="h-4 w-4 animate-spin" />
-				{$_('common.processing', { default: 'Processing' })}
+				{$_('common.processing', { default: '处理中' })}
 			{:else}
-				{$_('payment.qr.cancelOrder', { default: 'Cancel Order' })}
+				{$_('payment.qr.cancelOrder', { default: '取消订单' })}
 			{/if}
 		</Button>
 	{/if}

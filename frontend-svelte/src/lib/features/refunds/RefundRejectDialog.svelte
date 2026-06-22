@@ -37,7 +37,7 @@
 		const trimmed = reason.trim();
 		if (trimmed.length < 4) {
 			error = $_('admin.refunds.rejectReasonRequired', {
-				default: 'Reason is required (≥ 4 characters)'
+				default: '原因必填（至少 4 个字符）'
 			});
 			return;
 		}
@@ -45,7 +45,7 @@
 		try {
 			await rejectRefund(target.id, trimmed);
 			showSuccess(
-				$_('admin.refunds.rejectSuccess', { default: 'Refund rejected' })
+				$_('admin.refunds.rejectSuccess', { default: '退款已拒绝' })
 			);
 			open = false;
 			onRejected();
@@ -53,7 +53,7 @@
 			const e = err as Error;
 			showError(
 				$_('admin.refunds.rejectError', {
-					default: 'Reject failed: {error}',
+					default: '拒绝失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -66,9 +66,9 @@
 <StandardDialog
 	bind:open
 	width="sm"
-	title={$_('admin.refunds.rejectTitle', { default: 'Reject refund request' })}
+	title={$_('admin.refunds.rejectTitle', { default: '拒绝退款请求' })}
 	description={$_('admin.refunds.rejectDescription', {
-		default: 'The user will see this reason in their order history.'
+		default: '用户将在订单历史中看到此原因。'
 	})}
 	data-testid="admin-refunds-reject-dialog"
 >
@@ -77,7 +77,7 @@
 			for="admin-refunds-reject-reason"
 			class="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
 		>
-			{$_('admin.refunds.rejectReason', { default: 'Reason' })}
+			{$_('admin.refunds.rejectReason', { default: '原因' })}
 		</label>
 		<Textarea
 			id="admin-refunds-reject-reason"
@@ -85,7 +85,7 @@
 			maxlength={500}
 			class="min-h-24"
 			placeholder={$_('admin.refunds.rejectReasonPlaceholder', {
-				default: 'Why is this refund being rejected?'
+				default: '为什么要拒绝此退款？'
 			})}
 			bind:value={reason}
 			data-testid="admin-refunds-reject-reason-input"
@@ -108,7 +108,7 @@
 			disabled={submitting}
 			onclick={() => (open = false)}
 		>
-			{$_('common.cancel', { default: 'Cancel' })}
+			{$_('common.cancel', { default: '取消' })}
 		</Button>
 		<Button
 			variant="destructive"
@@ -117,8 +117,8 @@
 			onclick={confirmReject}
 		>
 			{submitting
-				? $_('admin.refunds.rejectSubmitting', { default: 'Rejecting…' })
-				: $_('admin.refunds.reject', { default: 'Reject' })}
+				? $_('admin.refunds.rejectSubmitting', { default: '拒绝中…' })
+				: $_('admin.refunds.reject', { default: '拒绝' })}
 		</Button>
 	</div>
 </StandardDialog>

@@ -74,32 +74,32 @@
 
 	const summary = $derived([
 		{
-			label: $_('admin.riskControl.overview.status', { default: 'Status' }),
+			label: $_('admin.riskControl.overview.status', { default: '状态' }),
 			value: config.enabled
-				? $_('admin.riskControl.overview.enabled', { default: 'Enabled' })
-				: $_('admin.riskControl.overview.disabled', { default: 'Disabled' }),
+				? $_('admin.riskControl.overview.enabled', { default: '已启用' })
+				: $_('admin.riskControl.overview.disabled', { default: '已禁用' }),
 			meta: `${modeLabel(config.mode)} · ${runtimeEnabled(config, status) ? 'runtime on' : 'runtime off'}`,
 			icon: Shield,
 			tone: config.enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
 		},
 		{
-			label: $_('admin.riskControl.overview.apiKey', { default: 'API Keys' }),
+			label: $_('admin.riskControl.overview.apiKey', { default: 'API 密钥' }),
 			value: config.api_key_configured ? String(config.api_key_count || 1) : '0',
 			meta: apiKeyHealthSummary(status?.api_key_statuses ?? config.api_key_statuses),
 			icon: KeyRound,
 			tone: ''
 		},
 		{
-			label: $_('admin.riskControl.overview.groupScope', { default: 'Scope' }),
+			label: $_('admin.riskControl.overview.groupScope', { default: '范围' }),
 			value: config.all_groups
-				? $_('admin.riskControl.allGroups', { default: 'All groups' })
+				? $_('admin.riskControl.allGroups', { default: '全部分组' })
 				: `${config.group_ids.length} group(s)`,
 			meta: modelFilterSummary(config.model_filter.type, config.model_filter.models.length),
 			icon: Users,
 			tone: ''
 		},
 		{
-			label: $_('admin.riskControl.overview.logs', { default: 'Flagged' }),
+			label: $_('admin.riskControl.overview.logs', { default: '已标记' }),
 			value: formatNumber(status?.flagged_hash_count),
 			meta: `${formatNumber(status?.pre_block_blocked)} blocked`,
 			icon: AlertTriangle,
@@ -134,7 +134,7 @@
 	async function testKeys(useInputKeys: boolean) {
 		const keys = useInputKeys ? parseLines(apiKeysText) : [];
 		if (useInputKeys && keys.length === 0) {
-			showError($_('admin.riskControl.apiKeyTestNoInput', { default: 'Enter API keys to test' }));
+			showError($_('admin.riskControl.apiKeyTestNoInput', { default: '输入要测试的 API 密钥' }));
 			return;
 		}
 		testingKeys = true;
@@ -158,7 +158,7 @@
 
 	async function deleteHash() {
 		if (!isValidHash(hashInput)) {
-			showError($_('admin.riskControl.hashInvalid', { default: 'Enter a 64-character hex hash' }));
+			showError($_('admin.riskControl.hashInvalid', { default: '输入 64 位十六进制哈希' }));
 			return;
 		}
 		hashLoading = true;
@@ -192,7 +192,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.riskControl.title', { default: 'Risk Control' })}</title>
+	<title>{$_('admin.riskControl.title', { default: '风控管理' })}</title>
 </svelte:head>
 
 <section class="space-y-4 px-5 py-5" data-testid="admin-risk-control-page">
@@ -200,20 +200,20 @@
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
-				{$_('admin.riskControl.title', { default: 'Risk Control' })}
+				{$_('admin.riskControl.title', { default: '风控管理' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('admin.riskControl.description', { default: 'Configure moderation, inspect runtime queues, and handle blocked users.' })}
+				{$_('admin.riskControl.description', { default: '配置审核、检查运行时队列和处理封禁用户。' })}
 			</p>
 		</div>
 		<div class="flex flex-wrap items-center gap-2">
 			<Button variant="outline" onclick={loadAll} disabled={loading}>
 				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />
-				{$_('admin.riskControl.refreshStatus', { default: 'Refresh' })}
+				{$_('admin.riskControl.refreshStatus', { default: '刷新' })}
 			</Button>
 			<Button onclick={() => (settingsOpen = true)}>
 				<Settings size={15} />
-				{$_('admin.riskControl.openSettings', { default: 'Settings' })}
+				{$_('admin.riskControl.openSettings', { default: '设置' })}
 			</Button>
 		</div>
 	</header>
@@ -247,26 +247,26 @@
 			<Card class="p-3">
 				<div class="flex items-center justify-between gap-3">
 					<h2 class="text-sm font-semibold">
-						{$_('admin.riskControl.apiKeyTest', { default: 'API Key Test' })}
+						{$_('admin.riskControl.apiKeyTest', { default: 'API 密钥测试' })}
 					</h2>
 					<span class="text-xs text-muted-foreground">{apiKeyHealthSummary(apiKeyRows)}</span>
 				</div>
 				<div class="mt-3 space-y-3">
 					<Textarea
 						class="font-mono text-xs"
-						placeholder={$_('admin.riskControl.apiKeysPlaceholder', { default: 'Optional keys to test, one per line' })}
+						placeholder={$_('admin.riskControl.apiKeysPlaceholder', { default: '要测试的可选密钥，每行一个' })}
 						bind:value={apiKeysText}
 					/>
 					<Textarea
-						placeholder={$_('admin.riskControl.auditTestPromptPlaceholder', { default: 'Optional moderation test prompt' })}
+						placeholder={$_('admin.riskControl.auditTestPromptPlaceholder', { default: '可选的审核测试提示' })}
 						bind:value={moderationPrompt}
 					/>
 					<div class="flex flex-wrap gap-2">
 						<Button variant="outline" size="sm" disabled={testingKeys} onclick={() => testKeys(false)}>
-							{$_('admin.riskControl.testStoredApiKeys', { default: 'Test stored' })}
+							{$_('admin.riskControl.testStoredApiKeys', { default: '测试已存储' })}
 						</Button>
 						<Button variant="outline" size="sm" disabled={testingKeys} onclick={() => testKeys(true)}>
-							{$_('admin.riskControl.testInputApiKeys', { default: 'Test input' })}
+							{$_('admin.riskControl.testInputApiKeys', { default: '测试输入' })}
 						</Button>
 					</div>
 					<p class="text-xs text-muted-foreground">{auditResultSummary(auditResult)}</p>
@@ -284,7 +284,7 @@
 			<!-- Flagged hash controls -->
 			<Card class="p-3">
 				<h2 class="text-sm font-semibold">
-					{$_('admin.riskControl.flaggedHashControls', { default: 'Flagged Hash Controls' })}
+					{$_('admin.riskControl.flaggedHashControls', { default: '标记哈希控制' })}
 				</h2>
 				<div class="mt-3 space-y-3">
 					<div class="flex gap-2">
@@ -299,7 +299,7 @@
 							onclick={deleteHash}
 						>
 							<Trash2 size={14} />
-							{$_('admin.riskControl.deleteFlaggedHash', { default: 'Delete' })}
+							{$_('admin.riskControl.deleteFlaggedHash', { default: '删除' })}
 						</Button>
 					</div>
 					<Button
@@ -309,7 +309,7 @@
 						onclick={() => (clearHashesDialogOpen = true)}
 					>
 						<AlertTriangle size={14} />
-						{$_('admin.riskControl.clearFlaggedHashes', { default: 'Clear all' })}
+						{$_('admin.riskControl.clearFlaggedHashes', { default: '全部清除' })}
 					</Button>
 					<p class="text-sm text-muted-foreground">
 						{$_('admin.riskControl.flaggedHashCount', {
@@ -332,11 +332,11 @@
 	<StandardDialog bind:open={clearHashesDialogOpen} title="Clear flagged hashes" width="sm" data-testid="risk-clear-hashes-dialog">
 		<div class="mt-4 space-y-4">
 			<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-				{$_('admin.riskControl.clearFlaggedHashesConfirm', { default: 'Clear all flagged hashes? This cannot be undone.' })}
+				{$_('admin.riskControl.clearFlaggedHashesConfirm', { default: '清除所有标记的哈希？此操作不可撤销。' })}
 			</p>
 			<div class="flex justify-end gap-2 border-t border-border pt-4">
 				<Button variant="outline" onclick={() => (clearHashesDialogOpen = false)}>
-					{$_('common.cancel', { default: 'Cancel' })}
+					{$_('common.cancel', { default: '取消' })}
 				</Button>
 				<Button
 					variant="outline"
@@ -346,8 +346,8 @@
 					data-testid="risk-clear-hashes-confirm"
 				>
 					{hashLoading
-						? $_('common.processing', { default: 'Clearing...' })
-						: $_('admin.riskControl.clearFlaggedHashes', { default: 'Clear' })}
+						? $_('common.processing', { default: '清除中...' })
+						: $_('admin.riskControl.clearFlaggedHashes', { default: '清除' })}
 				</Button>
 			</div>
 		</div>

@@ -144,7 +144,7 @@
 	}
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.reauthTitle', { default: 'Re-authorize account' })} width="lg" data-testid="account-reauth-dialog">
+<StandardDialog bind:open title={$_('admin.accountsQuench.reauthTitle', { default: '重新授权账户' })} width="lg" data-testid="account-reauth-dialog">
 	{#if account}
 		<div class="mt-4 grid gap-4">
 			<Card class="space-y-1">
@@ -190,8 +190,8 @@
 			{#if exchangeResult}<pre class="max-h-44 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs" data-testid="account-reauth-exchange-result">{fmt(exchangeResult)}</pre>{/if}
 		</div>
 		<div class="mt-5 flex justify-end gap-2">
-			<Button variant="outline" disabled={busy} onclick={() => { open = false; onClose(); }}>Cancel</Button>
-			<Button disabled={busy || !exchangeResult} onclick={applyResult}>Apply credentials</Button>
+			<Button variant="outline" disabled={busy} onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+			<Button disabled={busy || !exchangeResult} onclick={applyResult}>{$_('admin.accounts.applyCredentials', { default: 'Apply credentials' })}</Button>
 		</div>
 	{/if}
 </StandardDialog>

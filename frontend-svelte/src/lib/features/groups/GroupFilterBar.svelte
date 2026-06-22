@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Search } from '@lucide/svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
@@ -35,6 +36,6 @@
 		</label>
 		<NativeSelect bind:value={platformFilter} options={platformOptions} onchange={onApply} data-testid="groups-platform-filter" />
 		<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={onApply} data-testid="groups-status-filter" />
-		<Button onclick={onApply}>Apply</Button>
+		<Button onclick={onApply}>{$_('common.apply', { default: 'Apply' })}</Button>
 	</div>
 </Card>

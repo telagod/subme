@@ -101,7 +101,7 @@
 			await revokeSub(detail.id);
 			showSuccess(
 				$_('admin.subscriptions.cancelSuccess', {
-					default: 'Subscription cancelled'
+					default: '订阅已取消'
 				})
 			);
 			revokeConfirmOpen = false;
@@ -112,7 +112,7 @@
 			const e = err as Error;
 			showError(
 				$_('admin.subscriptions.cancelError', {
-					default: 'Cancel failed: {error}',
+					default: '取消失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -136,9 +136,9 @@
 		if (days <= 0) {
 			showError(
 				$_('admin.subscriptions.extendError', {
-					default: 'Extend failed: {error}',
+					default: '延期失败：{error}',
 					values: {
-						error: $_('admin.subscriptions.newExpiresAt', { default: 'New expiry date' })
+						error: $_('admin.subscriptions.newExpiresAt', { default: '新过期时间' })
 					}
 				})
 			);
@@ -148,7 +148,7 @@
 		try {
 			await extendSub(detail.id, days);
 			showSuccess(
-				$_('admin.subscriptions.extendSuccess', { default: 'Subscription extended' })
+				$_('admin.subscriptions.extendSuccess', { default: '订阅已延期' })
 			);
 			extendOpen = false;
 			onChanged?.();
@@ -157,7 +157,7 @@
 			const e = err as Error;
 			showError(
 				$_('admin.subscriptions.extendError', {
-					default: 'Extend failed: {error}',
+					default: '延期失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -210,7 +210,7 @@
 	bind:open
 	width="md"
 	showHeader={false}
-	title={$_('admin.subscriptions.detailTitle', { default: 'Subscription detail' })}
+	title={$_('admin.subscriptions.detailTitle', { default: '订阅详情' })}
 	data-testid="sub-detail-drawer"
 	class="gap-0 p-0"
 >
@@ -218,7 +218,7 @@
 	<div class="flex items-center justify-between border-b border-border bg-muted px-4 py-3">
 		<div class="min-w-0">
 			<h2 class="truncate text-sm font-semibold tracking-tight text-foreground">
-				{$_('admin.subscriptions.detailTitle', { default: 'Subscription detail' })}
+				{$_('admin.subscriptions.detailTitle', { default: '订阅详情' })}
 			</h2>
 			<div
 				class="truncate font-mono text-[11px] text-muted-foreground"
@@ -231,7 +231,7 @@
 			variant="ghost"
 			size="icon"
 			class="h-8 w-8 text-muted-foreground hover:bg-card hover:text-foreground"
-			aria-label={$_('common.close', { default: 'Close' })}
+			aria-label={$_('common.close', { default: '关闭' })}
 			data-testid="sub-detail-close"
 			onclick={close}
 		>
@@ -263,7 +263,7 @@
 								class="h-7 border-destructive/40 px-2 hover:bg-destructive/20"
 								onclick={() => loadDetail(subscription!.id)}
 							>
-								{$_('common.confirm', { default: 'Retry' })}
+								{$_('common.confirm', { default: '重试' })}
 							</Button>
 						{/if}
 					</div>
@@ -290,17 +290,17 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.subscriptions.userBlock', { default: 'User' })}
+							{$_('admin.subscriptions.userBlock', { default: '用户' })}
 						</h3>
 						<dl class="grid grid-cols-[80px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.userId', { default: 'User ID' })}
+								{$_('admin.subscriptions.userId', { default: '用户 ID' })}
 							</dt>
 							<dd class="font-mono text-foreground" data-testid="sub-detail-user-id">
 								{detail.user_id}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.userEmail', { default: 'Email' })}
+								{$_('admin.subscriptions.userEmail', { default: '邮箱' })}
 							</dt>
 							<dd class="font-mono text-foreground" data-testid="sub-detail-user-email">
 								{maskEmail(detail.user_email)}
@@ -313,27 +313,27 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.subscriptions.planBlock', { default: 'Plan' })}
+							{$_('admin.subscriptions.planBlock', { default: '方案' })}
 						</h3>
 						<dl class="grid grid-cols-[80px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.planName', { default: 'Plan' })}
+								{$_('admin.subscriptions.planName', { default: '方案' })}
 							</dt>
 							<dd class="font-medium text-foreground" data-testid="sub-detail-plan-name">
 								{detail.plan_name ?? '—'}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.groupName', { default: 'Group' })}
+								{$_('admin.subscriptions.groupName', { default: '分组' })}
 							</dt>
 							<dd class="text-foreground">{detail.group_name ?? '—'}</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.pricePaid', { default: 'Price paid' })}
+								{$_('admin.subscriptions.pricePaid', { default: '支付价格' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.price_paid, detail.currency)}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.mtdCost', { default: 'MTD cost' })}
+								{$_('admin.subscriptions.mtdCost', { default: '本月费用' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.mtd_cost, detail.currency)}
@@ -346,20 +346,20 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.subscriptions.timelineBlock', { default: 'Timeline' })}
+							{$_('admin.subscriptions.timelineBlock', { default: '时间线' })}
 						</h3>
 						<dl class="grid grid-cols-[80px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.startedAt', { default: 'Started' })}
+								{$_('admin.subscriptions.startedAt', { default: '已开始' })}
 							</dt>
 							<dd class="font-mono text-foreground">{fmtDate(detail.started_at)}</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.subscriptions.expiresAt', { default: 'Expires' })}
+								{$_('admin.subscriptions.expiresAt', { default: '过期' })}
 							</dt>
 							<dd class="font-mono text-foreground">{fmtDate(detail.expires_at)}</dd>
 							{#if detail.cancelled_at}
 								<dt class="text-muted-foreground">
-									{$_('admin.subscriptions.cancelledAt', { default: 'Cancelled' })}
+									{$_('admin.subscriptions.cancelledAt', { default: '已取消' })}
 								</dt>
 								<dd class="font-mono text-foreground">{fmtDate(detail.cancelled_at)}</dd>
 							{/if}
@@ -381,7 +381,7 @@
 								for="sub-detail-extend-date"
 								class="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 							>
-								{$_('admin.subscriptions.newExpiresAt', { default: 'New expiry date' })}
+								{$_('admin.subscriptions.newExpiresAt', { default: '新过期时间' })}
 							</label>
 							<Input
 								id="sub-detail-extend-date"
@@ -398,7 +398,7 @@
 									onclick={() => (extendOpen = false)}
 									disabled={extending}
 								>
-									{$_('common.cancel', { default: 'Cancel' })}
+									{$_('common.cancel', { default: '取消' })}
 								</Button>
 								<Button
 									size="sm"
@@ -408,8 +408,8 @@
 									data-testid="sub-detail-extend-confirm"
 								>
 									{extending
-										? $_('common.submitting', { default: 'Submitting…' })
-										: $_('admin.subscriptions.extendConfirm', { default: 'Extend' })}
+										? $_('common.submitting', { default: '提交中…' })
+										: $_('admin.subscriptions.extendConfirm', { default: '延期' })}
 								</Button>
 							</div>
 						</div>
@@ -422,7 +422,7 @@
 						>
 							<p class="m-0 flex items-center gap-1.5 text-xs text-destructive">
 								<AlertTriangle class="h-3.5 w-3.5" />
-								{$_('admin.subscriptions.forceCancel', { default: 'Force cancel' })}
+								{$_('admin.subscriptions.forceCancel', { default: '强制取消' })}
 								<span class="font-mono">#{detail.id}</span>?
 							</p>
 							<div class="flex justify-end gap-2">
@@ -433,7 +433,7 @@
 									onclick={closeRevokeConfirm}
 									disabled={revoking}
 								>
-									{$_('common.cancel', { default: 'Cancel' })}
+									{$_('common.cancel', { default: '取消' })}
 								</Button>
 								<Button
 									variant="destructive"
@@ -444,8 +444,8 @@
 									data-testid="sub-detail-cancel-confirm"
 								>
 									{revoking
-										? $_('common.submitting', { default: 'Submitting…' })
-										: $_('admin.subscriptions.cancelConfirm', { default: 'Force cancel' })}
+										? $_('common.submitting', { default: '提交中…' })
+										: $_('admin.subscriptions.cancelConfirm', { default: '强制取消' })}
 								</Button>
 							</div>
 						</div>
@@ -460,7 +460,7 @@
 							data-testid="sub-detail-refresh"
 						>
 							<RefreshCw class="h-3.5 w-3.5" />
-							{$_('common.refresh', { default: 'Refresh' })}
+							{$_('common.refresh', { default: '刷新' })}
 						</Button>
 						<Button
 							variant="outline"
@@ -470,7 +470,7 @@
 							data-testid="sub-detail-extend-btn"
 						>
 							<Calendar class="h-3.5 w-3.5" />
-							{$_('admin.subscriptions.extendBtn', { default: 'Extend' })}
+							{$_('admin.subscriptions.extendBtn', { default: '延期' })}
 						</Button>
 						<Button
 							variant="destructive"
@@ -480,7 +480,7 @@
 							data-testid="sub-detail-cancel-btn"
 						>
 							<Trash2 class="h-3.5 w-3.5" />
-							{$_('admin.subscriptions.forceCancel', { default: 'Force cancel' })}
+							{$_('admin.subscriptions.forceCancel', { default: '强制取消' })}
 						</Button>
 					</div>
 				</div>

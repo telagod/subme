@@ -63,21 +63,21 @@
 	});
 
 	const timeRangeOptions = $derived([
-		{ value: '30m', label: $_('admin.ops.timeRange.30m', { default: 'Last 30m' }) },
-		{ value: '1h', label: $_('admin.ops.timeRange.1h', { default: 'Last 1h' }) },
-		{ value: '1d', label: $_('admin.ops.timeRange.1d', { default: 'Last 1d' }) },
-		{ value: '15d', label: $_('admin.ops.timeRange.15d', { default: 'Last 15d' }) },
-		{ value: '30d', label: $_('admin.ops.timeRange.30d', { default: 'Last 30d' }) }
+		{ value: '30m', label: $_('admin.ops.timeRange.30m', { default: '最近 30 分钟' }) },
+		{ value: '1h', label: $_('admin.ops.timeRange.1h', { default: '最近 1 小时' }) },
+		{ value: '1d', label: $_('admin.ops.timeRange.1d', { default: '最近 1 天' }) },
+		{ value: '15d', label: $_('admin.ops.timeRange.15d', { default: '最近 15 天' }) },
+		{ value: '30d', label: $_('admin.ops.timeRange.30d', { default: '最近 30 天' }) }
 	]);
 
 	const viewModeOptions = $derived([
 		{
 			value: 'topn',
-			label: $_('admin.ops.openaiTokenStats.viewModeTopN', { default: 'Top N' })
+			label: $_('admin.ops.openaiTokenStats.viewModeTopN', { default: '前 N 名' })
 		},
 		{
 			value: 'pagination',
-			label: $_('admin.ops.openaiTokenStats.viewModePagination', { default: 'Pagination' })
+			label: $_('admin.ops.openaiTokenStats.viewModePagination', { default: '分页' })
 		}
 	]);
 
@@ -152,7 +152,7 @@
 				err instanceof Error && err.message
 					? err.message
 					: $_('admin.ops.openaiTokenStats.failedToLoad', {
-							default: 'Failed to load token stats'
+							default: '加载令牌统计失败'
 						});
 		} finally {
 			if (seq === requestSeq) loading = false;
@@ -210,20 +210,20 @@
 <Card class="p-4" data-testid="ops-openai-token-stats-card">
 	<div class="mb-3.5 flex flex-wrap items-center justify-between gap-2.5">
 		<h3 class="flex items-center gap-2 text-sm font-bold text-foreground">
-			{$_('admin.ops.openaiTokenStats.title', { default: 'OpenAI Token Throughput' })}
+			{$_('admin.ops.openaiTokenStats.title', { default: 'OpenAI 令牌吞吐量' })}
 		</h3>
 		<div class="flex flex-wrap items-center gap-1.5">
 			<NativeSelect
 				bind:value={timeRange}
 				options={timeRangeOptions}
 				class="h-8 w-[136px] text-xs"
-				aria-label={$_('admin.ops.timeRange.label', { default: 'Time range' })}
+				aria-label={$_('admin.ops.timeRange.label', { default: '时间范围' })}
 			/>
 			<NativeSelect
 				bind:value={viewMode}
 				options={viewModeOptions}
 				class="h-8 w-[136px] text-xs"
-				aria-label={$_('admin.ops.openaiTokenStats.viewModeLabel', { default: 'View mode' })}
+				aria-label={$_('admin.ops.openaiTokenStats.viewModeLabel', { default: '视图模式' })}
 			/>
 
 			{#if viewMode === 'topn'}
@@ -231,7 +231,7 @@
 					value={String(topN)}
 					options={topNOptions}
 					class="h-8 w-[100px] text-xs"
-					aria-label={$_('admin.ops.openaiTokenStats.topNLabel', { default: 'Top N' })}
+					aria-label={$_('admin.ops.openaiTokenStats.topNLabel', { default: '前 N 名' })}
 					onchange={(e) => (topN = Number((e.currentTarget as HTMLSelectElement).value))}
 				/>
 			{:else}
@@ -239,7 +239,7 @@
 					value={String(pageSize)}
 					options={pageSizeOptions}
 					class="h-8 w-20 text-xs"
-					aria-label={$_('admin.ops.openaiTokenStats.pageSizeLabel', { default: 'Page size' })}
+					aria-label={$_('admin.ops.openaiTokenStats.pageSizeLabel', { default: '每页条数' })}
 					onchange={(e) => (pageSize = Number((e.currentTarget as HTMLSelectElement).value))}
 				/>
 				<Button
@@ -249,7 +249,7 @@
 					disabled={loading || page <= 1}
 					onclick={onPrevPage}
 				>
-					{$_('admin.ops.openaiTokenStats.prevPage', { default: 'Prev' })}
+					{$_('admin.ops.openaiTokenStats.prevPage', { default: '上一页' })}
 				</Button>
 				<Button
 					variant="outline"
@@ -258,11 +258,11 @@
 					disabled={loading || page >= totalPages}
 					onclick={onNextPage}
 				>
-					{$_('admin.ops.openaiTokenStats.nextPage', { default: 'Next' })}
+					{$_('admin.ops.openaiTokenStats.nextPage', { default: '下一步' })}
 				</Button>
 				<span class="text-xs text-muted-foreground">
 					{$_('admin.ops.openaiTokenStats.pageInfo', {
-						default: 'Page {page} / {total}',
+						default: '第 {page} / {total} 页',
 						values: { page, total: totalPages }
 					})}
 				</span>
@@ -278,7 +278,7 @@
 
 	{#if loading}
 		<div class="py-7 text-center text-[13px] text-muted-foreground" data-testid="ops-openai-token-stats-loading">
-			{$_('admin.ops.loadingText', { default: 'Loading…' })}
+			{$_('admin.ops.loadingText', { default: '加载中…' })}
 		</div>
 	{:else if items.length === 0}
 		<div
@@ -286,11 +286,11 @@
 			data-testid="ops-openai-token-stats-empty"
 		>
 			<p class="text-sm font-medium text-foreground">
-				{$_('common.noData', { default: 'No data' })}
+				{$_('common.noData', { default: '暂无数据' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">
 				{$_('admin.ops.openaiTokenStats.empty', {
-					default: 'No token throughput records in this range.'
+					default: '该范围内无令牌吞吐量记录。'
 				})}
 			</p>
 		</div>
@@ -307,13 +307,13 @@
 					<div
 						class="grid grid-cols-7 gap-2 border-b border-border bg-muted px-2.5 py-[7px] text-xs font-semibold text-muted-foreground"
 					>
-						<span>{$_('admin.ops.openaiTokenStats.table.model', { default: 'Model' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.requestCount', { default: 'Requests' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.avgTokensPerSec', { default: 'Avg tok/s' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.avgFirstTokenMs', { default: 'Avg TTFT (ms)' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.totalOutputTokens', { default: 'Output tokens' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.avgDurationMs', { default: 'Avg duration (ms)' })}</span>
-						<span>{$_('admin.ops.openaiTokenStats.table.requestsWithFirstToken', { default: 'With TTFT' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.model', { default: '模型' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.requestCount', { default: '请求数' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.avgTokensPerSec', { default: '平均 tok/s' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.avgFirstTokenMs', { default: '平均 TTFT (ms)' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.totalOutputTokens', { default: '输出令牌' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.avgDurationMs', { default: '平均时长 (ms)' })}</span>
+						<span>{$_('admin.ops.openaiTokenStats.table.requestsWithFirstToken', { default: '含 TTFT' })}</span>
 					</div>
 				{/snippet}
 				{#snippet row({ row })}
@@ -339,25 +339,25 @@
 					<thead class="sticky top-0 z-10 border-b border-border bg-muted">
 						<tr>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.model', { default: 'Model' })}
+								{$_('admin.ops.openaiTokenStats.table.model', { default: '模型' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.requestCount', { default: 'Requests' })}
+								{$_('admin.ops.openaiTokenStats.table.requestCount', { default: '请求数' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.avgTokensPerSec', { default: 'Avg tok/s' })}
+								{$_('admin.ops.openaiTokenStats.table.avgTokensPerSec', { default: '平均 tok/s' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.avgFirstTokenMs', { default: 'Avg TTFT (ms)' })}
+								{$_('admin.ops.openaiTokenStats.table.avgFirstTokenMs', { default: '平均 TTFT (ms)' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.totalOutputTokens', { default: 'Output tokens' })}
+								{$_('admin.ops.openaiTokenStats.table.totalOutputTokens', { default: '输出令牌' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.avgDurationMs', { default: 'Avg duration (ms)' })}
+								{$_('admin.ops.openaiTokenStats.table.avgDurationMs', { default: '平均时长 (ms)' })}
 							</th>
 							<th class="px-2.5 py-[7px] font-semibold text-muted-foreground">
-								{$_('admin.ops.openaiTokenStats.table.requestsWithFirstToken', { default: 'With TTFT' })}
+								{$_('admin.ops.openaiTokenStats.table.requestsWithFirstToken', { default: '含 TTFT' })}
 							</th>
 						</tr>
 					</thead>

@@ -48,7 +48,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="usage-start-date"
 		>
-			{$_('user.usage.startDate', { default: 'From' })}
+			{$_('user.usage.startDate', { default: '从' })}
 		</label>
 		<Input
 			id="usage-start-date"
@@ -64,7 +64,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="usage-end-date"
 		>
-			{$_('user.usage.endDate', { default: 'To' })}
+			{$_('user.usage.endDate', { default: '至' })}
 		</label>
 		<Input
 			id="usage-end-date"
@@ -80,7 +80,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="usage-models-filter"
 		>
-			{$_('user.usage.modelsFilter', { default: 'Models' })}
+			{$_('user.usage.modelsFilter', { default: '模型' })}
 		</label>
 		<NativeSelect
 			id="usage-models-filter"
@@ -95,7 +95,7 @@
 				value={MODELS_ALL}
 				selected={modelsFilter === MODELS_ALL}
 			>
-				{$_('user.usage.allModels', { default: 'All models' })}
+				{$_('user.usage.allModels', { default: '全部模型' })}
 			</option>
 			{#each knownModels as m (m)}
 				<option
@@ -112,7 +112,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="usage-endpoint-filter"
 		>
-			{$_('user.usage.endpointFilter', { default: 'Endpoint' })}
+			{$_('user.usage.endpointFilter', { default: '端点' })}
 		</label>
 		<NativeSelect
 			id="usage-endpoint-filter"
@@ -122,7 +122,7 @@
 			class="h-9"
 		>
 			<option value={ENDPOINT_ALL}>
-				{$_('user.usage.allEndpoints', { default: 'All endpoints' })}
+				{$_('user.usage.allEndpoints', { default: '全部端点' })}
 			</option>
 			{#each knownEndpoints as ep (ep)}
 				<option value={ep}>{ep}</option>
@@ -134,7 +134,7 @@
 			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
 			for="usage-groupby"
 		>
-			{$_('user.usage.groupBy', { default: 'Group by' })}
+			{$_('user.usage.groupBy', { default: '分组方式' })}
 		</label>
 		<NativeSelect
 			id="usage-groupby"
@@ -143,11 +143,11 @@
 			onchange={onGroupByChange}
 			class="h-9"
 		>
-			<option value="day">{$_('user.usage.groupDay', { default: 'Day' })}</option>
-			<option value="hour">{$_('user.usage.groupHour', { default: 'Hour' })}</option>
-			<option value="model">{$_('user.usage.groupModel', { default: 'Model' })}</option>
+			<option value="day">{$_('user.usage.groupDay', { default: '日' })}</option>
+			<option value="hour">{$_('user.usage.groupHour', { default: '小时' })}</option>
+			<option value="model">{$_('user.usage.groupModel', { default: '模型' })}</option>
 			<option value="endpoint">
-				{$_('user.usage.groupEndpoint', { default: 'Endpoint' })}
+				{$_('user.usage.groupEndpoint', { default: '端点' })}
 			</option>
 		</NativeSelect>
 	</div>

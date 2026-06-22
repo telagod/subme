@@ -78,16 +78,16 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.channels.title', { default: 'Channel Pricing' })}</title>
+	<title>{$_('admin.channels.title', { default: '渠道定价' })}</title>
 </svelte:head>
 
 <section class="space-y-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">M13 · Supply · Read-only</p>
-			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.channels.title', { default: 'Channel Pricing' })}</h1>
+			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.channels.title', { default: '渠道定价' })}</h1>
 			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
-				{$_('admin.channels.description', { default: 'Inspect channel-side pricing rules, associated groups, billing mode, and interval prices without mutating billing configuration.' })}
+				{$_('admin.channels.description', { default: '查看渠道端定价规则、关联分组、计费模式和区间定价，不修改计费配置。' })}
 			</p>
 		</div>
 		<Button variant="outline" onclick={loadRows} disabled={loading}>
@@ -112,10 +112,10 @@
 		<div class="grid gap-3 lg:grid-cols-[1fr_180px_auto]">
 			<label class="relative">
 				<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
-				<Input class="pl-9" placeholder="Search channels or models" bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
+				<Input class="pl-9" placeholder={$_('admin.channelsPricing.searchPlaceholder', { default: '搜索渠道或模型' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
 			</label>
 			<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={applyFilters} data-testid="channels-status-filter" />
-			<Button onclick={applyFilters}>Apply</Button>
+			<Button onclick={applyFilters}>{$_('common.apply', { default: 'Apply' })}</Button>
 		</div>
 	</Card>
 
@@ -129,7 +129,7 @@
 		<VirtualTable rows={pricingRows} rowHeight={68} loading={loading} getRowKey={(row) => row.key} class="max-h-[700px]">
 			{#snippet header()}
 				<div class="grid grid-cols-[1.2fr_1fr_1.1fr_0.8fr_0.8fr_0.8fr_0.8fr] gap-3 border-b px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
-					<span>Channel</span><span>Model</span><span>Platform</span><span>Mode</span><span>Input</span><span>Output</span><span>Request</span>
+					<span>{$_('admin.channelsPricing.channel', { default: 'Channels' })}</span><span>{$_('admin.channelsPricing.model', { default: '模型' })}</span><span>{$_('admin.channelsPricing.platform', { default: '平台' })}</span><span>{$_('admin.channelsPricing.mode', { default: '模式' })}</span><span>{$_('admin.channelsPricing.input', { default: '输入' })}</span><span>{$_('admin.channelsPricing.output', { default: '输出' })}</span><span>{$_('admin.channelsPricing.request', { default: '请求' })}</span>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}

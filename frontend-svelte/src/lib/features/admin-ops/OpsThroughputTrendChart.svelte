@@ -111,7 +111,7 @@
 			labels: pts.map((p) => bucketLabel(p.bucket_start, timeRange)),
 			datasets: [
 				{
-					label: $_('admin.ops.throughputChart.requests', { default: 'Requests' }),
+					label: $_('admin.ops.throughputChart.requests', { default: '请求数' }),
 					data: pts.map((p) => numberValue(p.request_count)),
 					borderColor: themeColors.requests,
 					backgroundColor: themeColors.requestsAlpha,
@@ -122,7 +122,7 @@
 					yAxisID: 'y'
 				},
 				{
-					label: $_('admin.ops.throughputChart.tokens', { default: 'Tokens' }),
+					label: $_('admin.ops.throughputChart.tokens', { default: '令牌' }),
 					data: pts.map((p) => numberValue(p.token_consumed)),
 					borderColor: themeColors.tokens,
 					backgroundColor: themeColors.tokensAlpha,
@@ -245,26 +245,26 @@
 <Card class="flex h-full flex-col" data-testid="ops-throughput-trend">
 	<div class="mb-3 flex flex-shrink-0 items-center justify-between gap-2">
 		<h3 class="text-[13px] font-bold text-foreground">
-			{$_('admin.ops.throughputTrend', { default: 'Throughput trend' })}
+			{$_('admin.ops.throughputTrend', { default: '吞吐量趋势' })}
 		</h3>
 		<div class="flex items-center gap-1.5 text-[11px] text-muted-foreground">
 			<span class="inline-flex items-center gap-1">
 				<span class="inline-block h-[7px] w-[7px] rounded-full bg-primary"></span>
-				{$_('admin.ops.throughputChart.requests', { default: 'Requests' })}
+				{$_('admin.ops.throughputChart.requests', { default: '请求数' })}
 			</span>
 			<span class="inline-flex items-center gap-1">
 				<span class="inline-block h-[7px] w-[7px] rounded-full bg-muted-foreground"></span>
-				{$_('admin.ops.throughputChart.tokens', { default: 'Tokens' })}
+				{$_('admin.ops.throughputChart.tokens', { default: '令牌' })}
 			</span>
 			<Button
 				variant="outline"
 				size="sm"
 				disabled={!hasData}
 				data-testid="ops-throughput-details-btn"
-				title={$_('admin.ops.requestDetails.title', { default: 'Request details' })}
+				title={$_('admin.ops.requestDetails.title', { default: '请求详情' })}
 				onclick={handleOpenDetails}
 			>
-				{$_('admin.ops.requestDetails.details', { default: 'Details' })}
+				{$_('admin.ops.requestDetails.details', { default: '详情' })}
 			</Button>
 		</div>
 	</div>
@@ -318,28 +318,28 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-throughput-loading"
 			>
-				{$_('common.loading', { default: 'Loading…' })}
+				{$_('common.loading', { default: '加载中…' })}
 			</div>
 		{:else if chartError}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 				data-testid="ops-throughput-error"
 			>
-				{$_('admin.ops.charts.loadFailed', { default: 'Failed to load chart' })}
+				{$_('admin.ops.charts.loadFailed', { default: '加载图表失败' })}
 			</div>
 		{:else if !hasData}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-throughput-empty"
 			>
-				{$_('admin.ops.charts.emptyRequest', { default: 'No throughput in this range' })}
+				{$_('admin.ops.charts.emptyRequest', { default: '该范围内无吞吐量' })}
 			</div>
 		{:else if !chartReady || !LineCmp}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-throughput-loading"
 			>
-				{$_('common.loading', { default: 'Loading…' })}
+				{$_('common.loading', { default: '加载中…' })}
 			</div>
 		{:else}
 			{@const LC = LineCmp as unknown as import('svelte').Component<{

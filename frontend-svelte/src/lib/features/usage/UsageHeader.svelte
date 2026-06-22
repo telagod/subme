@@ -15,11 +15,11 @@
 <header class="flex flex-wrap items-start justify-between gap-4">
 	<div class="space-y-1">
 		<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-			{$_('user.usage.pageTitle', { default: 'Usage' })}
+			{$_('user.usage.pageTitle', { default: '用量' })}
 		</h1>
 		<p class="text-sm text-muted-foreground">
 			{$_('user.usage.pageSubtitle', {
-				default: 'Review API usage, costs, and download CSV reports.'
+				default: '查看 API 用量、费用并下载 CSV 报告。'
 			})}
 		</p>
 	</div>
@@ -28,7 +28,7 @@
 			type="button"
 			variant="outline"
 			size="icon"
-			aria-label={$_('user.usage.refresh', { default: 'Refresh' })}
+			aria-label={$_('user.usage.refresh', { default: '刷新' })}
 			data-testid="usage-refresh-btn"
 			onclick={onRefresh}
 			class="h-9 w-9 text-muted-foreground hover:text-foreground"
@@ -44,8 +44,8 @@
 		>
 			<Download class="h-4 w-4" />
 			{exporting
-				? $_('user.usage.exporting', { default: 'Exporting…' })
-				: $_('user.usage.exportCsv', { default: 'Export CSV' })}
+				? $_('user.usage.exporting', { default: '导出中…' })
+				: $_('user.usage.exportCsv', { default: '导出 CSV' })}
 		</Button>
 	</div>
 </header>

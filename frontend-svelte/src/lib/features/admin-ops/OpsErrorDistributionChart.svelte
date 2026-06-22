@@ -80,25 +80,25 @@
 		const out: ErrorCategory[] = [];
 		if (upstream > 0)
 			out.push({
-				label: $_('admin.ops.upstream', { default: 'Upstream' }),
+				label: $_('admin.ops.upstream', { default: '上游' }),
 				count: upstream,
 				color: CAT_COLORS.upstream
 			});
 		if (client > 0)
 			out.push({
-				label: $_('admin.ops.client', { default: 'Client' }),
+				label: $_('admin.ops.client', { default: '客户端' }),
 				count: client,
 				color: CAT_COLORS.client
 			});
 		if (system > 0)
 			out.push({
-				label: $_('admin.ops.system', { default: 'System' }),
+				label: $_('admin.ops.system', { default: '系统' }),
 				count: system,
 				color: CAT_COLORS.system
 			});
 		if (other > 0)
 			out.push({
-				label: $_('admin.ops.other', { default: 'Other' }),
+				label: $_('admin.ops.other', { default: '其他' }),
 				count: other,
 				color: CAT_COLORS.other
 			});
@@ -189,7 +189,7 @@
 					d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 				/>
 			</svg>
-			{$_('admin.ops.errorDistribution', { default: 'Error distribution' })}
+			{$_('admin.ops.errorDistribution', { default: '错误分布' })}
 		</h3>
 		<Button
 			type="button"
@@ -200,7 +200,7 @@
 			data-testid="ops-error-distribution-details"
 			onclick={handleOpenDetails}
 		>
-			{$_('admin.ops.requestDetails.details', { default: 'Details' })}
+			{$_('admin.ops.requestDetails.details', { default: '详情' })}
 		</Button>
 	</div>
 
@@ -210,7 +210,7 @@
 				class="flex h-full items-center justify-center text-[13px] text-destructive"
 				data-testid="ops-error-distribution-error"
 			>
-				{$_('admin.ops.charts.failed', { default: 'Failed to load chart' })}
+				{$_('admin.ops.charts.failed', { default: '加载图表失败' })}
 			</div>
 		{:else if chartState === 'ready' && chartData}
 			<div class="flex h-full flex-col" data-testid="ops-error-distribution-ready">
@@ -226,14 +226,14 @@
 							class="flex h-full items-center justify-center text-[13px] text-muted-foreground"
 							data-testid="ops-error-distribution-loading"
 						>
-							{$_('common.loading', { default: 'Loading…' })}
+							{$_('common.loading', { default: '加载中…' })}
 						</div>
 					{/if}
 				</div>
 				<div class="mt-3 flex flex-col items-center gap-1.5">
 					{#if topReason}
 						<div class="text-[11.5px] font-bold text-foreground">
-							{$_('admin.ops.top', { default: 'Top' })}:
+							{$_('admin.ops.top', { default: '前' })}:
 							<span style:color={topReason.color}>{topReason.label}</span>
 						</div>
 					{/if}
@@ -250,7 +250,7 @@
 						{/each}
 					</div>
 					<div class="text-[11px] text-muted-foreground" data-testid="ops-error-distribution-total">
-						{$_('admin.ops.total', { default: 'Total' })}: {totalSlaErrors}
+						{$_('admin.ops.total', { default: '总计' })}: {totalSlaErrors}
 					</div>
 				</div>
 			</div>
@@ -259,7 +259,7 @@
 				class="flex h-full animate-pulse items-center justify-center text-[13px] text-muted-foreground"
 				data-testid="ops-error-distribution-loading"
 			>
-				{$_('common.loading', { default: 'Loading…' })}
+				{$_('common.loading', { default: '加载中…' })}
 			</div>
 		{:else}
 			<div
@@ -267,10 +267,10 @@
 				data-testid="ops-error-distribution-empty"
 			>
 				<div class="text-[13px] font-medium text-foreground">
-					{$_('common.noData', { default: 'No data' })}
+					{$_('common.noData', { default: '暂无数据' })}
 				</div>
 				<div class="text-[12px] text-muted-foreground">
-					{$_('admin.ops.charts.emptyError', { default: 'No errors in this range' })}
+					{$_('admin.ops.charts.emptyError', { default: '该范围内无错误' })}
 				</div>
 			</div>
 		{/if}

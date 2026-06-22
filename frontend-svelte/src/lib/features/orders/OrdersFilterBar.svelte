@@ -77,7 +77,7 @@
 			type="search"
 			class="h-8 w-56 pl-7 pr-2"
 			placeholder={$_('admin.orders.searchPlaceholder', {
-				default: 'Search out_trade_no / user email / ID…'
+				default: '搜索外部订单号 / 用户邮箱 / ID…'
 			})}
 			bind:value={keyword}
 			onkeydown={handleKeywordKey}
@@ -86,7 +86,7 @@
 	</div>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-status-filter">
-		{$_('common.status', { default: 'Status' })}
+		{$_('common.status', { default: '状态' })}
 	</label>
 	<NativeSelect
 		id="admin-orders-status-filter"
@@ -101,7 +101,7 @@
 	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-provider-filter">
-		{$_('admin.orders.providerLabel', { default: 'Provider' })}
+		{$_('admin.orders.providerLabel', { default: '供应商' })}
 	</label>
 	<NativeSelect
 		id="admin-orders-provider-filter"
@@ -116,7 +116,7 @@
 	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-plan-filter">
-		{$_('admin.orders.planLabel', { default: 'Plan' })}
+		{$_('admin.orders.planLabel', { default: '方案' })}
 	</label>
 	<NativeSelect
 		id="admin-orders-plan-filter"
@@ -131,7 +131,7 @@
 	</NativeSelect>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-start-date">
-		{$_('admin.orders.startDate', { default: 'From' })}
+		{$_('admin.orders.startDate', { default: '从' })}
 	</label>
 	<Input
 		id="admin-orders-start-date"
@@ -142,7 +142,7 @@
 		data-testid="admin-orders-start-date"
 	/>
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-orders-end-date">
-		{$_('admin.orders.endDate', { default: 'To' })}
+		{$_('admin.orders.endDate', { default: '至' })}
 	</label>
 	<Input
 		id="admin-orders-end-date"

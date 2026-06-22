@@ -40,9 +40,9 @@
 	const STATUS_ALL = '__all__';
 	const PLATFORM_ALL = '__all__';
 	const statusOptions = $derived([
-		{ value: STATUS_ALL, label: $_('admin.plansCatalog.statusAll', { default: 'All statuses' }) },
-		{ value: 'on_sale', label: $_('admin.plansCatalog.onSale', { default: 'On Sale' }) },
-		{ value: 'archived', label: $_('admin.plansCatalog.offSale', { default: 'Archived' }) }
+		{ value: STATUS_ALL, label: $_('admin.plansCatalog.statusAll', { default: '全部状态' }) },
+		{ value: 'on_sale', label: $_('admin.plansCatalog.onSale', { default: '在售' }) },
+		{ value: 'archived', label: $_('admin.plansCatalog.offSale', { default: '已归档' }) }
 	]);
 
 	let plans = $state<AdminPlan[]>([]);
@@ -116,7 +116,7 @@
 		return [
 			{
 				value: PLATFORM_ALL,
-				label: $_('admin.plansCatalog.platformAll', { default: 'All platforms' })
+				label: $_('admin.plansCatalog.platformAll', { default: '全部平台' })
 			},
 			...Array.from(set)
 				.sort()
@@ -188,26 +188,26 @@
 		try {
 			if (plan.for_sale) {
 				await archivePlan(plan.id);
-				showSuccess($_('admin.plansCatalog.archived', { default: 'Plan archived' }));
+				showSuccess($_('admin.plansCatalog.archived', { default: '方案已归档' }));
 			} else {
 				await restorePlan(plan.id);
-				showSuccess($_('admin.plansCatalog.published', { default: 'Plan published' }));
+				showSuccess($_('admin.plansCatalog.published', { default: '方案已发布' }));
 			}
 			await loadPlans();
 		} catch (err) {
 			const e = err as Error;
-			showError(e?.message ?? $_('common.error', { default: 'Error' }));
+			showError(e?.message ?? $_('common.error', { default: '错误' }));
 		}
 	}
 
 	async function duplicate(plan: AdminPlan) {
 		try {
 			await duplicatePlan(plan);
-			showSuccess($_('admin.plansCatalog.duplicated', { default: 'Plan duplicated' }));
+			showSuccess($_('admin.plansCatalog.duplicated', { default: '方案已复制' }));
 			await loadPlans();
 		} catch (err) {
 			const e = err as Error;
-			showError(e?.message ?? $_('common.error', { default: 'Error' }));
+			showError(e?.message ?? $_('common.error', { default: '错误' }));
 		}
 	}
 
@@ -227,13 +227,13 @@
 		deleting = true;
 		try {
 			await deletePlan(deletingPlan.id);
-			showSuccess($_('common.deleted', { default: 'Deleted successfully' }));
+			showSuccess($_('common.deleted', { default: '删除成功' }));
 			deleteConfirmOpen = false;
 			deletingPlan = null;
 			await loadPlans();
 		} catch (err) {
 			const e = err as Error;
-			showError(e?.message ?? $_('common.error', { default: 'Error' }));
+			showError(e?.message ?? $_('common.error', { default: '错误' }));
 		} finally {
 			deleting = false;
 		}
@@ -273,7 +273,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.plansCatalog.title', { default: 'Plan Catalog' })} · sub2api admin</title>
+	<title>{$_('admin.plansCatalog.title', { default: '方案目录' })} · sub2api admin</title>
 </svelte:head>
 
 <section class="flex flex-col gap-4 px-7 pb-16 pt-6 text-foreground" data-testid="plans-catalog-page">
@@ -281,11 +281,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-				{$_('admin.plansCatalog.title', { default: 'Plan Catalog' })}
+				{$_('admin.plansCatalog.title', { default: '方案目录' })}
 			</h1>
 			<p class="m-0 text-xs text-muted-foreground">
 				{$_('admin.plansCatalog.desc', {
-					default: 'Operations mirror · What you see is what you sell'
+					default: '运营镜像 · 所见即所售'
 				})}
 			</p>
 		</div>
@@ -296,11 +296,11 @@
 				disabled={loading}
 				onclick={() => loadAll()}
 				data-testid="plans-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 			>
 				<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 			<Button
 				size="sm"
@@ -308,7 +308,7 @@
 				data-testid="plans-new"
 			>
 				<Plus class="h-3.5 w-3.5" />
-				{$_('payment.admin.createPlan', { default: 'New Plan' })}
+				{$_('payment.admin.createPlan', { default: '新方案' })}
 			</Button>
 		</div>
 	</div>
@@ -322,7 +322,7 @@
 			<AlertTriangle class="h-4 w-4" />
 			<span>{loadError}</span>
 			<Button variant="outline" size="sm" class="ml-auto" onclick={() => loadPlans()}>
-				{$_('common.confirm', { default: 'Retry' })}
+				{$_('common.confirm', { default: '重试' })}
 			</Button>
 		</Alert>
 	{/if}

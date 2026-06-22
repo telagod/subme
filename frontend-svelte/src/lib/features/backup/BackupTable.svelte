@@ -91,7 +91,7 @@
 									</Button>
 								{/if}
 								<Button variant="outline" size="sm" class="text-destructive" onclick={() => onDelete(row)}>
-									<Trash2 size={13} />{$_('common.delete', { default: 'Delete' })}
+									<Trash2 size={13} />{$_('common.delete', { default: '删除' })}
 								</Button>
 							</div>
 						</td>

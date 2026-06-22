@@ -64,7 +64,7 @@
 	async function resend(): Promise<void> {
 		if (!emailHint) {
 			resendError = $_('auth.verifyEmail.errors.NEED_EMAIL', {
-				default: 'Email missing — please register again to receive a new verification link.'
+				default: '邮箱缺失 — 请重新注册以获取新的验证链接。'
 			});
 			showError(resendError);
 			return;
@@ -73,11 +73,11 @@
 		resendError = '';
 		try {
 			await authApi.resendVerificationEmail(emailHint);
-			showSuccess($_('auth.verifyEmail.resendSuccess', { default: 'Verification email sent.' }));
+			showSuccess($_('auth.verifyEmail.resendSuccess', { default: '验证邮件已发送。' }));
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			resendError = $_('auth.verifyEmail.errors.RESEND_FAILED', {
-				default: 'Failed to resend verification email.'
+				default: '重新发送验证邮件失败。'
 			});
 			showError(`${resendError} ${msg}`.trim());
 		} finally {
@@ -87,16 +87,16 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.verifyEmail.title', { default: 'Verify email' })} · sub2api</title>
+	<title>{$_('auth.verifyEmail.title', { default: '验证邮箱' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.verifyEmail.title', { default: 'Verify email' })}
-	subtitle={$_('auth.verifyEmail.subtitle', { default: 'Confirming your email address...' })}
+	title={$_('auth.verifyEmail.title', { default: '验证邮箱' })}
+	subtitle={$_('auth.verifyEmail.subtitle', { default: '正在确认您的邮箱地址...' })}
 >
 	{#if phase === 'pending'}
 		<div class="space-y-2 text-center text-sm text-muted-foreground" data-testid="verify-pending">
-			<p>{$_('auth.verifyEmail.pending', { default: 'Verifying your email...' })}</p>
+			<p>{$_('auth.verifyEmail.pending', { default: '正在验证您的邮箱...' })}</p>
 		</div>
 	{:else if phase === 'verified'}
 		<div class="space-y-3 text-center" data-testid="verify-success">
@@ -104,11 +104,11 @@
 				<span class="block pt-1 text-base">✓</span>
 			</div>
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.verifyEmail.successTitle', { default: 'Email verified' })}
+				{$_('auth.verifyEmail.successTitle', { default: '邮箱已验证' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.verifyEmail.successHint', {
-					default: 'Your email has been verified. You can now sign in.'
+					default: '您的邮箱已验证，现在可以登录。'
 				})}
 			</p>
 			<a
@@ -116,17 +116,17 @@
 				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 				data-testid="verify-success-signin"
 			>
-				{$_('auth.verifyEmail.signIn', { default: 'Sign in' })}
+				{$_('auth.verifyEmail.signIn', { default: '登录' })}
 			</a>
 		</div>
 	{:else if phase === 'already_verified'}
 		<div class="space-y-3 text-center" data-testid="verify-already">
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.verifyEmail.alreadyTitle', { default: 'Already verified' })}
+				{$_('auth.verifyEmail.alreadyTitle', { default: '已验证' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.verifyEmail.alreadyHint', {
-					default: 'This email is already verified — please sign in.'
+					default: '该邮箱已验证，请直接登录。'
 				})}
 			</p>
 			<a
@@ -134,17 +134,17 @@
 				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 				data-testid="verify-already-signin"
 			>
-				{$_('auth.verifyEmail.signIn', { default: 'Sign in' })}
+				{$_('auth.verifyEmail.signIn', { default: '登录' })}
 			</a>
 		</div>
 	{:else if phase === 'expired'}
 		<div class="space-y-3 text-center" data-testid="verify-expired">
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.verifyEmail.expiredTitle', { default: 'Link expired' })}
+				{$_('auth.verifyEmail.expiredTitle', { default: '链接已过期' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.verifyEmail.expiredHint', {
-					default: 'This verification link has expired. You can request a new one.'
+					default: '此验证链接已过期，您可以请求新的。'
 				})}
 			</p>
 			{#if resendError}
@@ -160,18 +160,18 @@
 				class="w-full"
 			>
 				{resending
-					? $_('auth.verifyEmail.resending', { default: 'Sending...' })
-					: $_('auth.verifyEmail.resend', { default: 'Resend verification' })}
+					? $_('auth.verifyEmail.resending', { default: '发送中...' })
+					: $_('auth.verifyEmail.resend', { default: '重新发送验证' })}
 			</Button>
 		</div>
 	{:else}
 		<div class="space-y-3 text-center" data-testid="verify-invalid">
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.verifyEmail.invalidTitle', { default: 'Invalid link' })}
+				{$_('auth.verifyEmail.invalidTitle', { default: '链接无效' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.verifyEmail.invalidHint', {
-					default: 'This verification link is invalid. Please register again or contact support.'
+					default: '此验证链接无效，请重新注册或联系客服。'
 				})}
 			</p>
 			<a
@@ -179,14 +179,14 @@
 				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 				data-testid="verify-invalid-register"
 			>
-				{$_('auth.verifyEmail.registerAgain', { default: 'Back to register' })}
+				{$_('auth.verifyEmail.registerAgain', { default: '返回注册' })}
 			</a>
 		</div>
 	{/if}
 
 	{#snippet footer()}
 		<a class="text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: 'Back to sign in' })}
+			{$_('auth.backToLogin', { default: '返回登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

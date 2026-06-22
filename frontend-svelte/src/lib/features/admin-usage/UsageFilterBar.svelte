@@ -108,7 +108,7 @@
 			<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 			<Input
 				class="pl-9"
-				placeholder={$_('admin.usage.searchPlaceholder', { default: 'User ID, email, or model' })}
+				placeholder={$_('admin.usage.searchPlaceholder', { default: '用户 ID、邮箱或模型' })}
 				bind:value={searchInput}
 				oninput={onSearchInput}
 				onkeydown={(event) => {
@@ -149,10 +149,10 @@
 		<NativeSelect bind:value={sortChoice} options={sortOptions} onchange={onFilterChange} data-testid="admin-usage-sort" />
 		<label class="flex h-10 items-center gap-2 rounded-md border bg-background px-3 text-sm text-muted-foreground">
 			<Checkbox bind:checked={exactTotal} onchange={onFilterChange} />
-			{$_('admin.usage.exactTotal', { default: 'Exact total' })}
+			{$_('admin.usage.exactTotal', { default: '精确总计' })}
 		</label>
 		<Button onclick={onFilterChange}>
-			{$_('common.search', { default: 'Search' })}
+			{$_('common.search', { default: '搜索' })}
 		</Button>
 	</div>
 </Card>

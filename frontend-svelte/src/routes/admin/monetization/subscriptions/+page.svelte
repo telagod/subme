@@ -166,7 +166,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.subscriptions.title', { default: 'Subscriptions' })} · sub2api admin</title>
+	<title>{$_('admin.subscriptions.title', { default: '订阅管理' })} · sub2api admin</title>
 </svelte:head>
 
 <section
@@ -177,11 +177,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-				{$_('admin.subscriptions.title', { default: 'Subscriptions' })}
+				{$_('admin.subscriptions.title', { default: '订阅管理' })}
 			</h1>
 			<p class="m-0 text-xs text-muted-foreground">
 				{$_('admin.subscriptions.desc', {
-					default: 'Live subscription ledger · manage revocations and extensions'
+					default: '实时订阅账本 · 管理撤销和延期'
 				})}
 			</p>
 		</div>
@@ -193,7 +193,7 @@
 				data-testid="admin-subs-assign-btn"
 			>
 				<UserPlus class="h-3.5 w-3.5" />
-				{$_('admin.subscriptions.assignBtn', { default: 'Assign' })}
+				{$_('admin.subscriptions.assignBtn', { default: '分配' })}
 			</Button>
 			<Button
 				variant="outline"
@@ -201,11 +201,11 @@
 				disabled={loading}
 				onclick={() => loadSubs()}
 				data-testid="admin-subs-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 			>
 				<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 		</div>
 	</div>
@@ -225,7 +225,7 @@
 			<AlertTriangle class="h-4 w-4" />
 			<span>{loadError}</span>
 			<Button variant="outline" size="sm" class="ml-auto" onclick={() => loadSubs()}>
-				{$_('common.confirm', { default: 'Retry' })}
+				{$_('common.confirm', { default: '重试' })}
 			</Button>
 		</Alert>
 	{/if}

@@ -34,12 +34,12 @@
 			<div class="space-y-1">
 				<h2 class="text-base font-semibold text-foreground">
 					{$_('user.security.totp.title', {
-						default: 'Two-factor authentication (2FA)'
+						default: '双因素认证 (2FA)'
 					})}
 				</h2>
 				<p class="text-sm text-muted-foreground">
 					{$_('user.security.totp.description', {
-						default: 'Enhance account security with an authenticator app.'
+						default: '使用身份验证器应用增强账户安全。'
 					})}
 				</p>
 			</div>
@@ -53,8 +53,8 @@
 				data-testid="totp-status"
 			>
 				{totpEnabled
-					? $_('user.security.totp.enabled', { default: 'Enabled' })
-					: $_('user.security.totp.notEnabled', { default: 'Not enabled' })}
+					? $_('user.security.totp.enabled', { default: '已启用' })
+					: $_('user.security.totp.notEnabled', { default: '未启用' })}
 			</Badge>
 		</header>
 
@@ -67,7 +67,7 @@
 					onclick={() => (totpDisableOpen = true)}
 					class="text-destructive hover:bg-destructive/10"
 				>
-					{$_('user.security.totp.disable', { default: 'Disable 2FA' })}
+					{$_('user.security.totp.disable', { default: '禁用双因素认证' })}
 				</Button>
 			{:else}
 				<Button
@@ -75,7 +75,7 @@
 					data-testid="totp-enable-btn"
 					onclick={() => (totpEnrollOpen = true)}
 				>
-					{$_('user.security.totp.enable', { default: 'Enable 2FA' })}
+					{$_('user.security.totp.enable', { default: '启用双因素认证' })}
 				</Button>
 			{/if}
 		</div>

@@ -174,20 +174,20 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.quench.channelMonitor', { default: 'Channel monitor' })}</title>
+	<title>{$_('nav.quench.channelMonitor', { default: '渠道监控' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
-				{$_('nav.quench.channelMonitor', { default: 'Channel monitor' })}
+				{$_('nav.quench.channelMonitor', { default: '渠道监控' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">Track provider health, latency, and model availability.</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={() => (templateManagerOpen = true)} data-testid="open-template-manager">
-				<FileText size={15} />{$_('admin.channelMonitor.template.managerButton', { default: 'Templates' })}
+				<FileText size={15} />{$_('admin.channelMonitor.template.managerButton', { default: '模板' })}
 			</Button>
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
 				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
@@ -227,12 +227,12 @@
 	<Card class="flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
 		<div class="relative flex-1">
 			<Search class="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-			<Input class="pl-9" placeholder="Search monitors" bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
+			<Input class="pl-9" placeholder={$_('admin.channelMonitor.searchPlaceholder', { default: '搜索监控' })} bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<NativeSelect bind:value={providerFilter} options={providerOptions} onchange={resetAndLoad} data-testid="admin-channel-monitor-provider-filter" />
 			<NativeSelect bind:value={enabledFilter} options={enabledOptions} onchange={resetAndLoad} data-testid="admin-channel-monitor-enabled-filter" />
-			<Button onclick={resetAndLoad}>Search</Button>
+			<Button onclick={resetAndLoad}>{$_('common.search', { default: '搜索' })}</Button>
 		</div>
 	</Card>
 
@@ -244,7 +244,7 @@
 		<VirtualTable rows={rows} rowHeight={76} getRowKey={(row) => row.id} loading={loading}>
 			{#snippet header()}
 				<div class="grid grid-cols-[minmax(230px,1.3fr)_120px_minmax(170px,1fr)_120px_120px_150px_210px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>Name</div><div>Provider</div><div>Model</div><div>Status</div><div>Latency</div><div>Last check</div><div class="text-right">Actions</div>
+					<div>{$_('common.name', { default: '名称' })}</div><div>{$_('common.provider', { default: '供应商' })}</div><div>{$_('common.model', { default: '模型' })}</div><div>{$_('common.status', { default: '状态' })}</div><div>{$_('common.latency', { default: '延迟' })}</div><div>{$_('admin.channelMonitor.lastCheck', { default: '最后检查' })}</div><div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -269,14 +269,14 @@
 					<div class="text-xs text-muted-foreground">{formatLatency(row.primary_latency_ms)} · {formatAvailability(row)}</div>
 					<div class="text-xs text-muted-foreground">{formatDate(row.last_checked_at)}</div>
 					<div class="flex justify-end gap-1.5">
-						<Button variant="outline" size="sm" disabled={runningId === row.id} onclick={() => runNow(row)}><Play class="mr-1 inline h-3.5 w-3.5" />Run</Button>
-						<Button variant="outline" size="sm" disabled={saving} onclick={() => toggleEnabled(row)}>{row.enabled ? 'Disable' : 'Enable'}</Button>
-						<Button variant="outline" size="sm" disabled={saving} onclick={() => openEdit(row)}>Edit</Button>
+						<Button variant="outline" size="sm" disabled={runningId === row.id} onclick={() => runNow(row)}><Play class="mr-1 inline h-3.5 w-3.5" />{$_('admin.channelMonitor.run', { default: '执行' })}</Button>
+						<Button variant="outline" size="sm" disabled={saving} onclick={() => toggleEnabled(row)}>{row.enabled ? $_('common.disable', { default: 'Disable' }) : $_('common.enable', { default: 'Enable' })}</Button>
+						<Button variant="outline" size="sm" disabled={saving} onclick={() => openEdit(row)}>{$_('common.edit', { default: 'Edit' })}</Button>
 						<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => removeMonitor(row)}><Trash2 class="inline h-3.5 w-3.5" /></Button>
 					</div>
 				</div>
 			{/snippet}
-			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">No channel monitors found</div>{/snippet}
+			{#snippet empty()}<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.channelMonitor.empty', { default: '暂无渠道监控' })}</div>{/snippet}
 			{#snippet loadingSlot()}<div class="p-4 text-sm text-muted-foreground">Loading monitors…</div>{/snippet}
 		</VirtualTable>
 		<div class="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">

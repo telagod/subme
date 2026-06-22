@@ -107,12 +107,12 @@
 	<VirtualTable {rows} rowHeight={68} getRowKey={(r) => r.id} {loading}>
 		{#snippet header()}
 			<div class="grid min-w-[960px] grid-cols-[160px_100px_minmax(200px,1.5fr)_minmax(200px,1fr)_120px_100px_50px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-				<div>{$_('admin.usage.errors.time', { default: 'Time' })}</div>
-				<div>{$_('admin.usage.errors.severity', { default: 'Severity' })}</div>
-				<div>{$_('admin.usage.errors.message', { default: 'Message' })}</div>
-				<div>{$_('admin.usage.errors.model', { default: 'Model' })}</div>
-				<div>{$_('admin.usage.errors.user', { default: 'User' })}</div>
-				<div>{$_('admin.usage.errors.status', { default: 'Status' })}</div>
+				<div>{$_('admin.usage.errors.time', { default: '时间' })}</div>
+				<div>{$_('admin.usage.errors.severity', { default: '严重度' })}</div>
+				<div>{$_('admin.usage.errors.message', { default: '消息' })}</div>
+				<div>{$_('admin.usage.errors.model', { default: '模型' })}</div>
+				<div>{$_('admin.usage.errors.user', { default: '用户' })}</div>
+				<div>{$_('admin.usage.errors.status', { default: '状态' })}</div>
 				<div></div>
 			</div>
 		{/snippet}
@@ -144,7 +144,7 @@
 		{/snippet}
 		{#snippet empty()}
 			<div class="p-6 text-center text-sm text-muted-foreground">
-				{$_('admin.usage.errors.empty', { default: 'No error records found' })}
+				{$_('admin.usage.errors.empty', { default: '暂无错误记录' })}
 			</div>
 		{/snippet}
 		{#snippet loadingSlot()}
@@ -169,10 +169,10 @@
 </Card>
 
 <!-- Error detail dialog -->
-<StandardDialog bind:open={showDetail} title={$_('admin.usage.errors.detail', { default: 'Error Detail' })}>
+<StandardDialog bind:open={showDetail} title={$_('admin.usage.errors.detail', { default: '错误详情' })}>
 	{#if detailLoading}
 		<div class="flex items-center justify-center py-8 text-sm text-muted-foreground">
-			{$_('common.loading', { default: 'Loading...' })}
+			{$_('common.loading', { default: '加载中...' })}
 		</div>
 	{:else if detail}
 		<div class="space-y-3 text-sm">
@@ -217,7 +217,7 @@
 		</div>
 	{:else}
 		<p class="py-4 text-sm text-muted-foreground">
-			{$_('admin.usage.errors.notFound', { default: 'Error detail not found.' })}
+			{$_('admin.usage.errors.notFound', { default: '未找到错误详情。' })}
 		</p>
 	{/if}
 </StandardDialog>

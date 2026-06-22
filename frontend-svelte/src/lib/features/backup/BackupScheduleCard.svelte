@@ -76,7 +76,7 @@
 	</div>
 	<div class="mt-4">
 		<Button size="sm" onclick={saveSchedule} disabled={savingSchedule}>
-			<Save size={14} />{savingSchedule ? $_('common.loading', { default: 'Loading' }) : $_('common.save', { default: 'Save' })}
+			<Save size={14} />{savingSchedule ? $_('common.loading', { default: 'Loading' }) : $_('common.save', { default: '保存' })}
 		</Button>
 	</div>
 </Card>

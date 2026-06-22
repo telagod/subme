@@ -1,4 +1,4 @@
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 import { apiClient } from '../client';
 
 export type ModerationMode = 'off' | 'observe' | 'pre_block';
@@ -220,24 +220,24 @@ export interface ClearFlaggedHashesResponse {
 
 const RISK_BASE = '/api/v1/admin/risk-control';
 
-export function getRiskConfig(): Promise<ContentModerationConfig> {
-	return apiClient.get<ContentModerationConfig>(`${RISK_BASE}/config`);
+export async function getRiskConfig(): Promise<ContentModerationConfig> {
+	return unwrapData(await apiClient.get<ContentModerationConfig | ApiEnvelope<ContentModerationConfig>>(`${RISK_BASE}/config`));
 }
 
-export function updateRiskConfig(
+export async function updateRiskConfig(
 	payload: UpdateContentModerationConfig
 ): Promise<ContentModerationConfig> {
-	return apiClient.put<ContentModerationConfig>(`${RISK_BASE}/config`, payload);
+	return unwrapData(await apiClient.put<ContentModerationConfig | ApiEnvelope<ContentModerationConfig>>(`${RISK_BASE}/config`, payload));
 }
 
-export function getRiskStatus(): Promise<ContentModerationRuntimeStatus> {
-	return apiClient.get<ContentModerationRuntimeStatus>(`${RISK_BASE}/status`);
+export async function getRiskStatus(): Promise<ContentModerationRuntimeStatus> {
+	return unwrapData(await apiClient.get<ContentModerationRuntimeStatus | ApiEnvelope<ContentModerationRuntimeStatus>>(`${RISK_BASE}/status`));
 }
 
-export function testRiskApiKeys(
+export async function testRiskApiKeys(
 	payload: TestContentModerationAPIKeysPayload = {}
 ): Promise<TestContentModerationAPIKeysResponse> {
-	return apiClient.post<TestContentModerationAPIKeysResponse>(`${RISK_BASE}/api-keys/test`, payload);
+	return unwrapData(await apiClient.post<TestContentModerationAPIKeysResponse | ApiEnvelope<TestContentModerationAPIKeysResponse>>(`${RISK_BASE}/api-keys/test`, payload));
 }
 
 export function listRiskLogs(
@@ -246,10 +246,10 @@ export function listRiskLogs(
 	return getPaginated<ContentModerationLog>(`${RISK_BASE}/logs${buildQuery({ ...params })}`);
 }
 
-export function unbanRiskUser(userId: number): Promise<ContentModerationUnbanUserResponse> {
-	return apiClient.post<ContentModerationUnbanUserResponse>(
+export async function unbanRiskUser(userId: number): Promise<ContentModerationUnbanUserResponse> {
+	return unwrapData(await apiClient.post<ContentModerationUnbanUserResponse | ApiEnvelope<ContentModerationUnbanUserResponse>>(
 		`${RISK_BASE}/users/${userId}/unban`
-	);
+	));
 }
 
 export function deleteFlaggedHash(inputHash: string): Promise<DeleteFlaggedHashResponse> {
@@ -258,8 +258,8 @@ export function deleteFlaggedHash(inputHash: string): Promise<DeleteFlaggedHashR
 	});
 }
 
-export function clearFlaggedHashes(): Promise<ClearFlaggedHashesResponse> {
-	return apiClient.delete<ClearFlaggedHashesResponse>(`${RISK_BASE}/hashes/all`);
+export async function clearFlaggedHashes(): Promise<ClearFlaggedHashesResponse> {
+	return unwrapData(await apiClient.delete<ClearFlaggedHashesResponse | ApiEnvelope<ClearFlaggedHashesResponse>>(`${RISK_BASE}/hashes/all`));
 }
 
 async function requestWithJson<T>(method: string, path: string, body?: unknown): Promise<T> {

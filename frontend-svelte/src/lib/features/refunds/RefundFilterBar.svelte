@@ -40,7 +40,7 @@
 	const statusOptions = $derived.by<Array<{ value: string; label: string }>>(() => {
 		const all = {
 			value: ALL,
-			label: $_('admin.refunds.statusAll', { default: 'All statuses' })
+			label: $_('admin.refunds.statusAll', { default: '全部状态' })
 		};
 		return [
 			all,
@@ -64,7 +64,7 @@
 		type="search"
 		class="h-8 w-56 px-2"
 		placeholder={$_('admin.refunds.searchPlaceholder', {
-			default: 'Search order / user…'
+			default: '搜索订单 / 用户…'
 		})}
 		bind:value={searchInput}
 		onkeydown={handleKeywordKey}
@@ -72,7 +72,7 @@
 	/>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-refunds-status-filter">
-		{$_('common.status', { default: 'Status' })}
+		{$_('common.status', { default: '状态' })}
 	</label>
 	<NativeSelect
 		id="admin-refunds-status-filter"
@@ -84,7 +84,7 @@
 	/>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-refunds-start-date">
-		{$_('admin.refunds.startDate', { default: 'From' })}
+		{$_('admin.refunds.startDate', { default: '从' })}
 	</label>
 	<Input
 		id="admin-refunds-start-date"
@@ -95,7 +95,7 @@
 		data-testid="admin-refunds-start-date"
 	/>
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-refunds-end-date">
-		{$_('admin.refunds.endDate', { default: 'To' })}
+		{$_('admin.refunds.endDate', { default: '至' })}
 	</label>
 	<Input
 		id="admin-refunds-end-date"

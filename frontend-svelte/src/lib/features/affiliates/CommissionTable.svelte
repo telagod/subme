@@ -74,7 +74,7 @@
 <section class="rounded-lg border border-border bg-card" data-testid="affiliates-invited-card">
 	<header class="flex items-center justify-between border-b border-border px-4 py-3">
 		<h2 class="text-sm font-semibold text-foreground">
-			{$_('user.affiliates.invited.title', { default: 'Invited users' })}
+			{$_('user.affiliates.invited.title', { default: '被邀请用户' })}
 		</h2>
 		<span class="text-xs text-muted-foreground" data-testid="affiliates-invited-total">
 			{$_('user.affiliates.invited.totalLabel', {
@@ -94,7 +94,7 @@
 		<div class="p-6 text-center" data-testid="affiliates-invited-empty">
 			<Users class="mx-auto h-8 w-8 text-muted-foreground" />
 			<p class="mt-2 text-sm text-muted-foreground">
-				{$_('user.affiliates.invited.empty', { default: 'No invited users yet' })}
+				{$_('user.affiliates.invited.empty', { default: '暂无被邀请用户' })}
 			</p>
 		</div>
 	{:else}
@@ -108,16 +108,16 @@
 							{$_('user.affiliates.invited.colId', { default: 'ID' })}
 						</th>
 						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.affiliates.invited.colEmail', { default: 'Email' })}
+							{$_('user.affiliates.invited.colEmail', { default: '邮箱' })}
 						</th>
 						<th class="px-4 py-2 text-left font-medium">
-							{$_('user.affiliates.invited.colJoined', { default: 'Joined' })}
+							{$_('user.affiliates.invited.colJoined', { default: '加入' })}
 						</th>
 						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.affiliates.invited.colSpend', { default: 'Spend' })}
+							{$_('user.affiliates.invited.colSpend', { default: '消费' })}
 						</th>
 						<th class="px-4 py-2 text-right font-medium">
-							{$_('user.affiliates.invited.colRebate', { default: 'Rebate' })}
+							{$_('user.affiliates.invited.colRebate', { default: '返佣' })}
 						</th>
 					</tr>
 				</thead>
@@ -156,7 +156,7 @@
 			>
 				<span>
 					{$_('user.affiliates.pageOf', {
-						default: 'Page {page} of {pages}',
+						default: '第 {page} / {pages} 页',
 						values: { page, pages: totalPages }
 					})}
 				</span>
@@ -169,7 +169,7 @@
 						onclick={prev}
 						class="h-7 px-2"
 					>
-						{$_('user.affiliates.prevPage', { default: 'Previous' })}
+						{$_('user.affiliates.prevPage', { default: '上一页' })}
 					</Button>
 					<Button
 						variant="outline"
@@ -179,7 +179,7 @@
 						onclick={next}
 						class="h-7 px-2"
 					>
-						{$_('user.affiliates.nextPage', { default: 'Next' })}
+						{$_('user.affiliates.nextPage', { default: '下一步' })}
 					</Button>
 				</div>
 			</div>

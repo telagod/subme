@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { ChevronLeft, ChevronRight, Layers, SlidersHorizontal } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -67,7 +68,7 @@
 	<VirtualTable {rows} rowHeight={72} {loading} getRowKey={(row) => row.id} class="max-h-[680px]">
 		{#snippet header()}
 			<div class="grid grid-cols-[72px_1.4fr_0.9fr_0.9fr_1fr_1fr_1fr_260px] gap-3 border-b px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
-				<span>Sort</span><span>Group</span><span>Platform</span><span>Status</span><span>Usage</span><span>Capacity</span><span>Channel</span><span>Actions</span>
+				<span>{$_('common.sort', { default: 'Sort' })}</span><span>{$_('common.group', { default: 'Group' })}</span><span>{$_('common.platform', { default: 'Platform' })}</span><span>{$_('common.status', { default: 'Status' })}</span><span>{$_('common.usage', { default: 'Usage' })}</span><span>{$_('admin.groups.capacity', { default: 'Capacity' })}</span><span>{$_('admin.groups.channel', { default: 'Channels' })}</span><span>{$_('common.actions', { default: 'Actions' })}</span>
 			</div>
 		{/snippet}
 		{#snippet row({ row })}
@@ -105,11 +106,11 @@
 					<Button variant="outline" size="sm" disabled={controlsLoading} onclick={() => onOpenControls(row)}>
 						<SlidersHorizontal size={14} /> Controls
 					</Button>
-					<Button variant="outline" size="sm" onclick={() => onOpenEdit(row)}>Edit</Button>
+					<Button variant="outline" size="sm" onclick={() => onOpenEdit(row)}>{$_('common.edit', { default: 'Edit' })}</Button>
 					<Button variant="outline" size="sm" disabled={saving} onclick={() => updateGroupStatus(row.id, row.status === 'active' ? 'inactive' : 'active').then(onReload)}>
 						{row.status === 'active' ? 'Disable' : 'Enable'}
 					</Button>
-					<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => onRemove(row)}>Delete</Button>
+					<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => onRemove(row)}>{$_('common.delete', { default: 'Delete' })}</Button>
 				</div>
 			</div>
 		{/snippet}

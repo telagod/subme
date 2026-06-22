@@ -25,6 +25,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 export type PaymentProvider = 'stripe' | 'airwallex' | 'balance';
 
 /** TopUp facade 只支持外部支付提供商（balance 自身不能给自己充值）。 */
@@ -116,7 +121,7 @@ export async function startCheckout(payload: StartCheckoutPayload): Promise<Crea
 	};
 	if (payload.promoCode) body.promo_code = payload.promoCode;
 
-	const raw = await apiClient.post<RawCreateOrder>('/api/v1/payment/orders', body);
+	const raw = unwrapEnvelope<RawCreateOrder>(await apiClient.post('/api/v1/payment/orders', body));
 	const result = mapOrder(raw);
 
 	// 简单 redirect 兜底；专属 launcher 由 payment agent 在后续 PR 接入。
@@ -150,7 +155,7 @@ export async function createTopUp(payload: CreateTopUpPayload): Promise<CreateOr
 		provider: payload.provider
 	};
 
-	const raw = await apiClient.post<RawCreateOrder>('/api/v1/payment/orders', body);
+	const raw = unwrapEnvelope<RawCreateOrder>(await apiClient.post('/api/v1/payment/orders', body));
 	const result = mapOrder(raw);
 
 	if (result.payUrl && typeof window !== 'undefined') {
@@ -255,10 +260,10 @@ export async function createCheckoutSession(
 	if (payload.amount !== undefined) body.amount = payload.amount;
 	if (payload.currency) body.currency = payload.currency;
 
-	const raw = await apiClient.post<RawCheckoutSession>(
+	const raw = unwrapEnvelope<RawCheckoutSession>(await apiClient.post(
 		'/api/v1/payment/checkout-session',
 		body
-	);
+	));
 	return mapCheckoutSession(raw);
 }
 
@@ -391,10 +396,10 @@ function mapPaymentMethod(raw: RawPaymentMethod): PaymentMethod {
  */
 export async function listPaymentMethods(): Promise<PaymentMethod[]> {
 	try {
-		const raw = await apiClient.get<RawPaymentMethod[] | { items?: RawPaymentMethod[] }>(
+		const resp = unwrapEnvelope<RawPaymentMethod[] | { items?: RawPaymentMethod[] }>(await apiClient.get(
 			'/api/v1/payment/methods'
-		);
-		const items = Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
+		));
+		const items = Array.isArray(resp) ? resp : Array.isArray(resp?.items) ? resp.items : [];
 		return items.map(mapPaymentMethod);
 	} catch {
 		return [];

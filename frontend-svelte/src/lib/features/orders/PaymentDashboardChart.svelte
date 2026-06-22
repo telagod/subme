@@ -33,7 +33,7 @@
 			labels: points.map((p) => p.date),
 			datasets: [
 				{
-					label: $_('admin.orderDashboard.chart.legendRevenue', { default: 'Revenue ($)' }),
+					label: $_('admin.orderDashboard.chart.legendRevenue', { default: '收入 ($)' }),
 					data: points.map((p) => p.revenue),
 					borderColor: '#10b981',
 					backgroundColor: 'rgba(16,185,129,0.15)',
@@ -42,7 +42,7 @@
 					yAxisID: 'y'
 				},
 				{
-					label: $_('admin.orderDashboard.chart.legendCount', { default: 'Orders' }),
+					label: $_('admin.orderDashboard.chart.legendCount', { default: '订单' }),
 					data: points.map((p) => p.count),
 					borderColor: '#3b82f6',
 					backgroundColor: 'rgba(59,130,246,0.15)',
@@ -112,35 +112,35 @@
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="admin-orderdash-chart-loading"
 		>
-			{$_('admin.orderDashboard.chart.loading', { default: 'Loading chart…' })}
+			{$_('admin.orderDashboard.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else if chartError}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="admin-orderdash-chart-error"
 		>
-			{$_('admin.orderDashboard.chart.failed', { default: 'Failed to load chart' })}
+			{$_('admin.orderDashboard.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data === null}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="admin-orderdash-chart-error"
 		>
-			{$_('admin.orderDashboard.chart.failed', { default: 'Failed to load chart' })}
+			{$_('admin.orderDashboard.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data.length === 0}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="admin-orderdash-chart-empty"
 		>
-			{$_('admin.orderDashboard.chart.empty', { default: 'No revenue in this range' })}
+			{$_('admin.orderDashboard.chart.empty', { default: '该范围内无收入' })}
 		</div>
 	{:else if !chartReady || !LineCmp}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="admin-orderdash-chart-loading"
 		>
-			{$_('admin.orderDashboard.chart.loading', { default: 'Loading chart…' })}
+			{$_('admin.orderDashboard.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else}
 		{@const LC = LineCmp as unknown as import('svelte').Component<{

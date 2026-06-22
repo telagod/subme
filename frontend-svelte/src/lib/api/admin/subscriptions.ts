@@ -17,6 +17,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 类型契约 ────────────────────────────────────────────────────────────────
 
 export type AdminSubStatus = 'active' | 'cancelled' | 'expired' | 'revoked';
@@ -80,9 +85,9 @@ export async function listAdminSubs(
 	filter?: AdminSubFilter
 ): Promise<AdminSubListResponse> {
 	const qs = buildQuery(filter);
-	const raw = await apiClient.get<AdminSubListResponse | AdminSubscription[]>(
+	const raw = unwrap<AdminSubListResponse | AdminSubscription[]>(await apiClient.get(
 		`${SUBS_BASE}${qs}`
-	);
+	));
 	if (Array.isArray(raw)) {
 		return {
 			data: raw,
@@ -100,7 +105,7 @@ export async function listAdminSubs(
 }
 
 export async function getAdminSub(id: number | string): Promise<AdminSubscription> {
-	return apiClient.get<AdminSubscription>(`${SUBS_BASE}/${id}`);
+	return unwrap<AdminSubscription>(await apiClient.get(`${SUBS_BASE}/${id}`));
 }
 
 /**
@@ -122,13 +127,13 @@ export async function extendSub(
 	id: number | string,
 	days: number
 ): Promise<AdminSubscription> {
-	return apiClient.post<AdminSubscription>(`${SUBS_BASE}/${id}/extend`, {
+	return unwrap<AdminSubscription>(await apiClient.post(`${SUBS_BASE}/${id}/extend`, {
 		days
-	});
+	}));
 }
 
 export async function resetQuotaSub(id: number | string): Promise<AdminSubscription> {
-	return apiClient.post<AdminSubscription>(`${SUBS_BASE}/${id}/reset-quota`);
+	return unwrap<AdminSubscription>(await apiClient.post(`${SUBS_BASE}/${id}/reset-quota`));
 }
 
 // ── Assign / Bulk-Assign 类型 ──────────────────────────────────────────────
@@ -162,7 +167,7 @@ export interface BulkAssignResult {
  *   - POST /admin/subscriptions/assign  body { user_id, group_id, validity_days?, notes? }
  */
 export async function assignSub(payload: AssignSubPayload): Promise<AdminSubscription> {
-	return apiClient.post<AdminSubscription>(`${SUBS_BASE}/assign`, payload);
+	return unwrap<AdminSubscription>(await apiClient.post(`${SUBS_BASE}/assign`, payload));
 }
 
 /**
@@ -170,7 +175,7 @@ export async function assignSub(payload: AssignSubPayload): Promise<AdminSubscri
  *   - POST /admin/subscriptions/bulk-assign  body { user_ids, group_id, validity_days?, notes? }
  */
 export async function bulkAssignSub(payload: BulkAssignSubPayload): Promise<BulkAssignResult> {
-	return apiClient.post<BulkAssignResult>(`${SUBS_BASE}/bulk-assign`, payload);
+	return unwrap<BulkAssignResult>(await apiClient.post(`${SUBS_BASE}/bulk-assign`, payload));
 }
 
 export const adminSubscriptionsApi = {

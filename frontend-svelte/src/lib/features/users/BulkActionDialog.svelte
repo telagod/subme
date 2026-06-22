@@ -31,17 +31,17 @@
 	);
 
 	const title = $derived(
-		action === 'enable' ? $_('admin.users.bulkEnableTitle', { default: 'Enable Users' }) :
-		action === 'disable' ? $_('admin.users.bulkDisableTitle', { default: 'Disable Users' }) :
-		$_('admin.users.bulkDeleteTitle', { default: 'Delete Users' })
+		action === 'enable' ? $_('admin.users.bulkEnableTitle', { default: '启用用户' }) :
+		action === 'disable' ? $_('admin.users.bulkDisableTitle', { default: '禁用用户' }) :
+		$_('admin.users.bulkDeleteTitle', { default: '删除用户' })
 	);
 
 	const message = $derived(
 		action === 'enable'
-			? $_('admin.users.bulkEnableMsg', { default: 'Enable {count} selected users? They will regain access to the platform.', values: { count } })
+			? $_('admin.users.bulkEnableMsg', { default: '启用 {count} 个选中用户？他们将重新获得平台访问权限。', values: { count } })
 			: action === 'disable'
-				? $_('admin.users.bulkDisableMsg', { default: 'Disable {count} selected users? They will lose access until re-enabled.', values: { count } })
-				: $_('admin.users.bulkDeleteMsg', { default: 'Permanently delete {count} selected users? This action cannot be undone.', values: { count } })
+				? $_('admin.users.bulkDisableMsg', { default: '禁用 {count} 个选中用户？他们将失去访问权限直到重新启用。', values: { count } })
+				: $_('admin.users.bulkDeleteMsg', { default: '永久删除 {count} 个选中用户？此操作不可撤销。', values: { count } })
 	);
 
 	$effect(() => {
@@ -68,7 +68,7 @@
 			<div class="flex flex-col gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 p-3">
 				<span class="text-xs font-medium text-destructive">
 					{$_('admin.users.bulkDeleteConfirmLabel', {
-						default: 'Type "{count}" to confirm deletion',
+						default: '输入「{count}」以确认删除',
 						values: { count }
 					})}
 				</span>
@@ -82,7 +82,7 @@
 
 	<div class="flex justify-end gap-2 border-t border-border pt-4">
 		<Button variant="outline" size="sm" onclick={onClose}>
-			{$_('common.cancel', { default: 'Cancel' })}
+			{$_('common.cancel', { default: '取消' })}
 		</Button>
 		<Button size="sm"
 			variant={isDelete ? 'destructive' : 'default'}
@@ -90,12 +90,12 @@
 			onclick={handleConfirm}
 			data-testid="bulk-action-confirm">
 			{processing
-				? $_('common.processing', { default: 'Processing...' })
+				? $_('common.processing', { default: '处理中...' })
 				: isDelete
-					? $_('admin.users.bulkDeleteConfirm', { default: 'Delete {count} users', values: { count } })
+					? $_('admin.users.bulkDeleteConfirm', { default: '删除 {count} 个用户', values: { count } })
 					: action === 'enable'
-						? $_('admin.users.bulkEnableConfirm', { default: 'Enable {count} users', values: { count } })
-						: $_('admin.users.bulkDisableConfirm', { default: 'Disable {count} users', values: { count } })
+						? $_('admin.users.bulkEnableConfirm', { default: '启用 {count} 个用户', values: { count } })
+						: $_('admin.users.bulkDisableConfirm', { default: '禁用 {count} 个用户', values: { count } })
 			}
 		</Button>
 	</div>

@@ -72,28 +72,28 @@
 		redirecting = true;
 		const fn = stripe.confirmAlipayPayment;
 		if (!fn) {
-			stripeError = $_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' });
+			stripeError = $_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' });
 			redirecting = false;
 			return;
 		}
 		const { error } = await fn(clientSecret, { return_url: successUrl(orderId) });
 		if (error) {
 			redirecting = false;
-			stripeError = error.message || $_('payment.result.failed', { default: 'Payment Failed' });
+			stripeError = error.message || $_('payment.result.failed', { default: '支付失败' });
 		}
 	}
 
 	async function confirmWechatPay(stripe: StripeLike, clientSecret: string) {
 		const fn = stripe.confirmWechatPayPayment;
 		if (!fn) {
-			stripeError = $_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' });
+			stripeError = $_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' });
 			return;
 		}
 		const { paymentIntent, error } = await fn(clientSecret, {
 			payment_method_options: { wechat_pay: { client: 'web' } }
 		});
 		if (error) {
-			stripeError = error.message || $_('payment.result.failed', { default: 'Payment Failed' });
+			stripeError = error.message || $_('payment.result.failed', { default: '支付失败' });
 			return;
 		}
 		const qrData = paymentIntent?.next_action?.wechat_pay_display_qr_code?.image_data_url;
@@ -104,7 +104,7 @@
 			stripeSuccess = true;
 			scheduleClose();
 		} else {
-			stripeError = $_('payment.result.failed', { default: 'Payment Failed' });
+			stripeError = $_('payment.result.failed', { default: '支付失败' });
 		}
 	}
 
@@ -137,13 +137,13 @@
 				redirect: 'if_required'
 			});
 			if (error) {
-				stripeError = error.message || $_('payment.result.failed', { default: 'Payment Failed' });
+				stripeError = error.message || $_('payment.result.failed', { default: '支付失败' });
 			} else {
 				stripeSuccess = true;
 				scheduleClose();
 			}
 		} catch (err) {
-			stripeError = (err as Error)?.message || $_('payment.result.failed', { default: 'Payment Failed' });
+			stripeError = (err as Error)?.message || $_('payment.result.failed', { default: '支付失败' });
 		} finally {
 			stripeSubmitting = false;
 		}
@@ -181,7 +181,7 @@
 		const method = q('method');
 		if (!orderId || !clientSecret) {
 			loading = false;
-			initError = $_('payment.stripeMissingParams', { default: 'Missing order ID or client secret' });
+			initError = $_('payment.stripeMissingParams', { default: '缺少订单 ID 或客户端密钥' });
 			return;
 		}
 		try {
@@ -189,7 +189,7 @@
 			const cfg = await getPaymentConfig();
 			const publishableKey = cfg.stripe_publishable_key ?? '';
 			if (!publishableKey) {
-				initError = $_('payment.stripeNotConfigured', { default: 'Stripe is not configured' });
+				initError = $_('payment.stripeNotConfigured', { default: 'Stripe 未配置' });
 				return;
 			}
 			stripeInstance = (await getStripe(publishableKey)) as unknown as StripeLike;
@@ -205,7 +205,7 @@
 		} catch (err) {
 			initError =
 				(err as Error)?.message ||
-				$_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' });
+				$_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' });
 		} finally {
 			loading = false;
 		}
@@ -232,18 +232,18 @@
 				<AlertTriangle class="h-8 w-8" />
 			</div>
 			<h1 class="text-lg font-semibold text-foreground">
-				{$_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' })}
+				{$_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' })}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">{initError}</p>
 			<Button class="mt-6" onclick={goPurchase}>
-				{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+				{$_('payment.result.backToRecharge', { default: '返回充值' })}
 			</Button>
 		</div>
 	{:else}
 		{#if order}
 			<div class="overflow-hidden rounded-lg border border-border bg-card">
 				<div class="border-b border-border bg-secondary px-6 py-6 text-center">
-					<p class="text-sm font-medium text-muted-foreground">{$_('payment.actualPay', { default: 'Actual Payment' })}</p>
+					<p class="text-sm font-medium text-muted-foreground">{$_('payment.actualPay', { default: '实际支付' })}</p>
 					<p class="mt-1 text-3xl font-bold text-foreground">{formatGatewayAmount(order.pay_amount, currency)}</p>
 				</div>
 			</div>
@@ -252,26 +252,26 @@
 		{#if wechatQrUrl}
 			<div class="rounded-lg border border-border bg-card p-6" data-testid="payment-stripe-wechat">
 				<div class="flex flex-col items-center space-y-4">
-					<p class="text-lg font-semibold text-foreground">{$_('payment.qr.scanWxpay', { default: 'WeChat QR Payment' })}</p>
+					<p class="text-lg font-semibold text-foreground">{$_('payment.qr.scanWxpay', { default: '微信扫码支付' })}</p>
 					<img src={wechatQrUrl} alt="WeChat Pay QR" class="h-56 w-56 rounded border border-emerald-500/70 bg-muted p-3" />
-					<p class="text-center text-sm text-muted-foreground">{$_('payment.qr.scanWxpayHint', { default: 'Open WeChat on your phone and scan the QR code to pay' })}</p>
+					<p class="text-center text-sm text-muted-foreground">{$_('payment.qr.scanWxpayHint', { default: '打开手机微信扫描二维码支付' })}</p>
 				</div>
 			</div>
 			<div class="rounded-lg border border-border bg-card p-4 text-center">
-				<p class="text-sm text-muted-foreground">{$_('payment.qr.waitingPayment', { default: 'Waiting for payment...' })}</p>
+				<p class="text-sm text-muted-foreground">{$_('payment.qr.waitingPayment', { default: '等待支付中...' })}</p>
 			</div>
 		{:else if redirecting}
 			<div class="rounded-lg border border-border bg-card p-6" data-testid="payment-stripe-redirecting">
 				<div class="flex flex-col items-center space-y-4 py-4">
 					<Loader2 class="h-10 w-10 animate-spin text-primary" />
-					<p class="text-sm text-muted-foreground">{$_('payment.qr.payInNewWindowHint', { default: 'The payment page has opened in a new window. Please complete the payment there and return to this page.' })}</p>
+					<p class="text-sm text-muted-foreground">{$_('payment.qr.payInNewWindowHint', { default: '支付页面已在新窗口中打开，请在新窗口完成支付后返回此页面。' })}</p>
 				</div>
 			</div>
 		{:else if stripeSuccess}
 			<div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-6 text-center" data-testid="payment-stripe-success">
 				<CheckCircle2 class="mx-auto h-12 w-12 text-emerald-600 dark:text-emerald-400" />
-				<p class="mt-3 text-lg font-bold text-foreground">{$_('payment.result.success', { default: 'Payment Successful' })}</p>
-				<p class="mt-1 text-sm text-muted-foreground">{$_('payment.stripeSuccessProcessing', { default: 'Payment successful, processing your order...' })}</p>
+				<p class="mt-3 text-lg font-bold text-foreground">{$_('payment.result.success', { default: '支付成功' })}</p>
+				<p class="mt-1 text-sm text-muted-foreground">{$_('payment.stripeSuccessProcessing', { default: '支付成功，正在处理您的订单...' })}</p>
 			</div>
 		{:else if showPaymentElement}
 			<div class="rounded-lg border border-border bg-card p-6" data-testid="payment-stripe-element-card">
@@ -282,15 +282,15 @@
 				<Button class="mt-6 h-11 w-full text-base" disabled={stripeSubmitting || !stripeReady} onclick={handleGenericPay} data-testid="payment-stripe-pay">
 					{#if stripeSubmitting}
 						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
-						{$_('common.processing', { default: 'Processing' })}
+						{$_('common.processing', { default: '处理中' })}
 					{:else}
-						{$_('payment.stripePay', { default: 'Pay Now' })}
+						{$_('payment.stripePay', { default: '立即支付' })}
 					{/if}
 				</Button>
 			</div>
 			<div class="text-center">
 				<Button variant="outline" onclick={goPurchase}>
-					{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+					{$_('payment.result.backToRecharge', { default: '返回充值' })}
 				</Button>
 			</div>
 		{/if}
@@ -299,7 +299,7 @@
 			<div class="rounded-lg border border-border bg-card p-4" data-testid="payment-stripe-action-error">
 				<p class="text-sm text-destructive">{stripeError}</p>
 				<Button variant="outline" class="mt-3 w-full" onclick={goPurchase}>
-					{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+					{$_('payment.result.backToRecharge', { default: '返回充值' })}
 				</Button>
 			</div>
 		{/if}

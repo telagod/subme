@@ -73,7 +73,7 @@
 		data-testid="usage-list-error"
 	>
 		<p class="text-sm font-medium text-destructive">
-			{$_('user.usage.errors.listFailed', { default: 'Failed to load usage entries' })}
+			{$_('user.usage.errors.listFailed', { default: '加载用量记录失败' })}
 		</p>
 		<p class="mt-1 text-xs text-muted-foreground">{error}</p>
 		<Button
@@ -84,7 +84,7 @@
 			size="sm"
 			class="mt-4"
 		>
-			{$_('user.usage.retry', { default: 'Retry' })}
+			{$_('user.usage.retry', { default: '重试' })}
 		</Button>
 	</div>
 {:else if entries.length === 0}
@@ -93,11 +93,11 @@
 		data-testid="usage-list-empty"
 	>
 		<h2 class="text-base font-semibold text-foreground">
-			{$_('user.usage.emptyTitle', { default: 'No usage in this range' })}
+			{$_('user.usage.emptyTitle', { default: '该范围内无用量' })}
 		</h2>
 		<p class="max-w-sm text-sm text-muted-foreground">
 			{$_('user.usage.emptyDescription', {
-				default: 'Try widening the date range or clearing filters.'
+				default: '请尝试扩大日期范围或清除筛选条件。'
 			})}
 		</p>
 	</div>
@@ -112,28 +112,28 @@
 					class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground"
 				>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.usage.colTimestamp', { default: 'Time' })}
+						{$_('user.usage.colTimestamp', { default: '时间' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.usage.colModel', { default: 'Model' })}
+						{$_('user.usage.colModel', { default: '模型' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.usage.colEndpoint', { default: 'Endpoint' })}
+						{$_('user.usage.colEndpoint', { default: '端点' })}
 					</th>
 					<th class="px-4 py-2 text-right font-medium">
-						{$_('user.usage.colInputTokens', { default: 'Input' })}
+						{$_('user.usage.colInputTokens', { default: '输入' })}
 					</th>
 					<th class="px-4 py-2 text-right font-medium">
-						{$_('user.usage.colOutputTokens', { default: 'Output' })}
+						{$_('user.usage.colOutputTokens', { default: '输出' })}
 					</th>
 					<th class="px-4 py-2 text-right font-medium">
-						{$_('user.usage.colCost', { default: 'Cost' })}
+						{$_('user.usage.colCost', { default: '费用' })}
 					</th>
 					<th class="px-4 py-2 text-left font-medium">
-						{$_('user.usage.colStatus', { default: 'Status' })}
+						{$_('user.usage.colStatus', { default: '状态' })}
 					</th>
 					<th class="px-4 py-2 text-right font-medium">
-						{$_('user.usage.colLatency', { default: 'Latency' })}
+						{$_('user.usage.colLatency', { default: '延迟' })}
 					</th>
 				</tr>
 			</thead>
@@ -170,7 +170,7 @@
 		>
 			<span>
 				{$_('user.usage.pageOf', {
-					default: 'Page {page} of {pages}',
+					default: '第 {page} / {pages} 页',
 					values: { page, pages: Math.max(totalPages, 1) }
 				})}
 			</span>
@@ -183,7 +183,7 @@
 					variant="outline"
 					size="sm"
 				>
-					{$_('user.usage.prevPage', { default: 'Previous' })}
+					{$_('user.usage.prevPage', { default: '上一页' })}
 				</Button>
 				<Button
 					type="button"
@@ -193,7 +193,7 @@
 					variant="outline"
 					size="sm"
 				>
-					{$_('user.usage.nextPage', { default: 'Next' })}
+					{$_('user.usage.nextPage', { default: '下一步' })}
 				</Button>
 			</div>
 		</div>

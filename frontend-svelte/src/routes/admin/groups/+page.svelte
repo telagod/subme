@@ -184,16 +184,16 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.groups.title', { default: 'Groups & Routing' })}</title>
+	<title>{$_('admin.groups.title', { default: '分组 & 路由' })}</title>
 </svelte:head>
 
 <section class="space-y-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">M13 · Supply</p>
-			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.groups.title', { default: 'Groups & Routing' })}</h1>
+			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.groups.title', { default: '分组 & 路由' })}</h1>
 			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
-				{$_('admin.groups.description', { default: 'Manage group routing, platform isolation, account capacity, and subscription visibility.' })}
+				{$_('admin.groups.description', { default: '管理分组路由、平台隔离、账户容量和订阅可见性。' })}
 			</p>
 		</div>
 		<div class="flex gap-2">
@@ -272,7 +272,7 @@
 			{confirmMessage}
 		</p>
 		<div class="flex justify-end gap-2 border-t border-border pt-4">
-			<Button variant="outline" onclick={() => (confirmOpen = false)}>Cancel</Button>
+			<Button variant="outline" onclick={() => (confirmOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 			<Button
 				variant="outline"
 				class="border-destructive/30 text-destructive hover:bg-destructive/10"

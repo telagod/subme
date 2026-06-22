@@ -164,7 +164,7 @@
 	const statusOptions = $derived.by<Array<{ value: string; label: string }>>(() => {
 		const all = {
 			value: ALL,
-			label: $_('admin.orders.statusAll', { default: 'All statuses' })
+			label: $_('admin.orders.statusAll', { default: '全部状态' })
 		};
 		return [
 			all,
@@ -179,7 +179,7 @@
 		return [
 			{
 				value: ALL,
-				label: $_('admin.orders.providerAll', { default: 'All providers' })
+				label: $_('admin.orders.providerAll', { default: '全部供应商' })
 			},
 			...providers.map((p) => ({
 				value: p.provider_key,
@@ -192,7 +192,7 @@
 		return [
 			{
 				value: ALL,
-				label: $_('admin.orders.planAll', { default: 'All plans' })
+				label: $_('admin.orders.planAll', { default: '全部方案' })
 			},
 			...plans.map((p) => ({ value: String(p.id), label: p.name }))
 		];
@@ -221,7 +221,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.orders.title', { default: 'Orders' })} · sub2api admin</title>
+	<title>{$_('admin.orders.title', { default: '订单' })} · sub2api admin</title>
 </svelte:head>
 
 <section
@@ -232,11 +232,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-				{$_('admin.orders.title', { default: 'Orders' })}
+				{$_('admin.orders.title', { default: '订单' })}
 			</h1>
 			<p class="m-0 text-xs text-muted-foreground">
 				{$_('admin.orders.desc', {
-					default: 'Order ledger · review payments, refunds, retries and cancellations'
+					default: '订单账本 · 查看支付、退款、重试和取消'
 				})}
 			</p>
 		</div>
@@ -247,11 +247,11 @@
 				disabled={loading}
 				onclick={() => loadOrders()}
 				data-testid="admin-orders-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 			>
 				<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 		</div>
 	</div>
@@ -280,7 +280,7 @@
 				class="ml-auto h-6 px-2 text-xs"
 				onclick={() => loadOrders()}
 			>
-				{$_('common.confirm', { default: 'Retry' })}
+				{$_('common.confirm', { default: '重试' })}
 			</Button>
 		</Alert>
 	{/if}

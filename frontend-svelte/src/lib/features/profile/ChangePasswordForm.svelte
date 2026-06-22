@@ -58,7 +58,7 @@
 					newPassword: validated.data.newPassword
 				});
 				showSuccess(
-					$_('user.security.passwordChangeSuccess', { default: 'Password changed successfully' })
+					$_('user.security.passwordChangeSuccess', { default: '密码修改成功' })
 				);
 				reset();
 				onChanged?.();
@@ -66,7 +66,7 @@
 				const e = err as Error;
 				const msg =
 					e?.message ??
-					$_('user.security.errors.UNKNOWN', { default: 'Unknown error' });
+					$_('user.security.errors.UNKNOWN', { default: '未知错误' });
 				formError = msg;
 				showError(msg);
 			}
@@ -91,11 +91,11 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.security.changePasswordTitle', { default: 'Change password' })}
+				{$_('user.security.changePasswordTitle', { default: '修改密码' })}
 			</h2>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.security.changePasswordDescription', {
-					default: 'Use at least 8 characters. Mix letters, numbers, and symbols.'
+					default: '至少 8 个字符，混合字母、数字和符号。'
 				})}
 			</p>
 		</div>
@@ -109,7 +109,7 @@
 	>
 		<div class="space-y-1.5">
 			<label for="cp-current" class="text-sm font-medium text-foreground">
-				{$_('user.security.currentPassword', { default: 'Current password' })}
+				{$_('user.security.currentPassword', { default: '当前密码' })}
 			</label>
 			<Input
 				id="cp-current"
@@ -129,7 +129,7 @@
 
 		<div class="space-y-1.5">
 			<label for="cp-new" class="text-sm font-medium text-foreground">
-				{$_('user.security.newPassword', { default: 'New password' })}
+				{$_('user.security.newPassword', { default: '新密码' })}
 			</label>
 			<Input
 				id="cp-new"
@@ -149,7 +149,7 @@
 
 		<div class="space-y-1.5">
 			<label for="cp-confirm" class="text-sm font-medium text-foreground">
-				{$_('user.security.confirmNewPassword', { default: 'Confirm new password' })}
+				{$_('user.security.confirmNewPassword', { default: '确认新密码' })}
 			</label>
 			<Input
 				id="cp-confirm"
@@ -180,8 +180,8 @@
 				disabled={$submitting}
 			>
 				{$submitting
-					? $_('user.security.changingPassword', { default: 'Changing…' })
-					: $_('user.security.changePasswordButton', { default: 'Change password' })}
+					? $_('user.security.changingPassword', { default: '更改中…' })
+					: $_('user.security.changePasswordButton', { default: '修改密码' })}
 			</Button>
 		</div>
 	</form>

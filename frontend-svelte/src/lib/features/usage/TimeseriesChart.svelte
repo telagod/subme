@@ -36,7 +36,7 @@
 			labels: points.map((p) => p.bucket),
 			datasets: [
 				{
-					label: $_('user.usage.chart.legendInput', { default: 'Input tokens' }),
+					label: $_('user.usage.chart.legendInput', { default: '输入令牌' }),
 					data: points.map((p) => p.inputTokens),
 					borderColor: '#3b82f6',
 					backgroundColor: 'rgba(59,130,246,0.15)',
@@ -44,7 +44,7 @@
 					fill: false
 				},
 				{
-					label: $_('user.usage.chart.legendOutput', { default: 'Output tokens' }),
+					label: $_('user.usage.chart.legendOutput', { default: '输出令牌' }),
 					data: points.map((p) => p.outputTokens),
 					borderColor: '#10b981',
 					backgroundColor: 'rgba(16,185,129,0.15)',
@@ -52,7 +52,7 @@
 					fill: false
 				},
 				{
-					label: $_('user.usage.chart.legendRequests', { default: 'Requests' }),
+					label: $_('user.usage.chart.legendRequests', { default: '请求数' }),
 					data: points.map((p) => p.requests),
 					borderColor: '#f59e0b',
 					backgroundColor: 'rgba(245,158,11,0.15)',
@@ -115,35 +115,35 @@
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-ts-chart-loading"
 		>
-			{$_('user.usage.chart.loading', { default: 'Loading chart…' })}
+			{$_('user.usage.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else if chartError}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="usage-ts-chart-error"
 		>
-			{$_('user.usage.chart.failed', { default: 'Failed to load chart' })}
+			{$_('user.usage.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data === null}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="usage-ts-chart-error"
 		>
-			{$_('user.usage.chart.failed', { default: 'Failed to load chart' })}
+			{$_('user.usage.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data.length === 0}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-ts-chart-empty"
 		>
-			{$_('user.usage.chart.empty', { default: 'No usage in this range' })}
+			{$_('user.usage.chart.empty', { default: '该范围内无用量' })}
 		</div>
 	{:else if !chartReady || !LineCmp}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-ts-chart-loading"
 		>
-			{$_('user.usage.chart.loading', { default: 'Loading chart…' })}
+			{$_('user.usage.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else}
 		{@const LC = LineCmp as unknown as import('svelte').Component<{

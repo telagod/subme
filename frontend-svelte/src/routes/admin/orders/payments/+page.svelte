@@ -35,7 +35,7 @@
 
 <svelte:head>
 	<title>
-		{$_('admin.orderPayments.title', { default: 'Payment Plans' })} · sub2api admin
+		{$_('admin.orderPayments.title', { default: '支付方案' })} · sub2api admin
 	</title>
 </svelte:head>
 
@@ -46,11 +46,11 @@
 	<!-- Header -->
 	<div class="min-w-0">
 		<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-			{$_('admin.orderPayments.title', { default: 'Payment Plans' })}
+			{$_('admin.orderPayments.title', { default: '支付方案' })}
 		</h1>
 		<p class="m-0 text-xs text-muted-foreground">
 			{$_('admin.orderPayments.desc', {
-				default: 'This surface has consolidated with the Plan Catalog'
+				default: '该页面已合并至方案目录'
 			})}
 		</p>
 	</div>
@@ -68,7 +68,7 @@
 		<div class="flex min-w-0 flex-col gap-2">
 			<h2 class="m-0 text-base font-semibold text-foreground">
 				{$_('admin.orderPayments.noticeTitle', {
-					default: 'Plan editing has moved'
+					default: '方案编辑已迁移'
 				})}
 			</h2>
 			<p class="m-0 text-sm text-muted-foreground">
@@ -83,7 +83,7 @@
 					class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
 					data-testid="admin-orderpayments-goto-plans"
 				>
-					{$_('admin.orderPayments.gotoPlans', { default: 'Open Plan Catalog' })}
+					{$_('admin.orderPayments.gotoPlans', { default: '打开方案目录' })}
 					<ExternalLink class="h-3.5 w-3.5" />
 				</a>
 				<a
@@ -93,7 +93,7 @@
 				>
 					<Settings class="h-3.5 w-3.5" />
 					{$_('admin.orderPayments.gotoSettings', {
-						default: 'Payment provider settings'
+						default: '支付供应商设置'
 					})}
 				</a>
 			</div>
@@ -106,7 +106,7 @@
 		data-testid="admin-orderpayments-doc"
 	>
 		<h3 class="mb-2 m-0 text-[12px] font-semibold uppercase tracking-wider text-foreground">
-			{$_('admin.orderPayments.docTitle', { default: 'What moved where' })}
+			{$_('admin.orderPayments.docTitle', { default: '迁移说明' })}
 		</h3>
 		<ul class="m-0 list-disc space-y-1.5 pl-5">
 			<li>
@@ -123,7 +123,7 @@
 			</li>
 			<li>
 				{$_('admin.orderPayments.docDashboard', {
-					default: 'Revenue / refund / churn KPIs → Orders · Payment Dashboard'
+					default: '收入 / 退款 / 流失 KPIs → 订单 · 支付仪表盘'
 				})}
 			</li>
 		</ul>

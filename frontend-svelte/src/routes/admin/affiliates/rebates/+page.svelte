@@ -75,18 +75,18 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.affiliates.rebatesTitle', { default: 'Affiliate rebate records' })}</title>
+	<title>{$_('admin.affiliates.rebatesTitle', { default: '联盟返佣记录' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5" data-testid="admin-affiliate-rebates-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
-			<h1 class="text-xl font-semibold tracking-tight text-foreground">{$_('admin.affiliates.rebatesTitle', { default: 'Affiliate rebate records' })}</h1>
-			<p class="text-sm text-muted-foreground">{$_('admin.affiliates.rebatesDescription', { default: 'Inspect invite-driven rebate amounts created from paid orders.' })}</p>
+			<h1 class="text-xl font-semibold tracking-tight text-foreground">{$_('admin.affiliates.rebatesTitle', { default: '联盟返佣记录' })}</h1>
+			<p class="text-sm text-muted-foreground">{$_('admin.affiliates.rebatesDescription', { default: '查看由付费订单产生的邀请返佣金额。' })}</p>
 		</div>
 		<Button variant="outline" onclick={loadRows} disabled={loading}>
 			<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</header>
 
@@ -114,11 +114,11 @@
 		<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_170px_170px_auto]">
 			<div class="relative">
 				<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-				<Input class="pl-9" placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: 'Search order, inviter, or invitee' })} bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
+				<Input class="pl-9" placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: '搜索订单、邀请人或被邀请人' })} bind:value={searchInput} onkeydown={(event) => { if (event.key === 'Enter') resetAndLoad(); }} />
 			</div>
 			<Input type="date" bind:value={startAt} onchange={resetAndLoad} aria-label="Start date" />
 			<Input type="date" bind:value={endAt} onchange={resetAndLoad} aria-label="End date" />
-			<Button onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
+			<Button onclick={resetAndLoad}>{$_('common.search', { default: '搜索' })}</Button>
 		</div>
 	</Card>
 
@@ -132,14 +132,14 @@
 		<VirtualTable rows={rows} rowHeight={78} getRowKey={(row) => `${row.order_id}-${row.inviter_id}-${row.created_at}`} loading={loading}>
 			{#snippet header()}
 				<div class="grid min-w-[1160px] grid-cols-[180px_minmax(240px,1fr)_minmax(240px,1fr)_120px_120px_120px_120px_170px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>{$_('admin.affiliates.records.order', { default: 'Order' })}</div>
-					<div>{$_('admin.affiliates.records.inviter', { default: 'Inviter' })}</div>
-					<div>{$_('admin.affiliates.records.invitee', { default: 'Invitee' })}</div>
-					<div>{$_('admin.affiliates.records.orderAmount', { default: 'Order amount' })}</div>
-					<div>{$_('admin.affiliates.records.payAmount', { default: 'Paid' })}</div>
-					<div>{$_('admin.affiliates.records.rebateAmount', { default: 'Rebate' })}</div>
-					<div>{$_('admin.affiliates.records.orderStatus', { default: 'Status' })}</div>
-					<div>{$_('admin.affiliates.records.rebatedAt', { default: 'Created at' })}</div>
+					<div>{$_('admin.affiliates.records.order', { default: '订单' })}</div>
+					<div>{$_('admin.affiliates.records.inviter', { default: '邀请人' })}</div>
+					<div>{$_('admin.affiliates.records.invitee', { default: '被邀请人' })}</div>
+					<div>{$_('admin.affiliates.records.orderAmount', { default: '订单金额' })}</div>
+					<div>{$_('admin.affiliates.records.payAmount', { default: '已支付' })}</div>
+					<div>{$_('admin.affiliates.records.rebateAmount', { default: '返佣' })}</div>
+					<div>{$_('admin.affiliates.records.orderStatus', { default: '状态' })}</div>
+					<div>{$_('admin.affiliates.records.rebatedAt', { default: '创建时间' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -158,7 +158,7 @@
 				</div>
 			{/snippet}
 			{#snippet empty()}
-				<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.affiliates.errors.loadFailed', { default: 'No rebate records found' })}</div>
+				<div class="p-6 text-center text-sm text-muted-foreground">{$_('admin.affiliates.errors.loadFailed', { default: '暂无返佣记录' })}</div>
 			{/snippet}
 		</VirtualTable>
 		<div class="flex items-center justify-between border-t px-3 py-2 text-sm text-muted-foreground">

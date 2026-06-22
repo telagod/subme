@@ -69,7 +69,7 @@
 		try {
 			const res = await listUsers(page, PAGE_SIZE, filters);
 			users = res.items; total = res.total;
-		} catch { showError($_('admin.users.loadFailed', { default: 'Failed to load users' })); }
+		} catch { showError($_('admin.users.loadFailed', { default: '加载用户失败' })); }
 		finally { loading = false; }
 	}
 
@@ -88,7 +88,7 @@
 		if (!deleteTarget) return;
 		try {
 			await deleteUser(deleteTarget.id);
-			showSuccess($_('admin.users.deleted', { default: 'User deleted' }));
+			showSuccess($_('admin.users.deleted', { default: '用户已删除' }));
 			showDeleteConfirm = false; deleteTarget = null; load();
 		} catch (e: unknown) { showError((e as Error)?.message || 'Delete failed'); }
 	}
@@ -132,18 +132,18 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.users.title', { default: 'User Management' })}</title>
+	<title>{$_('admin.users.title', { default: '用户管理' })}</title>
 </svelte:head>
 
 <div class="space-y-4 p-4 lg:p-6">
 	<div class="flex items-end justify-between">
 		<div>
-			<h1 class="text-xl font-bold tracking-tight text-foreground">{$_('admin.users.title', { default: 'User Management' })}</h1>
-			<p class="text-xs text-muted-foreground">{$_('admin.users.desc', { default: 'Manage user accounts, roles, and access' })}</p>
+			<h1 class="text-xl font-bold tracking-tight text-foreground">{$_('admin.users.title', { default: '用户管理' })}</h1>
+			<p class="text-xs text-muted-foreground">{$_('admin.users.desc', { default: '管理用户账户、角色和权限' })}</p>
 		</div>
 		<div class="flex items-center gap-2">
-			<Button variant="outline" size="sm" disabled={loading} onclick={load}>↻ {$_('admin.users.refresh', { default: 'Refresh' })}</Button>
-			<Button size="sm" onclick={openCreate} data-testid="users-create-btn">{$_('admin.users.createBtn', { default: 'Create User' })}</Button>
+			<Button variant="outline" size="sm" disabled={loading} onclick={load}>↻ {$_('admin.users.refresh', { default: '刷新' })}</Button>
+			<Button size="sm" onclick={openCreate} data-testid="users-create-btn">{$_('admin.users.createBtn', { default: '创建用户' })}</Button>
 		</div>
 	</div>
 
@@ -156,11 +156,11 @@
 
 	{#if selected.size > 0}
 		<div class="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
-			<span class="font-medium">{selected.size} {$_('admin.users.selected', { default: 'selected' })}</span>
-			<Button size="sm" variant="outline" onclick={() => openBulkDialog('enable')}>{$_('admin.users.bulkEnable', { default: 'Enable' })}</Button>
-			<Button size="sm" variant="outline" onclick={() => openBulkDialog('disable')}>{$_('admin.users.bulkDisable', { default: 'Disable' })}</Button>
-			<Button size="sm" variant="destructive" onclick={() => openBulkDialog('delete')}>{$_('admin.users.bulkDelete', { default: 'Delete' })}</Button>
-			<Button size="sm" variant="ghost" onclick={() => (selected = new Set())}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+			<span class="font-medium">{selected.size} {$_('admin.users.selected', { default: '已选中' })}</span>
+			<Button size="sm" variant="outline" onclick={() => openBulkDialog('enable')}>{$_('admin.users.bulkEnable', { default: '启用' })}</Button>
+			<Button size="sm" variant="outline" onclick={() => openBulkDialog('disable')}>{$_('admin.users.bulkDisable', { default: '禁用' })}</Button>
+			<Button size="sm" variant="destructive" onclick={() => openBulkDialog('delete')}>{$_('admin.users.bulkDelete', { default: '删除' })}</Button>
+			<Button size="sm" variant="ghost" onclick={() => (selected = new Set())}>{$_('common.cancel', { default: '取消' })}</Button>
 		</div>
 	{/if}
 
@@ -169,13 +169,13 @@
 			{#snippet header()}
 				<tr class="border-b border-border bg-muted/50 text-xs text-muted-foreground">
 					<th class="w-10 px-3 py-2"><input type="checkbox" checked={selected.size === users.length && users.length > 0} onchange={toggleSelectAll} /></th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colUser', { default: 'User' })}</th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colRole', { default: 'Role' })}</th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colStatus', { default: 'Status' })}</th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colBalance', { default: 'Balance' })}</th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colGroups', { default: 'Groups' })}</th>
-					<th class="px-3 py-2 text-left">{$_('admin.users.colCreated', { default: 'Created' })}</th>
-					<th class="px-3 py-2 text-right">{$_('admin.users.colActions', { default: 'Actions' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colUser', { default: '用户' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colRole', { default: '角色' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colStatus', { default: '状态' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colBalance', { default: '余额' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colGroups', { default: '分组' })}</th>
+					<th class="px-3 py-2 text-left">{$_('admin.users.colCreated', { default: '创建时间' })}</th>
+					<th class="px-3 py-2 text-right">{$_('admin.users.colActions', { default: '操作' })}</th>
 				</tr>
 			{/snippet}
 			{#snippet row({ row, index })}
@@ -200,22 +200,22 @@
 					<td class="px-3 py-2 text-xs text-muted-foreground">{formatDate(user.created_at)}</td>
 					<td class="px-3 py-2 text-right" onclick={(e: MouseEvent) => e.stopPropagation()}>
 						<div class="flex justify-end gap-1">
-							<Button size="sm" variant="ghost" onclick={() => openEdit(user)}>{$_('common.edit', { default: 'Edit' })}</Button>
-							<Button size="sm" variant="ghost" onclick={() => openBalance(user)}>{$_('admin.users.balance', { default: 'Balance' })}</Button>
-							<Button size="sm" variant="ghost" class="text-destructive" onclick={() => confirmDelete(user)}>{$_('common.delete', { default: 'Delete' })}</Button>
+							<Button size="sm" variant="ghost" onclick={() => openEdit(user)}>{$_('common.edit', { default: '编辑' })}</Button>
+							<Button size="sm" variant="ghost" onclick={() => openBalance(user)}>{$_('admin.users.balance', { default: '余额' })}</Button>
+							<Button size="sm" variant="ghost" class="text-destructive" onclick={() => confirmDelete(user)}>{$_('common.delete', { default: '删除' })}</Button>
 						</div>
 					</td>
 				</tr>
 			{/snippet}
 			{#snippet empty()}
-				<tr><td colspan="8" class="py-10 text-center text-sm text-muted-foreground">{$_('admin.users.empty', { default: 'No users found' })}</td></tr>
+				<tr><td colspan="8" class="py-10 text-center text-sm text-muted-foreground">{$_('admin.users.empty', { default: '暂无用户' })}</td></tr>
 			{/snippet}
 		</VirtualTable>
 	</div>
 
 	{#if total > PAGE_SIZE}
 		<div class="flex items-center justify-between text-sm text-muted-foreground">
-			<span>{$_('admin.users.showingPage', { default: 'Page {page} of {pages}', values: { page, pages: Math.ceil(total / PAGE_SIZE) } })}</span>
+			<span>{$_('admin.users.showingPage', { default: '第 {page} / {pages} 页', values: { page, pages: Math.ceil(total / PAGE_SIZE) } })}</span>
 			<div class="flex gap-2">
 				<Button size="sm" variant="outline" disabled={page <= 1} onclick={() => { page--; }}>←</Button>
 				<Button size="sm" variant="outline" disabled={page >= Math.ceil(total / PAGE_SIZE)} onclick={() => { page++; }}>→</Button>
@@ -233,12 +233,12 @@
 <BulkActionDialog bind:open={showBulkDialog} action={bulkAction} count={selected.size}
 	onClose={() => { showBulkDialog = false; }} onConfirm={executeBulkAction} />
 <StandardDialog bind:open={showDeleteConfirm} onOpenChange={(v) => { if (!v) { showDeleteConfirm = false; deleteTarget = null; }}}
-	title={$_('admin.users.confirmDelete', { default: 'Delete User' })} data-testid="user-delete-dialog">
+	title={$_('admin.users.confirmDelete', { default: '删除用户' })} data-testid="user-delete-dialog">
 	<p class="text-sm text-muted-foreground">
-		{$_('admin.users.deleteWarning', { default: 'Are you sure you want to delete {email}? This cannot be undone.', values: { email: deleteTarget?.email ?? '' } })}
+		{$_('admin.users.deleteWarning', { default: '确定要删除 {email} 吗？此操作不可撤销。', values: { email: deleteTarget?.email ?? '' } })}
 	</p>
 	<div class="flex justify-end gap-2 border-t border-border pt-4">
-		<Button variant="outline" size="sm" onclick={() => { showDeleteConfirm = false; deleteTarget = null; }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
-		<Button variant="destructive" size="sm" onclick={doDelete} data-testid="user-delete-confirm">{$_('common.delete', { default: 'Delete' })}</Button>
+		<Button variant="outline" size="sm" onclick={() => { showDeleteConfirm = false; deleteTarget = null; }}>{$_('common.cancel', { default: '取消' })}</Button>
+		<Button variant="destructive" size="sm" onclick={doDelete} data-testid="user-delete-confirm">{$_('common.delete', { default: '删除' })}</Button>
 	</div>
 </StandardDialog>

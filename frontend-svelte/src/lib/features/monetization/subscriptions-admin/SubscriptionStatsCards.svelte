@@ -22,7 +22,7 @@
 			{activeCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.subscriptions.statActive', { default: 'Active' })}
+			{$_('admin.subscriptions.statActive', { default: '活跃' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -34,7 +34,7 @@
 			{cancelledCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.subscriptions.statCancelled', { default: 'Cancelled' })}
+			{$_('admin.subscriptions.statCancelled', { default: '已取消' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -46,7 +46,7 @@
 			${totalRevenue.toFixed(2)}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.subscriptions.statRevenue', { default: 'MTD revenue' })}
+			{$_('admin.subscriptions.statRevenue', { default: '本月收入' })}
 		</span>
 	</div>
 	<div class="ml-auto text-xs text-muted-foreground tabular-nums">

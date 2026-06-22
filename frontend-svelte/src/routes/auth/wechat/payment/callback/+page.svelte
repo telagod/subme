@@ -57,7 +57,7 @@
 		const openid = readParam('openid');
 		if (!resumeToken && !openid) {
 			errorMessage = $_('auth.wechatPayment.callbackMissingResumeToken', {
-				default: 'The WeChat payment callback is missing the resume token.'
+				default: '微信支付回调缺少恢复令牌。'
 			});
 			showError(errorMessage);
 			return;
@@ -82,19 +82,19 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.wechatPayment.callbackTitle', { default: 'Resuming WeChat payment' })} · sub2api</title>
+	<title>{$_('auth.wechatPayment.callbackTitle', { default: '恢复微信支付' })} · sub2api</title>
 </svelte:head>
 
 <section class="min-h-screen bg-background px-4 py-10" data-testid="wechat-payment-callback-page">
 	<div class="mx-auto max-w-2xl">
 		<div class="rounded-lg border border-border bg-card p-6">
 			<h1 class="text-lg font-semibold text-foreground">
-				{$_('auth.wechatPayment.callbackTitle', { default: 'Resuming WeChat payment' })}
+				{$_('auth.wechatPayment.callbackTitle', { default: '恢复微信支付' })}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
 				{errorMessage ||
 					$_('auth.wechatPayment.callbackProcessing', {
-						default: 'Resuming WeChat payment...'
+						default: '恢复微信支付中...'
 					})}
 			</p>
 
@@ -113,7 +113,7 @@
 						class="mt-4"
 						onclick={goBackToPayment}
 					>
-						{$_('auth.wechatPayment.backToPayment', { default: 'Back to payment' })}
+						{$_('auth.wechatPayment.backToPayment', { default: '返回支付' })}
 					</Button>
 				</div>
 			{/if}

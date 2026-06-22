@@ -61,7 +61,7 @@
 				{#if visibleColumnKeys.has('created_at')}<div class="w-[170px] shrink-0 text-xs text-muted-foreground">{formatDateTime(row.created_at)}</div>{/if}
 				{#if visibleColumnKeys.has('user')}
 					<div class="min-w-[220px] flex-[1.2] min-w-0">
-						<button type="button" class="truncate font-medium text-left hover:underline hover:text-primary transition-colors cursor-pointer" title={$_('admin.usage.clickToViewBalance', { default: 'Click to view balance history' })} onclick={() => onUserClick?.(row)}>
+						<button type="button" class="truncate font-medium text-left hover:underline hover:text-primary transition-colors cursor-pointer" title={$_('admin.usage.clickToViewBalance', { default: '点击查看余额历史' })} onclick={() => onUserClick?.(row)}>
 							{usageUserLabel(row)}
 						</button>
 						<div class="truncate text-xs text-muted-foreground">{usageApiKeyLabel(row)} · {row.request_id || `#${row.id}`}</div>
@@ -95,7 +95,7 @@
 		{/snippet}
 		{#snippet empty()}
 			<div class="p-6 text-center text-sm text-muted-foreground">
-				{$_('admin.usage.empty', { default: 'No usage records found' })}
+				{$_('admin.usage.empty', { default: '暂无用量记录' })}
 			</div>
 		{/snippet}
 		{#snippet loadingSlot()}

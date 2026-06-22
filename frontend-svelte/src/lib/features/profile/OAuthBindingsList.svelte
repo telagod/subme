@@ -93,7 +93,7 @@
 			const e = err as Error;
 			showError(
 				e?.message ??
-					$_('user.connections.unbindFailed', { default: 'Failed to unlink account' })
+					$_('user.connections.unbindFailed', { default: '解除账户关联失败' })
 			);
 		} finally {
 			submitting = false;
@@ -115,11 +115,11 @@
 >
 	<header class="mb-5 space-y-1">
 		<h2 class="text-base font-semibold text-foreground">
-			{$_('user.connections.title', { default: 'Connected sign-in methods' })}
+			{$_('user.connections.title', { default: '已关联的登录方式' })}
 		</h2>
 		<p class="text-sm text-muted-foreground">
 			{$_('user.connections.description', {
-				default: 'Link or unlink third-party sign-in providers.'
+				default: '关联或解除第三方登录方式。'
 			})}
 		</p>
 	</header>
@@ -130,7 +130,7 @@
 			data-testid="oauth-bindings-empty"
 		>
 			{$_('user.connections.empty', {
-				default: 'No third-party providers are enabled by the administrator.'
+				default: '管理员未启用任何第三方登录方式。'
 			})}
 		</p>
 	{:else}
@@ -167,9 +167,9 @@
 							<p class="truncate text-xs text-muted-foreground" data-testid="oauth-row-identity">
 								{#if state.bound}
 									{state.identity ??
-										$_('user.connections.status.bound', { default: 'Linked' })}
+										$_('user.connections.status.bound', { default: '已关联' })}
 								{:else}
-									{$_('user.connections.status.notBound', { default: 'Not linked' })}
+									{$_('user.connections.status.notBound', { default: '未关联' })}
 								{/if}
 							</p>
 						</div>
@@ -186,7 +186,7 @@
 								onclick={() => openUnbind(p)}
 								class="text-destructive hover:bg-destructive/10"
 							>
-								{$_('user.connections.unbind', { default: 'Unlink' })}
+								{$_('user.connections.unbind', { default: '解除绑定' })}
 							</Button>
 						{:else}
 							<Button
@@ -196,7 +196,7 @@
 								data-provider={p}
 								onclick={() => handleBindClick(p)}
 							>
-								{$_('user.connections.bind', { default: 'Link' })}
+								{$_('user.connections.bind', { default: '链接' })}
 							</Button>
 						{/if}
 					</div>
@@ -208,15 +208,15 @@
 
 <ConfirmDialog
 	bind:open={confirmOpen}
-	title={$_('user.connections.unbindTitle', { default: 'Unlink this sign-in method?' })}
+	title={$_('user.connections.unbindTitle', { default: '解除此登录方式的关联？' })}
 	description={$_('user.connections.unbindDescription', {
 		default:
 			'You will no longer be able to log in with {provider}. Make sure another sign-in method is available.',
 		values: { provider: pendingProvider ? providerLabel(pendingProvider) : '' }
 	})}
 	confirmLabel={submitting
-		? $_('user.connections.unbinding', { default: 'Unlinking…' })
-		: $_('user.connections.confirmUnbind', { default: 'Unlink' })}
+		? $_('user.connections.unbinding', { default: '解除绑定中…' })
+		: $_('user.connections.confirmUnbind', { default: '解除绑定' })}
 	loading={submitting}
 	onConfirm={handleUnbind}
 	data-testid="oauth-unbind-dialog"

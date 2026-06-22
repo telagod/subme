@@ -100,7 +100,7 @@
 				size="icon"
 				disabled={page === 1}
 				onclick={() => onPageChange(Math.max(1, page - 1))}
-				aria-label={$_('common.back', { default: 'Previous' })}
+				aria-label={$_('common.back', { default: '上一页' })}
 			>
 				<ChevronLeft class="h-3 w-3" />
 			</Button>
@@ -112,7 +112,7 @@
 				size="icon"
 				disabled={page === totalPages}
 				onclick={() => onPageChange(Math.min(totalPages, page + 1))}
-				aria-label={$_('common.next', { default: 'Next' })}
+				aria-label={$_('common.next', { default: '下一步' })}
 			>
 				<ChevronRight class="h-3 w-3" />
 			</Button>
@@ -127,7 +127,7 @@
 		<PackageOpen class="h-10 w-10 opacity-40" />
 		<p class="m-0 text-[13px]">
 			{$_('admin.plansCatalog.emptyText', {
-				default: 'No plans yet. Click "New Plan" to get started.'
+				default: '暂无方案，点击「新建方案」开始。'
 			})}
 		</p>
 	</div>

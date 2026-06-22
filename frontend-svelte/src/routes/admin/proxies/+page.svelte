@@ -247,24 +247,24 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.proxies.title', { default: 'Proxies' })}</title>
+	<title>{$_('admin.proxies.title', { default: '代理' })}</title>
 </svelte:head>
 
 <section class="space-y-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">M13 · Supply</p>
-			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.proxies.title', { default: 'Proxies' })}</h1>
+			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.proxies.title', { default: '代理' })}</h1>
 			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
-				{$_('admin.proxies.description', { default: 'Manage outbound proxies, expiry fallback, and account usage.' })}
+				{$_('admin.proxies.description', { default: '管理出站代理、过期回退和账户使用。' })}
 			</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
-				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} /> Refresh
+				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} /> {$_('common.refresh', { default: 'Refresh' })}
 			</Button>
-			<Button variant="outline" onclick={() => (dataToolsOpen = true)}>Data tools</Button>
-			<Button onclick={openCreate}><Plus size={16} /> New proxy</Button>
+			<Button variant="outline" onclick={() => (dataToolsOpen = true)}>{$_('admin.proxies.dataTools', { default: 'Data tools' })}</Button>
+			<Button onclick={openCreate}><Plus size={16} /> {$_('admin.proxies.newProxy', { default: 'New proxy' })}</Button>
 		</div>
 	</header>
 
@@ -283,11 +283,11 @@
 		<div class="grid gap-3 lg:grid-cols-[1fr_160px_160px_auto]">
 			<label class="relative">
 				<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
-				<Input class="pl-9" placeholder="Search proxies" bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
+				<Input class="pl-9" placeholder={$_('admin.proxies.searchPlaceholder', { default: '搜索代理' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
 			</label>
 			<NativeSelect bind:value={protocolFilter} options={protocolOptions} onchange={applyFilters} data-testid="proxies-protocol-filter" />
 			<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={applyFilters} data-testid="proxies-status-filter" />
-			<Button onclick={applyFilters}>Apply</Button>
+			<Button onclick={applyFilters}>{$_('common.apply', { default: 'Apply' })}</Button>
 		</div>
 	</Card>
 
@@ -304,14 +304,14 @@
 	<!-- Batch actions bar -->
 	<Card class="p-3">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<p class="text-sm text-muted-foreground">{selectedIds.size} selected</p>
+			<p class="text-sm text-muted-foreground">{selectedIds.size} {$_('common.selected', { default: '已选中' })}</p>
 			<div class="flex flex-wrap gap-2">
-				<Button variant="outline" disabled={selectedIds.size === 0 || saving} onclick={() => runBatchTest('selected')}>Test selected</Button>
-				<Button variant="outline" disabled={selectedIds.size === 0 || saving} onclick={() => runBatchQualityCheck('selected')}>Quality selected</Button>
-				<Button variant="outline" disabled={total === 0 || saving} onclick={() => runBatchTest('all')}>Test all</Button>
-				<Button variant="outline" disabled={total === 0 || saving} onclick={() => runBatchQualityCheck('all')}>Quality all</Button>
-				<Button variant="outline" disabled={selectedIds.size === 0} onclick={exportSelectedAndOpen}>Export selected</Button>
-				<Button variant="outline" class="text-destructive" disabled={selectedIds.size === 0 || saving} onclick={openDeleteSelected}>Delete selected</Button>
+				<Button variant="outline" disabled={selectedIds.size === 0 || saving} onclick={() => runBatchTest('selected')}>{$_('admin.proxies.testSelected', { default: 'Test selected' })}</Button>
+				<Button variant="outline" disabled={selectedIds.size === 0 || saving} onclick={() => runBatchQualityCheck('selected')}>{$_('admin.proxies.qualitySelected', { default: 'Quality selected' })}</Button>
+				<Button variant="outline" disabled={total === 0 || saving} onclick={() => runBatchTest('all')}>{$_('admin.proxies.testAll', { default: 'Test all' })}</Button>
+				<Button variant="outline" disabled={total === 0 || saving} onclick={() => runBatchQualityCheck('all')}>{$_('admin.proxies.qualityAll', { default: 'Quality all' })}</Button>
+				<Button variant="outline" disabled={selectedIds.size === 0} onclick={exportSelectedAndOpen}>{$_('common.exportSelected', { default: 'Export selected' })}</Button>
+				<Button variant="outline" class="text-destructive" disabled={selectedIds.size === 0 || saving} onclick={openDeleteSelected}>{$_('common.deleteSelected', { default: 'Delete selected' })}</Button>
 			</div>
 		</div>
 	</Card>

@@ -14,6 +14,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 export interface ProviderInstance {
 	id: number;
 	provider_key: string;
@@ -38,21 +43,22 @@ export async function listProviders(): Promise<ProviderInstance[]> {
 	const raw = await apiClient.get<ProviderInstance[] | ListProvidersResponse>(
 		'/api/v1/admin/payment/providers'
 	);
-	if (Array.isArray(raw)) return raw;
-	return raw.data ?? raw.providers ?? raw.items ?? [];
+	const payload = unwrap<ProviderInstance[] | ListProvidersResponse>(raw);
+	if (Array.isArray(payload)) return payload;
+	return payload.data ?? payload.providers ?? payload.items ?? [];
 }
 
 export async function createProvider(
 	payload: Partial<ProviderInstance>
 ): Promise<ProviderInstance> {
-	return apiClient.post<ProviderInstance>('/api/v1/admin/payment/providers', payload);
+	return unwrap<ProviderInstance>(await apiClient.post('/api/v1/admin/payment/providers', payload));
 }
 
 export async function updateProvider(
 	id: number,
 	payload: Partial<ProviderInstance>
 ): Promise<ProviderInstance> {
-	return apiClient.put<ProviderInstance>(`/api/v1/admin/payment/providers/${id}`, payload);
+	return unwrap<ProviderInstance>(await apiClient.put(`/api/v1/admin/payment/providers/${id}`, payload));
 }
 
 export async function deleteProvider(id: number): Promise<void> {
@@ -87,10 +93,10 @@ export async function refundOrder(
 	orderId: number | string,
 	body: RefundOrderPayload = {}
 ): Promise<RefundOrderResult> {
-	return apiClient.post<RefundOrderResult>(
+	return unwrap<RefundOrderResult>(await apiClient.post(
 		`/api/v1/admin/payment/orders/${orderId}/refund`,
 		body
-	);
+	));
 }
 
 export const adminPaymentApi = {

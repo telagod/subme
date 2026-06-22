@@ -26,7 +26,7 @@
 		<div class="flex items-center gap-2 text-muted-foreground">
 			<Users class="h-4 w-4" />
 			<span class="text-xs font-medium uppercase tracking-wide">
-				{$_('user.affiliates.stats.totalInvited', { default: 'Total invited' })}
+				{$_('user.affiliates.stats.totalInvited', { default: '总邀请数' })}
 			</span>
 		</div>
 		<p
@@ -40,7 +40,7 @@
 		<div class="flex items-center gap-2 text-muted-foreground">
 			<TrendingUp class="h-4 w-4" />
 			<span class="text-xs font-medium uppercase tracking-wide">
-				{$_('user.affiliates.stats.totalRebate', { default: 'Total rebate' })}
+				{$_('user.affiliates.stats.totalRebate', { default: '总返佣' })}
 			</span>
 		</div>
 		<p
@@ -53,14 +53,14 @@
 			<span class="inline-flex items-center gap-1">
 				<Wallet class="h-3 w-3 text-emerald-600" />
 				<span data-testid="affiliates-stat-available">
-					{$_('user.affiliates.stats.available', { default: 'Available' })}:
+					{$_('user.affiliates.stats.available', { default: '可用' })}:
 					{fmtMoney(referral?.availableRebate ?? 0)}
 				</span>
 			</span>
 			<span class="inline-flex items-center gap-1">
 				<Snowflake class="h-3 w-3 text-sky-600" />
 				<span data-testid="affiliates-stat-frozen">
-					{$_('user.affiliates.stats.frozen', { default: 'Frozen' })}:
+					{$_('user.affiliates.stats.frozen', { default: '已冻结' })}:
 					{fmtMoney(referral?.frozenRebate ?? 0)}
 				</span>
 			</span>
@@ -70,7 +70,7 @@
 		<div class="flex items-center gap-2 text-muted-foreground">
 			<Percent class="h-4 w-4" />
 			<span class="text-xs font-medium uppercase tracking-wide">
-				{$_('affiliate.stats.rebateRate', { default: 'My Rebate Rate' })}
+				{$_('affiliate.stats.rebateRate', { default: '我的返佣比例' })}
 			</span>
 		</div>
 		<p

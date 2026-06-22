@@ -42,7 +42,7 @@
 		data-testid="purchase-error"
 	>
 		<p class="text-sm font-medium text-destructive">
-			{$_('user.purchase.failedToLoad', { default: 'Failed to load plans' })}
+			{$_('user.purchase.failedToLoad', { default: '加载方案失败' })}
 		</p>
 		<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
 		<Button
@@ -51,7 +51,7 @@
 			onclick={onRetry}
 			class="mt-4"
 		>
-			{$_('user.purchase.retry', { default: 'Retry' })}
+			{$_('user.purchase.retry', { default: '重试' })}
 		</Button>
 	</Alert>
 {:else if plans.length === 0}
@@ -64,11 +64,11 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.purchase.emptyTitle', { default: 'No plans available' })}
+				{$_('user.purchase.emptyTitle', { default: '暂无可用方案' })}
 			</h2>
 			<p class="max-w-sm text-sm text-muted-foreground">
 				{$_('user.purchase.emptyDescription', {
-					default: 'Check back later or contact support if you expect plans to be here.'
+					default: '请稍后查看，如果预期应有方案请联系客服。'
 				})}
 			</p>
 		</div>

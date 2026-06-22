@@ -40,10 +40,10 @@
 <div class="flex items-start justify-between gap-3">
 	<div class="min-w-0">
 		<h1 class="text-2xl font-semibold tracking-tight">
-			{$_('admin.pricingList.title', { default: 'PayGo Pricing' })}
+			{$_('admin.pricingList.title', { default: '按量计费定价' })}
 		</h1>
 		<p class="text-sm text-muted-foreground">
-			{$_('admin.pricingList.subtitle', { default: 'OpenRouter pricing catalog' })}
+			{$_('admin.pricingList.subtitle', { default: 'OpenRouter 定价目录' })}
 		</p>
 		<div class="mt-1 flex flex-wrap items-center gap-2 text-[11.5px] text-muted-foreground">
 			<span data-testid="pricing-summary">
@@ -53,7 +53,7 @@
 				})}
 			</span>
 			<span>·</span>
-			<span>{$_('admin.pricingList.sourceHint', { default: 'Source: OpenRouter + LiteLLM' })}</span>
+			<span>{$_('admin.pricingList.sourceHint', { default: '数据来源：OpenRouter + LiteLLM' })}</span>
 			{#if syncedText}
 				<span>·</span>
 				<span>
@@ -74,7 +74,7 @@
 			data-testid="pricing-refresh"
 		>
 			<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-			{$_('admin.pricingList.refresh', { default: 'Refresh' })}
+			{$_('admin.pricingList.refresh', { default: '刷新' })}
 		</Button>
 		<Button
 			size="sm"
@@ -83,7 +83,7 @@
 			data-testid="pricing-sync"
 		>
 			<CloudDownload class="h-3.5 w-3.5 {syncLoading ? 'animate-spin' : ''}" />
-			{$_('admin.pricingList.syncCatalog', { default: 'Sync catalog' })}
+			{$_('admin.pricingList.syncCatalog', { default: '同步目录' })}
 		</Button>
 	</div>
 </div>
@@ -108,14 +108,14 @@
 		data-testid="pricing-error"
 	>
 		<AlertCircle class="h-4 w-4" />
-		<span>{$_('admin.pricingList.loadFailed', { default: 'Load failed: ' })}{loadError}</span>
+		<span>{$_('admin.pricingList.loadFailed', { default: '加载失败：' })}{loadError}</span>
 		<Button
 			variant="outline"
 			size="sm"
 			class="ml-auto h-6 px-2 text-xs"
 			onclick={onRefresh}
 		>
-			{$_('admin.providerVerify.retry', { default: 'Retry' })}
+			{$_('admin.providerVerify.retry', { default: '重试' })}
 		</Button>
 	</Alert>
 {/if}

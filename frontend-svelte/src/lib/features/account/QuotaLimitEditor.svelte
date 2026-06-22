@@ -107,8 +107,8 @@
 		<button type="button" class="flex flex-1 cursor-pointer items-center gap-2 text-left" onclick={() => enabled && (collapsed = !collapsed)}>
 			{#if enabled}<ChevronDown size={16} class="text-muted-foreground transition-transform {collapsed ? '-rotate-90' : ''}" />{/if}
 			<div>
-				<p class="text-sm font-medium">{$_('admin.accounts.quotaLimitToggle', { default: 'Quota limits' })}</p>
-				<p class="mt-0.5 text-xs text-muted-foreground">{$_('admin.accounts.quotaLimitToggleHint', { default: 'Set daily, weekly, and total spending caps.' })}</p>
+				<p class="text-sm font-medium">{$_('admin.accounts.quotaLimitToggle', { default: '配额限制' })}</p>
+				<p class="mt-0.5 text-xs text-muted-foreground">{$_('admin.accounts.quotaLimitToggleHint', { default: '设置每日、每周和总消费上限。' })}</p>
 			</div>
 		</button>
 		<Checkbox checked={enabled} onchange={toggleEnabled} data-testid="quota-limit-toggle" />
@@ -118,7 +118,7 @@
 		<div class="space-y-4 p-4 pt-3">
 			<!-- Daily quota -->
 			<div class="space-y-2">
-				<p class="text-xs font-medium">{$_('admin.accounts.quotaDailyLimit', { default: 'Daily limit' })}</p>
+				<p class="text-xs font-medium">{$_('admin.accounts.quotaDailyLimit', { default: '日限额' })}</p>
 				<div class="grid gap-2 sm:grid-cols-[1fr_auto]">
 					<div class="relative">
 						<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
@@ -137,13 +137,13 @@
 					</div>
 					<p class="text-xs text-muted-foreground">Resets daily at {String(dailyResetHour ?? 0).padStart(2, '0')}:00 {resetTimezone ?? 'UTC'}</p>
 				{:else}
-					<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaDailyLimitHint', { default: 'Rolling 24-hour window from last reset.' })}</p>
+					<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaDailyLimitHint', { default: '从上次重置起的滚动 24 小时窗口。' })}</p>
 				{/if}
 			</div>
 
 			<!-- Weekly quota -->
 			<div class="space-y-2">
-				<p class="text-xs font-medium">{$_('admin.accounts.quotaWeeklyLimit', { default: 'Weekly limit' })}</p>
+				<p class="text-xs font-medium">{$_('admin.accounts.quotaWeeklyLimit', { default: '周限额' })}</p>
 				<div class="grid gap-2 sm:grid-cols-[1fr_auto]">
 					<div class="relative">
 						<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
@@ -163,13 +163,13 @@
 					</div>
 					<p class="text-xs text-muted-foreground">Resets weekly on {DAYS.find(d => d.value === String(weeklyResetDay ?? 1))?.label ?? 'Monday'} at {String(weeklyResetHour ?? 0).padStart(2, '0')}:00 {resetTimezone ?? 'UTC'}</p>
 				{:else}
-					<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaWeeklyLimitHint', { default: 'Rolling 7-day window from last reset.' })}</p>
+					<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaWeeklyLimitHint', { default: '从上次重置起的滚动 7 天窗口。' })}</p>
 				{/if}
 			</div>
 
 			<!-- Total quota -->
 			<div class="space-y-2">
-				<p class="text-xs font-medium">{$_('admin.accounts.quotaTotalLimit', { default: 'Total limit' })}</p>
+				<p class="text-xs font-medium">{$_('admin.accounts.quotaTotalLimit', { default: '总限额' })}</p>
 				<div class="relative">
 					<span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
 					<Input class="pl-6" type="number" min="0" step="0.01"
@@ -178,7 +178,7 @@
 						placeholder="No limit"
 						data-testid="quota-total-input" />
 				</div>
-				<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaTotalLimitHint', { default: 'Absolute lifetime spending cap. Never resets.' })}</p>
+				<p class="text-xs text-muted-foreground">{$_('admin.accounts.quotaTotalLimitHint', { default: '绝对终身消费上限，永不重置。' })}</p>
 			</div>
 		</div>
 	{/if}

@@ -102,22 +102,22 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.affiliateInviteRecords', { default: 'Affiliate invite records' })}</title>
+	<title>{$_('nav.affiliateInviteRecords', { default: '联盟邀请记录' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
-				{$_('nav.affiliateInviteRecords', { default: 'Affiliate invite records' })}
+				{$_('nav.affiliateInviteRecords', { default: '联盟邀请记录' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('admin.affiliates.invitesDescription', { default: 'View site-wide inviter and invitee relationships.' })}
+				{$_('admin.affiliates.invitesDescription', { default: '查看全站邀请人和被邀请人关系。' })}
 			</p>
 		</div>
 		<Button variant="outline" onclick={loadRows} disabled={loading}>
 			<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</header>
 
@@ -150,7 +150,7 @@
 					<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						class="pl-9"
-						placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: 'Search inviter, invitee, or code' })}
+						placeholder={$_('admin.affiliates.records.searchPlaceholder', { default: '搜索邀请人、被邀请人或代码' })}
 						bind:value={searchInput}
 						onkeydown={(event) => {
 							if (event.key === 'Enter') resetAndLoad();
@@ -160,15 +160,15 @@
 				<Input type="date" bind:value={startAt} onchange={resetAndLoad} aria-label="Start date" />
 				<Input type="date" bind:value={endAt} onchange={resetAndLoad} aria-label="End date" />
 				<Button onclick={resetAndLoad}>
-					{$_('common.search', { default: 'Search' })}
+					{$_('common.search', { default: '搜索' })}
 				</Button>
 			</div>
 		</Card>
 
 		<Card class="p-3">
 			<div class="flex items-center justify-between gap-3">
-				<h2 class="text-sm font-semibold">{$_('admin.affiliates.overview.title', { default: 'User overview' })}</h2>
-				<span class="text-xs text-muted-foreground">{overviewLoading ? $_('common.loading', { default: 'Loading' }) : overview ? `#${overview.user_id}` : $_('admin.affiliates.overview.selectUser', { default: 'Select user' })}</span>
+				<h2 class="text-sm font-semibold">{$_('admin.affiliates.overview.title', { default: '用户概览' })}</h2>
+				<span class="text-xs text-muted-foreground">{overviewLoading ? $_('common.loading', { default: 'Loading' }) : overview ? `#${overview.user_id}` : $_('admin.affiliates.overview.selectUser', { default: '选择用户' })}</span>
 			</div>
 			{#if overview}
 				<div class="mt-3 space-y-3">
@@ -187,7 +187,7 @@
 					</div>
 				</div>
 			{:else}
-				<p class="mt-3 text-sm text-muted-foreground">{$_('admin.affiliates.overview.selectHint', { default: 'Open an inviter or invitee to inspect affiliate totals.' })}</p>
+				<p class="mt-3 text-sm text-muted-foreground">{$_('admin.affiliates.overview.selectHint', { default: '打开邀请人或被邀请人查看联盟汇总。' })}</p>
 			{/if}
 		</Card>
 	</section>
@@ -200,11 +200,11 @@
 		<VirtualTable rows={rows} rowHeight={74} getRowKey={(row) => `${row.inviter_id}-${row.invitee_id}-${row.created_at}`} loading={loading}>
 			{#snippet header()}
 				<div class="grid min-w-[980px] grid-cols-[minmax(250px,1fr)_minmax(250px,1fr)_140px_130px_170px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>{$_('admin.affiliates.records.inviter', { default: 'Inviter' })}</div>
-					<div>{$_('admin.affiliates.records.invitee', { default: 'Invitee' })}</div>
-					<div>{$_('admin.affiliates.records.affCode', { default: 'Code' })}</div>
-					<div>{$_('admin.affiliates.records.totalRebate', { default: 'Total rebate' })}</div>
-					<div>{$_('admin.affiliates.records.invitedAt', { default: 'Invited at' })}</div>
+					<div>{$_('admin.affiliates.records.inviter', { default: '邀请人' })}</div>
+					<div>{$_('admin.affiliates.records.invitee', { default: '被邀请人' })}</div>
+					<div>{$_('admin.affiliates.records.affCode', { default: '代码' })}</div>
+					<div>{$_('admin.affiliates.records.totalRebate', { default: '总返佣' })}</div>
+					<div>{$_('admin.affiliates.records.invitedAt', { default: '邀请于' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -226,7 +226,7 @@
 			{/snippet}
 			{#snippet empty()}
 				<div class="p-6 text-center text-sm text-muted-foreground">
-					{$_('admin.affiliates.invitesEmpty', { default: 'No invite records found' })}
+					{$_('admin.affiliates.invitesEmpty', { default: '暂无邀请记录' })}
 				</div>
 			{/snippet}
 			{#snippet loadingSlot()}

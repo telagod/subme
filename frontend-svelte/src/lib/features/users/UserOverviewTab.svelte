@@ -50,7 +50,7 @@
 	<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
 			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.kpiRequests', { default: 'Month Requests' })}
+				{$_('admin.users.kpiRequests', { default: '月请求量' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
 				{loading ? '...' : (stats?.total_requests ?? 0).toLocaleString()}
@@ -58,7 +58,7 @@
 		</Card>
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
 			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.kpiMonthCost', { default: 'Month Cost' })}
+				{$_('admin.users.kpiMonthCost', { default: '月费用' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-emerald-500">
 				{loading ? '...' : `$${fmtCost(stats?.total_cost ?? 0)}`}
@@ -66,7 +66,7 @@
 		</Card>
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
 			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.kpiTokens', { default: 'Month Tokens' })}
+				{$_('admin.users.kpiTokens', { default: '月令牌量' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
 				{loading ? '...' : fmtTok(stats?.total_tokens ?? 0)}
@@ -74,7 +74,7 @@
 		</Card>
 		<Card class="flex flex-col gap-1 px-4 py-3.5">
 			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.kpiConcurrency', { default: 'Concurrency' })}
+				{$_('admin.users.kpiConcurrency', { default: '并发数' })}
 			</span>
 			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
 				{user.current_concurrency ?? 0}<span class="ml-0.5 text-xs font-normal text-muted-foreground">/{user.concurrency ?? '∞'}</span>
@@ -85,14 +85,14 @@
 	<!-- User info rows -->
 	<div class="flex flex-col">
 		{#each [
-			{ label: $_('admin.users.infoId', { default: 'User ID' }), value: `#${user.id}`, mono: true },
-			{ label: $_('admin.users.infoEmail', { default: 'Email' }), value: user.email },
-			{ label: $_('admin.users.infoUsername', { default: 'Username' }), value: user.username, show: !!user.username },
-			{ label: $_('admin.users.infoConcurrency', { default: 'Concurrency' }), value: String(user.concurrency ?? '—'), mono: true },
-			{ label: $_('admin.users.infoRpm', { default: 'RPM Limit' }), value: user.rpm_limit === 0 ? $_('admin.users.unlimited', { default: 'Unlimited' }) : String(user.rpm_limit ?? '—'), mono: true },
-			{ label: $_('admin.users.infoRegistered', { default: 'Registered' }), value: fmt(user.created_at) },
-			{ label: $_('admin.users.infoLastActive', { default: 'Last Active' }), value: fmt(user.last_used_at), show: !!user.last_used_at },
-			{ label: $_('admin.users.infoNotes', { default: 'Notes' }), value: user.notes ?? '', show: !!user.notes }
+			{ label: $_('admin.users.infoId', { default: '用户 ID' }), value: `#${user.id}`, mono: true },
+			{ label: $_('admin.users.infoEmail', { default: '邮箱' }), value: user.email },
+			{ label: $_('admin.users.infoUsername', { default: '用户名' }), value: user.username, show: !!user.username },
+			{ label: $_('admin.users.infoConcurrency', { default: '并发数' }), value: String(user.concurrency ?? '—'), mono: true },
+			{ label: $_('admin.users.infoRpm', { default: 'RPM Limit' }), value: user.rpm_limit === 0 ? $_('admin.users.unlimited', { default: '不限' }) : String(user.rpm_limit ?? '—'), mono: true },
+			{ label: $_('admin.users.infoRegistered', { default: '已注册' }), value: fmt(user.created_at) },
+			{ label: $_('admin.users.infoLastActive', { default: '最后活跃' }), value: fmt(user.last_used_at), show: !!user.last_used_at },
+			{ label: $_('admin.users.infoNotes', { default: '备注' }), value: user.notes ?? '', show: !!user.notes }
 		] as row}
 			{#if row.show !== false}
 				<div class="flex items-baseline gap-3 border-b border-border py-2.5 text-sm">

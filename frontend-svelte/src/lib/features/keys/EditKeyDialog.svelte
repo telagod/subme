@@ -52,7 +52,7 @@
 	async function handleSubmit() {
 		if (submitting || !apiKey) return;
 		if (!name.trim()) {
-			showError($_('user.keys.errors.NAME_REQUIRED', { default: 'Name is required' }));
+			showError($_('user.keys.errors.NAME_REQUIRED', { default: '名称必填' }));
 			return;
 		}
 		submitting = true;
@@ -72,11 +72,11 @@
 				payload.expires_at = null;
 			}
 			const updated = await updateKey(apiKey.id, payload as never);
-			showSuccess($_('user.keys.editSuccess', { default: 'API key updated' }));
+			showSuccess($_('user.keys.editSuccess', { default: 'API 密钥已更新' }));
 			onUpdated?.(updated);
 			open = false;
 		} catch (err) {
-			showError((err as Error)?.message ?? $_('user.keys.errors.UNKNOWN', { default: 'Unknown error' }));
+			showError((err as Error)?.message ?? $_('user.keys.errors.UNKNOWN', { default: '未知错误' }));
 		} finally {
 			submitting = false;
 		}
@@ -85,8 +85,8 @@
 
 <StandardDialog
 	bind:open
-	title={$_('user.keys.editTitle', { default: 'Edit API key' })}
-	description={$_('user.keys.editDescription', { default: 'Update key name, group, or quota.' })}
+	title={$_('user.keys.editTitle', { default: '编辑 API 密钥' })}
+	description={$_('user.keys.editDescription', { default: '更新密钥名称、分组或配额。' })}
 	data-testid="edit-key-dialog"
 >
 	<div class="flex items-start gap-3 mb-4">
@@ -95,10 +95,10 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.keys.editTitle', { default: 'Edit API key' })}
+				{$_('user.keys.editTitle', { default: '编辑 API 密钥' })}
 			</h2>
 			<p class="text-sm text-muted-foreground">
-				{$_('user.keys.editDescription', { default: 'Update key name, group, or quota.' })}
+				{$_('user.keys.editDescription', { default: '更新密钥名称、分组或配额。' })}
 			</p>
 		</div>
 	</div>
@@ -106,17 +106,17 @@
 	<form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }} class="space-y-4" data-testid="edit-key-form">
 		<div class="space-y-1.5">
 			<label for="edit-key-name" class="text-sm font-medium text-foreground">
-				{$_('user.keys.nameLabel', { default: 'Name' })}
+				{$_('user.keys.nameLabel', { default: '名称' })}
 			</label>
 			<Input id="edit-key-name" data-testid="edit-key-name" bind:value={name} />
 		</div>
 
 		<div class="space-y-1.5">
 			<label for="edit-key-group" class="text-sm font-medium text-foreground">
-				{$_('user.keys.groupLabel', { default: 'Group (optional)' })}
+				{$_('user.keys.groupLabel', { default: '分组（可选）' })}
 			</label>
 			<NativeSelect id="edit-key-group" data-testid="edit-key-group" bind:value={groupId}>
-				<option value="__none__">{$_('user.keys.groupDefault', { default: 'Default group' })}</option>
+				<option value="__none__">{$_('user.keys.groupDefault', { default: '默认分组' })}</option>
 				{#each groups as g (g.id)}
 					<option value={g.id}>{g.name} ({g.platform})</option>
 				{/each}
@@ -125,14 +125,14 @@
 
 		<div class="space-y-1.5">
 			<label for="edit-key-quota" class="text-sm font-medium text-foreground">
-				{$_('user.keys.quotaLabel', { default: 'Quota (USD, optional)' })}
+				{$_('user.keys.quotaLabel', { default: '配额 (USD, 可选)' })}
 			</label>
 			<Input id="edit-key-quota" data-testid="edit-key-quota" type="number" step="0.01" min="0" bind:value={quota} />
 		</div>
 
 		<div class="space-y-1.5">
 			<label for="edit-key-expires" class="text-sm font-medium text-foreground">
-				{$_('user.keys.expiresAtLabel', { default: 'Expires at (optional)' })}
+				{$_('user.keys.expiresAtLabel', { default: '过期时间（可选）' })}
 			</label>
 			<Input
 				id="edit-key-expires"
@@ -141,16 +141,16 @@
 				bind:value={expiresAt}
 			/>
 			<p class="text-xs text-muted-foreground">
-				{$_('user.keys.expiresAtHint', { default: 'Leave empty for no expiration. Clear to remove existing expiry.' })}
+				{$_('user.keys.expiresAtHint', { default: '留空则不过期。清除以移除现有过期时间。' })}
 			</p>
 		</div>
 
 		<div class="flex items-center justify-end gap-2 pt-2">
 			<Button variant="outline" onclick={() => (open = false)} class="h-9">
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button type="submit" disabled={submitting} class="h-9" data-testid="edit-key-submit">
-				{submitting ? $_('common.saving', { default: 'Saving...' }) : $_('common.save', { default: 'Save' })}
+				{submitting ? $_('common.saving', { default: '保存中...' }) : $_('common.save', { default: '保存' })}
 			</Button>
 		</div>
 	</form>

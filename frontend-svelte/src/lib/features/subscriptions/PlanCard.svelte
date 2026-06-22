@@ -115,7 +115,7 @@
 			onclick={handleClick}
 			class="h-9 w-full px-3"
 		>
-			{$_('user.purchase.subscribe', { default: 'Subscribe' })}
+			{$_('user.purchase.subscribe', { default: '订阅' })}
 		</Button>
 	</div>
 </article>

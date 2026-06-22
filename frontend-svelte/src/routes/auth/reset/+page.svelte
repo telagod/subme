@@ -47,7 +47,7 @@
 
 			try {
 				await authApi.confirmPasswordReset(token, validated.data.newPassword, email || undefined);
-				showSuccess($_('auth.passwordResetSuccess', { default: 'Password reset successfully' }));
+				showSuccess($_('auth.passwordResetSuccess', { default: '密码重置成功' }));
 				await goto('/auth/login', { replaceState: true });
 			} catch (err) {
 				const key = mapAuthError(err, 'reset');
@@ -55,7 +55,7 @@
 					tokenInvalid = true;
 					return;
 				}
-				formError = $_(key, { default: 'Failed to reset password.' });
+				formError = $_(key, { default: '重置密码失败。' });
 				showError(formError);
 			}
 		}
@@ -72,28 +72,28 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.resetPasswordTitle', { default: 'Set new password' })} · sub2api</title>
+	<title>{$_('auth.resetPasswordTitle', { default: '设置新密码' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.resetPasswordTitle', { default: 'Set new password' })}
-	subtitle={$_('auth.resetPasswordHint', { default: 'Enter your new password below.' })}
+	title={$_('auth.resetPasswordTitle', { default: '设置新密码' })}
+	subtitle={$_('auth.resetPasswordHint', { default: '请在下方输入新密码。' })}
 >
 	{#if isInvalidLink || tokenInvalid}
 		<div class="space-y-3 text-center" data-testid="reset-invalid">
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.invalidResetLink', { default: 'Invalid reset link' })}
+				{$_('auth.invalidResetLink', { default: '重置链接无效' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.invalidResetLinkHint', {
-					default: 'This password reset link is invalid or has expired.'
+					default: '此密码重置链接无效或已过期。'
 				})}
 			</p>
 			<Button
 				href="/auth/forgot"
 				class="w-full"
 			>
-				{$_('auth.requestNewResetLink', { default: 'Request new reset link' })}
+				{$_('auth.requestNewResetLink', { default: '请求新的重置链接' })}
 			</Button>
 		</div>
 	{:else}
@@ -101,7 +101,7 @@
 			{#if email}
 				<div class="space-y-1.5">
 					<label for="reset-email" class="text-sm font-medium text-foreground">
-						{$_('auth.emailLabel', { default: 'Email' })}
+						{$_('auth.emailLabel', { default: '邮箱' })}
 					</label>
 					<Input
 						id="reset-email"
@@ -118,7 +118,7 @@
 			<!-- new password -->
 			<div class="space-y-1.5">
 				<label for="reset-newpassword" class="text-sm font-medium text-foreground">
-					{$_('auth.newPassword', { default: 'New password' })}
+					{$_('auth.newPassword', { default: '新密码' })}
 				</label>
 				<div class="relative">
 					<Input
@@ -126,7 +126,7 @@
 						name="newPassword"
 						type={showPassword ? 'text' : 'password'}
 						autocomplete="new-password"
-						placeholder={$_('auth.newPasswordPlaceholder', { default: 'Enter new password' })}
+						placeholder={$_('auth.newPasswordPlaceholder', { default: '输入新密码' })}
 						bind:value={$form.newPassword}
 						aria-invalid={$errors.newPassword ? 'true' : undefined}
 						data-testid="reset-password"
@@ -140,7 +140,7 @@
 						onclick={() => (showPassword = !showPassword)}
 						class="absolute right-1 top-1/2 h-8 -translate-y-1/2 px-2 text-xs text-muted-foreground hover:text-foreground"
 					>
-						{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: 'Show' })}
+						{showPassword ? $_('auth.register.hide', { default: 'Hide' }) : $_('auth.register.show', { default: '显示' })}
 					</Button>
 				</div>
 				{#if $errors.newPassword && $errors.newPassword[0]}
@@ -153,14 +153,14 @@
 			<!-- confirm password -->
 			<div class="space-y-1.5">
 				<label for="reset-confirm" class="text-sm font-medium text-foreground">
-					{$_('auth.confirmPassword', { default: 'Confirm password' })}
+					{$_('auth.confirmPassword', { default: '确认密码' })}
 				</label>
 				<Input
 					id="reset-confirm"
 					name="confirmPassword"
 					type={showPassword ? 'text' : 'password'}
 					autocomplete="new-password"
-					placeholder={$_('auth.confirmPasswordPlaceholder', { default: 'Repeat the new password' })}
+					placeholder={$_('auth.confirmPasswordPlaceholder', { default: '再次输入新密码' })}
 					bind:value={$form.confirmPassword}
 					aria-invalid={$errors.confirmPassword ? 'true' : undefined}
 					data-testid="reset-confirm"
@@ -185,15 +185,15 @@
 				class="w-full"
 			>
 				{$submitting
-					? $_('auth.resettingPassword', { default: 'Resetting...' })
-					: $_('auth.resetPassword', { default: 'Reset password' })}
+					? $_('auth.resettingPassword', { default: '重置中...' })
+					: $_('auth.resetPassword', { default: '重置密码' })}
 			</Button>
 		</form>
 	{/if}
 
 	{#snippet footer()}
 		<a class="text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: 'Back to sign in' })}
+			{$_('auth.backToLogin', { default: '返回登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

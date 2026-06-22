@@ -37,9 +37,9 @@
 </script>
 
 <div class="relative" data-column-dropdown>
-	<Button variant="outline" size="sm" class="px-2" onclick={toggle} title={$_('admin.usage.columnSettings', { default: 'Column settings' })}>
+	<Button variant="outline" size="sm" class="px-2" onclick={toggle} title={$_('admin.usage.columnSettings', { default: '列设置' })}>
 		<Columns3 size={16} />
-		<span class="hidden md:inline ml-1.5">{$_('admin.usage.columnSettings', { default: 'Columns' })}</span>
+		<span class="hidden md:inline ml-1.5">{$_('admin.usage.columnSettings', { default: '列设置' })}</span>
 	</Button>
 
 	{#if open}

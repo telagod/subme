@@ -70,20 +70,20 @@
 	async function sendCode(): Promise<void> {
 		formError = '';
 		if (!isValidEmail(email)) {
-			formError = $_('auth.errors.EMAIL_INVALID', { default: 'Enter a valid email.' });
+			formError = $_('auth.errors.EMAIL_INVALID', { default: '请输入有效的邮箱。' });
 			return;
 		}
 		sendingCode = true;
 		try {
 			await authApi.sendDingtalkEmailCode(email, partialAuthToken);
 			showSuccess(
-				$_('auth.emailCompletion.codeSent', { default: 'Verification code sent.' })
+				$_('auth.emailCompletion.codeSent', { default: '验证码已发送。' })
 			);
 			stage = 'verify';
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			formError = $_('auth.emailCompletion.errors.SEND_FAILED', {
-				default: 'Failed to send code.'
+				default: '发送验证码失败。'
 			});
 			showError(`${formError} ${msg}`.trim());
 		} finally {
@@ -95,7 +95,7 @@
 		formError = '';
 		if (!/^\d{6}$/.test(code)) {
 			formError = $_('auth.emailCompletion.errors.CODE_FORMAT', {
-				default: 'Enter the 6-digit code.'
+				default: '输入 6 位验证码。'
 			});
 			return;
 		}
@@ -108,7 +108,7 @@
 			});
 			if (!resp?.access_token || !resp?.user) {
 				formError = $_('auth.emailCompletion.errors.MALFORMED', {
-					default: 'Sign-in response was malformed.'
+					default: '登录响应格式异常。'
 				});
 				stage = 'verify';
 				return;
@@ -127,7 +127,7 @@
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			formError = $_('auth.emailCompletion.errors.SUBMIT_FAILED', {
-				default: 'Failed to complete sign-in.'
+				default: '完成登录失败。'
 			});
 			showError(`${formError} ${msg}`.trim());
 			stage = 'verify';
@@ -138,7 +138,7 @@
 		if (provider !== 'dingtalk') {
 			showError(
 				$_('auth.callback.errors.UNSUPPORTED_EMAIL_COMPLETION', {
-					default: 'Email completion is not supported for this provider.'
+					default: '此提供商不支持邮箱补全。'
 				})
 			);
 			setTimeout(() => {
@@ -151,34 +151,34 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.emailCompletion.title', { default: 'Complete sign-in' })} · sub2api</title>
+	<title>{$_('auth.emailCompletion.title', { default: '完成登录' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.emailCompletion.title', { default: 'Complete sign-in' })}
+	title={$_('auth.emailCompletion.title', { default: '完成登录' })}
 	subtitle={$_('auth.emailCompletion.subtitle', {
-		default: 'Confirm your email to finish DingTalk sign-in.'
+		default: '确认您的邮箱以完成钉钉登录。'
 	})}
 >
 	{#if stage === 'loading'}
 		<div class="text-center text-sm text-muted-foreground" data-testid="completion-loading">
-			{$_('auth.emailCompletion.loading', { default: 'Loading...' })}
+			{$_('auth.emailCompletion.loading', { default: '加载中...' })}
 		</div>
 	{:else if stage === 'invalid'}
 		<div class="space-y-3 text-center" data-testid="completion-invalid">
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.emailCompletion.invalidTitle', { default: 'Session expired' })}
+				{$_('auth.emailCompletion.invalidTitle', { default: '会话已过期' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.emailCompletion.invalidHint', {
-					default: 'Please start DingTalk sign-in again.'
+					default: '请重新开始钉钉登录。'
 				})}
 			</p>
 			<a
 				href="/auth/login"
 				class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
 			>
-				{$_('auth.backToLogin', { default: 'Back to sign in' })}
+				{$_('auth.backToLogin', { default: '返回登录' })}
 			</a>
 		</div>
 	{:else if stage === 'collect'}
@@ -192,7 +192,7 @@
 		>
 			<div class="space-y-1.5">
 				<label for="completion-email" class="text-sm font-medium text-foreground">
-					{$_('auth.emailLabel', { default: 'Email' })}
+					{$_('auth.emailLabel', { default: '邮箱' })}
 				</label>
 				<Input
 					id="completion-email"
@@ -216,8 +216,8 @@
 				class="w-full"
 			>
 				{sendingCode
-					? $_('auth.emailCompletion.sending', { default: 'Sending...' })
-					: $_('auth.emailCompletion.sendCode', { default: 'Send verification code' })}
+					? $_('auth.emailCompletion.sending', { default: '发送中...' })
+					: $_('auth.emailCompletion.sendCode', { default: '发送验证码' })}
 			</Button>
 		</form>
 	{:else if stage === 'verify' || stage === 'submitting'}
@@ -231,7 +231,7 @@
 		>
 			<div class="space-y-1.5">
 				<label for="completion-code" class="text-sm font-medium text-foreground">
-					{$_('auth.emailCompletion.codeLabel', { default: 'Verification code' })}
+					{$_('auth.emailCompletion.codeLabel', { default: '验证码' })}
 				</label>
 				<Input
 					id="completion-code"
@@ -264,19 +264,19 @@
 				class="w-full"
 			>
 				{stage === 'submitting'
-					? $_('auth.emailCompletion.submitting', { default: 'Verifying...' })
-					: $_('auth.emailCompletion.submit', { default: 'Complete sign-in' })}
+					? $_('auth.emailCompletion.submitting', { default: '验证中...' })
+					: $_('auth.emailCompletion.submit', { default: '完成登录' })}
 			</Button>
 		</form>
 	{:else}
 		<div class="text-center text-sm text-muted-foreground" data-testid="completion-done">
-			{$_('auth.emailCompletion.done', { default: 'Signed in. Redirecting...' })}
+			{$_('auth.emailCompletion.done', { default: '登录成功，跳转中...' })}
 		</div>
 	{/if}
 
 	{#snippet footer()}
 		<a class="text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: 'Back to sign in' })}
+			{$_('auth.backToLogin', { default: '返回登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

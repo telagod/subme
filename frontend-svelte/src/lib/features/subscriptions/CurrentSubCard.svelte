@@ -85,7 +85,7 @@
 			</div>
 			<div class="space-y-1">
 				<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-					{$_('user.subscriptions.currentLabel', { default: 'Current subscription' })}
+					{$_('user.subscriptions.currentLabel', { default: '当前订阅' })}
 				</p>
 				<h2 class="text-lg font-semibold text-foreground" data-testid="current-sub-name">
 					{subscription.planName || subscription.platform}
@@ -103,7 +103,7 @@
 	<dl class="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
 		<div>
 			<dt class="text-xs text-muted-foreground">
-				{$_('user.subscriptions.startedAt', { default: 'Started' })}
+				{$_('user.subscriptions.startedAt', { default: '已开始' })}
 			</dt>
 			<dd class="mt-0.5 text-foreground" data-testid="current-sub-started">
 				{fmtDate(subscription.startedAt)}
@@ -111,7 +111,7 @@
 		</div>
 		<div>
 			<dt class="text-xs text-muted-foreground">
-				{$_('user.subscriptions.renewsAt', { default: 'Renews at' })}
+				{$_('user.subscriptions.renewsAt', { default: '续费于' })}
 			</dt>
 			<dd class="mt-0.5 text-foreground" data-testid="current-sub-renews">
 				{fmtDate(subscription.expiresAt)}
@@ -127,7 +127,7 @@
 			<AlertTriangle class="mt-0.5 h-3.5 w-3.5 shrink-0" />
 			<span>
 				{$_('user.subscriptions.expiringSoon', {
-					default: 'This subscription is about to expire. Renew to keep access.'
+					default: '此订阅即将过期，请续费以保持访问。'
 				})}
 			</span>
 		</div>
@@ -141,7 +141,7 @@
 				onclick={() => onCancelClick?.(subscription)}
 				class="h-9 px-3 text-destructive hover:bg-destructive/10"
 			>
-				{$_('user.subscriptions.cancel', { default: 'Cancel' })}
+				{$_('user.subscriptions.cancel', { default: '取消' })}
 			</Button>
 		{/if}
 		<Button
@@ -149,7 +149,7 @@
 			onclick={() => onUpgradeClick?.(subscription)}
 			class="h-9 px-3"
 		>
-			{$_('user.subscriptions.upgrade', { default: 'Upgrade' })}
+			{$_('user.subscriptions.upgrade', { default: '升级' })}
 		</Button>
 	</div>
 </article>

@@ -38,7 +38,7 @@
 		data-testid="usage-card-requests"
 	>
 		<h2 class="text-sm font-medium text-muted-foreground">
-			{$_('user.usage.totalRequests', { default: 'Total requests' })}
+			{$_('user.usage.totalRequests', { default: '总请求量' })}
 		</h2>
 		{#if loading}
 			<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
@@ -58,7 +58,7 @@
 		data-testid="usage-card-tokens"
 	>
 		<h2 class="text-sm font-medium text-muted-foreground">
-			{$_('user.usage.totalTokens', { default: 'Total tokens' })}
+			{$_('user.usage.totalTokens', { default: '总令牌量' })}
 		</h2>
 		{#if loading}
 			<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
@@ -78,7 +78,7 @@
 		data-testid="usage-card-cost"
 	>
 		<h2 class="text-sm font-medium text-muted-foreground">
-			{$_('user.usage.totalCost', { default: 'Total cost' })}
+			{$_('user.usage.totalCost', { default: '总费用' })}
 		</h2>
 		{#if loading}
 			<div class="mt-3 h-8 w-24 animate-pulse rounded bg-muted"></div>
@@ -98,7 +98,7 @@
 {#if error}
 	<Alert variant="destructive" class="flex items-center justify-between" data-testid="usage-summary-error">
 		<span>
-			{$_('user.usage.errors.summaryFailed', { default: 'Failed to load summary' })}
+			{$_('user.usage.errors.summaryFailed', { default: '加载摘要失败' })}
 		</span>
 		<Button
 			type="button"
@@ -108,7 +108,7 @@
 			onclick={onRetry}
 			data-testid="usage-summary-retry"
 		>
-			{$_('user.usage.retry', { default: 'Retry' })}
+			{$_('user.usage.retry', { default: '重试' })}
 		</Button>
 	</Alert>
 {/if}

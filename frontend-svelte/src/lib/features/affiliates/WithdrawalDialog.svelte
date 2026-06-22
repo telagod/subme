@@ -59,7 +59,7 @@
 		if (submitting) return;
 
 		if (!canTransfer) {
-			formError = $_('affiliate.transfer.empty', { default: 'No available rebate quota' });
+			formError = $_('affiliate.transfer.empty', { default: '无可用返佣额度' });
 			return;
 		}
 
@@ -79,13 +79,13 @@
 			const e = err as Error;
 			const msg =
 				e?.message ??
-				$_('affiliate.transferFailed', { default: 'Failed to transfer affiliate quota' });
+				$_('affiliate.transferFailed', { default: '转入联盟配额失败' });
 			if (msg === 'unauthorized') {
 				// apiClient 已统一 401 钩子；这里不再二次提示。
 				return;
 			}
 			formError = $_('affiliate.transferFailed', {
-				default: 'Failed to transfer affiliate quota'
+				default: '转入联盟配额失败'
 			});
 			showError(formError);
 		} finally {
@@ -102,9 +102,9 @@
 <StandardDialog
 	bind:open
 	width="md"
-	title={$_('affiliate.transfer.title', { default: 'Transfer Rebate Quota' })}
+	title={$_('affiliate.transfer.title', { default: '转入返佣额度' })}
 	description={$_('affiliate.transfer.description', {
-		default: 'Move available rebate quota into your account balance'
+		default: '将可用返佣额度转入账户余额'
 	})}
 	data-testid="withdrawal-dialog"
 >
@@ -115,7 +115,7 @@
 			data-testid="withdrawal-available"
 		>
 			<span class="text-muted-foreground">
-				{$_('user.affiliates.stats.available', { default: 'Available' })}
+				{$_('user.affiliates.stats.available', { default: '可用' })}
 			</span>
 			<span class="font-medium tabular-nums text-foreground" data-testid="transfer-amount">
 				${availableRebate.toFixed(2)} {currency}
@@ -124,7 +124,7 @@
 
 		{#if !canTransfer}
 			<p class="text-xs text-muted-foreground" data-testid="transfer-empty-hint">
-				{$_('affiliate.transfer.empty', { default: 'No available rebate quota' })}
+				{$_('affiliate.transfer.empty', { default: '无可用返佣额度' })}
 			</p>
 		{/if}
 
@@ -149,7 +149,7 @@
 				onclick={handleClose}
 				class="h-9"
 			>
-				{$_('user.withdrawal.cancel', { default: 'Cancel' })}
+				{$_('user.withdrawal.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				type="submit"
@@ -158,8 +158,8 @@
 				class="h-9"
 			>
 				{submitting
-					? $_('affiliate.transfer.transferring', { default: 'Transferring...' })
-					: $_('affiliate.transfer.button', { default: 'Transfer to Balance' })}
+					? $_('affiliate.transfer.transferring', { default: '转入中...' })
+					: $_('affiliate.transfer.button', { default: '转入余额' })}
 			</Button>
 		</div>
 	</form>

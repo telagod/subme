@@ -93,21 +93,21 @@
 		const uid = parseInt(userId.trim(), 10);
 		if (!uid || !Number.isFinite(uid) || uid <= 0) {
 			formError = $_('admin.subscriptions.assignErrorUserId', {
-				default: 'Please enter a valid user ID'
+				default: '请输入有效的用户 ID'
 			});
 			return;
 		}
 		const gid = parseInt(groupId, 10);
 		if (!gid || !Number.isFinite(gid) || gid <= 0) {
 			formError = $_('admin.subscriptions.assignErrorGroup', {
-				default: 'Please select a group'
+				default: '请选择分组'
 			});
 			return;
 		}
 		const days = parseInt(validityDays.trim(), 10);
 		if (validityDays.trim() && (!Number.isFinite(days) || days < 1 || days > 36500)) {
 			formError = $_('admin.subscriptions.assignErrorDays', {
-				default: 'Validity must be between 1 and 36500 days'
+				default: '有效期必须在 1 至 36500 天之间'
 			});
 			return;
 		}
@@ -122,7 +122,7 @@
 			});
 			showSuccess(
 				$_('admin.subscriptions.assignSuccess', {
-					default: 'Subscription assigned successfully'
+					default: '订阅已成功分配'
 				})
 			);
 			onAssigned?.();
@@ -133,7 +133,7 @@
 			formError = e?.message ?? 'Unknown error';
 			showError(
 				$_('admin.subscriptions.assignError', {
-					default: 'Assign failed: {error}',
+					default: '分配失败：{error}',
 					values: { error: formError }
 				})
 			);
@@ -148,9 +148,9 @@
 	onOpenChange={handleOpenChange}
 	width="md"
 	showHeader={false}
-	title={$_('admin.subscriptions.assignTitle', { default: 'Assign subscription' })}
+	title={$_('admin.subscriptions.assignTitle', { default: '分配订阅' })}
 	description={$_('admin.subscriptions.assignDesc', {
-		default: 'Assign a subscription plan to a user.'
+		default: '为用户分配订阅方案。'
 	})}
 	data-testid="assign-sub-dialog"
 	class="max-w-[480px] p-6"
@@ -163,11 +163,11 @@
 		</div>
 		<div class="space-y-1">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('admin.subscriptions.assignTitle', { default: 'Assign subscription' })}
+				{$_('admin.subscriptions.assignTitle', { default: '分配订阅' })}
 			</h2>
 			<p class="text-sm text-muted-foreground">
 				{$_('admin.subscriptions.assignDesc', {
-					default: 'Assign a subscription plan to a user.'
+					default: '为用户分配订阅方案。'
 				})}
 			</p>
 		</div>
@@ -184,7 +184,7 @@
 		<!-- User ID -->
 		<div class="space-y-1.5">
 			<label for="assign-user-id" class="text-sm font-medium text-foreground">
-				{$_('admin.subscriptions.assignUserIdLabel', { default: 'User ID' })}
+				{$_('admin.subscriptions.assignUserIdLabel', { default: '用户 ID' })}
 			</label>
 			<Input
 				id="assign-user-id"
@@ -201,7 +201,7 @@
 			/>
 			<p class="text-[11px] text-muted-foreground">
 				{$_('admin.subscriptions.assignUserIdHint', {
-					default: 'Enter the numeric user ID. Find it from the users page.'
+					default: '输入数字用户 ID，可在用户页面找到。'
 				})}
 			</p>
 		</div>
@@ -209,7 +209,7 @@
 		<!-- Group / Plan picker -->
 		<div class="space-y-1.5">
 			<label for="assign-group" class="text-sm font-medium text-foreground">
-				{$_('admin.subscriptions.assignGroupLabel', { default: 'Group' })}
+				{$_('admin.subscriptions.assignGroupLabel', { default: '分组' })}
 			</label>
 			<NativeSelect
 				id="assign-group"
@@ -227,7 +227,7 @@
 		<!-- Validity days -->
 		<div class="space-y-1.5">
 			<label for="assign-validity" class="text-sm font-medium text-foreground">
-				{$_('admin.subscriptions.assignValidityLabel', { default: 'Validity (days)' })}
+				{$_('admin.subscriptions.assignValidityLabel', { default: '有效期（天）' })}
 			</label>
 			<Input
 				id="assign-validity"
@@ -248,14 +248,14 @@
 		<!-- Notes -->
 		<div class="space-y-1.5">
 			<label for="assign-notes" class="text-sm font-medium text-foreground">
-				{$_('admin.subscriptions.assignNotesLabel', { default: 'Notes (optional)' })}
+				{$_('admin.subscriptions.assignNotesLabel', { default: '备注（可选）' })}
 			</label>
 			<Textarea
 				id="assign-notes"
 				data-testid="assign-notes"
 				class="min-h-16"
 				placeholder={$_('admin.subscriptions.assignNotesPlaceholder', {
-					default: 'Reason for manual assignment...'
+					default: '手动分配原因...'
 				})}
 				bind:value={notes}
 				disabled={submitting}
@@ -280,7 +280,7 @@
 				class="h-9"
 				disabled={submitting}
 			>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				type="submit"
@@ -289,8 +289,8 @@
 				class="h-9"
 			>
 				{submitting
-					? $_('common.submitting', { default: 'Submitting...' })
-					: $_('admin.subscriptions.assignConfirm', { default: 'Assign' })}
+					? $_('common.submitting', { default: '提交中...' })
+					: $_('admin.subscriptions.assignConfirm', { default: '分配' })}
 			</Button>
 		</div>
 	</form>

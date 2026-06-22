@@ -25,6 +25,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 /** 时序粒度：日 / 小时；模型 / 端点 聚合下退回 day 时序。 */
@@ -223,7 +228,7 @@ function buildQuery(filter: UsageFilter = {}, opts: { trend?: boolean; list?: bo
  * 默认 page=1, pageSize=20。
  */
 export async function listUsage(filter: UsageFilter = {}): Promise<PaginatedUsage> {
-	const resp = await apiClient.get<RawUsageList>(`/api/v1/usage${buildQuery(filter)}`);
+	const resp = unwrapEnvelope<RawUsageList>(await apiClient.get(`/api/v1/usage${buildQuery(filter)}`));
 	const items = (resp.items ?? []).map(mapRow);
 	return {
 		items,
@@ -236,7 +241,7 @@ export async function listUsage(filter: UsageFilter = {}): Promise<PaginatedUsag
  * 区间聚合（顶部 3 张卡片）。
  */
 export async function getUsageSummary(filter: UsageFilter = {}): Promise<UsageSummary> {
-	const resp = await apiClient.get<RawUsageStats>(`/api/v1/usage/stats${buildQuery(filter)}`);
+	const resp = unwrapEnvelope<RawUsageStats>(await apiClient.get(`/api/v1/usage/stats${buildQuery(filter)}`));
 	const inputT = num(resp.input_tokens);
 	const outputT = num(resp.output_tokens);
 	const total = num(resp.total_tokens, inputT + outputT);
@@ -254,7 +259,7 @@ export async function getUsageSummary(filter: UsageFilter = {}): Promise<UsageSu
  */
 export async function getUsageTrend(filter: UsageFilter = {}): Promise<UsageTrendPoint[]> {
 	const q = buildQuery({ ...filter, groupBy: filter.groupBy ?? 'day' }, { trend: true, list: false });
-	const resp = await apiClient.get<RawTrendResp>(`/api/v1/usage/dashboard/trend${q}`);
+	const resp = unwrapEnvelope<RawTrendResp>(await apiClient.get(`/api/v1/usage/dashboard/trend${q}`));
 	return mapTrend(resp);
 }
 
@@ -420,11 +425,11 @@ export async function listErrorRequests(
 	for (const [k, v] of Object.entries(filters)) {
 		if (v) usp.set(k, v);
 	}
-	return apiClient.get<PaginatedErrors>(`/api/v1/usage/errors?${usp}`);
+	return unwrapEnvelope<PaginatedErrors>(await apiClient.get(`/api/v1/usage/errors?${usp}`));
 }
 
 export async function getErrorDetail(id: number): Promise<UserErrorRequestDetail> {
-	return apiClient.get<UserErrorRequestDetail>(`/api/v1/usage/errors/${id}`);
+	return unwrapEnvelope<UserErrorRequestDetail>(await apiClient.get(`/api/v1/usage/errors/${id}`));
 }
 
 export const userUsageApi = {

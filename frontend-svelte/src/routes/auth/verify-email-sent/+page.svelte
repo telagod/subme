@@ -22,7 +22,7 @@
 		if (!email) {
 			showError(
 				$_('auth.verifyEmail.errors.NEED_EMAIL', {
-					default: 'Email missing — please register again to receive a new verification link.'
+					default: '邮箱缺失 — 请重新注册以获取新的验证链接。'
 				})
 			);
 			return;
@@ -30,12 +30,12 @@
 		resending = true;
 		try {
 			await authApi.resendVerificationEmail(email);
-			showSuccess($_('auth.verifyEmail.resendSuccess', { default: 'Verification email sent.' }));
+			showSuccess($_('auth.verifyEmail.resendSuccess', { default: '验证邮件已发送。' }));
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			showError(
 				$_('auth.verifyEmail.errors.RESEND_FAILED', {
-					default: 'Failed to resend verification email.'
+					default: '重新发送验证邮件失败。'
 				}) + ` ${msg}`
 			);
 		} finally {
@@ -45,13 +45,13 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.verifyEmailSent.title', { default: 'Verify your email' })} · sub2api</title>
+	<title>{$_('auth.verifyEmailSent.title', { default: '验证您的邮箱' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.verifyEmailSent.title', { default: 'Verify your email' })}
+	title={$_('auth.verifyEmailSent.title', { default: '验证您的邮箱' })}
 	subtitle={$_('auth.verifyEmailSent.subtitle', {
-		default: 'We sent a verification link to your email.'
+		default: '我们已向您的邮箱发送了验证链接。'
 	})}
 >
 	<div class="space-y-3 text-center" data-testid="verify-email-sent">
@@ -72,7 +72,7 @@
 		</p>
 		<p class="text-xs text-muted-foreground">
 			{$_('auth.verifyEmailSent.checkSpam', {
-				default: 'Please check your inbox and spam folder.'
+				default: '请查收收件箱和垃圾邮件。'
 			})}
 		</p>
 
@@ -85,14 +85,14 @@
 			class="w-full"
 		>
 			{resending
-				? $_('auth.verifyEmail.resending', { default: 'Sending...' })
-				: $_('auth.verifyEmailSent.resend', { default: 'Resend verification email' })}
+				? $_('auth.verifyEmail.resending', { default: '发送中...' })
+				: $_('auth.verifyEmailSent.resend', { default: '重新发送验证邮件' })}
 		</Button>
 	</div>
 
 	{#snippet footer()}
 		<a class="text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: 'Back to sign in' })}
+			{$_('auth.backToLogin', { default: '返回登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

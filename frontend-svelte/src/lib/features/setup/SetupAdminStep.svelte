@@ -31,26 +31,26 @@
 	<div class="text-center">
 		<ShieldCheck class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 		<h2 class="text-xl font-semibold tracking-normal text-foreground">
-			{$_('setup.admin.title', { default: 'Admin Account' })}
+			{$_('setup.admin.title', { default: '管理员账户' })}
 		</h2>
 		<p class="mt-1 text-sm text-muted-foreground">
-			{$_('setup.admin.description', { default: 'Create your administrator account' })}
+			{$_('setup.admin.description', { default: '创建管理员账户' })}
 		</p>
 	</div>
 	<div>
-		<label class={labelClass} for="setup-admin-email">{$_('setup.admin.email', { default: 'Email' })}</label>
+		<label class={labelClass} for="setup-admin-email">{$_('setup.admin.email', { default: '邮箱' })}</label>
 		<Input id="setup-admin-email" data-testid="setup-admin-email" type="email" bind:value={email} />
 	</div>
 	<div>
-		<label class={labelClass} for="setup-admin-password">{$_('setup.admin.password', { default: 'Password' })}</label>
+		<label class={labelClass} for="setup-admin-password">{$_('setup.admin.password', { default: '密码' })}</label>
 		<Input id="setup-admin-password" data-testid="setup-admin-password" type="password" bind:value={password} />
 	</div>
 	<div>
-		<label class={labelClass} for="setup-admin-confirm">{$_('setup.admin.confirmPassword', { default: 'Confirm Password' })}</label>
+		<label class={labelClass} for="setup-admin-confirm">{$_('setup.admin.confirmPassword', { default: '确认密码' })}</label>
 		<Input id="setup-admin-confirm" data-testid="setup-admin-confirm" type="password" bind:value={confirmPassword} />
 		{#if passwordMismatch}
 			<p class="mt-1 text-sm text-destructive" data-testid="setup-password-mismatch">
-				{$_('setup.admin.passwordMismatch', { default: 'Passwords do not match' })}
+				{$_('setup.admin.passwordMismatch', { default: '密码不匹配' })}
 			</p>
 		{/if}
 	</div>

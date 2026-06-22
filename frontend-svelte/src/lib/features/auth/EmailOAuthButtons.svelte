@@ -64,7 +64,7 @@
 		return hasMultipleProviders
 			? name
 			: $_('auth.emailOAuth.signIn', {
-					default: 'Continue with {providerName}',
+					default: '继续使用 {providerName}',
 					values: { providerName: name }
 				});
 	}

@@ -48,7 +48,7 @@
 		const snapshot = restoreSnapshot();
 		if (!snapshot) {
 			loading = false;
-			errorMessage = $_('payment.airwallexMissingParams', { default: 'Missing Airwallex payment parameters' });
+			errorMessage = $_('payment.airwallexMissingParams', { default: '缺少 Airwallex 支付参数' });
 			return;
 		}
 		try {
@@ -70,14 +70,14 @@
 			errorMessage =
 				(err as Error)?.message ||
 				$_('payment.airwallexLoadFailed', {
-					default: 'Failed to load Airwallex payment component. Please refresh and try again.'
+					default: '加载 Airwallex 支付组件失败，请刷新后重试。'
 				});
 		}
 	});
 </script>
 
 <svelte:head>
-	<title>{$_('payment.airwallexPay', { default: 'Airwallex Payment' })} · sub2api</title>
+	<title>{$_('payment.airwallexPay', { default: 'Airwallex 支付' })} · sub2api</title>
 </svelte:head>
 
 <section class="mx-auto max-w-lg space-y-6 py-8" data-testid="payment-airwallex-page">
@@ -91,18 +91,18 @@
 				<AlertTriangle class="h-8 w-8" />
 			</div>
 			<h1 class="text-lg font-semibold text-foreground">
-				{$_('payment.airwallexLoadFailed', { default: 'Failed to load Airwallex payment component. Please refresh and try again.' })}
+				{$_('payment.airwallexLoadFailed', { default: '加载 Airwallex 支付组件失败，请刷新后重试。' })}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">{errorMessage}</p>
 			<Button class="mt-6" onclick={goPurchase}>
-				{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+				{$_('payment.result.backToRecharge', { default: '返回充值' })}
 			</Button>
 		</div>
 	{:else}
 		<div class="rounded-lg border border-border bg-card p-6" data-testid="payment-airwallex-redirecting">
 			<div class="flex flex-col items-center space-y-4 py-4">
 				<Loader2 class="h-10 w-10 animate-spin text-primary" />
-				<p class="text-sm text-muted-foreground">{$_('payment.qr.payInNewWindowHint', { default: 'The payment page has opened in a new window. Please complete the payment there and return to this page.' })}</p>
+				<p class="text-sm text-muted-foreground">{$_('payment.qr.payInNewWindowHint', { default: '支付页面已在新窗口中打开，请在新窗口完成支付后返回此页面。' })}</p>
 			</div>
 		</div>
 	{/if}

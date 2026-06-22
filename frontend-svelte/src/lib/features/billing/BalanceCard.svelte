@@ -43,7 +43,7 @@
 			</div>
 			<div class="space-y-1">
 				<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-					{$_('user.billing.balanceLabel', { default: 'Current balance' })}
+					{$_('user.billing.balanceLabel', { default: '当前余额' })}
 				</p>
 				{#if loading}
 					<div
@@ -55,7 +55,7 @@
 						class="text-sm font-medium text-destructive"
 						data-testid="billing-balance-error"
 					>
-						{$_('user.billing.failedToLoadBalance', { default: 'Failed to load balance' })}
+						{$_('user.billing.failedToLoadBalance', { default: '加载余额失败' })}
 					</p>
 				{:else}
 					<div class="flex items-baseline gap-2">
@@ -78,7 +78,7 @@
 			class="h-9 gap-1.5"
 		>
 			<ArrowUpRight class="h-4 w-4" />
-			{$_('user.billing.topUp', { default: 'Top Up' })}
+			{$_('user.billing.topUp', { default: '充值' })}
 		</Button>
 	</div>
 </section>

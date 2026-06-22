@@ -53,7 +53,7 @@
 			await renderQr();
 		} catch (err) {
 			const e = err as Error;
-			loadError = e?.message ?? $_('user.security.totp.setupFailed', { default: 'Failed to load setup' });
+			loadError = e?.message ?? $_('user.security.totp.setupFailed', { default: '加载设置向导失败' });
 			showError(loadError);
 		}
 	}
@@ -80,7 +80,7 @@
 		if (submitting) return;
 		if (!/^\d{6}$/.test(code.trim())) {
 			showError(
-				$_('user.security.totp.invalidCode', { default: 'Enter the 6-digit code from your app' })
+				$_('user.security.totp.invalidCode', { default: '输入您的应用中的 6 位验证码' })
 			);
 			return;
 		}
@@ -88,13 +88,13 @@
 		try {
 			await enrollTotpConfirm({ code: code.trim(), setup_token: setupToken });
 			showSuccess(
-				$_('user.security.totp.enableSuccess', { default: 'Two-factor authentication enabled' })
+				$_('user.security.totp.enableSuccess', { default: '双因素认证已启用' })
 			);
 			onEnabled?.();
 			open = false;
 		} catch (err) {
 			const e = err as Error;
-			showError(e?.message ?? $_('user.security.totp.verifyFailed', { default: 'Invalid code, try again' }));
+			showError(e?.message ?? $_('user.security.totp.verifyFailed', { default: '验证码无效，请重试' }));
 		} finally {
 			submitting = false;
 		}
@@ -134,9 +134,9 @@
 <StandardDialog
 	bind:open
 	width="md"
-	title={$_('user.security.totp.setupTitle', { default: 'Set up two-factor authentication' })}
+	title={$_('user.security.totp.setupTitle', { default: '设置双因素认证' })}
 	description={$_('user.security.totp.setupStep1', {
-		default: 'Scan the QR code below with your authenticator app, then enter the 6-digit code.'
+		default: '使用身份验证器应用扫描下方二维码，然后输入 6 位验证码。'
 	})}
 	data-testid="totp-enroll-dialog"
 >
@@ -146,7 +146,7 @@
 				class="flex items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-sm text-muted-foreground"
 				data-testid="totp-loading"
 			>
-				{$_('user.security.totp.loading', { default: 'Loading setup…' })}
+				{$_('user.security.totp.loading', { default: '加载设置向导中…' })}
 			</div>
 			{#if loadError}
 				<Alert variant="destructive" class="mt-3 px-3 py-2 text-xs" data-testid="totp-load-error">
@@ -170,7 +170,7 @@
 							{:else if qrLoadError}
 								<div class="flex items-center gap-1 text-xs text-destructive" data-testid="totp-qr-error">
 									<AlertTriangle class="h-3.5 w-3.5" />
-									{$_('user.security.totp.qrFailed', { default: 'Failed to render QR code' })}
+									{$_('user.security.totp.qrFailed', { default: '生成二维码失败' })}
 								</div>
 							{:else}
 								<span class="text-xs text-muted-foreground">…</span>
@@ -179,7 +179,7 @@
 
 						<div class="w-full space-y-1.5">
 							<span class="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-								{$_('user.security.totp.manualEntry', { default: 'Or enter this key manually' })}
+								{$_('user.security.totp.manualEntry', { default: '或手动输入此密钥' })}
 							</span>
 							<code
 								data-testid="totp-secret"
@@ -192,7 +192,7 @@
 
 					<div class="space-y-1.5">
 						<label for="totp-code" class="text-sm font-medium text-foreground">
-							{$_('user.security.totp.enterCode', { default: 'Enter the 6-digit code' })}
+							{$_('user.security.totp.enterCode', { default: '输入 6 位验证码' })}
 						</label>
 						<Input
 							id="totp-code"
@@ -215,7 +215,7 @@
 							data-testid="totp-cancel"
 							onclick={handleCancel}
 						>
-							{$_('user.security.totp.cancel', { default: 'Cancel' })}
+							{$_('user.security.totp.cancel', { default: '取消' })}
 						</Button>
 						<Button
 							type="button"
@@ -224,8 +224,8 @@
 							onclick={handleConfirm}
 						>
 							{submitting
-								? $_('user.security.totp.verifying', { default: 'Verifying…' })
-								: $_('user.security.totp.verify', { default: 'Verify and enable' })}
+								? $_('user.security.totp.verifying', { default: '验证中…' })
+								: $_('user.security.totp.verify', { default: '验证并启用' })}
 						</Button>
 					</div>
 				</div>

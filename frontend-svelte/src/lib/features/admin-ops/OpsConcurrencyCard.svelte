@@ -302,12 +302,12 @@
 
 	const dimensionTitle = $derived(
 		dimension === 'user'
-			? $_('admin.ops.concurrency.byUser', { default: 'By user' })
+			? $_('admin.ops.concurrency.byUser', { default: '按用户' })
 			: dimension === 'account'
-				? $_('admin.ops.concurrency.byAccount', { default: 'By account' })
+				? $_('admin.ops.concurrency.byAccount', { default: '按账户' })
 				: dimension === 'group'
-					? $_('admin.ops.concurrency.byGroup', { default: 'By group' })
-					: $_('admin.ops.concurrency.byPlatform', { default: 'By platform' })
+					? $_('admin.ops.concurrency.byGroup', { default: '按分组' })
+					: $_('admin.ops.concurrency.byPlatform', { default: '按平台' })
 	);
 
 	async function loadData() {
@@ -332,7 +332,7 @@
 		} catch (err) {
 			errorMessage =
 				(err as { message?: string })?.message ||
-				$_('admin.ops.concurrency.loadFailed', { default: 'Failed to load concurrency data.' });
+				$_('admin.ops.concurrency.loadFailed', { default: '加载并发数据失败。' });
 		} finally {
 			loading = false;
 		}
@@ -374,7 +374,7 @@
 					d="M13 10V3L4 14h7v7l9-11h-7z"
 				/>
 			</svg>
-			{$_('admin.ops.concurrency.title', { default: 'Concurrency & availability' })}
+			{$_('admin.ops.concurrency.title', { default: '并发 & 可用性' })}
 		</h3>
 		<div class="flex items-center gap-1.5">
 			<Button
@@ -384,11 +384,11 @@
 				aria-pressed={showByUser}
 				data-testid="concurrency-toggle-user"
 				title={showByUser
-					? $_('admin.ops.concurrency.switchToPlatform', { default: 'Switch to platform view' })
-					: $_('admin.ops.concurrency.switchToUser', { default: 'Switch to user view' })}
+					? $_('admin.ops.concurrency.switchToPlatform', { default: '切换到平台视图' })
+					: $_('admin.ops.concurrency.switchToUser', { default: '切换到用户视图' })}
 				aria-label={showByUser
-					? $_('admin.ops.concurrency.switchToPlatform', { default: 'Switch to platform view' })
-					: $_('admin.ops.concurrency.switchToUser', { default: 'Switch to user view' })}
+					? $_('admin.ops.concurrency.switchToPlatform', { default: '切换到平台视图' })
+					: $_('admin.ops.concurrency.switchToUser', { default: '切换到用户视图' })}
 				onclick={toggleByUser}
 			>
 				<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -405,8 +405,8 @@
 				size="icon"
 				disabled={loading}
 				data-testid="concurrency-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 				onclick={() => void loadData()}
 			>
 				<svg
@@ -443,7 +443,7 @@
 			class="flex flex-1 items-center justify-center rounded-md border border-dashed border-border px-3 py-6 text-sm text-muted-foreground"
 		>
 			{$_('admin.ops.concurrency.disabledHint', {
-				default: 'Realtime monitoring is disabled.'
+				default: '实时监控已禁用。'
 			})}
 		</div>
 	{:else}
@@ -467,7 +467,7 @@
 					class="flex flex-1 items-center justify-center px-3 py-6 text-sm text-muted-foreground"
 					data-testid="concurrency-empty"
 				>
-					{$_('admin.ops.concurrency.empty', { default: 'No data for the current view.' })}
+					{$_('admin.ops.concurrency.empty', { default: '当前视图暂无数据。' })}
 				</div>
 			{:else if dimension === 'user'}
 				<div class="max-h-[360px] flex-1 space-y-1.5 overflow-y-auto p-2.5">
@@ -636,7 +636,7 @@
 											<svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 											</svg>
-											{$_('admin.ops.accountAvailability.available', { default: 'Available' })}
+											{$_('admin.ops.accountAvailability.available', { default: '可用' })}
 										</Badge>
 									{:else if row.isRateLimited}
 										<Badge
@@ -667,11 +667,11 @@
 											<svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 											</svg>
-											{$_('admin.ops.accountAvailability.accountError', { default: 'Error' })}
+											{$_('admin.ops.accountAvailability.accountError', { default: '错误' })}
 										</Badge>
 									{:else}
 										<Badge variant="secondary">
-											{$_('admin.ops.accountAvailability.unavailable', { default: 'Unavailable' })}
+											{$_('admin.ops.accountAvailability.unavailable', { default: '不可用' })}
 										</Badge>
 									{/if}
 								</div>

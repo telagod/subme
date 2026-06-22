@@ -119,7 +119,7 @@
 	}
 
 	const platformOptions = $derived([
-		{ value: PLATFORM_ALL, label: $_('common.all', { default: 'All' }) },
+		{ value: PLATFORM_ALL, label: $_('common.all', { default: '全部' }) },
 		{ value: 'openai', label: 'OpenAI' },
 		{ value: 'anthropic', label: 'Anthropic' },
 		{ value: 'gemini', label: 'Gemini' },
@@ -127,9 +127,9 @@
 	]);
 
 	const queryModeOptions = $derived([
-		{ value: 'auto', label: $_('admin.ops.queryMode.auto', { default: 'Auto' }) },
-		{ value: 'raw', label: $_('admin.ops.queryMode.raw', { default: 'Raw' }) },
-		{ value: 'preagg', label: $_('admin.ops.queryMode.preagg', { default: 'Pre-aggregated' }) }
+		{ value: 'auto', label: $_('admin.ops.queryMode.auto', { default: '自动' }) },
+		{ value: 'raw', label: $_('admin.ops.queryMode.raw', { default: '原始' }) },
+		{ value: 'preagg', label: $_('admin.ops.queryMode.preagg', { default: '预聚合' }) }
 	]);
 
 	const timeRangeOptions = $derived([
@@ -142,8 +142,8 @@
 			value: 'custom',
 			label:
 				timeRange === 'custom' && customStartTime && customEndTime
-					? `${$_('admin.ops.timeRange.custom', { default: 'Custom' })} (${formatCustomLabel(customStartTime, customEndTime)})`
-					: $_('admin.ops.timeRange.custom', { default: 'Custom' })
+					? `${$_('admin.ops.timeRange.custom', { default: '自定义' })} (${formatCustomLabel(customStartTime, customEndTime)})`
+					: $_('admin.ops.timeRange.custom', { default: '自定义' })
 		}
 	]);
 
@@ -166,7 +166,7 @@
 	const groupOptions = $derived.by(() => {
 		const filtered = platform ? groups.filter((g) => g.platform === platform) : groups;
 		return [
-			{ value: GROUP_ALL, label: $_('common.all', { default: 'All' }) },
+			{ value: GROUP_ALL, label: $_('common.all', { default: '全部' }) },
 			...filtered.map((g) => ({ value: String(g.id), label: g.name }))
 		];
 	});
@@ -210,19 +210,19 @@
 	function confirmCustom() {
 		if (!customStartInput || !customEndInput) {
 			customError = $_('admin.ops.customTimeRange.required', {
-				default: 'Both start and end time are required.'
+				default: '开始和结束时间均为必填。'
 			});
 			return;
 		}
 		const startMs = new Date(customStartInput).getTime();
 		const endMs = new Date(customEndInput).getTime();
 		if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
-			customError = $_('admin.ops.customTimeRange.invalid', { default: 'Invalid date.' });
+			customError = $_('admin.ops.customTimeRange.invalid', { default: '日期无效。' });
 			return;
 		}
 		if (startMs >= endMs) {
 			customError = $_('admin.ops.customTimeRange.order', {
-				default: 'Start time must be before end time.'
+				default: '开始时间必须早于结束时间。'
 			});
 			return;
 		}
@@ -240,7 +240,7 @@
 	// ── Status / timestamp labels ───────────────────────────────────────────────
 
 	const lastUpdatedLabel = $derived.by(() => {
-		if (!lastUpdated) return $_('common.unknown', { default: 'Unknown' });
+		if (!lastUpdated) return $_('common.unknown', { default: '未知' });
 		const pad = (n: number) => String(n).padStart(2, '0');
 		const d = lastUpdated;
 		return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -311,7 +311,7 @@
 <section
 	class="rounded-xl border border-border bg-card p-5"
 	data-testid="ops-filter-bar"
-	aria-label={$_('admin.ops.title', { default: 'Ops Monitoring' })}
+	aria-label={$_('admin.ops.title', { default: '运维监控' })}
 >
 	<div class="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
 		<!-- Title + status line -->
@@ -333,7 +333,7 @@
 						d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 					/>
 				</svg>
-				{$_('admin.ops.title', { default: 'Ops Monitoring' })}
+				{$_('admin.ops.title', { default: '运维监控' })}
 			</h1>
 
 			<div class="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
@@ -345,12 +345,12 @@
 						aria-hidden="true"
 					></span>
 					{loading
-						? $_('admin.ops.loadingText', { default: 'Loading…' })
-						: $_('admin.ops.ready', { default: 'Ready' })}
+						? $_('admin.ops.loadingText', { default: '加载中…' })
+						: $_('admin.ops.ready', { default: '就绪' })}
 				</span>
 				<span aria-hidden="true">·</span>
 				<span data-testid="ops-last-updated">
-					{$_('common.refresh', { default: 'Refresh' })}: {lastUpdatedLabel}
+					{$_('common.refresh', { default: '刷新' })}: {lastUpdatedLabel}
 				</span>
 				{#if autoRefreshEnabled && autoRefreshCountdown !== undefined}
 					<span aria-hidden="true">·</span>
@@ -376,7 +376,7 @@
 				value={platformSelect}
 				options={platformOptions}
 				class="w-full sm:w-[140px]"
-				aria-label={$_('admin.ops.filter.platform', { default: 'Platform' })}
+				aria-label={$_('admin.ops.filter.platform', { default: '平台' })}
 				data-testid="ops-platform-select"
 				onchange={(e) => handlePlatformChange((e.currentTarget as HTMLSelectElement).value)}
 			/>
@@ -386,7 +386,7 @@
 				options={groupOptions}
 				class="w-full sm:w-[160px]"
 				disabled={groupsError}
-				aria-label={$_('admin.ops.filter.group', { default: 'Group' })}
+				aria-label={$_('admin.ops.filter.group', { default: '分组' })}
 				data-testid="ops-group-select"
 				onchange={(e) => handleGroupChange((e.currentTarget as HTMLSelectElement).value)}
 			/>
@@ -395,7 +395,7 @@
 				value={queryMode}
 				options={queryModeOptions}
 				class="w-full sm:w-[150px]"
-				aria-label={$_('admin.ops.filter.queryMode', { default: 'Query mode' })}
+				aria-label={$_('admin.ops.filter.queryMode', { default: '查询模式' })}
 				data-testid="ops-query-mode-select"
 				onchange={(e) => handleQueryModeChange((e.currentTarget as HTMLSelectElement).value)}
 			/>
@@ -404,7 +404,7 @@
 				value={timeRange}
 				options={timeRangeOptions}
 				class="w-full sm:w-[170px]"
-				aria-label={$_('admin.ops.filter.timeRange', { default: 'Time range' })}
+				aria-label={$_('admin.ops.filter.timeRange', { default: '时间范围' })}
 				data-testid="ops-time-range-select"
 				onchange={(e) => handleTimeRangeChange((e.currentTarget as HTMLSelectElement).value)}
 			/>
@@ -413,8 +413,8 @@
 				variant="outline"
 				size="icon"
 				disabled={loading}
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 				data-testid="ops-refresh-btn"
 				onclick={onRefresh}
 			>
@@ -441,17 +441,17 @@
 			<Button
 				variant="outline"
 				size="sm"
-				title={$_('admin.ops.requestDetails.title', { default: 'Request details' })}
+				title={$_('admin.ops.requestDetails.title', { default: '请求详情' })}
 				data-testid="ops-open-request-details-btn"
 				onclick={() => onOpenRequestDetails()}
 			>
-				{$_('admin.ops.requestDetails.details', { default: 'Details' })}
+				{$_('admin.ops.requestDetails.details', { default: '详情' })}
 			</Button>
 
 			<Button
 				variant="outline"
 				size="sm"
-				title={$_('admin.ops.alertRules.title', { default: 'Alert rules' })}
+				title={$_('admin.ops.alertRules.title', { default: '告警规则' })}
 				data-testid="ops-open-alert-rules-btn"
 				onclick={onOpenAlertRules}
 			>
@@ -470,13 +470,13 @@
 						d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
 					/>
 				</svg>
-				<span>{$_('admin.ops.alertRules.manage', { default: 'Alert rules' })}</span>
+				<span>{$_('admin.ops.alertRules.manage', { default: '告警规则' })}</span>
 			</Button>
 
 			<Button
 				variant="outline"
 				size="sm"
-				title={$_('admin.ops.settings.title', { default: 'Settings' })}
+				title={$_('admin.ops.settings.title', { default: '设置' })}
 				data-testid="ops-open-settings-btn"
 				onclick={onOpenSettings}
 			>
@@ -501,7 +501,7 @@
 						d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 					/>
 				</svg>
-				<span>{$_('common.settings', { default: 'Settings' })}</span>
+				<span>{$_('common.settings', { default: '设置' })}</span>
 			</Button>
 		</div>
 	</div>
@@ -511,7 +511,7 @@
 <StandardDialog
 	bind:open={customOpen}
 	width="sm"
-	title={$_('admin.ops.timeRange.custom', { default: 'Custom time range' })}
+	title={$_('admin.ops.timeRange.custom', { default: '自定义时间范围' })}
 	data-testid="ops-custom-time-dialog"
 >
 	<div class="mt-4 flex flex-col gap-3.5">
@@ -520,13 +520,13 @@
 				class="mb-1 block text-sm text-muted-foreground"
 				for="ops-custom-start"
 			>
-				{$_('admin.ops.customTimeRange.startTime', { default: 'Start time' })}
+				{$_('admin.ops.customTimeRange.startTime', { default: '开始时间' })}
 			</label>
 			<Input id="ops-custom-start" type="datetime-local" bind:value={customStartInput} />
 		</div>
 		<div>
 			<label class="mb-1 block text-sm text-muted-foreground" for="ops-custom-end">
-				{$_('admin.ops.customTimeRange.endTime', { default: 'End time' })}
+				{$_('admin.ops.customTimeRange.endTime', { default: '结束时间' })}
 			</label>
 			<Input id="ops-custom-end" type="datetime-local" bind:value={customEndInput} />
 		</div>
@@ -535,10 +535,10 @@
 		{/if}
 		<div class="flex justify-end gap-2 pt-1.5">
 			<Button variant="outline" size="sm" onclick={cancelCustom}>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button size="sm" data-testid="ops-custom-time-confirm" onclick={confirmCustom}>
-				{$_('common.confirm', { default: 'Confirm' })}
+				{$_('common.confirm', { default: '确认' })}
 			</Button>
 		</div>
 	</div>

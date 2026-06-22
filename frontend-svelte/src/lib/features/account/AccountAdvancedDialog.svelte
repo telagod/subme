@@ -74,20 +74,20 @@
 	async function loadAntigravity() { await run('Mapping loaded', async () => { antigravityMap = await getAntigravityDefaultModelMapping(); }); }
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.advancedTitle', { default: 'Account advanced tools' })} width="lg" data-testid="account-advanced-dialog">
+<StandardDialog bind:open title={$_('admin.accountsQuench.advancedTitle', { default: '账户高级工具' })} width="lg" data-testid="account-advanced-dialog">
 	<div class="mt-4 grid gap-4">
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Error passthrough rules</h2>
 			<Textarea rows={6} bind:value={ruleJson} data-testid="error-passthrough-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addRule}>Create passthrough rule</Button></div>
 			{#if rules.length === 0}<p class="text-sm text-muted-foreground">No rules.</p>
 			{:else}<div data-testid="error-passthrough-list">{#each rules as r}<div class="flex items-center justify-between border-b px-2 py-1 text-sm last:border-b-0"><span class="truncate">{r.name}</span><div class="flex gap-1">
 				<Badge variant="outline" class={r.enabled ? 'text-emerald-600' : 'text-muted-foreground'}>{r.enabled ? 'on' : 'off'}</Badge>
-				<Button variant="ghost" size="sm" disabled={busy} onclick={() => togRule(r)}>{r.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delRule(r)}>Delete</Button></div></div>{/each}</div>{/if}
+				<Button variant="ghost" size="sm" disabled={busy} onclick={() => togRule(r)}>{r.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delRule(r)}>{$_('common.delete', { default: 'Delete' })}</Button></div></div>{/each}</div>{/if}
 		</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">TLS fingerprint profiles</h2>
 			<Textarea rows={6} bind:value={profileJson} data-testid="tls-profile-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addProfile}>Create TLS profile</Button></div>
 			{#if profiles.length === 0}<p class="text-sm text-muted-foreground">No profiles.</p>
 			{:else}<div data-testid="tls-profile-list">{#each profiles as p}<div class="flex items-center justify-between border-b px-2 py-1 text-sm last:border-b-0"><span class="truncate">{p.name}</span>
-				<Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delProfile(p)}>Delete</Button></div>{/each}</div>{/if}
+				<Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delProfile(p)}>{$_('common.delete', { default: 'Delete' })}</Button></div>{/each}</div>{/if}
 		</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">CRS sync</h2>
 			<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Base URL<Input bind:value={crsBase} data-testid="crs-base-url" /></label><label class="grid gap-1 text-sm">Username<Input bind:value={crsUser} data-testid="crs-username" /></label><label class="grid gap-1 text-sm">Password<Input type="password" bind:value={crsPwd} data-testid="crs-password" /></label></div>
@@ -115,5 +115,5 @@
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Mixed channel risk</h2><Textarea rows={3} bind:value={riskJson} data-testid="mixed-risk-json" /><div class="flex justify-end"><Button disabled={busy} onclick={checkRisk}>Check mixed risk</Button></div>{#if riskResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="mixed-risk-result">{fmt(riskResult)}</pre>{/if}</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Upstream models</h2><Textarea rows={3} bind:value={upstreamJson} data-testid="upstream-models-json" /><div class="flex justify-end gap-2"><Button variant="outline" disabled={busy} onclick={previewUpstream}>Preview upstream models</Button><Button variant="outline" disabled={busy} onclick={loadAntigravity}>Load Antigravity defaults</Button></div>{#if upstreamResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="upstream-models-result">{fmt(upstreamResult)}</pre>{/if}{#if antigravityMap}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="antigravity-default-mapping">{fmt(antigravityMap)}</pre>{/if}</Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>Close</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
 </StandardDialog>

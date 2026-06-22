@@ -72,7 +72,7 @@
 	): Promise<void> {
 		const token = tokenResponse.access_token?.trim();
 		if (!token) {
-			throw new Error($_('auth.callback.errors.MALFORMED', { default: 'Sign-in response was malformed.' }));
+			throw new Error($_('auth.callback.errors.MALFORMED', { default: '登录响应格式异常。' }));
 		}
 
 		if (tokenResponse.user) {
@@ -81,13 +81,13 @@
 			auth.setToken(token);
 			await auth.refreshUser();
 			if (!auth.user) {
-				throw new Error($_('auth.callback.errors.MALFORMED', { default: 'Sign-in response was malformed.' }));
+				throw new Error($_('auth.callback.errors.MALFORMED', { default: '登录响应格式异常。' }));
 			}
 		}
 
 		clearPendingEmailOAuthProvider();
 		clearAllAffiliateReferralCodes();
-		showSuccess($_('auth.loginSuccess', { default: 'Signed in successfully.' }));
+		showSuccess($_('auth.loginSuccess', { default: '登录成功。' }));
 		phase = 'completed';
 		await goto(sanitizeRedirectPath(redirect), { replaceState: true });
 	}
@@ -128,13 +128,13 @@
 
 			showError(
 				completion.error ||
-					$_('auth.loginFailed', { default: 'Sign-in failed. Please try again.' })
+					$_('auth.loginFailed', { default: '登录失败，请重试。' })
 			);
 			phase = 'invalid';
 		} catch (err) {
 			const message =
 				(err as Error)?.message ||
-				$_('auth.loginFailed', { default: 'Sign-in failed. Please try again.' });
+				$_('auth.loginFailed', { default: '登录失败，请重试。' });
 			showError(message);
 			phase = 'invalid';
 		}
@@ -143,25 +143,25 @@
 	async function submitRegistration(): Promise<void> {
 		registrationError = '';
 		if (!registrationEmail.trim()) {
-			registrationError = $_('auth.errors.EMAIL_REQUIRED', { default: 'Email is required.' });
+			registrationError = $_('auth.errors.EMAIL_REQUIRED', { default: '邮箱必填。' });
 			return;
 		}
 		if (password.length < 6) {
 			registrationError = $_('auth.errors.PASSWORD_TOO_SHORT', {
-				default: 'Password must be at least 6 characters.'
+				default: '密码至少 6 个字符。'
 			});
 			return;
 		}
 		if (password !== confirmPassword) {
 			registrationError = $_('auth.register.errors.PASSWORD_MISMATCH', {
-				default: 'Passwords do not match.'
+				default: '密码不匹配。'
 			});
 			return;
 		}
 		const trimmedInvitation = invitationCode.trim();
 		if (invitationRequired && !trimmedInvitation) {
 			registrationError = $_('auth.invitationCodeRequired', {
-				default: 'Invitation code is required.'
+				default: '邀请码必填。'
 			});
 			return;
 		}
@@ -192,7 +192,7 @@
 	async function copy(value: string): Promise<void> {
 		if (!value || typeof navigator === 'undefined' || !navigator.clipboard) return;
 		await navigator.clipboard.writeText(value);
-		showInfo($_('common.copied', { default: 'Copied.' }));
+		showInfo($_('common.copied', { default: '已复制。' }));
 	}
 
 	onMount(async () => {
@@ -221,7 +221,7 @@
 			} catch (err) {
 				showError(
 					(err as Error)?.message ||
-						$_('auth.loginFailed', { default: 'Sign-in failed. Please try again.' })
+						$_('auth.loginFailed', { default: '登录失败，请重试。' })
 				);
 				phase = 'invalid';
 			}
@@ -244,22 +244,22 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.callback.title', { values: { provider: 'OAuth' }, default: 'OAuth callback' })} · sub2api</title>
+	<title>{$_('auth.callback.title', { values: { provider: 'OAuth' }, default: 'OAuth 回调' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
 	title={phase === 'registration'
-		? $_('auth.emailCompletion.title', { default: 'Complete sign-in' })
+		? $_('auth.emailCompletion.title', { default: '完成登录' })
 		: $_('auth.callback.title', {
 				values: { provider: 'OAuth' },
-				default: 'OAuth callback'
+				default: 'OAuth 回调'
 			})}
 	subtitle={phase === 'registration'
 		? $_('auth.callback.processing', {
 				values: { provider: providerName },
 				default: `Completing ${providerName} sign-in, please wait...`
 			})
-		: $_('auth.callback.subtitle', { default: 'Completing sign-in...' })}
+		: $_('auth.callback.subtitle', { default: '完成登录中...' })}
 >
 	{#if phase === 'processing'}
 		<div class="space-y-3 text-center" data-testid="oauth-callback-processing">
@@ -270,7 +270,7 @@
 			<p class="text-sm text-muted-foreground">
 				{$_('auth.callback.processing', {
 					values: { provider: 'OAuth' },
-					default: 'Completing sign-in, please wait...'
+					default: '完成登录中，请稍候...'
 				})}
 			</p>
 		</div>
@@ -285,7 +285,7 @@
 		>
 			<div class="space-y-1.5">
 				<label for="oauth-registration-email" class="text-sm font-medium text-foreground">
-					{$_('auth.emailLabel', { default: 'Email' })}
+					{$_('auth.emailLabel', { default: '邮箱' })}
 				</label>
 				<Input
 					id="oauth-registration-email"
@@ -300,7 +300,7 @@
 
 			<div class="space-y-1.5">
 				<label for="oauth-registration-password" class="text-sm font-medium text-foreground">
-					{$_('auth.register.passwordLabel', { default: 'Password' })}
+					{$_('auth.register.passwordLabel', { default: '密码' })}
 				</label>
 				<Input
 					id="oauth-registration-password"
@@ -314,7 +314,7 @@
 
 			<div class="space-y-1.5">
 				<label for="oauth-registration-confirm" class="text-sm font-medium text-foreground">
-					{$_('auth.register.confirmPasswordLabel', { default: 'Confirm password' })}
+					{$_('auth.register.confirmPasswordLabel', { default: '确认密码' })}
 				</label>
 				<Input
 					id="oauth-registration-confirm"
@@ -329,7 +329,7 @@
 			{#if invitationRequired}
 				<div class="space-y-1.5">
 					<label for="oauth-registration-invitation" class="text-sm font-medium text-foreground">
-						{$_('auth.invitationCodeLabel', { default: 'Invitation code' })}
+						{$_('auth.invitationCodeLabel', { default: '邀请码' })}
 					</label>
 					<Input
 						id="oauth-registration-invitation"
@@ -354,32 +354,32 @@
 				class="w-full"
 			>
 				{submitting
-					? $_('auth.callback.totpSubmitting', { default: 'Verifying...' })
-					: $_('auth.emailCompletion.submit', { default: 'Complete sign-in' })}
+					? $_('auth.callback.totpSubmitting', { default: '验证中...' })
+					: $_('auth.emailCompletion.submit', { default: '完成登录' })}
 			</Button>
 		</form>
 	{:else if phase === 'invalid'}
 		<div class="space-y-4 text-center" data-testid="oauth-callback-invalid">
 			<p class="text-sm text-muted-foreground">
 				{$_('auth.callback.errors.UNKNOWN', {
-					default: 'Sign-in failed. Please try again.'
+					default: '登录失败，请重试。'
 				})}
 			</p>
 			<Button href="/auth/login">
-				{$_('auth.backToLogin', { default: 'Back to sign in' })}
+				{$_('auth.backToLogin', { default: '返回登录' })}
 			</Button>
 		</div>
 	{:else if phase === 'completed'}
 		<div class="space-y-3 text-center" data-testid="oauth-callback-completed">
 			<p class="text-sm text-muted-foreground">
-				{$_('auth.callback.completed', { default: 'Redirecting...' })}
+				{$_('auth.callback.completed', { default: '跳转中...' })}
 			</p>
 		</div>
 	{:else}
 		<div class="space-y-4" data-testid="oauth-callback-manual">
 			<div class="space-y-1.5">
 				<label for="oauth-code" class="text-sm font-medium text-foreground">
-					{$_('auth.oauth.code', { default: 'Code' })}
+					{$_('auth.oauth.code', { default: '代码' })}
 				</label>
 				<div class="flex min-w-0 gap-2">
 					<Input
@@ -393,7 +393,7 @@
 						variant="outline"
 						size="icon"
 						disabled={!code}
-						aria-label={$_('common.copy', { default: 'Copy' })}
+						aria-label={$_('common.copy', { default: '复制' })}
 						onclick={() => void copy(code)}
 						class="h-9 w-9 text-muted-foreground hover:text-foreground"
 					>
@@ -404,7 +404,7 @@
 
 			<div class="space-y-1.5">
 				<label for="oauth-state" class="text-sm font-medium text-foreground">
-					{$_('auth.oauth.state', { default: 'State' })}
+					{$_('auth.oauth.state', { default: '状态' })}
 				</label>
 				<div class="flex min-w-0 gap-2">
 					<Input
@@ -418,7 +418,7 @@
 						variant="outline"
 						size="icon"
 						disabled={!oauthState}
-						aria-label={$_('common.copy', { default: 'Copy' })}
+						aria-label={$_('common.copy', { default: '复制' })}
 						onclick={() => void copy(oauthState)}
 						class="h-9 w-9 text-muted-foreground hover:text-foreground"
 					>
@@ -429,7 +429,7 @@
 
 			<div class="space-y-1.5">
 				<label for="oauth-full-url" class="text-sm font-medium text-foreground">
-					{$_('auth.oauth.fullUrl', { default: 'Full URL' })}
+					{$_('auth.oauth.fullUrl', { default: '完整 URL' })}
 				</label>
 				<div class="flex min-w-0 gap-2">
 					<Input
@@ -443,7 +443,7 @@
 						variant="outline"
 						size="icon"
 						disabled={!fullUrl}
-						aria-label={$_('common.copy', { default: 'Copy' })}
+						aria-label={$_('common.copy', { default: '复制' })}
 						onclick={() => void copy(fullUrl)}
 						class="h-9 w-9 text-muted-foreground hover:text-foreground"
 					>

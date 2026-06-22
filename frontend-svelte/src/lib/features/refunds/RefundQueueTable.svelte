@@ -115,13 +115,13 @@
 					<div
 						class="grid grid-cols-[1.2fr,1.4fr,1fr,1.6fr,1fr,90px,160px] gap-2 border-b border-border bg-muted px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 					>
-						<div>{$_('admin.refunds.colOrderNo', { default: 'Order #' })}</div>
-						<div>{$_('admin.refunds.colUser', { default: 'User' })}</div>
-						<div class="text-right">{$_('admin.refunds.colAmount', { default: 'Amount' })}</div>
-						<div>{$_('admin.refunds.colReason', { default: 'Reason' })}</div>
-						<div>{$_('admin.refunds.colRequestedAt', { default: 'Requested at' })}</div>
-						<div>{$_('admin.refunds.colStatus', { default: 'Status' })}</div>
-						<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+						<div>{$_('admin.refunds.colOrderNo', { default: '订单 #' })}</div>
+						<div>{$_('admin.refunds.colUser', { default: '用户' })}</div>
+						<div class="text-right">{$_('admin.refunds.colAmount', { default: '金额' })}</div>
+						<div>{$_('admin.refunds.colReason', { default: '原因' })}</div>
+						<div>{$_('admin.refunds.colRequestedAt', { default: '请求于' })}</div>
+						<div>{$_('admin.refunds.colStatus', { default: '状态' })}</div>
+						<div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 					</div>
 				{/snippet}
 				{#snippet row({ row: r })}
@@ -166,8 +166,8 @@
 									onView(r);
 								}}
 								data-testid="admin-refunds-view"
-								title={$_('admin.refunds.view', { default: 'View' })}
-								aria-label={$_('admin.refunds.view', { default: 'View' })}
+								title={$_('admin.refunds.view', { default: '查看' })}
+								aria-label={$_('admin.refunds.view', { default: '查看' })}
 							>
 								<Eye class="h-3 w-3" />
 							</Button>
@@ -183,7 +183,7 @@
 									data-testid="admin-refunds-approve"
 								>
 									<CheckCircle2 class="h-3 w-3" />
-									{$_('admin.refunds.approve', { default: 'Approve' })}
+									{$_('admin.refunds.approve', { default: '批准' })}
 								</Button>
 								<Button
 									variant="outline"
@@ -196,7 +196,7 @@
 									data-testid="admin-refunds-reject"
 								>
 									<XCircle class="h-3 w-3" />
-									{$_('admin.refunds.reject', { default: 'Reject' })}
+									{$_('admin.refunds.reject', { default: '拒绝' })}
 								</Button>
 							{/if}
 						</div>
@@ -208,13 +208,13 @@
 				<div
 					class="grid grid-cols-[1.2fr,1.4fr,1fr,1.6fr,1fr,90px,160px] gap-2 border-b border-border bg-muted px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 				>
-					<div>{$_('admin.refunds.colOrderNo', { default: 'Order #' })}</div>
-					<div>{$_('admin.refunds.colUser', { default: 'User' })}</div>
-					<div class="text-right">{$_('admin.refunds.colAmount', { default: 'Amount' })}</div>
-					<div>{$_('admin.refunds.colReason', { default: 'Reason' })}</div>
-					<div>{$_('admin.refunds.colRequestedAt', { default: 'Requested at' })}</div>
-					<div>{$_('admin.refunds.colStatus', { default: 'Status' })}</div>
-					<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+					<div>{$_('admin.refunds.colOrderNo', { default: '订单 #' })}</div>
+					<div>{$_('admin.refunds.colUser', { default: '用户' })}</div>
+					<div class="text-right">{$_('admin.refunds.colAmount', { default: '金额' })}</div>
+					<div>{$_('admin.refunds.colReason', { default: '原因' })}</div>
+					<div>{$_('admin.refunds.colRequestedAt', { default: '请求于' })}</div>
+					<div>{$_('admin.refunds.colStatus', { default: '状态' })}</div>
+					<div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 				</div>
 				<div class="flex-1 overflow-y-auto">
 					{#each rows as r (rowKey(r))}
@@ -259,8 +259,8 @@
 										onView(r);
 									}}
 									data-testid="admin-refunds-view"
-									title={$_('admin.refunds.view', { default: 'View' })}
-									aria-label={$_('admin.refunds.view', { default: 'View' })}
+									title={$_('admin.refunds.view', { default: '查看' })}
+									aria-label={$_('admin.refunds.view', { default: '查看' })}
 								>
 									<Eye class="h-3 w-3" />
 								</Button>
@@ -276,7 +276,7 @@
 										data-testid="admin-refunds-approve"
 									>
 										<CheckCircle2 class="h-3 w-3" />
-										{$_('admin.refunds.approve', { default: 'Approve' })}
+										{$_('admin.refunds.approve', { default: '批准' })}
 									</Button>
 									<Button
 										variant="outline"
@@ -289,7 +289,7 @@
 										data-testid="admin-refunds-reject"
 									>
 										<XCircle class="h-3 w-3" />
-										{$_('admin.refunds.reject', { default: 'Reject' })}
+										{$_('admin.refunds.reject', { default: '拒绝' })}
 									</Button>
 								{/if}
 							</div>
@@ -310,7 +310,7 @@
 				size="icon"
 				disabled={page === 1 || loading}
 				onclick={() => onPageChange(Math.max(1, page - 1))}
-				aria-label={$_('common.back', { default: 'Previous' })}
+				aria-label={$_('common.back', { default: '上一页' })}
 			>
 				<ChevronLeft class="h-3 w-3" />
 			</Button>
@@ -322,7 +322,7 @@
 				size="icon"
 				disabled={page === totalPages || loading}
 				onclick={() => onPageChange(Math.min(totalPages, page + 1))}
-				aria-label={$_('common.next', { default: 'Next' })}
+				aria-label={$_('common.next', { default: '下一步' })}
 			>
 				<ChevronRight class="h-3 w-3" />
 			</Button>
@@ -336,7 +336,7 @@
 		<Inbox class="h-10 w-10 opacity-40" />
 		<p class="m-0 text-[13px]">
 			{$_('admin.refunds.emptyText', {
-				default: 'No refund requests match the current filters.'
+				default: '无退款请求匹配当前筛选条件。'
 			})}
 		</p>
 	</div>

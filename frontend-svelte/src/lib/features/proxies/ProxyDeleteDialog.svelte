@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Button from '$lib/ui/Button.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import { deleteProxy, batchDeleteProxies, type Proxy } from '$lib/api/admin/proxies';
@@ -57,7 +58,7 @@
 			{/if}
 		</p>
 		<div class="flex justify-end gap-2 border-t border-border pt-4">
-			<Button variant="outline" onclick={() => { open = false; onClose(); }}>Cancel</Button>
+			<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 			<Button
 				variant="outline"
 				class="border-destructive/30 text-destructive hover:bg-destructive/10"

@@ -14,6 +14,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 export type SettingsMap = Record<string, unknown>;
 
 export interface TestSmtpRequest {
@@ -234,8 +239,8 @@ export interface BackupListResponse {
 
 export const settingsApi = {
 	/** 拉取后端全量 settings 快照。 */
-	getSettings(): Promise<SettingsMap> {
-		return apiClient.get<SettingsMap>('/api/v1/admin/settings');
+	async getSettings(): Promise<SettingsMap> {
+		return unwrap<SettingsMap>(await apiClient.get('/api/v1/admin/settings'));
 	},
 
 	/**
@@ -268,13 +273,13 @@ export const settingsApi = {
 	// ── Admin API Key CRUD（独立 lifecycle，不进 patchSettings 流水线） ────────────
 
 	/** GET 当前 admin API key 状态（masked）。 */
-	getAdminApiKey(): Promise<AdminApiKeyStatus> {
-		return apiClient.get<AdminApiKeyStatus>('/api/v1/admin/settings/admin-api-key');
+	async getAdminApiKey(): Promise<AdminApiKeyStatus> {
+		return unwrap<AdminApiKeyStatus>(await apiClient.get('/api/v1/admin/settings/admin-api-key'));
 	},
 
 	/** POST 重新生成 admin API key —— 返回一次性明文，前端必须立刻显示给管理员。 */
-	regenerateAdminApiKey(): Promise<AdminApiKeyResult> {
-		return apiClient.post<AdminApiKeyResult>('/api/v1/admin/settings/admin-api-key/regenerate', {});
+	async regenerateAdminApiKey(): Promise<AdminApiKeyResult> {
+		return unwrap<AdminApiKeyResult>(await apiClient.post('/api/v1/admin/settings/admin-api-key/regenerate', {}));
 	},
 
 	/** DELETE 当前 admin API key。 */
@@ -285,78 +290,62 @@ export const settingsApi = {
 	// ── M11 gateway 自管理 endpoints ──────────────────────────────────────────────
 
 	/** GET 当前 529 overload cooldown 设置。 */
-	getOverloadCooldownSettings(): Promise<OverloadCooldownSettings> {
-		return apiClient.get<OverloadCooldownSettings>('/api/v1/admin/settings/overload-cooldown');
+	async getOverloadCooldownSettings(): Promise<OverloadCooldownSettings> {
+		return unwrap<OverloadCooldownSettings>(await apiClient.get('/api/v1/admin/settings/overload-cooldown'));
 	},
 
 	/** PUT 完整 529 overload cooldown 配置 —— 不是 patch，整体替换。 */
-	updateOverloadCooldownSettings(
+	async updateOverloadCooldownSettings(
 		body: OverloadCooldownSettings
 	): Promise<OverloadCooldownSettings> {
-		return apiClient.put<OverloadCooldownSettings>(
-			'/api/v1/admin/settings/overload-cooldown',
-			body
-		);
+		return unwrap<OverloadCooldownSettings>(await apiClient.put('/api/v1/admin/settings/overload-cooldown', body));
 	},
 
 	/** GET 当前 429 default cooldown 设置。 */
-	getRateLimit429CooldownSettings(): Promise<RateLimit429CooldownSettings> {
-		return apiClient.get<RateLimit429CooldownSettings>(
-			'/api/v1/admin/settings/rate-limit-429-cooldown'
-		);
+	async getRateLimit429CooldownSettings(): Promise<RateLimit429CooldownSettings> {
+		return unwrap<RateLimit429CooldownSettings>(await apiClient.get('/api/v1/admin/settings/rate-limit-429-cooldown'));
 	},
 
 	/** PUT 完整 429 default cooldown 配置 —— 不是 patch，整体替换。 */
-	updateRateLimit429CooldownSettings(
+	async updateRateLimit429CooldownSettings(
 		body: RateLimit429CooldownSettings
 	): Promise<RateLimit429CooldownSettings> {
-		return apiClient.put<RateLimit429CooldownSettings>(
-			'/api/v1/admin/settings/rate-limit-429-cooldown',
-			body
-		);
+		return unwrap<RateLimit429CooldownSettings>(await apiClient.put('/api/v1/admin/settings/rate-limit-429-cooldown', body));
 	},
 
 	// ── M10e gateway long-tail self-managed endpoints ──────────────────────────
 
-	getStreamTimeoutSettings(): Promise<StreamTimeoutSettings> {
-		return apiClient.get<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout');
+	async getStreamTimeoutSettings(): Promise<StreamTimeoutSettings> {
+		return unwrap<StreamTimeoutSettings>(await apiClient.get('/api/v1/admin/settings/stream-timeout'));
 	},
-	updateStreamTimeoutSettings(body: StreamTimeoutSettings): Promise<StreamTimeoutSettings> {
-		return apiClient.put<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout', body);
-	},
-
-	getRectifierSettings(): Promise<RectifierSettings> {
-		return apiClient.get<RectifierSettings>('/api/v1/admin/settings/rectifier');
-	},
-	updateRectifierSettings(body: RectifierSettings): Promise<RectifierSettings> {
-		return apiClient.put<RectifierSettings>('/api/v1/admin/settings/rectifier', body);
+	async updateStreamTimeoutSettings(body: StreamTimeoutSettings): Promise<StreamTimeoutSettings> {
+		return unwrap<StreamTimeoutSettings>(await apiClient.put('/api/v1/admin/settings/stream-timeout', body));
 	},
 
-	getBetaPolicySettings(): Promise<BetaPolicySettings> {
-		return apiClient.get<BetaPolicySettings>('/api/v1/admin/settings/beta-policy');
+	async getRectifierSettings(): Promise<RectifierSettings> {
+		return unwrap<RectifierSettings>(await apiClient.get('/api/v1/admin/settings/rectifier'));
 	},
-	updateBetaPolicySettings(body: BetaPolicySettings): Promise<BetaPolicySettings> {
-		return apiClient.put<BetaPolicySettings>('/api/v1/admin/settings/beta-policy', body);
+	async updateRectifierSettings(body: RectifierSettings): Promise<RectifierSettings> {
+		return unwrap<RectifierSettings>(await apiClient.put('/api/v1/admin/settings/rectifier', body));
 	},
 
-	getWebSearchEmulationConfig(): Promise<WebSearchEmulationConfig> {
-		return apiClient.get<WebSearchEmulationConfig>(
-			'/api/v1/admin/settings/web-search-emulation'
-		);
+	async getBetaPolicySettings(): Promise<BetaPolicySettings> {
+		return unwrap<BetaPolicySettings>(await apiClient.get('/api/v1/admin/settings/beta-policy'));
 	},
-	updateWebSearchEmulationConfig(
+	async updateBetaPolicySettings(body: BetaPolicySettings): Promise<BetaPolicySettings> {
+		return unwrap<BetaPolicySettings>(await apiClient.put('/api/v1/admin/settings/beta-policy', body));
+	},
+
+	async getWebSearchEmulationConfig(): Promise<WebSearchEmulationConfig> {
+		return unwrap<WebSearchEmulationConfig>(await apiClient.get('/api/v1/admin/settings/web-search-emulation'));
+	},
+	async updateWebSearchEmulationConfig(
 		body: WebSearchEmulationConfig
 	): Promise<WebSearchEmulationConfig> {
-		return apiClient.put<WebSearchEmulationConfig>(
-			'/api/v1/admin/settings/web-search-emulation',
-			body
-		);
+		return unwrap<WebSearchEmulationConfig>(await apiClient.put('/api/v1/admin/settings/web-search-emulation', body));
 	},
-	testWebSearchEmulation(query: string): Promise<WebSearchTestResult> {
-		return apiClient.post<WebSearchTestResult>(
-			'/api/v1/admin/settings/web-search-emulation/test',
-			{ query }
-		);
+	async testWebSearchEmulation(query: string): Promise<WebSearchTestResult> {
+		return unwrap<WebSearchTestResult>(await apiClient.post('/api/v1/admin/settings/web-search-emulation/test', { query }));
 	},
 	async resetWebSearchUsage(providerType: string): Promise<void> {
 		await apiClient.post('/api/v1/admin/settings/web-search-emulation/reset-usage', {
@@ -366,77 +355,74 @@ export const settingsApi = {
 
 	// ── Email template editor（独立 lifecycle，不进 patchSettings） ─────────────
 
-	getEmailTemplates(): Promise<EmailTemplateListResponse> {
-		return apiClient.get<EmailTemplateListResponse>('/api/v1/admin/settings/email-templates');
+	async getEmailTemplates(): Promise<EmailTemplateListResponse> {
+		return unwrap<EmailTemplateListResponse>(await apiClient.get('/api/v1/admin/settings/email-templates'));
 	},
-	getEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
-		return apiClient.get<EmailTemplateDetail>(
+	async getEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
+		return unwrap<EmailTemplateDetail>(await apiClient.get(
 			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}`
-		);
+		));
 	},
-	updateEmailTemplate(
+	async updateEmailTemplate(
 		event: string,
 		locale: string,
 		body: UpdateEmailTemplateRequest
 	): Promise<EmailTemplateDetail> {
-		return apiClient.put<EmailTemplateDetail>(
+		return unwrap<EmailTemplateDetail>(await apiClient.put(
 			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}`,
 			body
-		);
+		));
 	},
-	restoreOfficialEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
-		return apiClient.post<EmailTemplateDetail>(
+	async restoreOfficialEmailTemplate(event: string, locale: string): Promise<EmailTemplateDetail> {
+		return unwrap<EmailTemplateDetail>(await apiClient.post(
 			`/api/v1/admin/settings/email-templates/${encodeURIComponent(event)}/${encodeURIComponent(locale)}/restore-official`,
 			{}
-		);
+		));
 	},
-	previewEmailTemplate(
+	async previewEmailTemplate(
 		body: PreviewEmailTemplateRequest
 	): Promise<EmailTemplatePreviewResponse> {
-		return apiClient.post<EmailTemplatePreviewResponse>(
-			'/api/v1/admin/settings/email-template-preview',
-			body
-		);
+		return unwrap<EmailTemplatePreviewResponse>(await apiClient.post('/api/v1/admin/settings/email-template-preview', body));
 	},
 
 	// ── M10d backup endpoints（独立 lifecycle，不进 patchSettings） ─────────────
 
-	getBackupS3Config(): Promise<BackupS3Config> {
-		return apiClient.get<BackupS3Config>('/api/v1/admin/backups/s3-config');
+	async getBackupS3Config(): Promise<BackupS3Config> {
+		return unwrap<BackupS3Config>(await apiClient.get('/api/v1/admin/backups/s3-config'));
 	},
-	updateBackupS3Config(body: BackupS3Config): Promise<BackupS3Config> {
-		return apiClient.put<BackupS3Config>('/api/v1/admin/backups/s3-config', body);
+	async updateBackupS3Config(body: BackupS3Config): Promise<BackupS3Config> {
+		return unwrap<BackupS3Config>(await apiClient.put('/api/v1/admin/backups/s3-config', body));
 	},
-	testBackupS3Connection(body: BackupS3Config): Promise<BackupTestS3Response> {
-		return apiClient.post<BackupTestS3Response>('/api/v1/admin/backups/s3-config/test', body);
+	async testBackupS3Connection(body: BackupS3Config): Promise<BackupTestS3Response> {
+		return unwrap<BackupTestS3Response>(await apiClient.post('/api/v1/admin/backups/s3-config/test', body));
 	},
-	getBackupSchedule(): Promise<BackupScheduleConfig> {
-		return apiClient.get<BackupScheduleConfig>('/api/v1/admin/backups/schedule');
+	async getBackupSchedule(): Promise<BackupScheduleConfig> {
+		return unwrap<BackupScheduleConfig>(await apiClient.get('/api/v1/admin/backups/schedule'));
 	},
-	updateBackupSchedule(body: BackupScheduleConfig): Promise<BackupScheduleConfig> {
-		return apiClient.put<BackupScheduleConfig>('/api/v1/admin/backups/schedule', body);
+	async updateBackupSchedule(body: BackupScheduleConfig): Promise<BackupScheduleConfig> {
+		return unwrap<BackupScheduleConfig>(await apiClient.put('/api/v1/admin/backups/schedule', body));
 	},
-	listBackups(): Promise<BackupListResponse> {
-		return apiClient.get<BackupListResponse>('/api/v1/admin/backups');
+	async listBackups(): Promise<BackupListResponse> {
+		return unwrap<BackupListResponse>(await apiClient.get('/api/v1/admin/backups'));
 	},
-	createBackup(body: { expire_days?: number }): Promise<BackupRecord> {
-		return apiClient.post<BackupRecord>('/api/v1/admin/backups', body ?? {});
+	async createBackup(body: { expire_days?: number }): Promise<BackupRecord> {
+		return unwrap<BackupRecord>(await apiClient.post('/api/v1/admin/backups', body ?? {}));
 	},
-	getBackup(id: string): Promise<BackupRecord> {
-		return apiClient.get<BackupRecord>(`/api/v1/admin/backups/${encodeURIComponent(id)}`);
+	async getBackup(id: string): Promise<BackupRecord> {
+		return unwrap<BackupRecord>(await apiClient.get(`/api/v1/admin/backups/${encodeURIComponent(id)}`));
 	},
 	async deleteBackup(id: string): Promise<void> {
 		await apiClient.delete(`/api/v1/admin/backups/${encodeURIComponent(id)}`);
 	},
-	getBackupDownloadURL(id: string): Promise<{ url: string }> {
-		return apiClient.get<{ url: string }>(
+	async getBackupDownloadURL(id: string): Promise<{ url: string }> {
+		return unwrap<{ url: string }>(await apiClient.get(
 			`/api/v1/admin/backups/${encodeURIComponent(id)}/download-url`
-		);
+		));
 	},
-	restoreBackup(id: string, password: string): Promise<BackupRecord> {
-		return apiClient.post<BackupRecord>(
+	async restoreBackup(id: string, password: string): Promise<BackupRecord> {
+		return unwrap<BackupRecord>(await apiClient.post(
 			`/api/v1/admin/backups/${encodeURIComponent(id)}/restore`,
 			{ password }
-		);
+		));
 	}
 };

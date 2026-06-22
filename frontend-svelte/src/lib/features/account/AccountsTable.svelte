@@ -103,15 +103,15 @@
 	{#snippet header()}
 		<tr class="text-xs text-muted-foreground">
 			<th class="w-8 px-2"><Checkbox checked={allSel} onchange={onTogglePage} data-testid="accounts-select-all" /></th>
-			<th class="px-3">{$_('admin.accounts.col.account', { default: 'Account' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.platform', { default: 'Platform' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.status', { default: 'Status' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.capacity', { default: 'Capacity' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.usage', { default: 'Usage' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.groups', { default: 'Groups' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.proxy', { default: 'Proxy' })}</th>
-			<th class="px-3">{$_('admin.accounts.col.models', { default: 'Models' })}</th>
-			<th class="px-3 text-right">{$_('admin.accounts.col.actions', { default: 'Actions' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.account', { default: '账户' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.platform', { default: '平台' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.status', { default: '状态' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.capacity', { default: '容量' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.usage', { default: '用量' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.groups', { default: '分组' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.proxy', { default: '代理' })}</th>
+			<th class="px-3">{$_('admin.accounts.col.models', { default: '模型' })}</th>
+			<th class="px-3 text-right">{$_('admin.accounts.col.actions', { default: '操作' })}</th>
 		</tr>
 	{/snippet}
 
@@ -225,28 +225,28 @@
 						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onReAuth(account)}>
 							{$_('admin.accounts.reauth', { default: 'ReAuth' })}
 						</Button>
-						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.tokenRefreshed', { default: 'Token refreshed' }), () => refreshAccount(account.id))}>
+						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.tokenRefreshed', { default: '令牌已刷新' }), () => refreshAccount(account.id))}>
 							Refresh token
 						</Button>
 					{/if}
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.privacySet', { default: 'Privacy set' }), () => setAccountPrivacy(account.id, true))}>
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.privacySet', { default: '隐私已设置' }), () => setAccountPrivacy(account.id, true))}>
 						Privacy
 					</Button>
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: 'State recovered' }), () => recoverAccountState(account.id))}>
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: '状态已恢复' }), () => recoverAccountState(account.id))}>
 						Recover
 					</Button>
 					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act(
-						accountIsSchedulable(account) ? $_('admin.accounts.unscheduled', { default: 'Unscheduled' }) : $_('admin.accounts.scheduled', { default: 'Scheduled' }),
+						accountIsSchedulable(account) ? $_('admin.accounts.unscheduled', { default: 'Unscheduled' }) : $_('admin.accounts.scheduled', { default: '已计划' }),
 						() => setAccountSchedulable(account.id, !accountIsSchedulable(account))
 					)}>
-						{accountIsSchedulable(account) ? $_('admin.accounts.unsched', { default: 'Unsched' }) : $_('admin.accounts.sched', { default: 'Sched' })}
+						{accountIsSchedulable(account) ? $_('admin.accounts.unsched', { default: 'Unsched' }) : $_('admin.accounts.sched', { default: '计划' })}
 					</Button>
 					{#if account.status === 'error'}
-						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs text-amber-600" onclick={() => act($_('admin.accounts.errorCleared', { default: 'Error cleared' }), () => clearAccountError(account.id))}>
-							{$_('admin.accounts.clearErr', { default: 'Clear err' })}
+						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs text-amber-600" onclick={() => act($_('admin.accounts.errorCleared', { default: '错误已清除' }), () => clearAccountError(account.id))}>
+							{$_('admin.accounts.clearErr', { default: 'Clear errors' })}
 						</Button>
 					{/if}
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act(account.status === 'active' ? $_('admin.accounts.disabled', { default: 'Disabled' }) : $_('admin.accounts.activated', { default: 'Activated' }), () => updateAccountStatus(account.id, account.status === 'active' ? 'inactive' : 'active'))}>
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act(account.status === 'active' ? $_('admin.accounts.disabled', { default: '已禁用' }) : $_('admin.accounts.activated', { default: '已激活' }), () => updateAccountStatus(account.id, account.status === 'active' ? 'inactive' : 'active'))}>
 						{account.status === 'active' ? $_('admin.accounts.disable', { default: 'Disable' }) : $_('admin.accounts.enable', { default: 'Enable' })}
 					</Button>
 				</div>
@@ -255,6 +255,6 @@
 	{/snippet}
 
 	{#snippet empty()}
-		<p class="py-8 text-center text-muted-foreground">{$_('admin.accounts.noResults', { default: 'No accounts match the current filters.' })}</p>
+		<p class="py-8 text-center text-muted-foreground">{$_('admin.accounts.noResults', { default: '无账户匹配当前筛选条件。' })}</p>
 	{/snippet}
 </VirtualTable>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Network, Wifi } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -48,7 +49,7 @@
 				<label class="flex items-center">
 					<Checkbox checked={allPageSelected} onchange={onTogglePageSelection} aria-label="Select page" />
 				</label>
-				<span>Proxy</span><span>Endpoint</span><span>Status</span><span>Accounts</span><span>Expiry</span><span>Actions</span>
+				<span>{$_('admin.proxies.proxy', { default: 'Proxy' })}</span><span>{$_('admin.proxies.endpoint', { default: 'Endpoint' })}</span><span>{$_('common.status', { default: 'Status' })}</span><span>{$_('admin.proxies.accounts', { default: 'Accounts' })}</span><span>{$_('admin.proxies.expiry', { default: 'Expiry' })}</span><span>{$_('common.actions', { default: 'Actions' })}</span>
 			</div>
 		{/snippet}
 		{#snippet row({ row })}
@@ -66,13 +67,13 @@
 				<Button variant="ghost" size="sm" class="h-auto w-fit p-0 text-left text-xs underline hover:bg-transparent" onclick={() => onOpenAccounts(row)}>{proxyAccountCount(row)} accounts</Button>
 				<p class="text-xs text-muted-foreground">{row.expires_at ? new Date(row.expires_at).toLocaleDateString() : 'None'}</p>
 				<div class="flex flex-wrap gap-1.5">
-					<Button variant="outline" size="sm" disabled={saving} onclick={() => onTest(row)}><Wifi class="mr-1 inline" size={13} />Test</Button>
-					<Button variant="outline" size="sm" disabled={saving} onclick={() => onQualityCheck(row)}>Quality</Button>
-					<Button variant="outline" size="sm" onclick={() => onEdit(row)}>Edit</Button>
+					<Button variant="outline" size="sm" disabled={saving} onclick={() => onTest(row)}><Wifi class="mr-1 inline" size={13} />{$_('common.test', { default: 'Test' })}</Button>
+					<Button variant="outline" size="sm" disabled={saving} onclick={() => onQualityCheck(row)}>{$_('admin.proxies.quality', { default: 'Quality' })}</Button>
+					<Button variant="outline" size="sm" onclick={() => onEdit(row)}>{$_('common.edit', { default: 'Edit' })}</Button>
 					<Button variant="outline" size="sm" disabled={saving} onclick={() => updateProxyStatus(row.id, row.status === 'active' ? 'inactive' : 'active').then(onReload)}>
 						{row.status === 'active' ? 'Disable' : 'Enable'}
 					</Button>
-					<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => onDelete(row)}>Delete</Button>
+					<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => onDelete(row)}>{$_('common.delete', { default: 'Delete' })}</Button>
 				</div>
 			</div>
 		{/snippet}

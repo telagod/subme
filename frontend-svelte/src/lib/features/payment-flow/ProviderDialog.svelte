@@ -35,11 +35,11 @@
 	function providerLabel(kind: string): string {
 		switch (kind) {
 			case 'stripe':
-				return $_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' });
+				return $_('user.purchase.providerStripe', { default: 'Stripe（银行卡 / 支付宝 / 微信）' });
 			case 'airwallex':
 				return $_('user.purchase.providerAirwallex', { default: 'Airwallex' });
 			case 'balance':
-				return $_('user.purchase.providerBalance', { default: 'Pay with balance' });
+				return $_('user.purchase.providerBalance', { default: '余额支付' });
 			default:
 				return kind;
 		}
@@ -49,7 +49,7 @@
 <StandardDialog
 	open={open && Boolean(selectedPlan)}
 	width="sm"
-	title={$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
+	title={$_('user.purchase.providerTitle', { default: '选择支付方式' })}
 	data-testid="purchase-provider-panel"
 >
 	{#if selectedPlan}
@@ -60,7 +60,7 @@
 		<div
 			class="mt-5 space-y-2"
 			role="radiogroup"
-			aria-label={$_('user.purchase.providerTitle', { default: 'Choose a payment method' })}
+			aria-label={$_('user.purchase.providerTitle', { default: '选择支付方式' })}
 		>
 			{#each availableProviders as provider (provider.id)}
 				{@const Icon = providerIcon(provider.kind)}
@@ -83,7 +83,7 @@
 			{/each}
 			{#if availableProviders.length === 0}
 				<p class="py-4 text-center text-sm text-muted-foreground">
-					{$_('user.purchase.noPaymentMethods', { default: 'No payment methods available.' })}
+					{$_('user.purchase.noPaymentMethods', { default: '暂无可用支付方式。' })}
 				</p>
 			{/if}
 		</div>
@@ -96,7 +96,7 @@
 				onclick={onClose}
 				class="h-9"
 			>
-				{$_('user.purchase.cancel', { default: 'Cancel' })}
+				{$_('user.purchase.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				data-testid="purchase-provider-confirm"
@@ -105,8 +105,8 @@
 				class="h-9"
 			>
 				{checkoutSubmitting
-					? $_('user.purchase.processing', { default: 'Processing...' })
-					: $_('user.purchase.continueToPayment', { default: 'Continue to payment' })}
+					? $_('user.purchase.processing', { default: '处理中...' })
+					: $_('user.purchase.continueToPayment', { default: '继续支付' })}
 			</Button>
 		</div>
 	{/if}

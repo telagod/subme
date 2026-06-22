@@ -54,7 +54,7 @@
 	const chartState: ChartState = $derived(hasData ? 'ready' : loading ? 'loading' : 'empty');
 
 	const switchLabel = $derived(
-		$_('admin.ops.switchCount', { default: 'Account switches' })
+		$_('admin.ops.switchCount', { default: '账户切换' })
 	);
 
 	const chartData = $derived.by(() => ({
@@ -170,7 +170,7 @@
 <Card class="flex h-full flex-col">
 	<div class="mb-3 flex shrink-0 items-center justify-between">
 		<h3 class="text-[13px] font-bold text-foreground">
-			{$_('admin.ops.switchRateTrend', { default: 'Account switch trend' })}
+			{$_('admin.ops.switchRateTrend', { default: '账户切换趋势' })}
 		</h3>
 	</div>
 
@@ -184,14 +184,14 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 				data-testid="ops-switch-rate-trend-error"
 			>
-				{$_('admin.ops.charts.failed', { default: 'Failed to load chart' })}
+				{$_('admin.ops.charts.failed', { default: '加载图表失败' })}
 			</div>
 		{:else if chartState === 'loading'}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-switch-rate-trend-loading"
 			>
-				{$_('admin.ops.charts.loading', { default: 'Loading…' })}
+				{$_('admin.ops.charts.loading', { default: '加载中…' })}
 			</div>
 		{:else if chartState === 'empty'}
 			<div
@@ -199,10 +199,10 @@
 				data-testid="ops-switch-rate-trend-empty"
 			>
 				<span class="text-sm text-foreground">
-					{$_('admin.ops.charts.noData', { default: 'No data' })}
+					{$_('admin.ops.charts.noData', { default: '暂无数据' })}
 				</span>
 				<span class="text-xs text-muted-foreground">
-					{$_('admin.ops.charts.emptyRequest', { default: 'No requests in this range' })}
+					{$_('admin.ops.charts.emptyRequest', { default: '该范围内无请求' })}
 				</span>
 			</div>
 		{:else if !chartReady || !LineCmp}
@@ -210,7 +210,7 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-switch-rate-trend-loading"
 			>
-				{$_('admin.ops.charts.loading', { default: 'Loading…' })}
+				{$_('admin.ops.charts.loading', { default: '加载中…' })}
 			</div>
 		{:else}
 			{@const LC = LineCmp as unknown as import('svelte').Component<{

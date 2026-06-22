@@ -250,36 +250,36 @@
 		const errors: string[] = [];
 		if (!name.trim())
 			errors.push(
-				$_('admin.ops.alertRules.validation.nameRequired', { default: 'Name is required.' })
+				$_('admin.ops.alertRules.validation.nameRequired', { default: '名称必填。' })
 			);
 		if (!metricType)
 			errors.push(
 				$_('admin.ops.alertRules.validation.metricRequired', {
-					default: 'Metric type is required.'
+					default: '指标类型必填。'
 				})
 			);
 		if (isGroupMetric && groupId == null)
 			errors.push(
 				$_('admin.ops.alertRules.validation.groupIdRequired', {
-					default: 'A group is required for group-level metrics.'
+					default: '分组级指标需要分组。'
 				})
 			);
 		if (!operator)
 			errors.push(
 				$_('admin.ops.alertRules.validation.operatorRequired', {
-					default: 'Operator is required.'
+					default: '运算符必填。'
 				})
 			);
 		if (!(typeof threshold === 'number' && Number.isFinite(threshold)))
 			errors.push(
 				$_('admin.ops.alertRules.validation.thresholdRequired', {
-					default: 'Threshold must be a number.'
+					default: '阈值必须为数字。'
 				})
 			);
 		if (!WINDOW_OPTIONS.includes(windowMinutes as (typeof WINDOW_OPTIONS)[number]))
 			errors.push(
 				$_('admin.ops.alertRules.validation.windowRange', {
-					default: 'Window must be 1, 5 or 60 minutes.'
+					default: '窗口必须为 1、5 或 60 分钟。'
 				})
 			);
 		if (
@@ -291,7 +291,7 @@
 		)
 			errors.push(
 				$_('admin.ops.alertRules.validation.sustainedRange', {
-					default: 'Sustained minutes must be between 1 and 1440.'
+					default: '持续分钟数必须在 1 至 1440 之间。'
 				})
 			);
 		if (
@@ -303,7 +303,7 @@
 		)
 			errors.push(
 				$_('admin.ops.alertRules.validation.cooldownRange', {
-					default: 'Cooldown minutes must be between 0 and 1440.'
+					default: '冷却分钟数必须在 0 至 1440 之间。'
 				})
 			);
 		// filters JSON must parse (when provided).
@@ -313,14 +313,14 @@
 				if (typeof parsed !== 'object' || parsed == null || Array.isArray(parsed)) {
 					errors.push(
 						$_('admin.ops.alertRules.validation.filtersObject', {
-							default: 'Filters must be a JSON object.'
+							default: '筛选条件必须为 JSON 对象。'
 						})
 					);
 				}
 			} catch {
 				errors.push(
 					$_('admin.ops.alertRules.validation.filtersJson', {
-						default: 'Filters must be valid JSON.'
+						default: '筛选条件必须为有效 JSON。'
 					})
 				);
 			}
@@ -382,13 +382,13 @@
 				await createOpsAlertRule(payload);
 			}
 			showSuccess(
-				$_('admin.ops.alertRules.saveSuccess', { default: 'Alert rule saved.' })
+				$_('admin.ops.alertRules.saveSuccess', { default: '告警规则已保存。' })
 			);
 			onSaved();
 		} catch (err) {
 			const msg =
 				(err as Error)?.message ??
-				$_('admin.ops.alertRules.saveFailed', { default: 'Failed to save alert rule.' });
+				$_('admin.ops.alertRules.saveFailed', { default: '保存告警规则失败。' });
 			formError = msg;
 			showError(msg);
 		} finally {
@@ -416,10 +416,10 @@
 	onOpenChange={handleOpenChange}
 	width="lg"
 	title={isEditing
-		? $_('admin.ops.alertRules.editTitle', { default: 'Edit alert rule' })
-		: $_('admin.ops.alertRules.createTitle', { default: 'Create alert rule' })}
+		? $_('admin.ops.alertRules.editTitle', { default: '编辑告警规则' })
+		: $_('admin.ops.alertRules.createTitle', { default: '创建告警规则' })}
 	description={$_('admin.ops.alertRules.editDescription', {
-		default: 'Define when an alert fires and how it is delivered.'
+		default: '定义告警触发条件和发送方式。'
 	})}
 	data-testid="ops-alert-rule-dialog"
 >
@@ -434,7 +434,7 @@
 			<!-- name -->
 			<div class="space-y-1.5 sm:col-span-2">
 				<label for="rule-name" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.name', { default: 'Name' })}
+					{$_('admin.ops.alertRules.form.name', { default: '名称' })}
 				</label>
 				<Input
 					id="rule-name"
@@ -451,7 +451,7 @@
 			<!-- description -->
 			<div class="space-y-1.5 sm:col-span-2">
 				<label for="rule-description" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.description', { default: 'Description' })}
+					{$_('admin.ops.alertRules.form.description', { default: '描述' })}
 				</label>
 				<Input
 					id="rule-description"
@@ -459,7 +459,7 @@
 					data-testid="ops-rule-description"
 					bind:value={description}
 					placeholder={$_('admin.ops.alertRules.form.descriptionPlaceholder', {
-						default: 'Optional context shown on the alert.'
+						default: '告警上显示的可选上下文。'
 					})}
 				/>
 			</div>
@@ -467,7 +467,7 @@
 			<!-- metric_type -->
 			<div class="space-y-1.5">
 				<label for="rule-metric" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.metric', { default: 'Metric' })}
+					{$_('admin.ops.alertRules.form.metric', { default: '指标' })}
 				</label>
 				<NativeSelect
 					id="rule-metric"
@@ -490,7 +490,7 @@
 					<p class="text-xs text-muted-foreground">{selectedDef.descDefault}</p>
 					<p class="text-xs text-muted-foreground">
 						{$_('admin.ops.alertRules.hints.recommended', {
-							default: 'Recommended: {operator} {threshold}{unit}',
+							default: '推荐：{operator} {threshold}{unit}',
 							values: {
 								operator:
 									OPERATORS.find((o) => o.value === selectedDef.recommendedOperator)
@@ -506,7 +506,7 @@
 			<!-- operator -->
 			<div class="space-y-1.5">
 				<label for="rule-operator" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.operator', { default: 'Operator' })}
+					{$_('admin.ops.alertRules.form.operator', { default: '运算符' })}
 				</label>
 				<NativeSelect
 					id="rule-operator"
@@ -523,7 +523,7 @@
 			<!-- threshold -->
 			<div class="space-y-1.5">
 				<label for="rule-threshold" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.threshold', { default: 'Threshold' })}
+					{$_('admin.ops.alertRules.form.threshold', { default: '阈值' })}
 				</label>
 				<Input
 					id="rule-threshold"
@@ -538,7 +538,7 @@
 			<!-- severity -->
 			<div class="space-y-1.5">
 				<label for="rule-severity" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.severity', { default: 'Severity' })}
+					{$_('admin.ops.alertRules.form.severity', { default: '严重度' })}
 				</label>
 				<NativeSelect
 					id="rule-severity"
@@ -555,7 +555,7 @@
 			<!-- window_minutes -->
 			<div class="space-y-1.5">
 				<label for="rule-window" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.window', { default: 'Window (minutes)' })}
+					{$_('admin.ops.alertRules.form.window', { default: '窗口（分钟）' })}
 				</label>
 				<NativeSelect
 					id="rule-window"
@@ -573,7 +573,7 @@
 			<!-- sustained_minutes -->
 			<div class="space-y-1.5">
 				<label for="rule-sustained" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.sustained', { default: 'Sustained (minutes)' })}
+					{$_('admin.ops.alertRules.form.sustained', { default: '持续（分钟）' })}
 				</label>
 				<Input
 					id="rule-sustained"
@@ -590,7 +590,7 @@
 			<!-- cooldown_minutes -->
 			<div class="space-y-1.5">
 				<label for="rule-cooldown" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.cooldown', { default: 'Cooldown (minutes)' })}
+					{$_('admin.ops.alertRules.form.cooldown', { default: '冷却（分钟）' })}
 				</label>
 				<Input
 					id="rule-cooldown"
@@ -607,7 +607,7 @@
 			<!-- group filter (only meaningful when set; required for group metrics) -->
 			<div class="space-y-1.5 sm:col-span-2">
 				<label for="rule-group" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.groupId', { default: 'Group filter' })}
+					{$_('admin.ops.alertRules.form.groupId', { default: '分组筛选' })}
 					{#if isGroupMetric}<span class="ml-1 text-destructive">*</span>{/if}
 				</label>
 				<Input
@@ -621,17 +621,17 @@
 						groupSel = v === '' ? NULL_GROUP : v;
 					}}
 					placeholder={$_('admin.ops.alertRules.form.groupPlaceholder', {
-						default: 'Group ID (numeric) — leave empty for all groups'
+						default: '分组 ID（数字）— 留空表示所有分组'
 					})}
 					aria-invalid={isGroupMetric && groupId == null ? 'true' : undefined}
 				/>
 				<p class="text-xs text-muted-foreground">
 					{isGroupMetric
 						? $_('admin.ops.alertRules.hints.groupRequired', {
-								default: 'A group ID is required for group-level metrics.'
+								default: '分组级指标需要分组 ID。'
 							})
 						: $_('admin.ops.alertRules.hints.groupOptional', {
-								default: 'Optional: restrict this rule to a single group.'
+								default: '可选：限制此规则仅适用于单个分组。'
 							})}
 				</p>
 			</div>
@@ -639,7 +639,7 @@
 			<!-- filters JSON -->
 			<div class="space-y-1.5 sm:col-span-2">
 				<label for="rule-filters" class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.filters', { default: 'Filters (JSON)' })}
+					{$_('admin.ops.alertRules.form.filters', { default: '筛选条件 (JSON)' })}
 				</label>
 				<Textarea
 					id="rule-filters"
@@ -651,7 +651,7 @@
 				/>
 				<p class="text-xs text-muted-foreground">
 					{$_('admin.ops.alertRules.hints.filters', {
-						default: 'Optional JSON object of extra dimension filters.'
+						default: '可选的额外维度筛选 JSON 对象。'
 					})}
 				</p>
 			</div>
@@ -661,7 +661,7 @@
 				class="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5 sm:col-span-2"
 			>
 				<span class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.enabled', { default: 'Enabled' })}
+					{$_('admin.ops.alertRules.form.enabled', { default: '已启用' })}
 				</span>
 				<Checkbox data-testid="ops-rule-enabled" bind:checked={enabled} />
 			</label>
@@ -671,7 +671,7 @@
 				class="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5 sm:col-span-2"
 			>
 				<span class="text-sm font-medium text-foreground">
-					{$_('admin.ops.alertRules.form.notifyEmail', { default: 'Notify via email' })}
+					{$_('admin.ops.alertRules.form.notifyEmail', { default: '通过邮件通知' })}
 				</span>
 				<Checkbox data-testid="ops-rule-notify-email" bind:checked={notifyEmail} />
 			</label>
@@ -685,7 +685,7 @@
 				data-testid="ops-rule-cancel"
 				onclick={cancel}
 			>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				class="h-9"
@@ -694,8 +694,8 @@
 				onclick={save}
 			>
 				{saving
-					? $_('common.saving', { default: 'Saving...' })
-					: $_('common.save', { default: 'Save' })}
+					? $_('common.saving', { default: '保存中...' })
+					: $_('common.save', { default: '保存' })}
 			</Button>
 		</div>
 	</div>

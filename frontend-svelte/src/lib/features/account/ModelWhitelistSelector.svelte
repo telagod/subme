@@ -176,7 +176,7 @@
 
 	<!-- Quick actions -->
 	<div class="mt-3 flex flex-wrap gap-2">
-		<Button type="button" variant="outline" size="sm" onclick={fillRelated}>Fill related models</Button>
+		<Button type="button" variant="outline" size="sm" onclick={fillRelated}>{$_('admin.accounts.fillRelatedModels', { default: '填充关联模型' })}</Button>
 		{#if canSyncUpstream}
 			<Button type="button" variant="outline" size="sm" disabled={syncing} onclick={syncUpstream} class="border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10">
 				<RefreshCw size={14} class={syncing ? 'animate-spin' : ''} />

@@ -19,6 +19,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 export type ApiKeyStatus = 'active' | 'inactive' | 'quota_exhausted' | 'expired';
@@ -185,7 +190,7 @@ function buildQuery(params: ListKeysParams = {}): string {
 }
 
 export async function listKeys(params: ListKeysParams = {}): Promise<PaginatedKeys> {
-	const resp = await apiClient.get<RawPaginated>(`/api/v1/keys${buildQuery(params)}`);
+	const resp = unwrapEnvelope<RawPaginated>(await apiClient.get(`/api/v1/keys${buildQuery(params)}`));
 	return {
 		items: (resp.items ?? []).map(mapKey),
 		total: resp.total ?? 0,
@@ -194,12 +199,12 @@ export async function listKeys(params: ListKeysParams = {}): Promise<PaginatedKe
 }
 
 export async function getKey(id: number): Promise<ApiKey> {
-	const raw = await apiClient.get<RawApiKey>(`/api/v1/keys/${id}`);
+	const raw = unwrapEnvelope<RawApiKey>(await apiClient.get(`/api/v1/keys/${id}`));
 	return mapKey(raw);
 }
 
 export async function createKey(payload: CreateKeyPayload): Promise<ApiKey> {
-	const raw = await apiClient.post<RawApiKey>(`/api/v1/keys`, payload);
+	const raw = unwrapEnvelope<RawApiKey>(await apiClient.post(`/api/v1/keys`, payload));
 	return mapKey(raw);
 }
 
@@ -208,7 +213,7 @@ export async function createKey(payload: CreateKeyPayload): Promise<ApiKey> {
  * Vue tree 同点：soft-revoke 走 `PUT { status: 'inactive' }`，本 M6 范围不暴露。
  */
 export async function updateKey(id: number, payload: UpdateKeyPayload): Promise<ApiKey> {
-	const raw = await apiClient.put<RawApiKey>(`/api/v1/keys/${id}`, payload);
+	const raw = unwrapEnvelope<RawApiKey>(await apiClient.put(`/api/v1/keys/${id}`, payload));
 	return mapKey(raw);
 }
 
@@ -217,9 +222,9 @@ export async function revokeKey(id: number): Promise<void> {
 }
 
 export async function getAvailableGroups(): Promise<AvailableGroup[]> {
-	const resp = await apiClient.get<AvailableGroup[] | { data?: AvailableGroup[] }>(
+	const resp = unwrapEnvelope<AvailableGroup[] | { data?: AvailableGroup[] }>(await apiClient.get(
 		'/api/v1/groups/available'
-	);
+	));
 	if (Array.isArray(resp)) return resp;
 	return resp?.data ?? [];
 }

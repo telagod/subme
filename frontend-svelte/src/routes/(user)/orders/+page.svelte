@@ -85,7 +85,7 @@
 		actionLoading = true;
 		try {
 			await cancelMyOrder(cancelTarget.id);
-			showSuccess($_('common.success', { default: 'Success' }));
+			showSuccess($_('common.success', { default: '成功' }));
 			cancelTarget = null;
 			await loadOrders();
 		} catch (err) {
@@ -100,7 +100,7 @@
 		actionLoading = true;
 		try {
 			await requestMyOrderRefund(refundTarget.id, refundReason.trim());
-			showSuccess($_('common.success', { default: 'Success' }));
+			showSuccess($_('common.success', { default: '成功' }));
 			refundTarget = null;
 			refundReason = '';
 			await loadOrders();
@@ -130,21 +130,21 @@
 </script>
 
 <svelte:head>
-	<title>{$_('payment.orders.title', { default: 'Orders' })} · sub2api</title>
+	<title>{$_('payment.orders.title', { default: '订单' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-5" data-testid="user-orders-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('payment.orders.title', { default: 'Orders' })}
+				{$_('payment.orders.title', { default: '订单' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('payment.orders.description', { default: 'Review payment orders, cancel pending orders, and request eligible refunds.' })}
+				{$_('payment.orders.description', { default: '查看支付订单、取消待处理订单、申请符合条件的退款。' })}
 			</p>
 		</div>
 		<Button href="/purchase" class="h-9 px-3">
-			{$_('payment.result.backToRecharge', { default: 'Buy subscription' })}
+			{$_('payment.result.backToRecharge', { default: '购买订阅' })}
 		</Button>
 	</header>
 
@@ -154,7 +154,7 @@
 			onchange={applyStatusFilter}
 			data-testid="user-orders-status-filter"
 		>
-			<option value={STATUS_ALL}>{$_('common.all', { default: 'All' })}</option>
+			<option value={STATUS_ALL}>{$_('common.all', { default: '全部' })}</option>
 			{#each ORDER_STATUSES as status}
 				<option value={status}>{$_(`payment.status.${status.toLowerCase()}`, { default: status })}</option>
 			{/each}
@@ -167,7 +167,7 @@
 			disabled={loading}
 		>
 			<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</div>
 
@@ -179,13 +179,13 @@
 
 	<div class="overflow-hidden rounded-lg border border-border bg-card">
 		<div class="grid min-w-[980px] grid-cols-[90px_minmax(180px,1fr)_150px_150px_130px_170px_160px] border-b bg-muted/60 px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
-			<div>{$_('payment.orders.orderId', { default: 'Order ID' })}</div>
-			<div>{$_('payment.orders.orderNo', { default: 'Order No' })}</div>
-			<div>{$_('payment.orders.payAmount', { default: 'Pay Amount' })}</div>
-			<div>{$_('payment.orders.paymentMethod', { default: 'Payment Method' })}</div>
-			<div>{$_('payment.orders.status', { default: 'Status' })}</div>
-			<div>{$_('payment.orders.createdAt', { default: 'Created At' })}</div>
-			<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+			<div>{$_('payment.orders.orderId', { default: '订单号' })}</div>
+			<div>{$_('payment.orders.orderNo', { default: '订单号' })}</div>
+			<div>{$_('payment.orders.payAmount', { default: '支付金额' })}</div>
+			<div>{$_('payment.orders.paymentMethod', { default: '支付方式' })}</div>
+			<div>{$_('payment.orders.status', { default: '状态' })}</div>
+			<div>{$_('payment.orders.createdAt', { default: '创建时间' })}</div>
+			<div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 		</div>
 		{#if loading}
 			<div class="flex min-h-48 items-center justify-center" data-testid="user-orders-loading">
@@ -194,7 +194,7 @@
 		{:else if rows.length === 0}
 			<div class="flex min-h-56 flex-col items-center justify-center text-center" data-testid="user-orders-empty">
 				<ShoppingCart class="mb-3 h-10 w-10 text-muted-foreground" />
-				<p class="text-sm text-muted-foreground">{$_('payment.orders.empty', { default: 'No orders found' })}</p>
+				<p class="text-sm text-muted-foreground">{$_('payment.orders.empty', { default: '暂无订单' })}</p>
 			</div>
 		{:else}
 			<div class="overflow-x-auto">
@@ -209,7 +209,7 @@
 							<p class="font-medium">{formatMoney(order.pay_amount, order.currency ?? 'USD')}</p>
 							{#if order.amount !== order.pay_amount}
 								<p class="text-xs text-muted-foreground">
-									{$_('payment.orders.creditedAmount', { default: 'Credited' })}: {formatMoney(order.amount, order.order_type === 'balance' ? 'USD' : (order.currency ?? 'USD'))}
+									{$_('payment.orders.creditedAmount', { default: '已到账' })}: {formatMoney(order.amount, order.order_type === 'balance' ? 'USD' : (order.currency ?? 'USD'))}
 								</p>
 							{/if}
 						</div>
@@ -221,12 +221,12 @@
 						<div class="flex justify-end gap-2">
 							{#if canCancel(order)}
 								<Button size="sm" variant="outline" class="border-amber-500/30 text-amber-700 hover:bg-amber-500/10" onclick={() => (cancelTarget = order)}>
-									<X class="h-3 w-3" /> {$_('payment.orders.cancel', { default: 'Cancel' })}
+									<X class="h-3 w-3" /> {$_('payment.orders.cancel', { default: '取消' })}
 								</Button>
 							{/if}
 							{#if canRequestRefund(order, refundEligibleProviders)}
 								<Button size="sm" variant="outline" class="border-primary/30 text-primary hover:bg-primary/10" onclick={() => { refundTarget = order; refundReason = ''; }}>
-									{$_('payment.orders.requestRefund', { default: 'Request refund' })}
+									{$_('payment.orders.requestRefund', { default: '申请退款' })}
 								</Button>
 							{/if}
 						</div>
@@ -247,18 +247,18 @@
 	<StandardDialog
 		open={Boolean(cancelTarget)}
 		width="sm"
-		title={$_('payment.orders.cancel', { default: 'Cancel' })}
-		description={$_('payment.confirmCancel', { default: 'Cancel this pending order?' })}
+		title={$_('payment.orders.cancel', { default: '取消' })}
+		description={$_('payment.confirmCancel', { default: '取消此待处理订单？' })}
 		data-testid="user-order-cancel-dialog"
 	>
 		<div class="mt-6 flex justify-end gap-2 border-t border-border pt-4">
 			<Button variant="outline" onclick={() => (cancelTarget = null)}>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button variant="destructive" disabled={actionLoading} onclick={confirmCancel}>
 				{actionLoading
-					? $_('common.processing', { default: 'Processing...' })
-					: $_('payment.orders.cancel', { default: 'Cancel' })}
+					? $_('common.processing', { default: '处理中...' })
+					: $_('payment.orders.cancel', { default: '取消' })}
 			</Button>
 		</div>
 	</StandardDialog>
@@ -266,38 +266,38 @@
 	<StandardDialog
 		open={Boolean(refundTarget)}
 		width="md"
-		title={$_('payment.orders.requestRefund', { default: 'Request refund' })}
+		title={$_('payment.orders.requestRefund', { default: '申请退款' })}
 		data-testid="user-order-refund-dialog"
 	>
 		{#if refundTarget}
 			<div class="mt-4 rounded-md bg-muted p-3 text-sm">
 				<div class="flex justify-between">
-					<span class="text-muted-foreground">{$_('payment.orders.orderId', { default: 'Order ID' })}</span>
+					<span class="text-muted-foreground">{$_('payment.orders.orderId', { default: '订单号' })}</span>
 					<span class="font-mono">#{refundTarget.id}</span>
 				</div>
 				<div class="mt-2 flex justify-between">
-					<span class="text-muted-foreground">{$_('payment.orders.amount', { default: 'Amount' })}</span>
+					<span class="text-muted-foreground">{$_('payment.orders.amount', { default: '金额' })}</span>
 					<span>{formatMoney(refundTarget.amount, refundTarget.currency ?? 'USD')}</span>
 				</div>
 			</div>
 			<label class="mt-3 block text-sm">
-				<span class="font-medium">{$_('payment.refundReason', { default: 'Refund reason' })}</span>
+				<span class="font-medium">{$_('payment.refundReason', { default: '退款原因' })}</span>
 				<Textarea
 					class="mt-1 min-h-24"
 					bind:value={refundReason}
 					placeholder={$_('payment.refundReasonPlaceholder', {
-						default: 'Describe the reason for refund'
+						default: '描述退款原因'
 					})}
 				/>
 			</label>
 			<div class="mt-4 flex justify-end gap-2 border-t border-border pt-4">
 				<Button variant="outline" onclick={() => (refundTarget = null)}>
-					{$_('common.cancel', { default: 'Cancel' })}
+					{$_('common.cancel', { default: '取消' })}
 				</Button>
 				<Button disabled={actionLoading || !refundReason.trim()} onclick={confirmRefund}>
 					{actionLoading
-						? $_('common.processing', { default: 'Processing...' })
-						: $_('payment.orders.requestRefund', { default: 'Request refund' })}
+						? $_('common.processing', { default: '处理中...' })
+						: $_('payment.orders.requestRefund', { default: '申请退款' })}
 				</Button>
 			</div>
 		{/if}

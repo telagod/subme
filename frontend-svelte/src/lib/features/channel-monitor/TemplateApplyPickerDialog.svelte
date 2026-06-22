@@ -104,24 +104,24 @@
 	<div class="mt-4 space-y-3">
 		<p class="text-sm text-muted-foreground">
 			{$_('admin.channelMonitor.template.applyPickerHint', {
-				default: 'Select which monitors should receive this template\'s settings.'
+				default: '选择哪些监控接收此模板的设置。'
 			})}
 		</p>
 
 		{#if loading}
 			<div class="py-6 text-center text-sm text-muted-foreground">
-				{$_('common.loading', { default: 'Loading...' })}
+				{$_('common.loading', { default: '加载中...' })}
 			</div>
 		{:else if monitors.length === 0}
 			<div class="py-6 text-center text-sm text-muted-foreground">
 				{$_('admin.channelMonitor.template.applyPickerEmpty', {
-					default: 'No monitors are associated with this template.'
+					default: '此模板没有关联监控。'
 				})}
 			</div>
 		{:else}
 			<div class="mb-2 flex items-center gap-3 text-xs">
 				<Button variant="ghost" size="sm" class="h-auto p-0 text-xs" onclick={selectAll}>
-					{$_('common.selectAll', { default: 'Select all' })}
+					{$_('common.selectAll', { default: '全选' })}
 				</Button>
 				<Button
 					variant="ghost"
@@ -129,7 +129,7 @@
 					class="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
 					onclick={selectNone}
 				>
-					{$_('admin.channelMonitor.template.selectNone', { default: 'Select none' })}
+					{$_('admin.channelMonitor.template.selectNone', { default: '取消全选' })}
 				</Button>
 				<span class="ml-auto text-muted-foreground">
 					{$_('admin.channelMonitor.template.selectedCount', {
@@ -158,7 +158,7 @@
 							{/if}
 							{#if !m.enabled}
 								<Badge variant="secondary" class="ml-auto text-xs">
-									{$_('admin.channelMonitor.disabled', { default: 'Disabled' })}
+									{$_('admin.channelMonitor.disabled', { default: '已禁用' })}
 								</Badge>
 							{/if}
 						</button>
@@ -169,7 +169,7 @@
 
 		<div class="flex justify-end gap-2 pt-2">
 			<Button variant="outline" size="sm" onclick={() => (open = false)}>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				size="sm"
@@ -177,7 +177,7 @@
 				onclick={handleApply}
 			>
 				{submitting
-					? $_('common.submitting', { default: 'Applying...' })
+					? $_('common.submitting', { default: '应用中...' })
 					: $_('admin.channelMonitor.template.applyPickerConfirm', {
 							default: `Apply to ${selectedIds.length} monitors`,
 							values: { n: selectedIds.length }

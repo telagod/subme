@@ -68,7 +68,7 @@
 
 <StandardDialog
 	bind:open
-	title={$_('user.usage.errors.detail.title', { default: 'Error Detail' })}
+	title={$_('user.usage.errors.detail.title', { default: '错误详情' })}
 	width="lg"
 	{onOpenChange}
 	data-testid="error-detail-modal"
@@ -87,7 +87,7 @@
 			</div>
 		{:else if loadError}
 			<p class="py-8 text-center text-sm text-destructive">
-				{$_('user.usage.errors.detail.loadFailed', { default: 'Failed to load error details.' })}
+				{$_('user.usage.errors.detail.loadFailed', { default: '加载错误详情失败。' })}
 			</p>
 		{:else if detail}
 			<div class="space-y-4 text-sm">
@@ -95,28 +95,28 @@
 					<!-- Time -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.time', { default: 'Time' })}
+							{$_('user.usage.errors.time', { default: '时间' })}
 						</span>
 						<p class="mt-0.5 text-foreground">{fmtDate(detail.createdAt ?? '')}</p>
 					</div>
 					<!-- Model -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.model', { default: 'Model' })}
+							{$_('user.usage.errors.model', { default: '模型' })}
 						</span>
 						<p class="mt-0.5 text-foreground">{detail.model || '-'}</p>
 					</div>
 					<!-- Endpoint -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.endpoint', { default: 'Endpoint' })}
+							{$_('user.usage.errors.endpoint', { default: '端点' })}
 						</span>
 						<p class="mt-0.5 text-foreground">{detail.inboundEndpoint || '-'}</p>
 					</div>
 					<!-- Status Code -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.status', { default: 'Status' })}
+							{$_('user.usage.errors.status', { default: '状态' })}
 						</span>
 						<p class="mt-0.5">
 							<Badge variant={statusVariant(detail.statusCode ?? 0)}>
@@ -127,14 +127,14 @@
 					<!-- Category -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.category', { default: 'Category' })}
+							{$_('user.usage.errors.category', { default: '分类' })}
 						</span>
 						<p class="mt-0.5 text-foreground">{categoryLabel(detail.category ?? '')}</p>
 					</div>
 					<!-- Platform -->
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.platform', { default: 'Platform' })}
+							{$_('user.usage.errors.platform', { default: '平台' })}
 						</span>
 						<p class="mt-0.5 text-foreground">{detail.platform || '-'}</p>
 					</div>
@@ -142,7 +142,7 @@
 					{#if detail.upstreamStatusCode != null}
 						<div>
 							<span class="font-medium text-muted-foreground">
-								{$_('user.usage.errors.detail.upstreamStatus', { default: 'Upstream Status' })}
+								{$_('user.usage.errors.detail.upstreamStatus', { default: '上游状态' })}
 							</span>
 							<p class="mt-0.5 text-foreground">{detail.upstreamStatusCode}</p>
 						</div>
@@ -153,7 +153,7 @@
 				{#if detail.message}
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.message', { default: 'Message' })}
+							{$_('user.usage.errors.message', { default: '消息' })}
 						</span>
 						<p class="mt-0.5 break-all text-foreground">{detail.message}</p>
 					</div>
@@ -163,7 +163,7 @@
 				{#if detail.errorBody}
 					<div>
 						<span class="font-medium text-muted-foreground">
-							{$_('user.usage.errors.detail.responseBody', { default: 'Response Body' })}
+							{$_('user.usage.errors.detail.responseBody', { default: '响应体' })}
 						</span>
 						<pre
 							class="mt-1 max-h-[40vh] overflow-auto whitespace-pre-wrap break-all rounded-md border border-border bg-card p-3 text-xs text-foreground/85"

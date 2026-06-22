@@ -18,6 +18,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 类型契约 ────────────────────────────────────────────────────────────────
 
 export type ValidityUnit = 'days' | 'weeks' | 'months';
@@ -121,30 +126,30 @@ const PLANS_BASE = '/api/v1/admin/payment/plans';
 const GROUPS_BASE = '/api/v1/admin/groups';
 
 export async function listPlans(): Promise<AdminPlan[]> {
-	const raw = await apiClient.get<AdminPlanWire[] | ListPlansResponse>(PLANS_BASE);
-	const arr: AdminPlanWire[] = Array.isArray(raw)
-		? raw
-		: (raw.data ?? raw.plans ?? raw.items ?? []);
+	const resp = unwrap<AdminPlanWire[] | ListPlansResponse>(await apiClient.get(PLANS_BASE));
+	const arr: AdminPlanWire[] = Array.isArray(resp)
+		? resp
+		: (resp.data ?? resp.plans ?? resp.items ?? []);
 	return arr
 		.map(normalizePlan)
 		.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 }
 
 export async function getPlan(id: number): Promise<AdminPlan> {
-	const raw = await apiClient.get<AdminPlanWire>(`${PLANS_BASE}/${id}`);
+	const raw = unwrap<AdminPlanWire>(await apiClient.get(`${PLANS_BASE}/${id}`));
 	return normalizePlan(raw);
 }
 
 export async function createPlan(payload: CreatePlanPayload): Promise<AdminPlan> {
-	const wire = await apiClient.post<AdminPlanWire>(PLANS_BASE, serializeWritePayload(payload));
+	const wire = unwrap<AdminPlanWire>(await apiClient.post(PLANS_BASE, serializeWritePayload(payload)));
 	return normalizePlan(wire);
 }
 
 export async function updatePlan(id: number, payload: UpdatePlanPayload): Promise<AdminPlan> {
-	const wire = await apiClient.put<AdminPlanWire>(
+	const wire = unwrap<AdminPlanWire>(await apiClient.put(
 		`${PLANS_BASE}/${id}`,
 		serializeWritePayload(payload)
-	);
+	));
 	return normalizePlan(wire);
 }
 
@@ -202,16 +207,16 @@ export async function listGroups(): Promise<AdminGroupLite[]> {
 	// Backend exposes both /admin/groups/all (array) and /admin/groups (paginated).
 	// We need the full list for the picker, so prefer /all and fall back gracefully.
 	try {
-		const raw = await apiClient.get<AdminGroupLite[] | { data?: AdminGroupLite[] }>(
+		const raw = unwrap<AdminGroupLite[] | { data?: AdminGroupLite[] }>(await apiClient.get(
 			`${GROUPS_BASE}/all`
-		);
+		));
 		if (Array.isArray(raw)) return raw;
 		return raw?.data ?? [];
 	} catch {
 		// Fall back to paginated endpoint (returns { data, total })
-		const raw = await apiClient.get<{ data?: AdminGroupLite[] }>(
+		const raw = unwrap<{ data?: AdminGroupLite[] }>(await apiClient.get(
 			`${GROUPS_BASE}?page=1&page_size=200`
-		);
+		));
 		return raw?.data ?? [];
 	}
 }

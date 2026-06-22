@@ -98,20 +98,20 @@
 
 	const goStatusLabel = $derived(
 		goStatus === 'ok'
-			? $_('admin.ops.ok', { default: 'OK' })
+			? $_('admin.ops.ok', { default: '确定' })
 			: goStatus === 'warning'
-				? $_('common.warning', { default: 'Warning' })
+				? $_('common.warning', { default: '警告' })
 				: goStatus === 'critical'
-					? $_('common.critical', { default: 'Critical' })
-					: $_('admin.ops.noData', { default: 'No data' })
+					? $_('common.critical', { default: '严重' })
+					: $_('admin.ops.noData', { default: '暂无数据' })
 	);
 
 	const jobsStatusLabel = $derived(
 		jStatus === 'ok'
-			? $_('admin.ops.ok', { default: 'OK' })
+			? $_('admin.ops.ok', { default: '确定' })
 			: jStatus === 'warn'
-				? $_('common.warning', { default: 'Warning' })
-				: $_('admin.ops.noData', { default: 'No data' })
+				? $_('common.warning', { default: '警告' })
+				: $_('admin.ops.noData', { default: '暂无数据' })
 	);
 
 	let showDiagnosis = $state(false);
@@ -125,9 +125,9 @@
 			data-testid="ops-health-empty"
 		>
 			{#if loading}
-				{$_('admin.ops.loadingText', { default: 'Loading…' })}
+				{$_('admin.ops.loadingText', { default: '加载中…' })}
 			{:else}
-				{$_('admin.ops.noData', { default: 'No data' })}
+				{$_('admin.ops.noData', { default: '暂无数据' })}
 			{/if}
 		</div>
 	{:else}
@@ -158,10 +158,10 @@
 				</svg>
 				<div class="absolute flex flex-col items-center">
 					<span class={`text-[26px] font-black leading-none ${scoreClass}`} data-testid="ops-health-score">
-						{idle ? $_('admin.ops.idleStatus', { default: 'Idle' }) : (score ?? '--')}
+						{idle ? $_('admin.ops.idleStatus', { default: '空闲' }) : (score ?? '--')}
 					</span>
 					<span class="mt-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-						{$_('admin.ops.health', { default: 'Health' })}
+						{$_('admin.ops.health', { default: '健康' })}
 					</span>
 				</div>
 			</div>
@@ -170,11 +170,11 @@
 				<div class="flex items-center gap-2">
 					<span class={`text-sm font-bold ${scoreClass}`}>
 						{#if idle}
-							{$_('admin.ops.idleStatus', { default: 'Idle' })}
+							{$_('admin.ops.idleStatus', { default: '空闲' })}
 						{:else if typeof score === 'number' && score >= 90}
-							{$_('admin.ops.healthyStatus', { default: 'Healthy' })}
+							{$_('admin.ops.healthyStatus', { default: '健康' })}
 						{:else}
-							{$_('admin.ops.riskyStatus', { default: 'At risk' })}
+							{$_('admin.ops.riskyStatus', { default: '风险中' })}
 						{/if}
 					</span>
 				</div>
@@ -185,7 +185,7 @@
 					data-testid="ops-diagnosis-open"
 				>
 					<Brain size={14} />
-					{$_('admin.ops.diagnosis.title', { default: 'Diagnosis' })}
+					{$_('admin.ops.diagnosis.title', { default: '诊断' })}
 					{#if diagnosis.some((d) => d.type === 'critical' || d.type === 'warning')}
 						<span class="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
 							{diagnosis.filter((d) => d.type !== 'info').length}
@@ -194,7 +194,7 @@
 				</Button>
 				{#if loading}
 					<span class="text-[11px] text-muted-foreground">
-						{$_('admin.ops.loadingText', { default: 'Loading…' })}
+						{$_('admin.ops.loadingText', { default: '加载中…' })}
 					</span>
 				{/if}
 			</div>
@@ -244,7 +244,7 @@
 				<!-- MEM -->
 				<div class="rounded-[10px] border border-border bg-card p-3">
 					<span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-						{$_('admin.ops.memory', { default: 'Memory' })}
+						{$_('admin.ops.memory', { default: '内存' })}
 					</span>
 					<div class={`mt-[3px] text-base font-black ${mem.colorClass}`}>{mem.value}</div>
 					<div class="mt-1 text-[10px] leading-normal text-muted-foreground">{mem.detail}</div>
@@ -252,7 +252,7 @@
 				<!-- DB -->
 				<div class="rounded-[10px] border border-border bg-card p-3">
 					<span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-						{$_('admin.ops.db', { default: 'Database' })}
+						{$_('admin.ops.db', { default: '数据库' })}
 					</span>
 					<div class={`mt-[3px] text-base font-black ${db.colorClass}`}>{db.value}</div>
 					<div class="mt-1 text-[10px] leading-normal text-muted-foreground">{db.detail}</div>
@@ -266,22 +266,22 @@
 				<!-- Goroutines -->
 				<div class="rounded-[10px] border border-border bg-card p-3">
 					<span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-						{$_('admin.ops.goroutines', { default: 'Goroutines' })}
+						{$_('admin.ops.goroutines', { default: '协程数' })}
 					</span>
 					<div class={`mt-[3px] text-base font-black ${goroutineStatusClass(goStatus)}`}>{goStatusLabel}</div>
 					<div class="mt-1 text-[10px] leading-normal text-muted-foreground">
-						{$_('admin.ops.current', { default: 'Current' })}
+						{$_('admin.ops.current', { default: '当前' })}
 						<span class="font-mono tabular-nums">{sm?.goroutine_count ?? '-'}</span>
-						· {$_('common.warning', { default: 'Warning' })}
+						· {$_('common.warning', { default: '警告' })}
 						<span class="font-mono tabular-nums">{GOROUTINE_WARN_THRESHOLD}</span>
-						· {$_('common.critical', { default: 'Critical' })}
+						· {$_('common.critical', { default: '严重' })}
 						<span class="font-mono tabular-nums">{GOROUTINE_CRITICAL_THRESHOLD}</span>
 						{#if queueDepth != null}
-							· {$_('admin.ops.queue', { default: 'Queue' })}
+							· {$_('admin.ops.queue', { default: '队列' })}
 							<span class="font-mono tabular-nums">{queueDepth}</span>
 						{/if}
 						{#if switchCount != null}
-							· {$_('admin.ops.switch', { default: 'Switch' })}
+							· {$_('admin.ops.switch', { default: '切换' })}
 							<span class="font-mono tabular-nums">{switchCount}</span>
 						{/if}
 					</div>
@@ -290,7 +290,7 @@
 				<div class="rounded-[10px] border border-border bg-card p-3">
 					<div class="flex items-center justify-between gap-1">
 						<span class="text-[10px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-							{$_('admin.ops.jobs', { default: 'Jobs' })}
+							{$_('admin.ops.jobs', { default: '任务' })}
 						</span>
 						<Button
 							variant="ghost"
@@ -298,14 +298,14 @@
 							onclick={() => (showJobs = true)}
 							data-testid="ops-jobs-open"
 						>
-							{$_('admin.ops.requestDetails.details', { default: 'Details' })}
+							{$_('admin.ops.requestDetails.details', { default: '详情' })}
 						</Button>
 					</div>
 					<div class={`mt-[3px] text-base font-black ${jobsStatusClass(jStatus)}`}>{jobsStatusLabel}</div>
 					<div class="mt-1 text-[10px] leading-normal text-muted-foreground">
-						{$_('common.total', { default: 'Total' })}
+						{$_('common.total', { default: '总计' })}
 						<span class="font-mono tabular-nums">{jobs.length}</span>
-						· {$_('common.warning', { default: 'Warning' })}
+						· {$_('common.warning', { default: '警告' })}
 						<span class="font-mono tabular-nums">{jWarn}</span>
 					</div>
 				</div>
@@ -318,7 +318,7 @@
 <StandardDialog
 	bind:open={showDiagnosis}
 	width="md"
-	title={$_('admin.ops.diagnosis.title', { default: 'Diagnosis' })}
+	title={$_('admin.ops.diagnosis.title', { default: '诊断' })}
 	data-testid="ops-diagnosis-dialog"
 >
 	<div class="mt-3 space-y-2.5">
@@ -351,7 +351,7 @@
 		{/each}
 	</div>
 	<div class="mt-3 border-t border-border pt-2 text-[10px] text-muted-foreground">
-		{$_('admin.ops.diagnosis.footer', { default: 'Heuristic diagnosis from the current snapshot.' })}
+		{$_('admin.ops.diagnosis.footer', { default: '基于当前快照的启发式诊断。' })}
 	</div>
 </StandardDialog>
 
@@ -359,12 +359,12 @@
 <StandardDialog
 	bind:open={showJobs}
 	width="lg"
-	title={$_('admin.ops.jobs', { default: 'Jobs' })}
+	title={$_('admin.ops.jobs', { default: '任务' })}
 	data-testid="ops-jobs-dialog"
 >
 	{#if !jobs.length}
 		<div class="mt-3 text-sm text-muted-foreground">
-			{$_('admin.ops.noData', { default: 'No data' })}
+			{$_('admin.ops.noData', { default: '暂无数据' })}
 		</div>
 	{:else}
 		<div class="mt-3 flex flex-col gap-2.5">
@@ -383,15 +383,15 @@
 					</div>
 					<div class="mt-2 grid grid-cols-1 gap-1.5 text-[11.5px] text-muted-foreground sm:grid-cols-2">
 						<div>
-							{$_('admin.ops.lastSuccess', { default: 'Last success' })}
+							{$_('admin.ops.lastSuccess', { default: '最后成功' })}
 							<span class="font-mono tabular-nums">{formatDateTime(hb.last_success_at)}</span>
 						</div>
 						<div>
-							{$_('admin.ops.lastError', { default: 'Last error' })}
+							{$_('admin.ops.lastError', { default: '最后错误' })}
 							<span class="font-mono tabular-nums">{formatDateTime(hb.last_error_at)}</span>
 						</div>
 						<div>
-							{$_('admin.ops.result', { default: 'Result' })}
+							{$_('admin.ops.result', { default: '结果' })}
 							<span class="font-mono tabular-nums">{hb.last_result || '-'}</span>
 						</div>
 					</div>

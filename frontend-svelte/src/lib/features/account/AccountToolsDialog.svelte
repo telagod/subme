@@ -144,14 +144,14 @@
 		<Card class="space-y-3">
 			<div class="flex items-center justify-between gap-3">
 				<div><h2 class="text-sm font-semibold">Runtime actions</h2><p class="text-xs text-muted-foreground">Operational controls for upstream account health and quota state.</p></div>
-				<Button variant="outline" size="sm" disabled={toolsLoading} onclick={loadTools}>Reload</Button>
+				<Button variant="outline" size="sm" disabled={toolsLoading} onclick={loadTools}>{$_('common.reload', { default: '重新加载' })}</Button>
 			</div>
 			<div class="flex flex-wrap gap-2">
-				<Button variant="outline" disabled={busy || !account} onclick={runTest}>Test</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('State recovered', () => recoverAccountState(account!.id))}>Recover state</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Rate limit cleared', () => clearAccountRateLimit(account!.id))}>Clear rate limit</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Quota reset', () => resetAccountQuota(account!.id))}>Reset quota</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={syncMod}>Sync models</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={runTest}>{$_('common.test', { default: 'Test' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('State recovered', () => recoverAccountState(account!.id))}>{$_('admin.accounts.recoverState', { default: 'Recover state' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Rate limit cleared', () => clearAccountRateLimit(account!.id))}>{$_('admin.accounts.clearRateLimit', { default: 'Clear rate limit' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Quota reset', () => resetAccountQuota(account!.id))}>{$_('admin.accounts.resetQuota', { default: 'Reset quota' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={syncMod}>{$_('admin.accounts.syncModels', { default: 'Sync models' })}</Button>
 			</div>
 			<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-test-panel">
 				<div class="grid gap-3 lg:grid-cols-[minmax(180px,1fr)_160px_auto]">
@@ -194,7 +194,7 @@
 				<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-scheduled-create-form">
 					<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Model ID<Input bind:value={newForm.model_id} data-testid="account-scheduled-model" /></label><label class="grid gap-1 text-sm">Cron<Input bind:value={newForm.cron_expression} placeholder="*/30 * * * *" data-testid="account-scheduled-cron" /></label><label class="grid gap-1 text-sm">Max results<Input type="number" min="1" bind:value={newForm.max_results} data-testid="account-scheduled-max-results" /></label></div>
 					<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.enabled} data-testid="account-scheduled-enabled" />Enabled</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.auto_recover} data-testid="account-scheduled-auto-recover" />Auto recover</label></div>
-					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>Cancel</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>Save plan</Button></div>
+					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>Save plan</Button></div>
 				</div>
 			{/if}
 			<div class="max-h-80 overflow-auto rounded-md border border-border" data-testid="account-scheduled-list">
@@ -204,13 +204,13 @@
 					<div class="border-b p-3 last:border-b-0" data-testid="account-scheduled-row">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<div class="min-w-0"><div class="flex items-center gap-2"><CalendarClock size={15} class="text-muted-foreground" /><p class="truncate text-sm font-medium">{plan.model_id}</p><Badge variant="outline" class={plan.enabled ? statusTone('active') : statusTone('inactive')}>{plan.enabled ? 'enabled' : 'disabled'}</Badge>{#if plan.auto_recover}<Badge variant="outline">auto recover</Badge>{/if}</div><p class="mt-1 truncate font-mono text-xs text-muted-foreground">{plan.cron_expression}</p><p class="mt-1 text-xs text-muted-foreground">last {fmtTs(plan.last_run_at)} · next {fmtTs(plan.next_run_at)}</p></div>
-							<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy} onclick={() => toggleResults(plan)}>{expandedPlanId === plan.id ? 'Hide results' : 'Results'}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => startEdit(plan)}>Edit</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => togglePlan(plan, !plan.enabled)}>{plan.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => removePlan(plan)}>Delete</Button></div>
+							<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy} onclick={() => toggleResults(plan)}>{expandedPlanId === plan.id ? 'Hide results' : 'Results'}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => startEdit(plan)}>{$_('common.edit', { default: 'Edit' })}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => togglePlan(plan, !plan.enabled)}>{plan.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => removePlan(plan)}>{$_('common.delete', { default: 'Delete' })}</Button></div>
 						</div>
 						{#if editingPlanId === plan.id}
 							<div class="mt-3 grid gap-3 rounded-md border border-border p-3" data-testid="account-scheduled-edit-form">
 								<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Model ID<Input bind:value={editForm.model_id} data-testid="account-scheduled-edit-model" /></label><label class="grid gap-1 text-sm">Cron<Input bind:value={editForm.cron_expression} data-testid="account-scheduled-edit-cron" /></label><label class="grid gap-1 text-sm">Max results<Input type="number" min="1" bind:value={editForm.max_results} data-testid="account-scheduled-edit-max-results" /></label></div>
 								<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.enabled} data-testid="account-scheduled-edit-enabled" />Enabled</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.auto_recover} data-testid="account-scheduled-edit-auto-recover" />Auto recover</label></div>
-								<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (editingPlanId = null)}>Cancel</Button><Button size="sm" disabled={busy || !editForm.model_id.trim() || !editForm.cron_expression.trim()} onclick={() => saveEdit(plan.id)}>Save edit</Button></div>
+								<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (editingPlanId = null)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !editForm.model_id.trim() || !editForm.cron_expression.trim()} onclick={() => saveEdit(plan.id)}>Save edit</Button></div>
 							</div>
 						{/if}
 						{#if expandedPlanId === plan.id}
@@ -225,5 +225,5 @@
 			</div>
 		</Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>Close</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
 </StandardDialog>

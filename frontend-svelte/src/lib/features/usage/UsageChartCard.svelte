@@ -20,7 +20,7 @@
 >
 	<div class="mb-3 flex items-center justify-between">
 		<h2 class="text-sm font-medium text-muted-foreground">
-			{$_('user.usage.chartTitle', { default: 'Usage over time' })}
+			{$_('user.usage.chartTitle', { default: '用量变化' })}
 		</h2>
 		{#if error && !loading}
 			<Button
@@ -30,7 +30,7 @@
 				onclick={onRetry}
 				data-testid="usage-chart-retry"
 			>
-				{$_('user.usage.retry', { default: 'Retry' })}
+				{$_('user.usage.retry', { default: '重试' })}
 			</Button>
 		{/if}
 	</div>

@@ -58,7 +58,7 @@
 		try {
 			await batchDeleteAccounts(ids);
 			deleteOpen = false;
-			showSuccess($_('admin.accounts.deleted', { default: 'Deleted' }));
+			showSuccess($_('admin.accounts.deleted', { default: '已删除' }));
 			onRefresh();
 		} catch (err) { showError(err instanceof Error ? err.message : String(err)); }
 		finally { busy = false; }
@@ -78,7 +78,7 @@
 		try {
 			await clearTempUnschedulable(tempAccount.id);
 			tempOpen = false;
-			showSuccess($_('admin.accounts.holdCleared', { default: 'Hold cleared' }));
+			showSuccess($_('admin.accounts.holdCleared', { default: '暂停已清除' }));
 			onRefresh();
 		} catch (err) { showError(err instanceof Error ? err.message : String(err)); }
 		finally { busy = false; }
@@ -100,7 +100,7 @@
 			const ids = all.items.map(r => r.id);
 			if (filteredBulkAction === 'refresh') await batchRefreshAccounts(ids);
 			else await batchDeleteAccounts(ids);
-			showSuccess(`${filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshed', { default: 'Refreshed' }) : $_('admin.accounts.deleted', { default: 'Deleted' })} ${ids.length} ${$_('admin.accounts.accounts', { default: 'accounts' })}`);
+			showSuccess(`${filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshed', { default: '已刷新' }) : $_('admin.accounts.deleted', { default: '已删除' })} ${ids.length} ${$_('admin.accounts.accounts', { default: '个账户' })}`);
 			filteredBulkOpen = false;
 			onRefresh();
 		} catch (err) { showError(err instanceof Error ? err.message : String(err)); }
@@ -141,10 +141,10 @@
 	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={exportSelected}>
 		<Download size={14} class="mr-1" />{$_('admin.accounts.exportSelected', { default: 'Export selected' })}
 	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.refreshed', { default: 'Refreshed' }), () => batchRefreshAccounts(selArr()))}>
+	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.refreshed', { default: '已刷新' }), () => batchRefreshAccounts(selArr()))}>
 		<RotateCw size={14} class="mr-1" />{$_('admin.accounts.refreshSelected', { default: 'Refresh selected' })}
 	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.errorsCleared', { default: 'Errors cleared' }), () => batchClearAccountErrors(selArr()))}>
+	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.errorsCleared', { default: '错误已清除' }), () => batchClearAccountErrors(selArr()))}>
 		<ShieldCheck size={14} class="mr-1" />{$_('admin.accounts.clearErrors', { default: 'Clear errors' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0} onclick={() => onOpenBulkEdit('selected', selArr())}>
@@ -167,7 +167,7 @@
 <ConfirmDialog
 	bind:open={deleteOpen}
 	title={$_('admin.accounts.deleteTitle', { default: 'Delete selected accounts' })}
-	description={$_('admin.accounts.deleteConfirm', { default: 'Delete {count} accounts? This cannot be undone.', values: { count: selectedIds.size } })}
+	description={$_('admin.accounts.deleteConfirm', { default: '删除 {count} 个账户？此操作不可撤销。', values: { count: selectedIds.size } })}
 	confirmLabel={busy ? $_('common.deleting', { default: 'Deleting...' }) : $_('common.delete', { default: 'Delete' })}
 	loading={busy}
 	onConfirm={confirmDelete}
@@ -176,27 +176,27 @@
 />
 
 <!-- Temp unschedulable -->
-<StandardDialog bind:open={tempOpen} title={$_('admin.accounts.tempUnschedulable', { default: 'Temporary unschedulable' })} width="md" data-testid="account-temp-unsched-dialog">
+<StandardDialog bind:open={tempOpen} title={$_('admin.accounts.tempUnschedulable', { default: '临时不可调度' })} width="md" data-testid="account-temp-unsched-dialog">
 	<div class="mt-4 space-y-4">
 		<p class="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm font-medium">{tempAccount?.name ?? tempAccount?.email ?? 'Account'}</p>
 		{#if tempLoading}
-			<p class="text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</p>
+			<p class="text-sm text-muted-foreground">{$_('common.loading', { default: '加载中...' })}</p>
 		{:else if tempStatus}
 			<pre class="max-h-72 overflow-auto rounded-md border bg-muted/40 p-3 text-xs" data-testid="account-temp-unsched-json">{JSON.stringify(tempStatus, null, 2)}</pre>
 		{:else}
-			<p class="text-sm text-muted-foreground">{$_('admin.accounts.noStatusReturned', { default: 'No status returned.' })}</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.accounts.noStatusReturned', { default: '未返回状态。' })}</p>
 		{/if}
 		<div class="flex justify-end gap-2">
 			<Button variant="outline" onclick={() => (tempOpen = false)}>{$_('common.close', { default: 'Close' })}</Button>
 			<Button variant="outline" disabled={busy || !tempAccount} onclick={clearTemp} data-testid="account-temp-unsched-clear">
-				{$_('admin.accounts.clearHold', { default: 'Clear hold' })}
+				{$_('admin.accounts.clearHold', { default: '清除暂停' })}
 			</Button>
 		</div>
 	</div>
 </StandardDialog>
 
 <!-- Filtered bulk confirm -->
-<StandardDialog bind:open={filteredBulkOpen} title="{filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshFiltered', { default: 'Refresh' }) : $_('admin.accounts.deleteFiltered', { default: 'Delete' })} {$_('admin.accounts.filteredAccounts', { default: 'filtered accounts' })}" width="sm" data-testid="accounts-filtered-bulk-dialog">
+<StandardDialog bind:open={filteredBulkOpen} title="{filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshFiltered', { default: 'Refresh' }) : $_('admin.accounts.deleteFiltered', { default: 'Delete' })} {$_('admin.accounts.filteredAccounts', { default: '个筛选账户' })}" width="sm" data-testid="accounts-filtered-bulk-dialog">
 	<div class="mt-4 space-y-4">
 		<p class="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
 			{filteredBulkCount} {$_('admin.accounts.willBe', { default: 'accounts will be' })} {filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshedVerb', { default: 'refreshed' }) : $_('admin.accounts.deletedVerb', { default: 'deleted' })}.
@@ -204,7 +204,7 @@
 		<div class="flex justify-end gap-2">
 			<Button variant="outline" onclick={() => (filteredBulkOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 			<Button disabled={busy} onclick={confirmFilteredBulk} data-testid="accounts-filtered-confirm">
-				{busy ? $_('common.processing', { default: 'Processing...' }) : $_('common.confirm', { default: 'Confirm' })}
+				{busy ? $_('common.processing', { default: '处理中...' }) : $_('common.confirm', { default: 'Confirm' })}
 			</Button>
 		</div>
 	</div>

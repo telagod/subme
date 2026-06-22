@@ -36,8 +36,8 @@
 	function openCreate() { editing = null; formOpen = true; }
 	function openEdit(ch: Channel) { editing = ch; formOpen = true; }
 	function openDelete(ch: Channel) { deleteTarget = ch; deleteOpen = true; }
-	async function confirmDelete() { if (!deleteTarget) return; saving = true; try { await deleteChannel(deleteTarget.id); showSuccess('Channel deleted'); deleteOpen = false; deleteTarget = null; await loadRows(); } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { saving = false; } }
-	async function toggleStatus(ch: Channel) { saving = true; try { await updateChannel(ch.id, { status: ch.status === 'active' ? 'disabled' : 'active' }); showSuccess('Status updated'); await loadRows(); } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { saving = false; } }
+	async function confirmDelete() { if (!deleteTarget) return; saving = true; try { await deleteChannel(deleteTarget.id); showSuccess($_('admin.channels.deleted', { default: '渠道已删除' })); deleteOpen = false; deleteTarget = null; await loadRows(); } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { saving = false; } }
+	async function toggleStatus(ch: Channel) { saving = true; try { await updateChannel(ch.id, { status: ch.status === 'active' ? 'disabled' : 'active' }); showSuccess($_('common.statusUpdated', { default: '状态已更新' })); await loadRows(); } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { saving = false; } }
 
 	onMount(() => void loadRows());
 </script>
@@ -46,17 +46,17 @@
 
 <section class="space-y-5" data-testid="channels-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-		<div><h1 class="text-2xl font-semibold text-foreground">{$_('admin.channels.title', { default: 'Channels' })}</h1><p class="mt-1 max-w-3xl text-sm text-muted-foreground">{$_('admin.channels.description', { default: 'Manage channel status, group bindings, model restrictions, pricing, and monitoring links. Note: the pricing matrix remains read-only unless channel-mapped billing is enabled.' })}</p></div>
-		<div class="flex gap-2"><Button variant="outline" onclick={loadRows} disabled={loading}><RefreshCw size={16} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}</Button><Button onclick={openCreate}>New channel</Button></div>
+		<div><h1 class="text-2xl font-semibold text-foreground">{$_('admin.channels.title', { default: 'Channels' })}</h1><p class="mt-1 max-w-3xl text-sm text-muted-foreground">{$_('admin.channels.description', { default: 'Manage channel status, group bindings, model limits, pricing, and monitor links. Note: unless channel-mapped billing is enabled, the pricing matrix remains read-only.' })}</p></div>
+		<div class="flex gap-2"><Button variant="outline" onclick={loadRows} disabled={loading}><RefreshCw size={16} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}</Button><Button onclick={openCreate}>{$_('admin.channels.newChannel', { default: 'New channel' })}</Button></div>
 	</header>
 
 	<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{#each summary as item}<Card><p class="text-xs font-medium uppercase text-muted-foreground">{item.label}</p><p class="mt-2 text-2xl font-semibold">{item.value}</p></Card>{/each}</div>
 
 	<Card class="p-3">
 		<div class="grid gap-3 lg:grid-cols-[1fr_180px_auto]">
-			<label class="relative"><Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} /><Input class="pl-9" placeholder={$_('admin.channels.searchPlaceholder', { default: 'Search name or description' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && apply()} /></label>
+			<label class="relative"><Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} /><Input class="pl-9" placeholder={$_('admin.channels.searchPlaceholder', { default: '搜索名称或描述' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && apply()} /></label>
 			<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={apply} data-testid="channels-main-status-filter" />
-			<Button onclick={apply}>Apply</Button>
+			<Button onclick={apply}>应用</Button>
 		</div>
 	</Card>
 
@@ -64,10 +64,10 @@
 
 	<Card padded={false} class="overflow-hidden overflow-x-auto">
 		<table class="w-full min-w-[980px] text-sm">
-			<thead class="border-b text-xs uppercase text-muted-foreground"><tr><th class="px-4 py-3 text-left">Channel</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left">Groups</th><th class="px-4 py-3 text-left">Pricing</th><th class="px-4 py-3 text-left">Mapping</th><th class="px-4 py-3 text-left">Updated</th><th class="px-4 py-3 text-left">Actions</th></tr></thead>
+			<thead class="border-b text-xs uppercase text-muted-foreground"><tr><th class="px-4 py-3 text-left">{$_('admin.channels.colChannel', { default: 'Channels' })}</th><th class="px-4 py-3 text-left">{$_('common.status', { default: '状态' })}</th><th class="px-4 py-3 text-left">{$_('common.groups', { default: '分组' })}</th><th class="px-4 py-3 text-left">{$_('admin.channels.colPricing', { default: '定价' })}</th><th class="px-4 py-3 text-left">{$_('admin.channels.colMapping', { default: '映射' })}</th><th class="px-4 py-3 text-left">{$_('admin.channels.colUpdated', { default: '更新时间' })}</th><th class="px-4 py-3 text-left">{$_('common.actions', { default: '操作' })}</th></tr></thead>
 			<tbody>
-				{#if loading}<tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">Loading…</td></tr>
-				{:else if rows.length === 0}<tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">No channels match the current filters.</td></tr>
+				{#if loading}<tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">{$_('common.loading', { default: '加载中…' })}</td></tr>
+				{:else if rows.length === 0}<tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">{$_('admin.channels.noResults', { default: '无渠道匹配当前筛选条件。' })}</td></tr>
 				{:else}{#each rows as row}
 					<tr class="border-b last:border-b-0" data-testid="channels-row">
 						<td class="px-4 py-3"><div class="flex min-w-0 items-center gap-2"><Signal size={15} class="shrink-0 text-muted-foreground" /><div class="min-w-0"><p class="truncate font-medium">{row.name}</p><p class="truncate text-xs text-muted-foreground">{row.description || `#${row.id}`}</p></div></div></td>
@@ -79,9 +79,9 @@
 						<td class="px-4 py-3"><div class="flex flex-wrap items-center gap-2">
 							<Button variant="outline" size="icon" href="/admin/channels/pricing" aria-label="Pricing"><DollarSign size={15} /></Button>
 							<Button variant="outline" size="icon" href="/admin/channels/monitor" aria-label="Monitor"><Eye size={15} /></Button>
-							<Button variant="outline" size="sm" onclick={() => openEdit(row)}>Edit</Button>
-							<Button variant="outline" size="sm" disabled={saving} onclick={() => toggleStatus(row)}>{row.status === 'active' ? 'Disable' : 'Enable'}</Button>
-							<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => openDelete(row)}>Delete</Button>
+							<Button variant="outline" size="sm" onclick={() => openEdit(row)}>{$_('common.edit', { default: 'Edit' })}</Button>
+							<Button variant="outline" size="sm" disabled={saving} onclick={() => toggleStatus(row)}>{row.status === 'active' ? $_('common.disable', { default: 'Disable' }) : $_('common.enable', { default: 'Enable' })}</Button>
+							<Button variant="outline" size="sm" class="text-destructive" disabled={saving} onclick={() => openDelete(row)}>{$_('common.delete', { default: 'Delete' })}</Button>
 						</div></td>
 					</tr>
 				{/each}{/if}
@@ -99,6 +99,6 @@
 <StandardDialog bind:open={deleteOpen} title="Delete channel" width="sm" data-testid="channel-delete-dialog">
 	<div class="mt-4 space-y-4">
 		<p class="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">Delete channel "{deleteTarget?.name}"? This cannot be undone.</p>
-		<div class="flex justify-end gap-2"><Button variant="outline" onclick={() => (deleteOpen = false)}>Cancel</Button><Button variant="outline" class="border-destructive/30 text-destructive" disabled={saving} onclick={confirmDelete} data-testid="channel-delete-confirm">{saving ? 'Deleting...' : 'Delete'}</Button></div>
+		<div class="flex justify-end gap-2"><Button variant="outline" onclick={() => (deleteOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button variant="outline" class="border-destructive/30 text-destructive" disabled={saving} onclick={confirmDelete} data-testid="channel-delete-confirm">{saving ? 'Deleting...' : 'Delete'}</Button></div>
 	</div>
 </StandardDialog>

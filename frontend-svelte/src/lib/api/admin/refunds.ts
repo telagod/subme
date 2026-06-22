@@ -27,6 +27,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 状态机 ──────────────────────────────────────────────────────────────────
 // 仅约束 queue 维度，不与订单状态机重叠（订单状态由 orders.ts 维护）。
 export type RefundRequestStatus =
@@ -105,9 +110,9 @@ export async function listRefundQueue(
 	filter?: AdminRefundFilter
 ): Promise<AdminRefundListResponse> {
 	const qs = buildQuery(filter);
-	const raw = await apiClient.get<AdminRefundListResponse | AdminRefundRequest[]>(
+	const raw = unwrap<AdminRefundListResponse | AdminRefundRequest[]>(await apiClient.get(
 		`${REFUNDS_BASE}${qs}`
-	);
+	));
 	if (Array.isArray(raw)) {
 		return {
 			data: raw,
@@ -125,7 +130,7 @@ export async function listRefundQueue(
 }
 
 export async function getRefund(id: number | string): Promise<AdminRefundRequest> {
-	return apiClient.get<AdminRefundRequest>(`${REFUNDS_BASE}/${id}`);
+	return unwrap<AdminRefundRequest>(await apiClient.get(`${REFUNDS_BASE}/${id}`));
 }
 
 /**
@@ -137,19 +142,19 @@ export async function approveRefund(
 	id: number | string,
 	payload: ApproveRefundPayload = {}
 ): Promise<{ refund_id?: string; amount?: number; status?: string }> {
-	return apiClient.post<{ refund_id?: string; amount?: number; status?: string }>(
+	return unwrap<{ refund_id?: string; amount?: number; status?: string }>(await apiClient.post(
 		`${REFUNDS_BASE}/${id}/approve`,
 		payload
-	);
+	));
 }
 
 export async function rejectRefund(
 	id: number | string,
 	reason: string
 ): Promise<{ status?: string }> {
-	return apiClient.post<{ status?: string }>(`${REFUNDS_BASE}/${id}/reject`, {
+	return unwrap<{ status?: string }>(await apiClient.post(`${REFUNDS_BASE}/${id}/reject`, {
 		reason
-	});
+	}));
 }
 
 export const adminRefundsApi = {

@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 
 export type RedeemCodeType = 'balance' | 'concurrency' | 'subscription' | 'invitation';
 export type RedeemCodeStatus = 'active' | 'used' | 'expired' | 'unused' | 'disabled';
@@ -68,38 +68,38 @@ export async function listRedeemCodes(
 	);
 }
 
-export function getRedeemCode(id: number): Promise<RedeemCode> {
-	return apiClient.get<RedeemCode>(`${REDEEM_BASE}/${id}`);
+export async function getRedeemCode(id: number): Promise<RedeemCode> {
+	return unwrapData(await apiClient.get<RedeemCode | ApiEnvelope<RedeemCode>>(`${REDEEM_BASE}/${id}`));
 }
 
-export function generateRedeemCodes(payload: GenerateRedeemCodesRequest): Promise<RedeemCode[]> {
-	return apiClient.post<RedeemCode[]>(`${REDEEM_BASE}/generate`, payload);
+export async function generateRedeemCodes(payload: GenerateRedeemCodesRequest): Promise<RedeemCode[]> {
+	return unwrapData(await apiClient.post<RedeemCode[] | ApiEnvelope<RedeemCode[]>>(`${REDEEM_BASE}/generate`, payload));
 }
 
-export function deleteRedeemCode(id: number): Promise<{ message: string }> {
-	return apiClient.delete<{ message: string }>(`${REDEEM_BASE}/${id}`);
+export async function deleteRedeemCode(id: number): Promise<{ message: string }> {
+	return unwrapData(await apiClient.delete<{ message: string } | ApiEnvelope<{ message: string }>>(`${REDEEM_BASE}/${id}`));
 }
 
-export function batchDeleteRedeemCodes(ids: number[]): Promise<{ deleted: number; message: string }> {
-	return apiClient.post<{ deleted: number; message: string }>(`${REDEEM_BASE}/batch-delete`, { ids });
+export async function batchDeleteRedeemCodes(ids: number[]): Promise<{ deleted: number; message: string }> {
+	return unwrapData(await apiClient.post<{ deleted: number; message: string } | ApiEnvelope<{ deleted: number; message: string }>>(`${REDEEM_BASE}/batch-delete`, { ids }));
 }
 
-export function batchUpdateRedeemCodes(
+export async function batchUpdateRedeemCodes(
 	ids: number[],
 	fields: BatchUpdateRedeemCodeFields
 ): Promise<{ updated: number; message: string }> {
-	return apiClient.post<{ updated: number; message: string }>(`${REDEEM_BASE}/batch-update`, {
+	return unwrapData(await apiClient.post<{ updated: number; message: string } | ApiEnvelope<{ updated: number; message: string }>>(`${REDEEM_BASE}/batch-update`, {
 		ids,
 		fields
-	});
+	}));
 }
 
-export function expireRedeemCode(id: number): Promise<RedeemCode> {
-	return apiClient.post<RedeemCode>(`${REDEEM_BASE}/${id}/expire`);
+export async function expireRedeemCode(id: number): Promise<RedeemCode> {
+	return unwrapData(await apiClient.post<RedeemCode | ApiEnvelope<RedeemCode>>(`${REDEEM_BASE}/${id}/expire`));
 }
 
-export function getRedeemStats(): Promise<RedeemStats> {
-	return apiClient.get<RedeemStats>(`${REDEEM_BASE}/stats`);
+export async function getRedeemStats(): Promise<RedeemStats> {
+	return unwrapData(await apiClient.get<RedeemStats | ApiEnvelope<RedeemStats>>(`${REDEEM_BASE}/stats`));
 }
 
 export const adminRedeemApi = {

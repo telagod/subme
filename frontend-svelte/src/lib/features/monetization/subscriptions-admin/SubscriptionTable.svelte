@@ -97,7 +97,7 @@
 		if (!Number.isFinite(days) || days < 1 || days > 36500) {
 			showError(
 				$_('admin.subscriptions.bulkExtendErrorDays', {
-					default: 'Please enter a valid number of days (1-36500)'
+					default: '请输入有效天数 (1-36500)'
 				})
 			);
 			return;
@@ -256,7 +256,7 @@
 					data-testid="admin-subs-bulk-extend-panel"
 				>
 					<label for="bulk-extend-days" class="text-xs text-muted-foreground">
-						{$_('admin.subscriptions.bulkExtendDaysLabel', { default: 'Days:' })}
+						{$_('admin.subscriptions.bulkExtendDaysLabel', { default: '天数：' })}
 					</label>
 					<Input
 						id="bulk-extend-days"
@@ -278,8 +278,8 @@
 						data-testid="admin-subs-bulk-extend-confirm"
 					>
 						{bulkExtending
-							? $_('common.submitting', { default: 'Submitting...' })
-							: $_('admin.subscriptions.bulkExtendConfirm', { default: 'Extend' })}
+							? $_('common.submitting', { default: '提交中...' })
+							: $_('admin.subscriptions.bulkExtendConfirm', { default: '延期' })}
 					</Button>
 					<Button
 						variant="ghost"
@@ -303,7 +303,7 @@
 					data-testid="admin-subs-bulk-extend-btn"
 				>
 					<Calendar class="mr-1 h-3 w-3" />
-					{$_('admin.subscriptions.bulkExtend', { default: 'Extend' })}
+					{$_('admin.subscriptions.bulkExtend', { default: '延期' })}
 				</Button>
 			{/if}
 
@@ -314,7 +314,7 @@
 				>
 					<span class="text-xs text-destructive">
 						{$_('admin.subscriptions.bulkRevokeWarn', {
-							default: 'Revoke {count} subscription(s)?',
+							default: '撤销 {count} 个订阅？',
 							values: { count: String(selectedCount) }
 						})}
 					</span>
@@ -327,8 +327,8 @@
 						data-testid="admin-subs-bulk-revoke-confirm"
 					>
 						{bulkRevoking
-							? $_('common.submitting', { default: 'Submitting...' })
-							: $_('admin.subscriptions.bulkRevokeConfirm', { default: 'Revoke' })}
+							? $_('common.submitting', { default: '提交中...' })
+							: $_('admin.subscriptions.bulkRevokeConfirm', { default: '撤销' })}
 					</Button>
 					<Button
 						variant="ghost"
@@ -352,7 +352,7 @@
 					data-testid="admin-subs-bulk-revoke-btn"
 				>
 					<Trash2 class="mr-1 h-3 w-3" />
-					{$_('admin.subscriptions.bulkRevoke', { default: 'Revoke' })}
+					{$_('admin.subscriptions.bulkRevoke', { default: '撤销' })}
 				</Button>
 			{/if}
 
@@ -363,7 +363,7 @@
 				onclick={clearSelection}
 				data-testid="admin-subs-bulk-clear"
 			>
-				{$_('admin.subscriptions.bulkClear', { default: 'Clear' })}
+				{$_('admin.subscriptions.bulkClear', { default: '清除' })}
 			</Button>
 		</div>
 	</Card>
@@ -394,19 +394,19 @@
 								onchange={toggleSelectAll}
 								data-testid="admin-subs-select-all"
 								aria-label={$_('admin.subscriptions.selectAll', {
-									default: 'Select all'
+									default: '全选'
 								})}
 							/>
 						</div>
-						<div>{$_('admin.subscriptions.colUser', { default: 'User' })}</div>
-						<div>{$_('admin.subscriptions.colPlan', { default: 'Plan' })}</div>
-						<div>{$_('admin.subscriptions.colStatus', { default: 'Status' })}</div>
-						<div>{$_('admin.subscriptions.colStarted', { default: 'Started' })}</div>
-						<div>{$_('admin.subscriptions.colExpires', { default: 'Expires' })}</div>
+						<div>{$_('admin.subscriptions.colUser', { default: '用户' })}</div>
+						<div>{$_('admin.subscriptions.colPlan', { default: '方案' })}</div>
+						<div>{$_('admin.subscriptions.colStatus', { default: '状态' })}</div>
+						<div>{$_('admin.subscriptions.colStarted', { default: '已开始' })}</div>
+						<div>{$_('admin.subscriptions.colExpires', { default: '过期' })}</div>
 						<div class="text-right">
-							{$_('admin.subscriptions.colMtd', { default: 'MTD' })}
+							{$_('admin.subscriptions.colMtd', { default: '本月' })}
 						</div>
-						<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+						<div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 					</div>
 				{/snippet}
 				{#snippet row({ row: sub })}
@@ -428,7 +428,7 @@
 								onchange={() => toggleRow(sub.id)}
 								data-testid="admin-subs-row-checkbox"
 								aria-label={$_('admin.subscriptions.selectRow', {
-									default: 'Select row'
+									default: '选择行'
 								})}
 							/>
 						</div>
@@ -458,7 +458,7 @@
 							{fmtMoney(sub.mtd_cost, sub.currency)}
 						</div>
 						<div class="flex justify-end gap-1 text-[10.5px] text-muted-foreground">
-							{$_('common.view', { default: 'View' })}
+							{$_('common.view', { default: '查看' })}
 						</div>
 					</InteractiveRow>
 				{/snippet}
@@ -474,18 +474,18 @@
 							checked={allSelected}
 							onchange={toggleSelectAll}
 							data-testid="admin-subs-select-all"
-							aria-label={$_('admin.subscriptions.selectAll', { default: 'Select all' })}
+							aria-label={$_('admin.subscriptions.selectAll', { default: '全选' })}
 						/>
 					</div>
-					<div>{$_('admin.subscriptions.colUser', { default: 'User' })}</div>
-					<div>{$_('admin.subscriptions.colPlan', { default: 'Plan' })}</div>
-					<div>{$_('admin.subscriptions.colStatus', { default: 'Status' })}</div>
-					<div>{$_('admin.subscriptions.colStarted', { default: 'Started' })}</div>
-					<div>{$_('admin.subscriptions.colExpires', { default: 'Expires' })}</div>
+					<div>{$_('admin.subscriptions.colUser', { default: '用户' })}</div>
+					<div>{$_('admin.subscriptions.colPlan', { default: '方案' })}</div>
+					<div>{$_('admin.subscriptions.colStatus', { default: '状态' })}</div>
+					<div>{$_('admin.subscriptions.colStarted', { default: '已开始' })}</div>
+					<div>{$_('admin.subscriptions.colExpires', { default: '过期' })}</div>
 					<div class="text-right">
-						{$_('admin.subscriptions.colMtd', { default: 'MTD' })}
+						{$_('admin.subscriptions.colMtd', { default: '本月' })}
 					</div>
-					<div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+					<div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 				</div>
 				<div class="flex-1 overflow-y-auto">
 					{#each rows as sub (rowKey(sub))}
@@ -507,7 +507,7 @@
 									onchange={() => toggleRow(sub.id)}
 									data-testid="admin-subs-row-checkbox"
 									aria-label={$_('admin.subscriptions.selectRow', {
-										default: 'Select row'
+										default: '选择行'
 									})}
 								/>
 							</div>
@@ -537,7 +537,7 @@
 								{fmtMoney(sub.mtd_cost, sub.currency)}
 							</div>
 							<div class="flex justify-end gap-1 text-[10.5px] text-muted-foreground">
-								{$_('common.view', { default: 'View' })}
+								{$_('common.view', { default: '查看' })}
 							</div>
 						</InteractiveRow>
 					{/each}
@@ -557,7 +557,7 @@
 				size="icon"
 				disabled={page === 1 || loading}
 				onclick={() => onPageChange(Math.max(1, page - 1))}
-				aria-label={$_('common.back', { default: 'Previous' })}
+				aria-label={$_('common.back', { default: '上一页' })}
 			>
 				<ChevronLeft class="h-3 w-3" />
 			</Button>
@@ -567,7 +567,7 @@
 				size="icon"
 				disabled={page === totalPages || loading}
 				onclick={() => onPageChange(Math.min(totalPages, page + 1))}
-				aria-label={$_('common.next', { default: 'Next' })}
+				aria-label={$_('common.next', { default: '下一步' })}
 			>
 				<ChevronRight class="h-3 w-3" />
 			</Button>
@@ -581,7 +581,7 @@
 		<PackageSearch class="h-10 w-10 opacity-40" />
 		<p class="m-0 text-[13px]">
 			{$_('admin.subscriptions.emptyText', {
-				default: 'No subscriptions match the current filters.'
+				default: '无订阅匹配当前筛选条件。'
 			})}
 		</p>
 	</div>

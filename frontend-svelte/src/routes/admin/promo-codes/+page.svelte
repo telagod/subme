@@ -105,23 +105,23 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.quench.promoCodes', { default: 'Promo codes' })}</title>
+	<title>{$_('nav.quench.promoCodes', { default: '优惠码' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-xl font-semibold tracking-tight text-foreground">
-				{$_('nav.quench.promoCodes', { default: 'Promo codes' })}
+				{$_('nav.quench.promoCodes', { default: '优惠码' })}
 			</h1>
-			<p class="text-sm text-muted-foreground">{$_('admin.promo.description', { default: 'Create, search, disable, and remove balance promo codes.' })}</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.promo.description', { default: '创建、搜索、禁用和删除余额优惠码。' })}</p>
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
-				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}
+				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />{$_('common.refresh', { default: '刷新' })}
 			</Button>
 			<Button onclick={() => (showCreate = !showCreate)}>
-				<Plus size={15} />{$_('common.create', { default: 'Create' })}
+				<Plus size={15} />{$_('common.create', { default: '创建' })}
 			</Button>
 		</div>
 	</header>
@@ -139,28 +139,28 @@
 		<Card>
 			<div class="grid gap-3 md:grid-cols-5">
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>{$_('admin.promo.code', { default: 'Code' })}</span>
+					<span>{$_('admin.promo.code', { default: '代码' })}</span>
 					<Input class="h-9 px-2" placeholder={$_('admin.promo.autoWhenBlank', { default: 'auto when blank' })} bind:value={form.code} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>{$_('admin.promo.bonus', { default: 'Bonus' })}</span>
+					<span>{$_('admin.promo.bonus', { default: '奖励' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" step="0.01" bind:value={form.bonus_amount} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>{$_('admin.promo.maxUses', { default: 'Max uses' })}</span>
+					<span>{$_('admin.promo.maxUses', { default: '最大使用次数' })}</span>
 					<Input class="h-9 px-2" type="number" min="0" bind:value={form.max_uses} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>{$_('admin.promo.expires', { default: 'Expires' })}</span>
+					<span>{$_('admin.promo.expires', { default: '过期' })}</span>
 					<Input class="h-9 px-2" type="date" bind:value={form.expires_at} />
 				</label>
 				<label class="space-y-1 text-xs font-medium text-muted-foreground">
-					<span>{$_('common.notes', { default: 'Notes' })}</span>
+					<span>{$_('common.notes', { default: '备注' })}</span>
 					<Input class="h-9 px-2" bind:value={form.notes} />
 				</label>
 			</div>
 			<div class="mt-3 flex justify-end">
-				<Button disabled={saving || form.bonus_amount <= 0} onclick={submitCreate}>{$_('admin.promo.saveCode', { default: 'Save promo code' })}</Button>
+				<Button disabled={saving || form.bonus_amount <= 0} onclick={submitCreate}>{$_('admin.promo.saveCode', { default: '保存优惠码' })}</Button>
 			</div>
 		</Card>
 	{/if}
@@ -172,7 +172,7 @@
 		</div>
 		<div class="flex flex-wrap gap-2">
 			<NativeSelect class="h-9" bind:value={statusFilter} options={statusOptions} onchange={resetAndLoad} data-testid="admin-promo-status-filter" />
-			<Button class="h-9" onclick={resetAndLoad}>{$_('common.search', { default: 'Search' })}</Button>
+			<Button class="h-9" onclick={resetAndLoad}>{$_('common.search', { default: '搜索' })}</Button>
 		</div>
 	</Card>
 
@@ -184,7 +184,7 @@
 		<VirtualTable rows={rows} rowHeight={64} getRowKey={(row) => row.id} loading={loading}>
 			{#snippet header()}
 				<div class="grid grid-cols-[220px_120px_120px_110px_140px_160px] border-b bg-muted/60 px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
-					<div>{$_('admin.promo.code', { default: 'Code' })}</div><div>{$_('admin.promo.bonus', { default: 'Bonus' })}</div><div>{$_('common.usage', { default: 'Usage' })}</div><div>{$_('common.status', { default: 'Status' })}</div><div>{$_('admin.promo.expires', { default: 'Expires' })}</div><div class="text-right">{$_('common.actions', { default: 'Actions' })}</div>
+					<div>{$_('admin.promo.code', { default: '代码' })}</div><div>{$_('admin.promo.bonus', { default: '奖励' })}</div><div>{$_('common.usage', { default: '用量' })}</div><div>{$_('common.status', { default: '状态' })}</div><div>{$_('admin.promo.expires', { default: '过期' })}</div><div class="text-right">{$_('common.actions', { default: '操作' })}</div>
 				</div>
 			{/snippet}
 			{#snippet row({ row })}
@@ -195,8 +195,8 @@
 					<div><Badge variant="outline" class={statusTone(row.status)}>{row.status}</Badge></div>
 					<div class="text-xs text-muted-foreground">{formatDate(row.expires_at)}</div>
 					<div class="flex justify-end gap-1.5">
-						<Button variant="outline" size="sm" disabled={saving} onclick={() => runAction($_('admin.promo.statusUpdated', { default: 'Promo status updated' }), () => updatePromoCode(row.id, { status: row.status === 'active' ? 'disabled' : 'active' }))}>
-							{row.status === 'active' ? $_('common.disable', { default: 'Disable' }) : $_('common.enable', { default: 'Enable' })}
+						<Button variant="outline" size="sm" disabled={saving} onclick={() => runAction($_('admin.promo.statusUpdated', { default: '优惠码状态已更新' }), () => updatePromoCode(row.id, { status: row.status === 'active' ? 'disabled' : 'active' }))}>
+							{row.status === 'active' ? $_('common.disable', { default: '禁用' }) : $_('common.enable', { default: '启用' })}
 						</Button>
 						<Button
 							variant="outline"

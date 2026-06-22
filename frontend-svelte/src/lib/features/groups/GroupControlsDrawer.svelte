@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -409,9 +410,9 @@
 				</div>
 				<div class="flex flex-wrap justify-end gap-2">
 					{#if rateEntriesDirty}
-						<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading} onclick={resetRateEntriesToServer}>Revert</Button>
+						<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading} onclick={resetRateEntriesToServer}>{$_('common.revert', { default: 'Revert' })}</Button>
 					{/if}
-					<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading || rateEntries.length === 0} onclick={clearRates}>Clear</Button>
+					<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading || rateEntries.length === 0} onclick={clearRates}>{$_('common.clear', { default: 'Clear' })}</Button>
 				</div>
 			</div>
 			<div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -422,7 +423,7 @@
 			{#if rateEntries.length > 0}
 				<div class="grid gap-2 rounded-md bg-muted/40 p-3 sm:grid-cols-[1fr_auto]">
 					<Input placeholder="Batch factor, e.g. 0.5" type="number" min="0.0001" step="0.1" bind:value={rateBatchFactor} data-testid="group-rate-batch-factor" />
-					<Button variant="outline" disabled={!String(rateBatchFactor).trim()} onclick={applyRateBatchFactor}>Apply factor</Button>
+					<Button variant="outline" disabled={!String(rateBatchFactor).trim()} onclick={applyRateBatchFactor}>{$_('admin.groups.applyFactor', { default: 'Apply factor' })}</Button>
 				</div>
 			{/if}
 			<div class="max-h-48 overflow-auto rounded-md border border-border" data-testid="group-rate-list">
@@ -438,7 +439,7 @@
 								<p class="text-xs text-muted-foreground">#{entry.user_id}</p>
 							</div>
 							<Input type="number" min="0.01" step="0.1" value={entry.rate_multiplier ?? ''} oninput={(event) => setRateEntry(index, event.currentTarget.value)} />
-							<Button variant="ghost" size="sm" onclick={() => (rateEntries = rateEntries.filter((item) => item.user_id !== entry.user_id))}>Remove</Button>
+							<Button variant="ghost" size="sm" onclick={() => (rateEntries = rateEntries.filter((item) => item.user_id !== entry.user_id))}>{$_('common.remove', { default: 'Remove' })}</Button>
 						</div>
 					{/each}
 				{/if}
@@ -456,9 +457,9 @@
 				</div>
 				<div class="flex flex-wrap justify-end gap-2">
 					{#if rpmEntriesDirty}
-						<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading} onclick={resetRpmEntriesToServer}>Revert</Button>
+						<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading} onclick={resetRpmEntriesToServer}>{$_('common.revert', { default: 'Revert' })}</Button>
 					{/if}
-					<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading || rpmEntries.length === 0} onclick={clearRpm}>Clear</Button>
+					<Button variant="outline" size="sm" disabled={controlsSaving || controlsLoading || rpmEntries.length === 0} onclick={clearRpm}>{$_('common.clear', { default: 'Clear' })}</Button>
 				</div>
 			</div>
 			<div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -479,7 +480,7 @@
 								<p class="text-xs text-muted-foreground">#{entry.user_id}</p>
 							</div>
 							<Input type="number" min="0" step="1" value={entry.rpm_override ?? ''} oninput={(event) => setRpmEntry(index, event.currentTarget.value)} />
-							<Button variant="ghost" size="sm" onclick={() => (rpmEntries = rpmEntries.filter((item) => item.user_id !== entry.user_id))}>Remove</Button>
+							<Button variant="ghost" size="sm" onclick={() => (rpmEntries = rpmEntries.filter((item) => item.user_id !== entry.user_id))}>{$_('common.remove', { default: 'Remove' })}</Button>
 						</div>
 					{/each}
 				{/if}
@@ -490,6 +491,6 @@
 		</Card>
 	</div>
 	<div class="mt-5 flex justify-end">
-		<Button variant="outline" onclick={onClose}>Close</Button>
+		<Button variant="outline" onclick={onClose}>{$_('common.close', { default: 'Close' })}</Button>
 	</div>
 </StandardDialog>

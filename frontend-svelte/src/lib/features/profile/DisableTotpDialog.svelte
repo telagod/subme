@@ -31,7 +31,7 @@
 		if (!/^\d{6}$/.test(totpCode.trim()) || password.length < 1) {
 			showError(
 				$_('user.security.totp.disableMissing', {
-					default: 'Enter both your authenticator code and current password.'
+					default: '请输入身份验证器代码和当前密码。'
 				})
 			);
 			return;
@@ -41,7 +41,7 @@
 			await disableTotp({ totpCode: totpCode.trim(), password });
 			showSuccess(
 				$_('user.security.totp.disableSuccess', {
-					default: 'Two-factor authentication disabled'
+					default: '双因素认证已禁用'
 				})
 			);
 			onDisabled?.();
@@ -51,7 +51,7 @@
 			const e = err as Error;
 			showError(
 				e?.message ??
-					$_('user.security.totp.disableFailed', { default: 'Failed to disable' })
+					$_('user.security.totp.disableFailed', { default: '禁用失败' })
 			);
 		} finally {
 			submitting = false;
@@ -75,7 +75,7 @@
 	bind:open
 	width="sm"
 	title={$_('user.security.totp.disableTitle', {
-		default: 'Disable two-factor authentication?'
+		default: '禁用双因素认证？'
 	})}
 	data-testid="totp-disable-dialog"
 >
@@ -99,7 +99,7 @@
 		<div class="space-y-4">
 			<div class="space-y-1.5">
 				<label for="td-totp" class="text-sm font-medium text-foreground">
-					{$_('user.security.totp.enterCode', { default: 'Authenticator code' })}
+					{$_('user.security.totp.enterCode', { default: '身份验证器代码' })}
 				</label>
 				<Input
 					id="td-totp"
@@ -115,7 +115,7 @@
 			</div>
 			<div class="space-y-1.5">
 				<label for="td-pwd" class="text-sm font-medium text-foreground">
-					{$_('user.security.totp.enterPassword', { default: 'Current password' })}
+					{$_('user.security.totp.enterPassword', { default: '当前密码' })}
 				</label>
 				<Input
 					id="td-pwd"
@@ -135,7 +135,7 @@
 				disabled={submitting}
 				onclick={handleCancel}
 			>
-				{$_('user.security.totp.cancel', { default: 'Cancel' })}
+				{$_('user.security.totp.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				type="button"
@@ -145,8 +145,8 @@
 				onclick={handleConfirm}
 			>
 				{submitting
-					? $_('user.security.totp.disabling', { default: 'Disabling…' })
-					: $_('user.security.totp.confirmDisable', { default: 'Confirm disable' })}
+					? $_('user.security.totp.disabling', { default: '禁用中…' })
+					: $_('user.security.totp.confirmDisable', { default: '确认禁用' })}
 			</Button>
 		</div>
 	</div>

@@ -34,7 +34,7 @@
 	async function importDataFn() { await run('Imported', async () => { await importAccountData({ data: JSON.parse(dataJson) }); }); }
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.dataTitle', { default: 'Account data tools' })} width="lg" data-testid="account-data-dialog">
+<StandardDialog bind:open title={$_('admin.accountsQuench.dataTitle', { default: '账户数据工具' })} width="lg" data-testid="account-data-dialog">
 	<div class="mt-4 grid gap-4">
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Batch create</h2><p class="text-xs text-muted-foreground">Paste an array of account payloads.</p>
 			<Textarea rows={6} bind:value={batchJson} data-testid="account-batch-json" /><div class="flex justify-end"><Button disabled={busy} onclick={createBatch}>Create batch</Button></div></Card>
@@ -46,5 +46,5 @@
 			<Textarea rows={8} bind:value={dataJson} data-testid="account-data-json" />
 			<div class="flex flex-wrap justify-end gap-2"><Button variant="outline" disabled={busy || selectedIds.size === 0} onclick={exportSel}>Export selected</Button><Button disabled={busy || !dataJson.trim()} onclick={importDataFn}>Import data</Button></div></Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>Close</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
 </StandardDialog>

@@ -247,20 +247,20 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.quench.usage', { default: 'Usage' })}</title>
+	<title>{$_('nav.quench.usage', { default: '用量' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
-			<h1 class="text-xl font-semibold tracking-tight text-foreground">{$_('admin.usage.title', { default: 'Usage records' })}</h1>
-			<p class="text-sm text-muted-foreground">{$_('admin.usage.description', { default: 'Audit requests, token spend, routing, and billing outcomes.' })}</p>
+			<h1 class="text-xl font-semibold tracking-tight text-foreground">{$_('admin.usage.title', { default: '用量记录' })}</h1>
+			<p class="text-sm text-muted-foreground">{$_('admin.usage.description', { default: '审计请求、令牌消费、路由和计费结果。' })}</p>
 		</div>
 		<div class="flex flex-wrap items-center gap-2">
 			<ColumnVisibility columns={allColumns} {hiddenColumns} onToggle={toggleColumn} />
 			<Button variant="outline" onclick={refreshAll} disabled={loading || statsLoading}>
 				<RefreshCw size={15} class={loading || statsLoading ? 'animate-spin' : ''} />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 			<Button variant="outline" onclick={() => doExport('csv')} disabled={exporting || loading}>
 				<Download size={15} />
@@ -295,10 +295,10 @@
 
 	<div class="flex gap-2 border-b border-border">
 		<button type="button" class="-mb-px px-3 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'usage' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}" onclick={() => { activeTab = 'usage'; }}>
-			{$_('admin.usage.tabs.usage', { default: 'Usage' })}
+			{$_('admin.usage.tabs.usage', { default: '用量' })}
 		</button>
 		<button type="button" class="-mb-px px-3 py-2 text-sm font-medium border-b-2 transition-colors {activeTab === 'errors' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}" onclick={() => { activeTab = 'errors'; void errorsTabRef?.load(); }}>
-			{$_('admin.usage.tabs.errors', { default: 'Errors' })}
+			{$_('admin.usage.tabs.errors', { default: '错误' })}
 		</button>
 	</div>
 

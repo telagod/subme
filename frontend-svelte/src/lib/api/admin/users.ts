@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 
 export type AdminUserRole = 'admin' | 'user' | string;
 export type AdminUserStatus = 'active' | 'disabled' | string;
@@ -88,21 +88,21 @@ export async function listUsers(
 }
 
 export async function getUser(id: number, includeDeleted = false): Promise<AdminUser> {
-	return apiClient.get<AdminUser>(
+	return unwrapData(await apiClient.get<AdminUser | ApiEnvelope<AdminUser>>(
 		`${USERS_BASE}/${id}${buildQuery({ include_deleted: includeDeleted || undefined })}`
-	);
+	));
 }
 
 export async function createUser(payload: CreateAdminUserRequest): Promise<AdminUser> {
-	return apiClient.post<AdminUser>(USERS_BASE, payload);
+	return unwrapData(await apiClient.post<AdminUser | ApiEnvelope<AdminUser>>(USERS_BASE, payload));
 }
 
 export async function updateUser(id: number, payload: UpdateAdminUserRequest): Promise<AdminUser> {
-	return apiClient.put<AdminUser>(`${USERS_BASE}/${id}`, payload);
+	return unwrapData(await apiClient.put<AdminUser | ApiEnvelope<AdminUser>>(`${USERS_BASE}/${id}`, payload));
 }
 
 export async function deleteUser(id: number): Promise<{ message: string }> {
-	return apiClient.delete<{ message: string }>(`${USERS_BASE}/${id}`);
+	return unwrapData(await apiClient.delete<{ message: string } | ApiEnvelope<{ message: string }>>(`${USERS_BASE}/${id}`));
 }
 
 export async function updateUserBalance(
@@ -111,7 +111,7 @@ export async function updateUserBalance(
 	operation: 'set' | 'add' | 'subtract' = 'set',
 	notes = ''
 ): Promise<AdminUser> {
-	return apiClient.post<AdminUser>(`${USERS_BASE}/${id}/balance`, { balance, operation, notes });
+	return unwrapData(await apiClient.post<AdminUser | ApiEnvelope<AdminUser>>(`${USERS_BASE}/${id}/balance`, { balance, operation, notes }));
 }
 
 export function updateUserConcurrency(id: number, concurrency: number): Promise<AdminUser> {
@@ -157,7 +157,7 @@ export interface UserUsageStats {
 }
 
 export async function getUserUsage(userId: number, period = 'month'): Promise<UserUsageStats> {
-	return apiClient.get<UserUsageStats>(`${USERS_BASE}/${userId}/usage${buildQuery({ period })}`);
+	return unwrapData(await apiClient.get<UserUsageStats | ApiEnvelope<UserUsageStats>>(`${USERS_BASE}/${userId}/usage${buildQuery({ period })}`));
 }
 
 export interface BalanceHistoryRecord {
@@ -185,9 +185,9 @@ export async function getBalanceHistory(
 	pageSize = 20,
 	type?: string
 ): Promise<BalanceHistoryResponse> {
-	return apiClient.get<BalanceHistoryResponse>(
+	return unwrapData(await apiClient.get<BalanceHistoryResponse | ApiEnvelope<BalanceHistoryResponse>>(
 		`${USERS_BASE}/${userId}/balance-history${buildQuery({ page, page_size: pageSize, type: type || undefined })}`
-	);
+	));
 }
 
 export interface ReplaceGroupResult {
@@ -199,10 +199,10 @@ export async function replaceGroup(
 	oldGroupId: number,
 	newGroupId: number
 ): Promise<ReplaceGroupResult> {
-	return apiClient.post<ReplaceGroupResult>(`${USERS_BASE}/${userId}/replace-group`, {
+	return unwrapData(await apiClient.post<ReplaceGroupResult | ApiEnvelope<ReplaceGroupResult>>(`${USERS_BASE}/${userId}/replace-group`, {
 		old_group_id: oldGroupId,
 		new_group_id: newGroupId
-	});
+	}));
 }
 
 export interface PlatformQuota {
@@ -217,7 +217,7 @@ export interface PlatformQuota {
 }
 
 export async function getUserPlatformQuotas(userId: number): Promise<{ platform_quotas: PlatformQuota[] }> {
-	return apiClient.get<{ platform_quotas: PlatformQuota[] }>(`${USERS_BASE}/${userId}/platform-quotas`);
+	return unwrapData(await apiClient.get<{ platform_quotas: PlatformQuota[] } | ApiEnvelope<{ platform_quotas: PlatformQuota[] }>>(`${USERS_BASE}/${userId}/platform-quotas`));
 }
 
 export interface PlatformQuotaInput {
@@ -231,7 +231,7 @@ export async function updateUserPlatformQuotas(
 	userId: number,
 	quotas: PlatformQuotaInput[]
 ): Promise<{ platform_quotas: PlatformQuota[] }> {
-	return apiClient.put<{ platform_quotas: PlatformQuota[] }>(`${USERS_BASE}/${userId}/platform-quotas`, { quotas });
+	return unwrapData(await apiClient.put<{ platform_quotas: PlatformQuota[] } | ApiEnvelope<{ platform_quotas: PlatformQuota[] }>>(`${USERS_BASE}/${userId}/platform-quotas`, { quotas }));
 }
 
 export async function resetUserPlatformQuotaWindow(
@@ -239,7 +239,7 @@ export async function resetUserPlatformQuotaWindow(
 	platform: string,
 	window: string
 ): Promise<{ message: string }> {
-	return apiClient.post<{ message: string }>(`${USERS_BASE}/${userId}/platform-quotas/reset`, { platform, window });
+	return unwrapData(await apiClient.post<{ message: string } | ApiEnvelope<{ message: string }>>(`${USERS_BASE}/${userId}/platform-quotas/reset`, { platform, window }));
 }
 
 export async function bindAuthIdentity(
@@ -247,10 +247,10 @@ export async function bindAuthIdentity(
 	provider: string,
 	providerUserId: string
 ): Promise<AdminUser> {
-	return apiClient.post<AdminUser>(`${USERS_BASE}/${userId}/auth-identities`, {
+	return unwrapData(await apiClient.post<AdminUser | ApiEnvelope<AdminUser>>(`${USERS_BASE}/${userId}/auth-identities`, {
 		provider,
 		provider_user_id: providerUserId
-	});
+	}));
 }
 
 export const adminUsersApi = {

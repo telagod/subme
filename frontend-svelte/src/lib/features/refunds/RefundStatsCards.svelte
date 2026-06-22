@@ -27,7 +27,7 @@
 			{pendingCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.refunds.statPending', { default: 'Pending' })}
+			{$_('admin.refunds.statPending', { default: '待处理' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -39,7 +39,7 @@
 			${totalRequested.toFixed(2)}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.refunds.statAmount', { default: 'Requested' })}
+			{$_('admin.refunds.statAmount', { default: '已请求' })}
 		</span>
 	</div>
 	<div class="ml-auto text-xs text-muted-foreground tabular-nums">

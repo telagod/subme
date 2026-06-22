@@ -41,7 +41,7 @@
 			case 'airwallex':
 				return $_('user.payment.providers.airwallex', { default: 'Airwallex' });
 			case 'balance':
-				return $_('user.payment.providers.balance', { default: 'Account balance' });
+				return $_('user.payment.providers.balance', { default: '账户余额' });
 		}
 	}
 
@@ -49,15 +49,15 @@
 		switch (p) {
 			case 'stripe':
 				return $_('user.payment.providers.stripeHint', {
-					default: 'Card, Alipay or WeChat via Stripe'
+					default: 'Stripe 银行卡 / 支付宝 / 微信'
 				});
 			case 'airwallex':
 				return $_('user.payment.providers.airwallexHint', {
-					default: 'Card via Airwallex hosted checkout'
+					default: 'Airwallex 银行卡支付'
 				});
 			case 'balance':
 				return $_('user.payment.providers.balanceHint', {
-					default: 'Pay using your account balance'
+					default: '使用账户余额支付'
 				});
 		}
 	}
@@ -74,7 +74,7 @@
 
 <div
 	role="radiogroup"
-	aria-label={ariaLabel ?? $_('user.payment.providers.groupLabel', { default: 'Payment provider' })}
+	aria-label={ariaLabel ?? $_('user.payment.providers.groupLabel', { default: '支付供应商' })}
 	data-testid="payment-provider-switch"
 	class="space-y-2"
 >

@@ -13,6 +13,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrap<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 export interface AffiliateAdminEntry {
 	user_id: number;
 	email: string;
@@ -156,17 +161,17 @@ export async function listUsers(
 		page_size: params.page_size ?? 20,
 		search: params.search ?? ''
 	});
-	const raw = await apiClient.get<RawPaginated<AffiliateAdminEntry>>(
+	const raw = unwrap<RawPaginated<AffiliateAdminEntry>>(await apiClient.get(
 		`/api/v1/admin/affiliates/users${q}`
-	);
+	));
 	return normalizePaginated(raw);
 }
 
 export async function lookupUsers(q: string): Promise<SimpleUser[]> {
 	const query = buildQuery({ q });
-	const raw = await apiClient.get<SimpleUser[] | RawPaginated<SimpleUser>>(
+	const raw = unwrap<SimpleUser[] | RawPaginated<SimpleUser>>(await apiClient.get(
 		`/api/v1/admin/affiliates/users/lookup${query}`
-	);
+	));
 	if (Array.isArray(raw)) return raw;
 	return raw.items ?? raw.data ?? raw.records ?? [];
 }
@@ -175,23 +180,23 @@ export async function updateUserSettings(
 	userId: number,
 	payload: UpdateAffiliateUserRequest
 ): Promise<{ user_id: number }> {
-	return apiClient.put<{ user_id: number }>(
+	return unwrap<{ user_id: number }>(await apiClient.put(
 		`/api/v1/admin/affiliates/users/${userId}`,
 		payload
-	);
+	));
 }
 
 export async function clearUserSettings(userId: number): Promise<{ user_id: number }> {
-	return apiClient.delete<{ user_id: number }>(`/api/v1/admin/affiliates/users/${userId}`);
+	return unwrap<{ user_id: number }>(await apiClient.delete(`/api/v1/admin/affiliates/users/${userId}`));
 }
 
 export async function batchSetRate(
 	payload: BatchSetRateRequest
 ): Promise<{ affected: number }> {
-	return apiClient.post<{ affected: number }>(
+	return unwrap<{ affected: number }>(await apiClient.post(
 		'/api/v1/admin/affiliates/users/batch-rate',
 		payload
-	);
+	));
 }
 
 function recordQuery(params: ListAffiliateRecordsParams = {}): string {
@@ -210,32 +215,32 @@ function recordQuery(params: ListAffiliateRecordsParams = {}): string {
 export async function listInviteRecords(
 	params: ListAffiliateRecordsParams = {}
 ): Promise<{ items: AffiliateInviteRecord[]; total: number; pages: number }> {
-	const raw = await apiClient.get<RawPaginated<AffiliateInviteRecord>>(
+	const raw = unwrap<RawPaginated<AffiliateInviteRecord>>(await apiClient.get(
 		`/api/v1/admin/affiliates/invites${recordQuery(params)}`
-	);
+	));
 	return normalizePaginated(raw);
 }
 
 export async function listRebateRecords(
 	params: ListAffiliateRecordsParams = {}
 ): Promise<{ items: AffiliateRebateRecord[]; total: number; pages: number }> {
-	const raw = await apiClient.get<RawPaginated<AffiliateRebateRecord>>(
+	const raw = unwrap<RawPaginated<AffiliateRebateRecord>>(await apiClient.get(
 		`/api/v1/admin/affiliates/rebates${recordQuery(params)}`
-	);
+	));
 	return normalizePaginated(raw);
 }
 
 export async function listTransferRecords(
 	params: ListAffiliateRecordsParams = {}
 ): Promise<{ items: AffiliateTransferRecord[]; total: number; pages: number }> {
-	const raw = await apiClient.get<RawPaginated<AffiliateTransferRecord>>(
+	const raw = unwrap<RawPaginated<AffiliateTransferRecord>>(await apiClient.get(
 		`/api/v1/admin/affiliates/transfers${recordQuery(params)}`
-	);
+	));
 	return normalizePaginated(raw);
 }
 
 export async function getUserOverview(userId: number): Promise<AffiliateUserOverview> {
-	return apiClient.get<AffiliateUserOverview>(`/api/v1/admin/affiliates/users/${userId}/overview`);
+	return unwrap<AffiliateUserOverview>(await apiClient.get(`/api/v1/admin/affiliates/users/${userId}/overview`));
 }
 
 export const adminAffiliatesApi = {

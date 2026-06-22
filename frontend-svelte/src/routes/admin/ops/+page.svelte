@@ -150,7 +150,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.ops.title', { default: 'Operations Dashboard' })}</title>
+	<title>{$_('admin.ops.title', { default: '运维监控' })}</title>
 </svelte:head>
 
 <div class="mx-auto max-w-screen-2xl space-y-6 p-4 lg:p-6">
@@ -159,7 +159,7 @@
 			<div class="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-foreground"></div>
 		</div>
 	{:else if !opsEnabled}
-		<Alert>{$_('admin.ops.disabled', { default: 'Operations monitoring is disabled. Enable it in Settings → Features.' })}</Alert>
+		<Alert>{$_('admin.ops.disabled', { default: '运维监控已禁用。请在 设置 → 功能 中启用。' })}</Alert>
 	{:else}
 		<OpsFilterBar {overview} {platform} {groupId} {timeRange} {queryMode}
 			loading={dashLoading} {lastUpdated} {autoRefreshEnabled} {autoRefreshCountdown}
@@ -215,8 +215,8 @@
 		<StandardDialog
 			bind:open={showAlertRules}
 			width="lg"
-			title={$_('admin.ops.alertRules.title', { default: 'Alert rules' })}
-			description={$_('admin.ops.alertRules.description', { default: 'Define metric thresholds that trigger ops alerts.' })}
+			title={$_('admin.ops.alertRules.title', { default: '告警规则' })}
+			description={$_('admin.ops.alertRules.description', { default: '定义触发运维告警的指标阈值。' })}
 			class="!max-w-5xl"
 			data-testid="ops-alert-rules-dialog"
 		>

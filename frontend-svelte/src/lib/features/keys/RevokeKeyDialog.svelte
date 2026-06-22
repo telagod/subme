@@ -33,7 +33,7 @@
 		try {
 			await revokeKey(apiKey.id);
 			showSuccess(
-				$_('user.keys.revokeSuccess', { default: 'API key revoked successfully' })
+				$_('user.keys.revokeSuccess', { default: 'API 密钥已撤销' })
 			);
 			onRevoked?.(apiKey.id);
 			open = false;
@@ -41,7 +41,7 @@
 			const e = err as Error;
 			showError(
 				$_('user.keys.revokeError', {
-					default: 'Failed to revoke API key',
+					default: '撤销 API 密钥失败',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -59,7 +59,7 @@
 <StandardDialog
 	bind:open
 	width="sm"
-	title={$_('user.keys.revokeTitle', { default: 'Revoke API key?' })}
+	title={$_('user.keys.revokeTitle', { default: '撤销此 API 密钥？' })}
 	description={$_('user.keys.revokeDescription', {
 		default:
 			'This will permanently revoke the key starting with {prefix}... ending in {suffix}. This action cannot be undone.',
@@ -90,7 +90,7 @@
 				onclick={handleCancel}
 				class="h-9"
 			>
-				{$_('user.keys.cancel', { default: 'Cancel' })}
+				{$_('user.keys.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				variant="destructive"
@@ -100,8 +100,8 @@
 				class="h-9"
 			>
 				{submitting
-					? $_('user.keys.revoking', { default: 'Revoking...' })
-					: $_('user.keys.revoke', { default: 'Revoke' })}
+					? $_('user.keys.revoking', { default: '撤销中...' })
+					: $_('user.keys.revoke', { default: '撤销' })}
 			</Button>
 		</div>
 	</div>

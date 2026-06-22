@@ -141,13 +141,13 @@
 		try {
 			await approveRefund(id);
 			showSuccess(
-				$_('admin.refunds.approveSuccess', { default: 'Refund approved' })
+				$_('admin.refunds.approveSuccess', { default: '退款已批准' })
 			);
 		} catch (err) {
 			const e = err as Error;
 			showError(
 				$_('admin.refunds.approveError', {
-					default: 'Approve failed: {error}',
+					default: '批准失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -181,7 +181,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.refunds.title', { default: 'Refund queue' })} · sub2api admin</title>
+	<title>{$_('admin.refunds.title', { default: '退款队列' })} · sub2api admin</title>
 </svelte:head>
 
 <section
@@ -192,11 +192,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-				{$_('admin.refunds.title', { default: 'Refund queue' })}
+				{$_('admin.refunds.title', { default: '退款队列' })}
 			</h1>
 			<p class="m-0 text-xs text-muted-foreground">
 				{$_('admin.refunds.desc', {
-					default: 'Review pending refund requests · approve / reject with reason'
+					default: '审核待处理退款请求 · 批准 / 拒绝并附原因'
 				})}
 			</p>
 		</div>
@@ -207,11 +207,11 @@
 				disabled={loading}
 				onclick={() => loadQueue()}
 				data-testid="admin-refunds-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 			>
 				<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 		</div>
 	</div>
@@ -230,7 +230,7 @@
 			<AlertTriangle class="h-4 w-4" />
 			<span>{loadError}</span>
 			<Button variant="outline" size="sm" class="ml-auto" onclick={() => loadQueue()}>
-				{$_('common.confirm', { default: 'Retry' })}
+				{$_('common.confirm', { default: '重试' })}
 			</Button>
 		</Alert>
 	{/if}

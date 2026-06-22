@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Checkbox from '$lib/ui/Checkbox.svelte';
@@ -480,7 +481,7 @@
 						{#each copyAccountsGroupIds as groupId}
 							<Badge variant="outline" class="gap-1">
 								{copyAccountsLabel(groupId)}
-								<Button variant="ghost" size="sm" class="h-5 px-1" onclick={() => removeCopyAccountsGroup(groupId)} aria-label={`Remove source group ${groupId}`}>Remove</Button>
+								<Button variant="ghost" size="sm" class="h-5 px-1" onclick={() => removeCopyAccountsGroup(groupId)} aria-label={`Remove source group ${groupId}`}>{$_('common.remove', { default: 'Remove' })}</Button>
 							</Badge>
 						{/each}
 					</div>
@@ -557,7 +558,7 @@
 								Account IDs
 								<Input value={rule.accountIdsText} oninput={(event) => updateModelRoutingRule(index, { accountIdsText: event.currentTarget.value })} placeholder="101, 102" data-testid={`group-routing-accounts-${index}`} />
 							</label>
-							<Button variant="ghost" class="self-end" onclick={() => removeModelRoutingRule(index)}>Remove</Button>
+							<Button variant="ghost" class="self-end" onclick={() => removeModelRoutingRule(index)}>{$_('common.remove', { default: 'Remove' })}</Button>
 						</div>
 					{/each}
 				</div>
@@ -664,7 +665,7 @@
 		<label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={form.is_exclusive} /> Exclusive group</label>
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
-		<Button variant="outline" onclick={onClose}>Cancel</Button>
-		<Button disabled={saving || !form.name.trim()} onclick={saveGroup}>Save</Button>
+		<Button variant="outline" onclick={onClose}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+		<Button disabled={saving || !form.name.trim()} onclick={saveGroup}>{$_('common.save', { default: 'Save' })}</Button>
 	</div>
 </StandardDialog>

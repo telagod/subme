@@ -44,7 +44,7 @@
 				total_tokens: (statsRes as Record<string, number>).total_tokens ?? 0
 			};
 			loaded = true;
-		} catch { error = $_('admin.users.loadFailed', { default: 'Failed to load' }); }
+		} catch { error = $_('admin.users.loadFailed', { default: '加载失败' }); }
 		finally { loading = false; }
 	}
 
@@ -55,35 +55,35 @@
 	{#if !loading && loaded}
 		<div class="grid grid-cols-3 gap-2">
 			<Card class="flex flex-col gap-1 px-3.5 py-3 shadow-none">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageRequests', { default: 'Total Requests' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageRequests', { default: '总请求量' })}</span>
 				<span class="text-sm font-bold text-foreground">{stats.total_requests.toLocaleString()}</span>
 			</Card>
 			<Card class="flex flex-col gap-1 px-3.5 py-3 shadow-none">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageCost', { default: 'Total Cost' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageCost', { default: '总费用' })}</span>
 				<span class="text-sm font-bold text-emerald-500">${stats.total_cost.toFixed(4)}</span>
 			</Card>
 			<Card class="flex flex-col gap-1 px-3.5 py-3 shadow-none">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageTokens', { default: 'Total Tokens' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.usageTokens', { default: '总令牌量' })}</span>
 				<span class="text-sm font-bold text-foreground">{fmtTok(stats.total_tokens)}</span>
 			</Card>
 		</div>
 	{/if}
 
 	{#if loading}
-		<div class="py-5 text-center text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</div>
+		<div class="py-5 text-center text-sm text-muted-foreground">{$_('common.loading', { default: '加载中...' })}</div>
 	{:else if error}
 		<div class="text-sm text-destructive">{error}</div>
 	{:else if !items.length}
-		<div class="py-5 text-center text-sm text-muted-foreground">{$_('admin.users.usageEmpty', { default: 'No usage records' })}</div>
+		<div class="py-5 text-center text-sm text-muted-foreground">{$_('admin.users.usageEmpty', { default: '暂无用量记录' })}</div>
 	{:else}
 		<div class="overflow-x-auto">
 			<table class="w-full text-left text-sm">
 				<thead>
 					<tr class="border-b border-border text-xs text-muted-foreground">
-						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageTime', { default: 'Time' })}</th>
-						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageModel', { default: 'Model' })}</th>
-						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageCostCol', { default: 'Cost' })}</th>
-						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageTokensCol', { default: 'Tokens' })}</th>
+						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageTime', { default: '时间' })}</th>
+						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageModel', { default: '模型' })}</th>
+						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageCostCol', { default: '费用' })}</th>
+						<th class="whitespace-nowrap px-2 py-2">{$_('admin.users.usageTokensCol', { default: '令牌' })}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -99,7 +99,7 @@
 			</table>
 		</div>
 		{#if total > items.length}
-			<div class="text-center text-xs text-muted-foreground">{$_('admin.users.showingOf', { default: 'Showing {shown} of {total}', values: { shown: items.length, total } })}</div>
+			<div class="text-center text-xs text-muted-foreground">{$_('admin.users.showingOf', { default: '显示 {shown} / {total}', values: { shown: items.length, total } })}</div>
 		{/if}
 	{/if}
 </div>

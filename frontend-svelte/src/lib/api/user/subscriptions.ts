@@ -23,6 +23,11 @@
  */
 import { apiClient } from '../client';
 
+function unwrapEnvelope<T>(raw: unknown): T {
+	if (raw && typeof raw === 'object' && 'data' in raw && (raw as Record<string, unknown>).code !== undefined) return (raw as Record<string, unknown>).data as T;
+	return raw as T;
+}
+
 // ── 公共类型 ─────────────────────────────────────────────────────────────
 
 export type SubscriptionStatus = 'active' | 'trialing' | 'expired' | 'cancelled' | 'canceled' | 'pending';
@@ -199,21 +204,21 @@ function extractList<T>(resp: RawList<T> | T[] | null | undefined): T[] {
 // ── API 入口 ─────────────────────────────────────────────────────────────
 
 export async function listPlans(): Promise<Plan[]> {
-	const resp = await apiClient.get<RawList<RawPlan> | RawPlan[]>('/api/v1/payment/plans');
+	const resp = unwrapEnvelope<RawList<RawPlan> | RawPlan[]>(await apiClient.get('/api/v1/payment/plans'));
 	return extractList(resp).map(mapPlan);
 }
 
 export async function listAll(): Promise<UserSubscription[]> {
-	const resp = await apiClient.get<RawList<RawSubscription> | RawSubscription[]>(
+	const resp = unwrapEnvelope<RawList<RawSubscription> | RawSubscription[]>(await apiClient.get(
 		'/api/v1/subscriptions'
-	);
+	));
 	return extractList(resp).map(mapSubscription);
 }
 
 export async function listActive(): Promise<UserSubscription[]> {
-	const resp = await apiClient.get<RawList<RawSubscription> | RawSubscription[]>(
+	const resp = unwrapEnvelope<RawList<RawSubscription> | RawSubscription[]>(await apiClient.get(
 		'/api/v1/subscriptions/active'
-	);
+	));
 	return extractList(resp).map(mapSubscription);
 }
 

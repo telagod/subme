@@ -119,13 +119,13 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.quench.settings', { default: 'Settings' })} · sub2api admin</title>
+	<title>{$_('nav.quench.settings', { default: '设置' })} · sub2api admin</title>
 </svelte:head>
 
 <section class="space-y-5" data-page="admin-settings">
 	<header class="flex items-center justify-between">
 		<h1 class="text-2xl font-semibold tracking-tight">
-			{$_('nav.quench.settings', { default: 'Settings' })}
+			{$_('nav.quench.settings', { default: '设置' })}
 		</h1>
 		<div class="flex items-center gap-2">
 			<Button
@@ -135,7 +135,7 @@
 				onclick={handleReset}
 				disabled={dirtyCount === 0 || saving}
 			>
-				{$_('common.discard', { default: 'Discard' })}
+				{$_('common.discard', { default: '放弃' })}
 			</Button>
 			<Button
 				size="sm"

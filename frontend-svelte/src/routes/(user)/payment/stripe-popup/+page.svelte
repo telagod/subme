@@ -55,25 +55,25 @@
 
 	async function initStripe(clientSecret: string, publishableKey: string) {
 		if (!clientSecret || !publishableKey) {
-			error = $_('payment.stripeMissingParams', { default: 'Missing order ID or client secret' });
+			error = $_('payment.stripeMissingParams', { default: '缺少订单 ID 或客户端密钥' });
 			return;
 		}
 		try {
 			const stripe = (await getStripe(publishableKey)) as unknown as StripeLike;
 			if (method === 'alipay') {
 				const fn = stripe.confirmAlipayPayment;
-				if (!fn) throw new Error($_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' }));
+				if (!fn) throw new Error($_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' }));
 				const { error: err } = await fn(clientSecret, { return_url: successUrl() });
-				if (err) error = err.message || $_('payment.result.failed', { default: 'Payment Failed' });
+				if (err) error = err.message || $_('payment.result.failed', { default: '支付失败' });
 			} else if (method === 'wechat_pay') {
-				hint = $_('payment.stripePopup.loadingQr', { default: 'Loading WeChat Pay QR code...' });
+				hint = $_('payment.stripePopup.loadingQr', { default: '加载微信支付二维码中...' });
 				const fn = stripe.confirmWechatPayPayment;
-				if (!fn) throw new Error($_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' }));
+				if (!fn) throw new Error($_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' }));
 				const result = await fn(clientSecret, {
 					payment_method_options: { wechat_pay: { client: 'web' } }
 				});
 				if (result.error) {
-					error = result.error.message || $_('payment.result.failed', { default: 'Payment Failed' });
+					error = result.error.message || $_('payment.result.failed', { default: '支付失败' });
 				} else if (result.paymentIntent?.status === 'succeeded') {
 					success = true;
 					setTimeout(closeWindow, 2_000);
@@ -84,7 +84,7 @@
 		} catch (err) {
 			error =
 				(err as Error)?.message ||
-				$_('payment.stripeLoadFailed', { default: 'Failed to load payment component. Please refresh and try again.' });
+				$_('payment.stripeLoadFailed', { default: '加载支付组件失败，请刷新后重试。' });
 		}
 	}
 
@@ -107,7 +107,7 @@
 	}
 
 	onMount(() => {
-		hint = $_('payment.stripePopup.redirecting', { default: 'Redirecting to payment page...' });
+		hint = $_('payment.stripePopup.redirecting', { default: '跳转到支付页面中...' });
 		const handler = (event: MessageEvent) => {
 			if (event.origin !== window.location.origin) return;
 			if (event.data?.type !== 'STRIPE_POPUP_INIT') return;
@@ -121,7 +121,7 @@
 		timeoutTimer = setTimeout(() => {
 			if (!error && !success) {
 				error = $_('payment.stripePopup.timeout', {
-					default: 'Timed out waiting for payment credentials, please retry'
+					default: '等待支付凭证超时，请重试'
 				});
 			}
 		}, 15_000);
@@ -145,7 +145,7 @@
 				<p class="text-3xl font-bold" style:color={methodColor}>{formatGatewayAmount(Number(amount) || 0, 'CNY')}</p>
 				{#if orderId}
 					<p class="mt-1 text-sm text-muted-foreground">
-						{$_('payment.orders.orderId', { default: 'Order ID' })}: {orderId}
+						{$_('payment.orders.orderId', { default: '订单号' })}: {orderId}
 					</p>
 				{/if}
 			</div>
@@ -157,15 +157,15 @@
 					{error}
 				</div>
 				<Button variant="ghost" class="w-full text-sm hover:underline" style={`color: ${methodColor}`} onclick={closeWindow}>
-					{$_('common.close', { default: 'Close' })}
+					{$_('common.close', { default: '关闭' })}
 				</Button>
 			</div>
 		{:else if success}
 			<div class="space-y-3 py-4 text-center" data-testid="payment-stripe-popup-success">
 				<CheckCircle2 class="mx-auto h-12 w-12 text-emerald-500" />
-				<p class="text-sm text-muted-foreground">{$_('payment.result.success', { default: 'Payment Successful' })}</p>
+				<p class="text-sm text-muted-foreground">{$_('payment.result.success', { default: '支付成功' })}</p>
 				<Button variant="ghost" class="text-sm hover:underline" style={`color: ${methodColor}`} onclick={closeWindow}>
-					{$_('common.close', { default: 'Close' })}
+					{$_('common.close', { default: '关闭' })}
 				</Button>
 			</div>
 		{:else}

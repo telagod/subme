@@ -51,7 +51,7 @@
 
 			// Agreement gate check.
 			if (agreementGateActive) {
-				showError($_('auth.agreement.mustAccept', { default: 'Please accept the terms before signing in.' }));
+				showError($_('auth.agreement.mustAccept', { default: '请先同意条款再登录。' }));
 				if (loginAgreementMode !== 'checkbox') {
 					showAgreementModal = true;
 				}
@@ -60,7 +60,7 @@
 
 			// Turnstile gate check.
 			if (turnstileEnabled && turnstileSiteKey && !turnstileToken) {
-				showError($_('auth.turnstile.required', { default: 'Please complete the verification.' }));
+				showError($_('auth.turnstile.required', { default: '请完成验证。' }));
 				return;
 			}
 
@@ -72,25 +72,25 @@
 					turnstile_token: turnstileEnabled ? turnstileToken || undefined : undefined
 				});
 				const next = page.url.searchParams.get('next') || '/dashboard';
-				showSuccess($_('auth.login.success', { default: 'Signed in successfully.' }));
+				showSuccess($_('auth.login.success', { default: '登录成功。' }));
 				await goto(next, { replaceState: true });
 			} catch (err) {
 				const e = err as Error & { code?: string };
 				if (e.code === 'TOTP_REQUIRED') {
 					needsTotp = true;
-					showError($_('auth.errors.TOTP_REQUIRED', { default: 'TOTP required' }));
+					showError($_('auth.errors.TOTP_REQUIRED', { default: '需要双因素验证' }));
 					return;
 				}
 				const msg = (e?.message ?? '').toLowerCase();
 				if (msg.includes('turnstile')) {
-					formError = $_('auth.turnstile.failed', { default: 'CAPTCHA verification failed. Please try again.' });
+					formError = $_('auth.turnstile.failed', { default: '验证码校验失败，请重试。' });
 					turnstileToken = '';
 				} else if (msg.includes('401') || msg.includes('unauthorized') || msg.includes('credentials')) {
-					formError = $_('auth.errors.INVALID_CREDENTIALS', { default: 'Invalid credentials' });
+					formError = $_('auth.errors.INVALID_CREDENTIALS', { default: '登录凭证无效' });
 				} else if (msg.includes('network') || msg.includes('failed to fetch')) {
-					formError = $_('auth.errors.NETWORK_ERROR', { default: 'Network error' });
+					formError = $_('auth.errors.NETWORK_ERROR', { default: '网络错误' });
 				} else {
-					formError = $_('auth.errors.UNKNOWN', { default: 'Unknown error' });
+					formError = $_('auth.errors.UNKNOWN', { default: '未知错误' });
 				}
 				showError(formError);
 			}
@@ -133,7 +133,7 @@
 				const expired = window.sessionStorage.getItem('auth_expired');
 				if (expired) {
 					window.sessionStorage.removeItem('auth_expired');
-					const msg = $_('auth.login.sessionExpired', { default: 'Session expired. Please sign in again.' });
+					const msg = $_('auth.login.sessionExpired', { default: '会话已过期，请重新登录。' });
 					formError = msg;
 					showError(msg);
 				}
@@ -222,7 +222,7 @@
 		}
 		agreementAccepted = false;
 		showAgreementModal = false;
-		showError($_('auth.agreement.rejectedWarning', { default: 'You must accept the terms before signing in.' }));
+		showError($_('auth.agreement.rejectedWarning', { default: '登录前必须接受条款。' }));
 	}
 
 	// ── Helpers ────────────────────────────────────────────────────────
@@ -233,7 +233,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.login.title', { default: 'Sign in' })} · sub2api</title>
+	<title>{$_('auth.login.title', { default: '登录' })} · sub2api</title>
 </svelte:head>
 
 <main class="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -241,10 +241,10 @@
 		<header class="space-y-2 text-center">
 			<img src="/logo.svg" alt="Logo" class="mx-auto h-10 w-10 rounded-md" />
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('auth.login.title', { default: 'Sign in' })}
+				{$_('auth.login.title', { default: '登录' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('auth.login.subtitle', { default: 'Welcome back. Sign in to continue.' })}
+				{$_('auth.login.subtitle', { default: '欢迎回来，登录以继续。' })}
 			</p>
 		</header>
 
@@ -252,7 +252,7 @@
 			<!-- email -->
 			<div class="space-y-1.5">
 				<label for="email" class="text-sm font-medium text-foreground">
-					{$_('auth.login.emailLabel', { default: 'Email' })}
+					{$_('auth.login.emailLabel', { default: '邮箱' })}
 				</label>
 				<Input
 					id="email"
@@ -274,14 +274,14 @@
 			<!-- password -->
 			<div class="space-y-1.5">
 				<label for="password" class="text-sm font-medium text-foreground">
-					{$_('auth.login.passwordLabel', { default: 'Password' })}
+					{$_('auth.login.passwordLabel', { default: '密码' })}
 				</label>
 				<Input
 					id="password"
 					name="password"
 					type="password"
 					autocomplete="current-password"
-					placeholder={$_('auth.login.passwordPlaceholder', { default: 'Your password' })}
+					placeholder={$_('auth.login.passwordPlaceholder', { default: '您的密码' })}
 					bind:value={$form.password}
 					aria-invalid={$errors.password ? 'true' : undefined}
 					disabled={authActionsDisabled}
@@ -297,7 +297,7 @@
 			{#if needsTotp}
 				<div class="space-y-1.5">
 					<label for="totp" class="text-sm font-medium text-foreground">
-						{$_('auth.login.totpLabel', { default: 'Two-factor code' })}
+						{$_('auth.login.totpLabel', { default: '双因素验证码' })}
 					</label>
 					<Input
 						id="totp"
@@ -350,20 +350,20 @@
 				class="w-full"
 			>
 				{$submitting
-					? $_('auth.login.submitting', { default: 'Signing in...' })
-					: $_('auth.login.submit', { default: 'Sign in' })}
+					? $_('auth.login.submitting', { default: '登录中...' })
+					: $_('auth.login.submit', { default: '登录' })}
 			</Button>
 
 			<OAuthProvidersSection disabled={authActionsDisabled} />
 
 			<div class="flex items-center justify-between text-xs text-muted-foreground">
 				<a class="hover:text-foreground hover:underline" href="/auth/forgot">
-					{$_('auth.login.forgotPassword', { default: 'Forgot password?' })}
+					{$_('auth.login.forgotPassword', { default: '忘记密码？' })}
 				</a>
 				<span>
 					{$_('auth.login.noAccount', { default: "Don't have an account?" })}
 					<a class="ml-1 text-foreground underline-offset-4 hover:underline" href="/auth/register">
-						{$_('auth.login.registerLink', { default: 'Create one' })}
+						{$_('auth.login.registerLink', { default: '去注册' })}
 					</a>
 				</span>
 			</div>

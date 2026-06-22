@@ -39,20 +39,20 @@
 
 	async function submit() {
 		if (oldGroupId === '__none__' || newGroupId === '__none__') {
-			showError($_('admin.users.groupSelectBoth', { default: 'Select both old and new groups' }));
+			showError($_('admin.users.groupSelectBoth', { default: '请选择旧分组和新分组' }));
 			return;
 		}
 		submitting = true;
 		try {
 			const result = await replaceGroup(userId, Number(oldGroupId), Number(newGroupId));
 			showSuccess($_('admin.users.groupReplaced', {
-				default: 'Group replaced, {count} keys migrated',
+				default: '分组已替换，{count} 个密钥已迁移',
 				values: { count: result.migrated_keys }
 			}));
 			onUpdated();
 			onClose();
 		} catch (e: unknown) {
-			showError((e as Error)?.message || $_('admin.users.groupReplaceFailed', { default: 'Failed to replace group' }));
+			showError((e as Error)?.message || $_('admin.users.groupReplaceFailed', { default: '替换分组失败' }));
 		} finally {
 			submitting = false;
 		}
@@ -60,12 +60,12 @@
 </script>
 
 <StandardDialog {open} onOpenChange={(v) => { if (!v) onClose(); }}
-	title={$_('admin.users.replaceGroup', { default: 'Replace Group' })}
+	title={$_('admin.users.replaceGroup', { default: '替换分组' })}
 	data-testid="group-replace-dialog">
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-col gap-1.5">
 			<span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.oldGroup', { default: 'Current Group' })}
+				{$_('admin.users.oldGroup', { default: '当前分组' })}
 			</span>
 			<NativeSelect bind:value={oldGroupId} data-testid="group-old">
 				<option value="__none__">{$_('admin.users.selectGroup', { default: '— Select —' })}</option>
@@ -77,7 +77,7 @@
 
 		<div class="flex flex-col gap-1.5">
 			<span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-				{$_('admin.users.newGroup', { default: 'New Group' })}
+				{$_('admin.users.newGroup', { default: '新分组' })}
 			</span>
 			<NativeSelect bind:value={newGroupId} data-testid="group-new">
 				<option value="__none__">{$_('admin.users.selectGroup', { default: '— Select —' })}</option>
@@ -90,11 +90,11 @@
 
 	<div class="flex justify-end gap-2 border-t border-border pt-4">
 		<Button variant="outline" size="sm" onclick={onClose}>
-			{$_('common.cancel', { default: 'Cancel' })}
+			{$_('common.cancel', { default: '取消' })}
 		</Button>
 		<Button size="sm" disabled={submitting || oldGroupId === '__none__' || newGroupId === '__none__'} onclick={submit}
 			data-testid="group-replace-confirm">
-			{submitting ? $_('common.submitting', { default: 'Submitting...' }) : $_('common.confirm', { default: 'Confirm' })}
+			{submitting ? $_('common.submitting', { default: '提交中...' }) : $_('common.confirm', { default: '确认' })}
 		</Button>
 	</div>
 </StandardDialog>

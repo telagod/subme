@@ -71,7 +71,7 @@
 		<Card class="p-3">
 			<div class="flex items-center justify-between gap-3">
 				<h2 class="text-sm font-semibold">
-					{$_('admin.usage.modelDistribution', { default: 'Model distribution' })}
+					{$_('admin.usage.modelDistribution', { default: '模型分布' })}
 				</h2>
 				<NativeSelect
 					bind:value={modelMetric}
@@ -88,7 +88,7 @@
 		<Card class="p-3">
 			<div class="flex items-center justify-between gap-3">
 				<h2 class="text-sm font-semibold">
-					{$_('admin.usage.endpointDistribution', { default: 'Top endpoints' })}
+					{$_('admin.usage.endpointDistribution', { default: '前端端点' })}
 				</h2>
 				<span class="text-xs text-muted-foreground">{statsLoading ? 'Loading' : `${endpointCount} shown`}</span>
 			</div>
@@ -101,7 +101,7 @@
 	<!-- Trend chart (full width) -->
 	<Card class="p-3">
 		<h2 class="text-sm font-semibold">
-			{$_('admin.usage.usageTrend', { default: 'Usage trend' })}
+			{$_('admin.usage.usageTrend', { default: '使用趋势' })}
 		</h2>
 		<div class="mt-3">
 			<ChartIsland type="line" data={trendChartData} loading={chartsLoading} empty={trendEmpty} options={trendLineOptions} />

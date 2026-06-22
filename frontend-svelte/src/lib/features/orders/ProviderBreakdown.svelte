@@ -55,18 +55,18 @@
 	<div
 		class="grid grid-cols-[1.4fr,1fr,90px,110px,1fr] gap-2 border-b border-border bg-muted px-3 py-2 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground"
 	>
-		<div>{$_('admin.orderDashboard.provider.colName', { default: 'Provider' })}</div>
+		<div>{$_('admin.orderDashboard.provider.colName', { default: '供应商' })}</div>
 		<div class="text-right">
-			{$_('admin.orderDashboard.provider.colRevenue', { default: 'Revenue' })}
+			{$_('admin.orderDashboard.provider.colRevenue', { default: '收入' })}
 		</div>
 		<div class="text-right">
-			{$_('admin.orderDashboard.provider.colCount', { default: 'Orders' })}
+			{$_('admin.orderDashboard.provider.colCount', { default: '订单' })}
 		</div>
 		<div class="text-right">
-			{$_('admin.orderDashboard.provider.colSuccess', { default: 'Success rate' })}
+			{$_('admin.orderDashboard.provider.colSuccess', { default: '成功率' })}
 		</div>
 		<div class="text-right">
-			{$_('admin.orderDashboard.provider.colAvg', { default: 'Avg ticket' })}
+			{$_('admin.orderDashboard.provider.colAvg', { default: '平均单价' })}
 		</div>
 	</div>
 
@@ -83,7 +83,7 @@
 		>
 			<Network class="h-8 w-8 opacity-40" />
 			<p class="m-0 text-[12.5px]">
-				{$_('admin.orderDashboard.provider.empty', { default: 'No provider activity in this range' })}
+				{$_('admin.orderDashboard.provider.empty', { default: '该范围内无供应商活动' })}
 			</p>
 		</div>
 	{:else}

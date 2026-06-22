@@ -98,7 +98,7 @@
 				<Cloud size={14} />{testingS3 ? $_('common.loading', { default: 'Loading' }) : $_('admin.backup.s3.testConnection')}
 			</Button>
 			<Button size="sm" onclick={saveS3} disabled={savingS3}>
-				<Save size={14} />{savingS3 ? $_('common.loading', { default: 'Loading' }) : $_('common.save', { default: 'Save' })}
+				<Save size={14} />{savingS3 ? $_('common.loading', { default: 'Loading' }) : $_('common.save', { default: '保存' })}
 			</Button>
 		</div>
 	</div>
@@ -178,6 +178,6 @@
 		<p class="rounded-md bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">{$_('admin.backup.r2Guide.freeTier')}</p>
 	</div>
 	<div class="mt-5 flex justify-end">
-		<Button variant="outline" onclick={() => (r2GuideOpen = false)}>{$_('common.close', { default: 'Close' })}</Button>
+		<Button variant="outline" onclick={() => (r2GuideOpen = false)}>{$_('common.close', { default: '关闭' })}</Button>
 	</div>
 </StandardDialog>

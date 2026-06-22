@@ -194,7 +194,7 @@
 	async function submitTotp(): Promise<void> {
 		if (!/^\d{6}$/.test(totpCode)) {
 			formError = $_('auth.callback.errors.TOTP_FORMAT', {
-				default: 'Enter the 6-digit code.'
+				default: '输入 6 位验证码。'
 			});
 			return;
 		}
@@ -215,7 +215,7 @@
 			// 后端在 2FA 失败时也可能复返 challenge —— 防御性处理。
 			if (isTotpChallenge(resp as unknown as Parameters<typeof isTotpChallenge>[0])) {
 				formError = $_('auth.callback.errors.TOTP_INVALID', {
-					default: 'Invalid 2FA code.'
+					default: '双因素验证码无效。'
 				});
 				return;
 			}
@@ -233,7 +233,7 @@
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			formError = $_('auth.callback.errors.TOTP_INVALID', {
-				default: 'Invalid 2FA code.'
+				default: '双因素验证码无效。'
 			});
 			if (msg) formError = `${formError} ${msg}`.trim();
 		} finally {
@@ -259,8 +259,8 @@
 		default: `Signing you in with ${displayName}`
 	})}
 	subtitle={phase === 'totp'
-		? $_('auth.callback.totpSubtitle', { default: 'Enter your 6-digit code.' })
-		: $_('auth.callback.subtitle', { default: 'Completing sign-in...' })}
+		? $_('auth.callback.totpSubtitle', { default: '输入您的 6 位验证码。' })
+		: $_('auth.callback.subtitle', { default: '完成登录中...' })}
 >
 	{#if phase === 'processing'}
 		<div
@@ -291,7 +291,7 @@
 		>
 			<div class="space-y-1.5">
 				<label for="callback-totp" class="text-sm font-medium text-foreground">
-					{$_('auth.callback.totpLabel', { default: 'Two-factor code' })}
+					{$_('auth.callback.totpLabel', { default: '双因素验证码' })}
 				</label>
 				<Input
 					id="callback-totp"
@@ -318,21 +318,21 @@
 				class="w-full"
 			>
 				{totpSubmitting
-					? $_('auth.callback.totpSubmitting', { default: 'Verifying...' })
-					: $_('auth.callback.totpSubmit', { default: 'Verify and continue' })}
+					? $_('auth.callback.totpSubmitting', { default: '验证中...' })
+					: $_('auth.callback.totpSubmit', { default: '验证并继续' })}
 			</Button>
 		</form>
 	{:else}
 		<div class="space-y-3 text-center" data-testid="callback-completed">
 			<p class="text-sm text-muted-foreground">
-				{$_('auth.callback.completed', { default: 'Redirecting...' })}
+				{$_('auth.callback.completed', { default: '跳转中...' })}
 			</p>
 		</div>
 	{/if}
 
 	{#snippet footer()}
 		<a class="text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: 'Back to sign in' })}
+			{$_('auth.backToLogin', { default: '返回登录' })}
 		</a>
 	{/snippet}
 </AuthLayout>

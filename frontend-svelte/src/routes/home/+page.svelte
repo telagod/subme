@@ -34,12 +34,12 @@
 	const customContent = $derived(brand.homeContent);
 	const customContentIframe = $derived(isHomeContentIframeUrl(customContent));
 	const customIframeSrc = $derived(sanitizeUrl(customContent));
-	const title = $derived(`${brand.siteName} · ${brand.siteSubtitle || $_('home.heroSubtitle', { default: 'One Key, All AI Models' })}`);
+	const title = $derived(`${brand.siteName} · ${brand.siteSubtitle || $_('home.heroSubtitle', { default: '一个密钥，畅用所有 AI 模型' })}`);
 	const dashboardPath = $derived(auth.isAdmin ? '/admin/dashboard' : '/dashboard');
 	const actionPath = $derived(auth.isAuthenticated ? dashboardPath : '/login');
 	const actionLabel = $derived(auth.isAuthenticated
-		? $_('home.goToDashboard', { default: 'Go to Dashboard' })
-		: $_('home.getStarted', { default: 'Get Started' }));
+		? $_('home.goToDashboard', { default: '进入控制面板' })
+		: $_('home.getStarted', { default: '立即开始' }));
 	const userInitial = $derived(auth.user?.email ? auth.user.email.charAt(0).toUpperCase() : '');
 	const currentYear = new Date().getFullYear();
 	const capabilities = homeCapabilities();
@@ -114,7 +114,7 @@
 							class="inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
 						>
 							<BookOpen class="h-4 w-4" />
-							<span class="hidden sm:inline">{$_('home.docs', { default: 'Docs' })}</span>
+							<span class="hidden sm:inline">{$_('home.docs', { default: '文档' })}</span>
 						</a>
 					{/if}
 					<a
@@ -136,7 +136,7 @@
 								{userInitial}
 							</span>
 						{/if}
-						<span class="hidden sm:inline">{auth.isAuthenticated ? $_('home.dashboard', { default: 'Dashboard' }) : $_('home.login', { default: 'Login' })}</span>
+						<span class="hidden sm:inline">{auth.isAuthenticated ? $_('home.dashboard', { default: '控制面板' }) : $_('home.login', { default: '登录' })}</span>
 						<ArrowRight class="h-3.5 w-3.5" />
 					</a>
 				</div>
@@ -153,17 +153,17 @@
 			<div class="text-center lg:text-left">
 				<div class="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 font-mono text-[11px] font-semibold text-primary">
 					<span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
-					{$_('home.quench.eyebrow', { default: 'AI API GATEWAY' })}
+					{$_('home.quench.eyebrow', { default: 'AI API 网关' })}
 				</div>
 				<h1 class="mt-5 text-4xl font-extrabold leading-tight tracking-normal text-foreground sm:text-5xl lg:text-6xl">
 					{brand.siteName}
 				</h1>
 				<p class="mt-4 text-lg font-semibold text-foreground sm:text-xl">
-					{brand.siteSubtitle || $_('home.heroSubtitle', { default: 'One Key, All AI Models' })}
+					{brand.siteSubtitle || $_('home.heroSubtitle', { default: '一个密钥，畅用所有 AI 模型' })}
 				</p>
 				<p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground lg:mx-0">
 					{$_('home.heroDescription', {
-						default: 'No need to manage multiple subscriptions. Access Claude, GPT, Gemini and more with a single API key'
+						default: '无需管理多个订阅，一个 API 密钥即可使用 Claude、GPT、Gemini 等'
 					})}
 				</p>
 				<div class="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
@@ -181,16 +181,16 @@
 							rel="noopener noreferrer"
 							class="inline-flex h-11 items-center justify-center rounded-md border border-input bg-background px-5 text-sm font-medium text-foreground transition hover:bg-muted"
 						>
-							{$_('home.viewDocs', { default: 'View Documentation' })}
+							{$_('home.viewDocs', { default: '查看文档' })}
 						</a>
 					{/if}
 				</div>
 				<div class="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground lg:justify-start">
 					<span>{$_('home.quench.stats.providers', { default: '4+ upstream providers' })}</span>
 					<span class="h-3 w-px bg-border"></span>
-					<span>{$_('home.quench.stats.protocol', { default: 'OpenAI-compatible API' })}</span>
+					<span>{$_('home.quench.stats.protocol', { default: 'OpenAI 兼容 API' })}</span>
 					<span class="h-3 w-px bg-border"></span>
-					<span>{$_('home.quench.stats.billing', { default: 'Per-second metering' })}</span>
+					<span>{$_('home.quench.stats.billing', { default: '秒级计量' })}</span>
 				</div>
 			</div>
 
@@ -225,15 +225,15 @@
 			<div class="flex flex-wrap items-center justify-center gap-3">
 				<span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-xs font-medium text-foreground">
 					<ArrowLeftRight class="h-4 w-4 text-muted-foreground" />
-					{$_('home.tags.subscriptionToApi', { default: 'Subscription to API' })}
+					{$_('home.tags.subscriptionToApi', { default: '订阅转 API' })}
 				</span>
 				<span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-xs font-medium text-foreground">
 					<ShieldCheck class="h-4 w-4 text-muted-foreground" />
-					{$_('home.tags.stickySession', { default: 'Sticky Sessions' })}
+					{$_('home.tags.stickySession', { default: '粘性会话' })}
 				</span>
 				<span class="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-xs font-medium text-foreground">
 					<Activity class="h-4 w-4 text-muted-foreground" />
-					{$_('home.tags.realtimeBilling', { default: 'Pay As You Go' })}
+					{$_('home.tags.realtimeBilling', { default: '按量计费' })}
 				</span>
 			</div>
 		</section>
@@ -241,11 +241,11 @@
 		<section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
 			<div class="mb-8 text-center">
 				<h2 class="text-2xl font-bold tracking-normal text-foreground">
-					{$_('home.quench.capabilitiesTitle', { default: 'Built for Production' })}
+					{$_('home.quench.capabilitiesTitle', { default: '为生产环境而建' })}
 				</h2>
 				<p class="mt-2 text-sm text-muted-foreground">
 					{$_('home.quench.capabilitiesDesc', {
-						default: 'A complete gateway pipeline — onboarding, scheduling, billing and risk control'
+						default: '一条完整的网关链路 — 接入、调度、计费与风控'
 					})}
 				</p>
 			</div>
@@ -270,10 +270,10 @@
 		<section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
 			<div class="mb-8 text-center">
 				<h2 class="text-2xl font-bold tracking-normal text-foreground">
-					{$_('home.providers.title', { default: 'Supported AI Models' })}
+					{$_('home.providers.title', { default: '已支持的 AI 模型' })}
 				</h2>
 				<p class="mt-2 text-sm text-muted-foreground">
-					{$_('home.providers.description', { default: 'One API, Multiple Choices' })}
+					{$_('home.providers.description', { default: '一个 API，多种选择' })}
 				</p>
 			</div>
 			<div class="flex flex-wrap items-center justify-center gap-3">
@@ -287,8 +287,8 @@
 						</span>
 						<span class="rounded-md border border-border px-2 py-0.5 text-[11px] font-medium {provider.soon ? 'text-muted-foreground' : 'text-emerald-500'}">
 							{provider.soon
-								? $_('home.providers.soon', { default: 'Soon' })
-								: $_('home.providers.supported', { default: 'Supported' })}
+								? $_('home.providers.soon', { default: '即将' })
+								: $_('home.providers.supported', { default: '已支持' })}
 						</span>
 					</div>
 				{/each}
@@ -299,11 +299,11 @@
 			<div class="flex flex-col items-start justify-between gap-5 rounded-lg border border-border bg-card px-6 py-6 shadow-sm sm:flex-row sm:items-center">
 				<div>
 					<h2 class="text-xl font-bold tracking-normal text-foreground">
-						{$_('home.quench.ctaTitle', { default: 'Ready to integrate?' })}
+						{$_('home.quench.ctaTitle', { default: '准备好接入了吗？' })}
 					</h2>
 					<p class="mt-2 text-sm leading-6 text-muted-foreground">
 						{$_('home.quench.ctaDesc', {
-							default: 'Sign up to get a unified key. OpenAI-compatible protocol, migrate in minutes.'
+							default: '注册获取统一密钥，OpenAI 兼容协议，几分钟完成迁移。'
 						})}
 					</p>
 				</div>
@@ -320,12 +320,12 @@
 		<footer class="border-t border-border px-4 py-8 sm:px-6">
 			<div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
 				<p class="text-xs text-muted-foreground">
-					&copy; {currentYear} {brand.siteName}. {$_('home.footer.allRightsReserved', { default: 'All rights reserved.' })}
+					&copy; {currentYear} {brand.siteName}. {$_('home.footer.allRightsReserved', { default: '保留所有权利。' })}
 				</p>
 				<div class="flex items-center gap-5">
 					{#if brand.docUrl}
 						<a href={brand.docUrl} target="_blank" rel="noopener noreferrer" class="text-xs text-muted-foreground hover:text-foreground">
-							{$_('home.docs', { default: 'Docs' })}
+							{$_('home.docs', { default: '文档' })}
 						</a>
 					{/if}
 					<a href={HOME_GITHUB_URL} target="_blank" rel="noopener noreferrer" class="text-xs text-muted-foreground hover:text-foreground">

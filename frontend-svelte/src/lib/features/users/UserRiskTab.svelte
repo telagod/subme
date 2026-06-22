@@ -24,7 +24,7 @@
 			const res = await listRiskLogs({ search: String(user.id), page: 1, page_size: 20 });
 			items = (res.items ?? []).filter((l: ContentModerationLog) => l.user_id === user.id);
 			loaded = true;
-		} catch { error = $_('admin.users.loadFailed', { default: 'Failed to load' }); }
+		} catch { error = $_('admin.users.loadFailed', { default: '加载失败' }); }
 		finally { loading = false; }
 	}
 
@@ -33,11 +33,11 @@
 
 <div class="flex flex-col gap-2.5">
 	{#if loading}
-		<div class="py-5 text-center text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</div>
+		<div class="py-5 text-center text-sm text-muted-foreground">{$_('common.loading', { default: '加载中...' })}</div>
 	{:else if error}
 		<div class="text-sm text-destructive">{error}</div>
 	{:else if !items.length}
-		<div class="py-5 text-center text-sm text-muted-foreground">{$_('admin.users.noRiskLogs', { default: 'No risk logs' })}</div>
+		<div class="py-5 text-center text-sm text-muted-foreground">{$_('admin.users.noRiskLogs', { default: '暂无风控日志' })}</div>
 	{:else}
 		{#each items as log}
 			<div class="flex flex-col gap-1.5 rounded-xl border bg-card px-3.5 py-3 {log.flagged ? 'border-destructive/35 bg-destructive/[0.04]' : 'border-border'}">
@@ -46,25 +46,25 @@
 					<div class="flex gap-1.5">
 						{#if log.flagged}
 							<Badge class="border-destructive/30 bg-destructive/10 text-destructive text-[10.5px]">
-								{$_('admin.users.riskFlagged', { default: 'Flagged' })}
+								{$_('admin.users.riskFlagged', { default: '已标记' })}
 							</Badge>
 						{/if}
 						{#if log.auto_banned}
 							<Badge class="border-destructive/30 bg-destructive/10 text-destructive text-[10.5px]">
-								{$_('admin.users.riskBanned', { default: 'Auto-banned' })}
+								{$_('admin.users.riskBanned', { default: '自动封禁' })}
 							</Badge>
 						{/if}
 						{#if !log.flagged}
 							<Badge class="border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-[10.5px]">
-								{$_('admin.users.riskPassed', { default: 'Passed' })}
+								{$_('admin.users.riskPassed', { default: '通过' })}
 							</Badge>
 						{/if}
 					</div>
 				</div>
 				<div class="flex flex-wrap gap-3 text-xs text-muted-foreground">
-					<span>{$_('admin.users.riskMode', { default: 'Mode:' })} {log.mode}</span>
-					{#if log.highest_category}<span>{$_('admin.users.riskCategory', { default: 'Category:' })} {log.highest_category}</span>{/if}
-					{#if log.highest_score}<span>{$_('admin.users.riskScore', { default: 'Score:' })} {(log.highest_score * 100).toFixed(1)}%</span>{/if}
+					<span>{$_('admin.users.riskMode', { default: '模式：' })} {log.mode}</span>
+					{#if log.highest_category}<span>{$_('admin.users.riskCategory', { default: '分类：' })} {log.highest_category}</span>{/if}
+					{#if log.highest_score}<span>{$_('admin.users.riskScore', { default: '分数：' })} {(log.highest_score * 100).toFixed(1)}%</span>{/if}
 					<span>{$_('admin.users.riskModel', { default: 'Model:' })} {log.model || '—'}</span>
 				</div>
 				{#if log.input_excerpt}

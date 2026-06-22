@@ -23,7 +23,7 @@
 			<div class="flex-1 min-w-0">
 				<div class="flex items-center justify-between text-sm">
 					<span class="font-medium">
-						{$_('admin.usage.exporting', { default: 'Exporting' })}
+						{$_('admin.usage.exporting', { default: '导出中' })}
 					</span>
 					<span class="text-xs text-muted-foreground">
 						{current.toLocaleString()} / {total.toLocaleString()}

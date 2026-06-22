@@ -158,8 +158,8 @@
 				data-testid="plan-sale-badge"
 			>
 				{plan.for_sale
-					? $_('admin.plansCatalog.onSale', { default: 'On Sale' })
-					: $_('admin.plansCatalog.offSale', { default: 'Archived' })}
+					? $_('admin.plansCatalog.onSale', { default: '在售' })
+					: $_('admin.plansCatalog.offSale', { default: '已归档' })}
 			</span>
 		</div>
 		<div class="flex flex-shrink-0 flex-col gap-0.5">
@@ -169,8 +169,8 @@
 				class="h-[18px] w-[22px] rounded text-muted-foreground hover:bg-muted hover:text-foreground"
 				disabled={isFirst}
 				onclick={onMoveUp}
-				title={$_('admin.plansCatalog.moveUp', { default: 'Move Up' })}
-				aria-label={$_('admin.plansCatalog.moveUp', { default: 'Move Up' })}
+				title={$_('admin.plansCatalog.moveUp', { default: '上移' })}
+				aria-label={$_('admin.plansCatalog.moveUp', { default: '上移' })}
 				data-testid="plan-move-up"
 			>
 				<ChevronUp class="h-3 w-3" />
@@ -181,8 +181,8 @@
 				class="h-[18px] w-[22px] rounded text-muted-foreground hover:bg-muted hover:text-foreground"
 				disabled={isLast}
 				onclick={onMoveDown}
-				title={$_('admin.plansCatalog.moveDown', { default: 'Move Down' })}
-				aria-label={$_('admin.plansCatalog.moveDown', { default: 'Move Down' })}
+				title={$_('admin.plansCatalog.moveDown', { default: '下移' })}
+				aria-label={$_('admin.plansCatalog.moveDown', { default: '下移' })}
 				data-testid="plan-move-down"
 			>
 				<ChevronDown class="h-3 w-3" />
@@ -263,7 +263,7 @@
 				class="rounded border border-emerald-500/20 bg-emerald-500/15 px-1.5 py-0.5 text-[11px] text-emerald-600 dark:text-emerald-400"
 				data-testid="plan-unlimited"
 			>
-				{$_('admin.plansCatalog.unlimited', { default: 'Unlimited' })}
+				{$_('admin.plansCatalog.unlimited', { default: '不限' })}
 			</span>
 		{/if}
 	</div>
@@ -296,8 +296,8 @@
 		<label
 			class="inline-flex cursor-pointer items-center gap-1.5"
 			title={plan.for_sale
-				? $_('admin.plansCatalog.toggleOnTitle', { default: 'Click to archive' })
-				: $_('admin.plansCatalog.toggleOffTitle', { default: 'Click to publish' })}
+				? $_('admin.plansCatalog.toggleOnTitle', { default: '点击归档' })
+				: $_('admin.plansCatalog.toggleOffTitle', { default: '点击发布' })}
 		>
 			<Checkbox
 				class="h-3.5 w-3.5"
@@ -305,13 +305,13 @@
 				onchange={onToggleSale}
 				data-testid="plan-toggle-sale"
 				aria-label={plan.for_sale
-					? $_('admin.plansCatalog.toggleOnTitle', { default: 'Click to archive' })
-					: $_('admin.plansCatalog.toggleOffTitle', { default: 'Click to publish' })}
+					? $_('admin.plansCatalog.toggleOnTitle', { default: '点击归档' })
+					: $_('admin.plansCatalog.toggleOffTitle', { default: '点击发布' })}
 			/>
 			<span class="whitespace-nowrap text-[11px] text-muted-foreground">
 				{plan.for_sale
-					? $_('admin.plansCatalog.onSale', { default: 'On Sale' })
-					: $_('admin.plansCatalog.offSale', { default: 'Archived' })}
+					? $_('admin.plansCatalog.onSale', { default: '在售' })
+					: $_('admin.plansCatalog.offSale', { default: '已归档' })}
 			</span>
 		</label>
 
@@ -323,33 +323,33 @@
 				size="sm"
 				class="inline-flex h-auto items-center gap-1 whitespace-nowrap rounded px-[9px] py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
 				onclick={onEdit}
-				title={$_('common.edit', { default: 'Edit' })}
+				title={$_('common.edit', { default: '编辑' })}
 				data-testid="plan-edit-btn"
 			>
 				<Pencil class="h-3 w-3" />
-				<span>{$_('common.edit', { default: 'Edit' })}</span>
+				<span>{$_('common.edit', { default: '编辑' })}</span>
 			</Button>
 			<Button
 				variant="ghost"
 				size="sm"
 				class="inline-flex h-auto items-center gap-1 whitespace-nowrap rounded px-[9px] py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
 				onclick={onDuplicate}
-				title={$_('admin.plansCatalog.duplicate', { default: 'Duplicate' })}
+				title={$_('admin.plansCatalog.duplicate', { default: '复制' })}
 				data-testid="plan-duplicate-btn"
 			>
 				<Copy class="h-3 w-3" />
-				<span>{$_('admin.plansCatalog.duplicate', { default: 'Duplicate' })}</span>
+				<span>{$_('admin.plansCatalog.duplicate', { default: '复制' })}</span>
 			</Button>
 			<Button
 				variant="ghost"
 				size="sm"
 				class="inline-flex h-auto items-center gap-1 whitespace-nowrap rounded px-[9px] py-1 text-[11px] font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
 				onclick={onDelete}
-				title={$_('common.delete', { default: 'Delete' })}
+				title={$_('common.delete', { default: '删除' })}
 				data-testid="plan-delete-btn"
 			>
 				<Trash2 class="h-3 w-3" />
-				<span>{$_('common.delete', { default: 'Delete' })}</span>
+				<span>{$_('common.delete', { default: '删除' })}</span>
 			</Button>
 		</div>
 	</footer>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { Save } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -285,7 +286,7 @@
 
 	<!-- Footer with save -->
 	<div class="mt-6 flex justify-end gap-2 border-t border-border pt-4">
-		<Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
+		<Button variant="outline" onclick={() => (open = false)}>{$_('common.cancel', { default: '取消' })}</Button>
 		<Button disabled={saving} onclick={save}>
 			<Save size={14} />{saving ? 'Saving...' : 'Save configuration'}
 		</Button>

@@ -39,7 +39,7 @@
 			type="search"
 			class="h-8 w-56 pl-7 pr-2"
 			placeholder={$_('admin.plansCatalog.searchPlaceholder', {
-				default: 'Search plan name…'
+				default: '搜索方案名称…'
 			})}
 			bind:value={searchInput}
 			data-testid="plans-search"
@@ -47,7 +47,7 @@
 	</div>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="plans-platform-filter">
-		{$_('payment.admin.platform', { default: 'Platform' })}
+		{$_('payment.admin.platform', { default: '平台' })}
 	</label>
 	<NativeSelect
 		id="plans-platform-filter"
@@ -58,7 +58,7 @@
 	/>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="plans-status-filter">
-		{$_('common.status', { default: 'Status' })}
+		{$_('common.status', { default: '状态' })}
 	</label>
 	<NativeSelect
 		id="plans-status-filter"

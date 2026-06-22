@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 
 export type AnnouncementStatus = 'draft' | 'active' | 'archived';
 export type AnnouncementNotifyMode = 'silent' | 'popup';
@@ -82,23 +82,23 @@ export async function listAnnouncements(
 	);
 }
 
-export function getAnnouncement(id: number): Promise<Announcement> {
-	return apiClient.get<Announcement>(`${ANNOUNCEMENTS_BASE}/${id}`);
+export async function getAnnouncement(id: number): Promise<Announcement> {
+	return unwrapData(await apiClient.get<Announcement | ApiEnvelope<Announcement>>(`${ANNOUNCEMENTS_BASE}/${id}`));
 }
 
-export function createAnnouncement(payload: CreateAnnouncementRequest): Promise<Announcement> {
-	return apiClient.post<Announcement>(ANNOUNCEMENTS_BASE, payload);
+export async function createAnnouncement(payload: CreateAnnouncementRequest): Promise<Announcement> {
+	return unwrapData(await apiClient.post<Announcement | ApiEnvelope<Announcement>>(ANNOUNCEMENTS_BASE, payload));
 }
 
-export function updateAnnouncement(
+export async function updateAnnouncement(
 	id: number,
 	payload: UpdateAnnouncementRequest
 ): Promise<Announcement> {
-	return apiClient.put<Announcement>(`${ANNOUNCEMENTS_BASE}/${id}`, payload);
+	return unwrapData(await apiClient.put<Announcement | ApiEnvelope<Announcement>>(`${ANNOUNCEMENTS_BASE}/${id}`, payload));
 }
 
-export function deleteAnnouncement(id: number): Promise<{ message: string }> {
-	return apiClient.delete<{ message: string }>(`${ANNOUNCEMENTS_BASE}/${id}`);
+export async function deleteAnnouncement(id: number): Promise<{ message: string }> {
+	return unwrapData(await apiClient.delete<{ message: string } | ApiEnvelope<{ message: string }>>(`${ANNOUNCEMENTS_BASE}/${id}`));
 }
 
 export function listAnnouncementReadStatus(

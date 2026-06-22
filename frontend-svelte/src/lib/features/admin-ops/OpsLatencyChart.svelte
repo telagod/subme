@@ -61,7 +61,7 @@
 		labels: buckets.map((b) => b.range),
 		datasets: [
 			{
-				label: $_('admin.ops.latencyChart.legend', { default: 'Requests' }),
+				label: $_('admin.ops.latencyChart.legend', { default: '请求数' }),
 				data: buckets.map((b) => b.count),
 				backgroundColor: palette.bar,
 				borderRadius: 4,
@@ -128,35 +128,35 @@
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-latency-chart-loading"
 			>
-				{$_('admin.ops.latencyChart.loading', { default: 'Loading chart…' })}
+				{$_('admin.ops.latencyChart.loading', { default: '加载图表中…' })}
 			</div>
 		{:else if chartError}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 				data-testid="ops-latency-chart-error"
 			>
-				{$_('admin.ops.latencyChart.failed', { default: 'Failed to load chart' })}
+				{$_('admin.ops.latencyChart.failed', { default: '加载图表失败' })}
 			</div>
 		{:else if latencyData === null}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 				data-testid="ops-latency-chart-error"
 			>
-				{$_('admin.ops.latencyChart.failed', { default: 'Failed to load chart' })}
+				{$_('admin.ops.latencyChart.failed', { default: '加载图表失败' })}
 			</div>
 		{:else if buckets.length === 0 || totalRequests === 0}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-latency-chart-empty"
 			>
-				{$_('admin.ops.latencyChart.empty', { default: 'No requests in this range' })}
+				{$_('admin.ops.latencyChart.empty', { default: '该范围内无请求' })}
 			</div>
 		{:else if !chartReady || !BarCmp}
 			<div
 				class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 				data-testid="ops-latency-chart-loading"
 			>
-				{$_('admin.ops.latencyChart.loading', { default: 'Loading chart…' })}
+				{$_('admin.ops.latencyChart.loading', { default: '加载图表中…' })}
 			</div>
 		{:else}
 			{@const BC = BarCmp as unknown as import('svelte').Component<{
@@ -173,7 +173,7 @@
 			data-testid="ops-latency-chart-total"
 		>
 			{$_('admin.ops.latencyChart.totalRequests', {
-				default: 'Total requests: {count}',
+				default: '总请求数：{count}',
 				values: { count: totalRequests.toLocaleString() }
 			})}
 		</div>

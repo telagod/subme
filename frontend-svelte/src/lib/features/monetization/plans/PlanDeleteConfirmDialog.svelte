@@ -18,13 +18,13 @@
 
 <ConfirmDialog
 	bind:open
-	title={$_('payment.admin.deletePlan', { default: 'Delete Plan' })}
+	title={$_('payment.admin.deletePlan', { default: '删除方案' })}
 	description={$_('payment.admin.deletePlanConfirm', {
-		default: 'Are you sure you want to delete this plan?'
+		default: '确定要删除此方案吗？'
 	})}
 	confirmLabel={deleting
-		? $_('common.submitting', { default: 'Submitting...' })
-		: $_('common.delete', { default: 'Delete' })}
+		? $_('common.submitting', { default: '提交中...' })
+		: $_('common.delete', { default: '删除' })}
 	loading={deleting}
 	onConfirm={onConfirm}
 	onCancel={onClose}

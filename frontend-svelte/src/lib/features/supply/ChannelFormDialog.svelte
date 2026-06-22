@@ -147,7 +147,7 @@
 		<label class="grid gap-1 text-sm">Model mapping JSON<Textarea rows={4} bind:value={mappingJson} data-testid="channel-form-mapping" /></label>
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>Cancel</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 		<Button disabled={saving || !name.trim()} onclick={save}>{saving ? 'Saving...' : 'Save'}</Button>
 	</div>
 </StandardDialog>

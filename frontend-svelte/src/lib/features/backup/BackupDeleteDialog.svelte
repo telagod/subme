@@ -15,7 +15,7 @@
 
 <ConfirmDialog
 	bind:open
-	title={$_('common.delete', { default: 'Delete' })}
+	title={$_('common.delete', { default: '删除' })}
 	description={$_('admin.backup.actions.deleteConfirm')}
 	loading={!target}
 	onConfirm={onConfirm}

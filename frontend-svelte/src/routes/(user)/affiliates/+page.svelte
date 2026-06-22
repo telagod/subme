@@ -46,7 +46,7 @@
 			const msg = (err as Error)?.message ?? '';
 			if (msg === 'unauthorized') return;
 			referralError = msg || 'load failed';
-			showError($_('user.affiliates.loadFailed', { default: 'Failed to load affiliate info' }));
+			showError($_('user.affiliates.loadFailed', { default: '加载联盟信息失败' }));
 		} finally {
 			loadingReferral = false;
 		}
@@ -72,7 +72,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.affiliate', { default: 'Affiliates' })} · sub2api</title>
+	<title>{$_('nav.affiliate', { default: '联盟推广' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="affiliates-page">
@@ -80,11 +80,11 @@
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.affiliates.pageTitle', { default: 'Affiliates' })}
+				{$_('user.affiliates.pageTitle', { default: '联盟推广' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.affiliates.pageSubtitle', {
-					default: 'Invite users, earn rebates, and transfer them to your balance.'
+					default: '邀请用户、获得返佣，并转入余额。'
 				})}
 			</p>
 		</div>
@@ -92,7 +92,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.affiliates.refresh', { default: 'Refresh' })}
+				aria-label={$_('user.affiliates.refresh', { default: '刷新' })}
 				data-testid="affiliates-refresh-btn"
 				onclick={refreshAll}
 				class="h-9 w-9 text-muted-foreground"
@@ -106,7 +106,7 @@
 				class="h-9 gap-1.5"
 			>
 				<Banknote class="h-4 w-4" />
-				{$_('affiliate.transfer.button', { default: 'Transfer to Balance' })}
+				{$_('affiliate.transfer.button', { default: '转入余额' })}
 			</Button>
 		</div>
 	</header>

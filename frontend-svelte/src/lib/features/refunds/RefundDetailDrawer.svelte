@@ -51,31 +51,31 @@
 <StandardDrawer
 	bind:open
 	width="sm"
-	title={$_('admin.refunds.detailTitle', { default: 'Refund request detail' })}
+	title={$_('admin.refunds.detailTitle', { default: '退款请求详情' })}
 	data-testid="admin-refunds-detail-drawer"
 >
 	{#if row}
 		<div class="mt-4 grid grid-cols-[120px,1fr] gap-y-2 text-xs">
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colOrderNo', { default: 'Order #' })}
+				{$_('admin.refunds.colOrderNo', { default: '订单 #' })}
 			</div>
 			<div class="font-mono text-foreground">
 				{row.out_trade_no ?? row.order_id}
 			</div>
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colUser', { default: 'User' })}
+				{$_('admin.refunds.colUser', { default: '用户' })}
 			</div>
 			<div class="font-mono text-foreground">
 				{row.user_email ?? '—'} <span class="text-muted-foreground">#{row.user_id}</span>
 			</div>
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colAmount', { default: 'Amount' })}
+				{$_('admin.refunds.colAmount', { default: '金额' })}
 			</div>
 			<div class="font-mono tabular-nums text-foreground">
 				{fmtMoney(row.amount, row.currency)}
 			</div>
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colStatus', { default: 'Status' })}
+				{$_('admin.refunds.colStatus', { default: '状态' })}
 			</div>
 			<div>
 				<Badge
@@ -86,24 +86,24 @@
 				</Badge>
 			</div>
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colReason', { default: 'Reason' })}
+				{$_('admin.refunds.colReason', { default: '原因' })}
 			</div>
 			<div class="text-foreground">{row.reason ?? '—'}</div>
 			<div class="text-muted-foreground">
-				{$_('admin.refunds.colRequestedAt', { default: 'Requested at' })}
+				{$_('admin.refunds.colRequestedAt', { default: '请求于' })}
 			</div>
 			<div class="font-mono tabular-nums text-foreground">
 				{fmtDate(row.requested_at)}
 			</div>
 			{#if row.reviewer}
 				<div class="text-muted-foreground">
-					{$_('admin.refunds.reviewer', { default: 'Reviewer' })}
+					{$_('admin.refunds.reviewer', { default: '审核人' })}
 				</div>
 				<div class="text-foreground">{row.reviewer}</div>
 			{/if}
 			{#if row.reviewer_note}
 				<div class="text-muted-foreground">
-					{$_('admin.refunds.reviewerNote', { default: 'Reviewer note' })}
+					{$_('admin.refunds.reviewerNote', { default: '审核备注' })}
 				</div>
 				<div class="text-foreground">{row.reviewer_note}</div>
 			{/if}

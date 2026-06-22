@@ -60,7 +60,7 @@
 
 	function modelTitle(model: UserSupportedModel): string {
 		const pricing = model.pricing;
-		if (!pricing) return $_('availableChannels.noPricing', { default: 'Pricing not configured' });
+		if (!pricing) return $_('availableChannels.noPricing', { default: '未配置定价' });
 		if (pricing.intervals?.length) {
 			return `${modelPricingLabel(model)} · ${pricing.intervals.length} tiers`;
 		}
@@ -73,17 +73,17 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.availableChannels', { default: 'Available Channels' })} · sub2api</title>
+	<title>{$_('nav.availableChannels', { default: '可用渠道' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-5" data-testid="available-channels-page">
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('nav.availableChannels', { default: 'Available Channels' })}
+				{$_('nav.availableChannels', { default: '可用渠道' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
-				{$_('availableChannels.description', { default: 'Review channels, groups, models, and visible pricing available to your account.' })}
+				{$_('availableChannels.description', { default: '查看您账户可用的渠道、分组、模型和可见定价。' })}
 			</p>
 		</div>
 		<Button
@@ -93,7 +93,7 @@
 			disabled={loading}
 		>
 			<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-			{$_('common.refresh', { default: 'Refresh' })}
+			{$_('common.refresh', { default: '刷新' })}
 		</Button>
 	</header>
 
@@ -105,7 +105,7 @@
 				type="search"
 				bind:value={searchQuery}
 				data-testid="available-channels-search"
-				placeholder={$_('availableChannels.searchPlaceholder', { default: 'Search channels or models...' })}
+				placeholder={$_('availableChannels.searchPlaceholder', { default: '搜索渠道或模型...' })}
 			/>
 		</label>
 	</div>
@@ -118,11 +118,11 @@
 
 	<div class="overflow-hidden rounded-lg border border-border bg-card">
 		<div class="grid min-w-[980px] grid-cols-[180px_220px_140px_minmax(260px,1fr)_minmax(280px,1.2fr)] border-b bg-muted/60 px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
-			<div>{$_('availableChannels.columns.name', { default: 'Channel' })}</div>
-			<div>{$_('availableChannels.columns.description', { default: 'Description' })}</div>
-			<div>{$_('availableChannels.columns.platform', { default: 'Platform' })}</div>
-			<div>{$_('availableChannels.columns.groups', { default: 'Your Accessible Groups' })}</div>
-			<div>{$_('availableChannels.columns.supportedModels', { default: 'Supported Models' })}</div>
+			<div>{$_('availableChannels.columns.name', { default: '渠道' })}</div>
+			<div>{$_('availableChannels.columns.description', { default: '描述' })}</div>
+			<div>{$_('availableChannels.columns.platform', { default: '平台' })}</div>
+			<div>{$_('availableChannels.columns.groups', { default: '您可访问的分组' })}</div>
+			<div>{$_('availableChannels.columns.supportedModels', { default: '已支持的模型' })}</div>
 		</div>
 
 		{#if loading}
@@ -133,7 +133,7 @@
 			<div class="flex min-h-56 flex-col items-center justify-center text-center" data-testid="available-channels-empty">
 				<Inbox class="mb-3 h-10 w-10 text-muted-foreground" />
 				<p class="text-sm text-muted-foreground">
-					{$_('availableChannels.empty', { default: 'No available channels' })}
+					{$_('availableChannels.empty', { default: '暂无可用渠道' })}
 				</p>
 			</div>
 		{:else}
@@ -159,7 +159,7 @@
 										<div class="flex flex-wrap items-center gap-1.5">
 											<span class="inline-flex items-center gap-1 text-[10px] font-semibold uppercase text-primary">
 												<Shield class="h-3 w-3" />
-												{$_('availableChannels.exclusive', { default: 'Exclusive' })}
+												{$_('availableChannels.exclusive', { default: '专属' })}
 											</span>
 											{#each exclusiveGroups(section) as group}
 												<span class={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${groupBadgeClass(group)}`}>
@@ -173,7 +173,7 @@
 										<div class="flex flex-wrap items-center gap-1.5">
 											<span class="inline-flex items-center gap-1 text-[10px] font-semibold uppercase text-muted-foreground">
 												<Users class="h-3 w-3" />
-												{$_('availableChannels.public', { default: 'Public' })}
+												{$_('availableChannels.public', { default: '公开' })}
 											</span>
 											{#each publicGroups(section) as group}
 												<span class={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${groupBadgeClass(group)}`}>
@@ -198,7 +198,7 @@
 									{/each}
 									{#if section.supported_models.length === 0}
 										<span class="text-xs text-muted-foreground">
-											{$_('availableChannels.noModels', { default: 'No models configured' })}
+											{$_('availableChannels.noModels', { default: '暂未配置模型' })}
 										</span>
 									{/if}
 								</div>

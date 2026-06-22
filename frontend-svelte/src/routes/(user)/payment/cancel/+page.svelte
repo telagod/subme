@@ -24,7 +24,7 @@
 
 <svelte:head>
 	<title>
-		{$_('user.payment.cancel.pageTitle', { default: 'Payment canceled' })} · sub2api
+		{$_('user.payment.cancel.pageTitle', { default: '支付已取消' })} · sub2api
 	</title>
 </svelte:head>
 
@@ -36,11 +36,11 @@
 			<XCircle class="h-6 w-6" />
 		</div>
 		<h1 class="mt-4 text-lg font-semibold text-foreground">
-			{$_('user.payment.cancel.title', { default: 'Payment canceled' })}
+			{$_('user.payment.cancel.title', { default: '支付已取消' })}
 		</h1>
 		<p class="mt-2 text-sm text-muted-foreground">
 			{$_('user.payment.cancel.description', {
-				default: 'You canceled the payment. No charges were made.'
+				default: '您已取消支付，未产生任何费用。'
 			})}
 		</p>
 		<div class="mt-6 flex items-center justify-center gap-2">
@@ -49,7 +49,7 @@
 				onclick={goBilling}
 				class="h-9"
 			>
-				{$_('user.payment.cancel.backToBilling', { default: 'Back to billing' })}
+				{$_('user.payment.cancel.backToBilling', { default: '返回计费' })}
 			</Button>
 			<Button
 				variant="outline"
@@ -57,7 +57,7 @@
 				onclick={goPurchase}
 				class="h-9"
 			>
-				{$_('user.payment.cancel.backToPurchase', { default: 'Back to purchase' })}
+				{$_('user.payment.cancel.backToPurchase', { default: '返回购买' })}
 			</Button>
 		</div>
 	</div>

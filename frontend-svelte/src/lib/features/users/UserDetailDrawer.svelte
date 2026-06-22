@@ -61,7 +61,7 @@
 			user = await getUser(userId);
 			loadMonthCost();
 		}
-		catch { loadError = $_('admin.users.loadFailed', { default: 'Failed to load user' }); }
+		catch { loadError = $_('admin.users.loadFailed', { default: '加载用户失败' }); }
 		finally { loading = false; }
 	}
 
@@ -86,10 +86,10 @@
 		try {
 			await toggleUserStatus(user.id, newStatus);
 			user = { ...user, status: newStatus };
-			showSuccess($_('admin.users.statusToggled', { default: 'Status updated' }));
+			showSuccess($_('admin.users.statusToggled', { default: '状态已更新' }));
 			onUpdated();
 		} catch (e: unknown) {
-			showError((e as Error)?.message || $_('admin.users.statusToggleFailed', { default: 'Failed to update status' }));
+			showError((e as Error)?.message || $_('admin.users.statusToggleFailed', { default: '更新状态失败' }));
 		}
 	}
 
@@ -101,7 +101,7 @@
 </script>
 
 <StandardDrawer bind:open width="lg"
-	title={user?.email ?? $_('admin.users.userDetail', { default: 'User Detail' })}
+	title={user?.email ?? $_('admin.users.userDetail', { default: '用户详情' })}
 	showHeader={false}
 	data-testid="user-detail-drawer">
 
@@ -112,7 +112,7 @@
 	{:else if loadError}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 py-20 text-sm text-muted-foreground">
 			<p>{loadError}</p>
-			<Button variant="outline" size="sm" onclick={loadUser}>{$_('common.retry', { default: 'Retry' })}</Button>
+			<Button variant="outline" size="sm" onclick={loadUser}>{$_('common.retry', { default: '重试' })}</Button>
 		</div>
 	{:else if user}
 		<!-- Header: avatar + name + badges -->
@@ -124,17 +124,17 @@
 				<div class="truncate text-sm font-semibold text-foreground">{user.email}</div>
 				<div class="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
 					{#if user.username}<span>@{user.username}</span><span>·</span>{/if}
-					<span>{$_('admin.users.registered', { default: 'Registered' })} {fmt(user.created_at)}</span>
+					<span>{$_('admin.users.registered', { default: '已注册' })} {fmt(user.created_at)}</span>
 				</div>
 			</div>
 			<div class="flex shrink-0 items-center gap-1.5">
 				<Badge class={user.role === 'admin' ? '' : 'bg-muted text-muted-foreground'}>
-					{user.role === 'admin' ? $_('admin.users.roleAdmin', { default: 'Admin' }) : $_('admin.users.roleUser', { default: 'User' })}
+					{user.role === 'admin' ? $_('admin.users.roleAdmin', { default: '管理员' }) : $_('admin.users.roleUser', { default: '用户' })}
 				</Badge>
 				<Badge class={user.status === 'active'
 					? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
 					: 'border-destructive/30 bg-destructive/10 text-destructive'}>
-					{user.status === 'active' ? $_('admin.users.active', { default: 'Active' }) : $_('admin.users.disabled', { default: 'Disabled' })}
+					{user.status === 'active' ? $_('admin.users.active', { default: '活跃' }) : $_('admin.users.disabled', { default: '已禁用' })}
 				</Badge>
 			</div>
 		</div>
@@ -142,25 +142,25 @@
 		<!-- KPI bar -->
 		<div class="flex items-stretch border-b border-border bg-muted/40 px-5 py-3">
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiBalance', { default: 'Balance' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiBalance', { default: '余额' })}</span>
 				<span class="text-base font-bold text-foreground">${fmtBal(user.balance)}</span>
 			</div>
 			<div class="my-0.5 w-px bg-border"></div>
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiMonthCost', { default: 'Month Cost' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiMonthCost', { default: '月费用' })}</span>
 				<span class="text-base font-bold text-foreground">
 					{monthCostLoading ? '...' : monthCost != null ? `$${fmtBal(monthCost)}` : '—'}
 				</span>
 			</div>
 			<div class="my-0.5 w-px bg-border"></div>
 			<div class="flex flex-1 flex-col gap-0.5 px-3.5">
-				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiSubscription', { default: 'Subscription' })}</span>
+				<span class="text-[10.5px] text-muted-foreground">{$_('admin.users.kpiSubscription', { default: '订阅' })}</span>
 				{#if user.subscriptions?.some(s => s.status === 'active')}
 					<Badge class="w-fit border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs">
-						{$_('admin.users.subActive', { default: 'Active' })}
+						{$_('admin.users.subActive', { default: '活跃' })}
 					</Badge>
 				{:else}
-					<span class="text-sm font-bold text-muted-foreground">{$_('admin.users.subNone', { default: 'None' })}</span>
+					<span class="text-sm font-bold text-muted-foreground">{$_('admin.users.subNone', { default: '无' })}</span>
 				{/if}
 			</div>
 		</div>
@@ -198,13 +198,13 @@
 		<!-- Footer actions -->
 		<div class="flex items-center gap-2.5 border-t border-border px-5 py-3.5">
 			<Button variant="outline" size="sm" onclick={() => (showBalanceAdj = true)}>
-				{$_('admin.users.adjustBalance', { default: 'Adjust Balance' })}
+				{$_('admin.users.adjustBalance', { default: '调整余额' })}
 			</Button>
 			<Button size="sm"
 				variant={user.status === 'active' ? 'destructive' : 'default'}
 				class={user.status !== 'active' ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20' : ''}
 				onclick={handleToggleStatus}>
-				{user.status === 'active' ? $_('admin.users.disable', { default: 'Disable' }) : $_('admin.users.enable', { default: 'Enable' })}
+				{user.status === 'active' ? $_('admin.users.disable', { default: '禁用' }) : $_('admin.users.enable', { default: '启用' })}
 			</Button>
 		</div>
 

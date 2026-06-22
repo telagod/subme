@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { ChevronLeft, ChevronRight, CheckCircle2 } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -40,7 +41,7 @@
 		<Input type="date" bind:value={fromDate} onchange={reset} />
 		<Input type="date" bind:value={toDate} onchange={reset} />
 		<Input placeholder="Search request, user, content" bind:value={searchInput} onkeydown={(e) => { if (e.key === 'Enter') reset(); }} />
-		<Button variant="outline" onclick={reset}>Search</Button>
+		<Button variant="outline" onclick={reset}>{$_('common.search', { default: '搜索' })}</Button>
 	</div>
 	<VirtualTable rows={logs} rowHeight={76} getRowKey={(r) => r.id} {loading}>
 		{#snippet header()}

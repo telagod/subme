@@ -135,7 +135,7 @@
 		if (submitting) return;
 		if (!formName.trim()) {
 			showError(
-				$_('admin.channelMonitor.template.missingName', { default: 'Template name is required' })
+				$_('admin.channelMonitor.template.missingName', { default: '模板名称必填' })
 			);
 			return;
 		}
@@ -153,7 +153,7 @@
 				});
 				showSuccess(
 					$_('admin.channelMonitor.template.createSuccess', {
-						default: 'Template created'
+						default: '模板已创建'
 					})
 				);
 			} else if (typeof editing === 'number') {
@@ -167,7 +167,7 @@
 				});
 				showSuccess(
 					$_('admin.channelMonitor.template.updateSuccess', {
-						default: 'Template updated'
+						default: '模板已更新'
 					})
 				);
 			}
@@ -206,7 +206,7 @@
 		try {
 			await deleteTemplate(tpl.id);
 			showSuccess(
-				$_('admin.channelMonitor.template.deleteSuccess', { default: 'Template deleted' })
+				$_('admin.channelMonitor.template.deleteSuccess', { default: '模板已删除' })
 			);
 			await fetchTemplates();
 			onUpdated?.();
@@ -236,11 +236,11 @@
 	function modeLabel(mode: string): string {
 		switch (mode) {
 			case 'merge':
-				return $_('admin.channelMonitor.advanced.bodyModeMerge', { default: 'Merge' });
+				return $_('admin.channelMonitor.advanced.bodyModeMerge', { default: '合并' });
 			case 'replace':
-				return $_('admin.channelMonitor.advanced.bodyModeReplace', { default: 'Replace' });
+				return $_('admin.channelMonitor.advanced.bodyModeReplace', { default: '替换' });
 			default:
-				return $_('admin.channelMonitor.advanced.bodyModeOff', { default: 'Off' });
+				return $_('admin.channelMonitor.advanced.bodyModeOff', { default: '关闭' });
 		}
 	}
 
@@ -252,8 +252,8 @@
 
 	function apiModeLabel(mode: APIMode): string {
 		return mode === 'responses'
-			? $_('admin.channelMonitor.form.apiModeResponses', { default: 'Responses' })
-			: $_('admin.channelMonitor.form.apiModeChatCompletions', { default: 'Chat completions' });
+			? $_('admin.channelMonitor.form.apiModeResponses', { default: '响应' })
+			: $_('admin.channelMonitor.form.apiModeChatCompletions', { default: '对话补全' });
 	}
 
 	const apiModeOptions: { value: APIMode; label: string; hint: string }[] = [
@@ -286,7 +286,7 @@
 
 <StandardDialog
 	bind:open
-	title={$_('admin.channelMonitor.template.managerTitle', { default: 'Template manager' })}
+	title={$_('admin.channelMonitor.template.managerTitle', { default: '模板管理' })}
 	width="lg"
 	data-testid="template-manager-dialog"
 >
@@ -319,18 +319,18 @@
 			<div class="flex justify-end">
 				<Button size="sm" onclick={openCreateForm}>
 					<Plus class="mr-1 h-4 w-4" />
-					{$_('admin.channelMonitor.template.createButton', { default: 'Create template' })}
+					{$_('admin.channelMonitor.template.createButton', { default: '创建模板' })}
 				</Button>
 			</div>
 
 			{#if loading}
 				<div class="py-8 text-center text-sm text-muted-foreground">
-					{$_('common.loading', { default: 'Loading...' })}
+					{$_('common.loading', { default: '加载中...' })}
 				</div>
 			{:else if templatesForActiveProvider.length === 0}
 				<div class="py-8 text-center text-sm text-muted-foreground">
 					{$_('admin.channelMonitor.template.emptyState', {
-						default: 'No templates for this provider yet.'
+						default: '此供应商暂无模板。'
 					})}
 				</div>
 			{:else}
@@ -377,15 +377,15 @@
 									size="sm"
 									disabled={tpl.associated_monitors === 0}
 									title={$_('admin.channelMonitor.template.applyTooltip', {
-										default: 'Apply template settings to associated monitors'
+										default: '将模板设置应用到关联监控'
 									})}
 									onclick={() => confirmApply(tpl)}
 								>
 									<RefreshCw class="mr-1 inline h-3.5 w-3.5" />
-									{$_('admin.channelMonitor.template.applyButton', { default: 'Apply' })}
+									{$_('admin.channelMonitor.template.applyButton', { default: '应用' })}
 								</Button>
 								<Button variant="outline" size="sm" onclick={() => openEditForm(tpl)}>
-									{$_('common.edit', { default: 'Edit' })}
+									{$_('common.edit', { default: '编辑' })}
 								</Button>
 								<Button
 									variant="outline"
@@ -393,7 +393,7 @@
 									class="text-destructive hover:text-destructive"
 									onclick={() => handleDelete(tpl)}
 								>
-									{$_('common.delete', { default: 'Delete' })}
+									{$_('common.delete', { default: '删除' })}
 								</Button>
 							</div>
 						</div>
@@ -405,7 +405,7 @@
 			<div class="space-y-4">
 				<div>
 					<p class="mb-1.5 text-sm font-medium text-foreground">
-						{$_('admin.channelMonitor.template.form.name', { default: 'Name' })}
+						{$_('admin.channelMonitor.template.form.name', { default: '名称' })}
 						<span class="text-destructive">*</span>
 					</p>
 					<Input
@@ -419,7 +419,7 @@
 				{#if editing === 'new'}
 					<div>
 						<p class="mb-1.5 text-sm font-medium text-foreground">
-							{$_('admin.channelMonitor.form.provider', { default: 'Provider' })}
+							{$_('admin.channelMonitor.form.provider', { default: '供应商' })}
 							<span class="text-destructive">*</span>
 						</p>
 						<div class="grid grid-cols-3 gap-3">
@@ -442,7 +442,7 @@
 				{#if formProvider === 'openai'}
 					<div class="rounded-lg border border-border bg-accent p-3">
 						<p class="mb-1.5 text-sm font-medium text-foreground">
-							{$_('admin.channelMonitor.form.apiMode', { default: 'API mode' })}
+							{$_('admin.channelMonitor.form.apiMode', { default: 'API 模式' })}
 						</p>
 						<div class="grid gap-3 sm:grid-cols-2">
 							{#each apiModeOptions as opt (opt.value)}
@@ -463,12 +463,12 @@
 
 				<div>
 					<p class="mb-1.5 text-sm font-medium text-foreground">
-						{$_('admin.channelMonitor.template.form.description', { default: 'Description' })}
+						{$_('admin.channelMonitor.template.form.description', { default: '描述' })}
 					</p>
 					<Input
 						bind:value={formDescription}
 						placeholder={$_('admin.channelMonitor.template.form.descriptionPlaceholder', {
-							default: 'Optional description'
+							default: '可选描述'
 						})}
 					/>
 				</div>
@@ -492,22 +492,22 @@
 				{#if editing !== null}
 					<Button variant="outline" onclick={backToList}>
 						<ArrowLeft class="mr-1 h-4 w-4" />
-						{$_('common.back', { default: 'Back' })}
+						{$_('common.back', { default: '返回' })}
 					</Button>
 				{/if}
 			</div>
 			<div class="flex gap-2">
 				<Button variant="outline" onclick={() => (open = false)}>
-					{$_('common.close', { default: 'Close' })}
+					{$_('common.close', { default: '关闭' })}
 				</Button>
 				{#if editing !== null}
 					<Button disabled={submitting} onclick={handleSubmit}>
 						{#if submitting}
-							{$_('common.submitting', { default: 'Saving...' })}
+							{$_('common.submitting', { default: '保存中...' })}
 						{:else if editing === 'new'}
-							{$_('common.create', { default: 'Create' })}
+							{$_('common.create', { default: '创建' })}
 						{:else}
-							{$_('common.update', { default: 'Update' })}
+							{$_('common.update', { default: '更新' })}
 						{/if}
 					</Button>
 				{/if}
@@ -527,7 +527,7 @@
 <!-- Delete confirmation dialog -->
 <StandardDialog
 	bind:open={confirmDeleteOpen}
-	title={$_('common.delete', { default: 'Delete' })}
+	title={$_('common.delete', { default: '删除' })}
 	width="sm"
 	data-testid="template-delete-confirm-dialog"
 >
@@ -545,10 +545,10 @@
 		</p>
 		<div class="flex justify-end gap-2">
 			<Button variant="outline" size="sm" onclick={() => (confirmDeleteOpen = false)}>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button variant="destructive" size="sm" onclick={doDelete}>
-				{$_('common.delete', { default: 'Delete' })}
+				{$_('common.delete', { default: '删除' })}
 			</Button>
 		</div>
 	</div>

@@ -190,7 +190,7 @@
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg !== 'unauthorized') {
-				showError($_('user.usage.errors.failedToLoad', { default: 'Failed to load error requests' }));
+				showError($_('user.usage.errors.failedToLoad', { default: '加载错误请求失败' }));
 			}
 			errorRows = [];
 			errorTotal = 0;
@@ -275,11 +275,11 @@
 		exporting = true;
 		try {
 			await exportCsv(currentFilter());
-			showSuccess($_('user.usage.exportSuccess', { default: 'CSV export started' }));
+			showSuccess($_('user.usage.exportSuccess', { default: 'CSV 导出已开始' }));
 		} catch (err) {
 			const msg = (err as Error)?.message ?? '';
 			if (msg !== 'unauthorized') {
-				showError($_('user.usage.exportFailed', { default: 'Failed to export CSV' }));
+				showError($_('user.usage.exportFailed', { default: '导出 CSV 失败' }));
 			}
 		} finally {
 			exporting = false;
@@ -305,7 +305,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.usage', { default: 'Usage' })} · sub2api</title>
+	<title>{$_('nav.usage', { default: '用量' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="usage-page">
@@ -313,11 +313,11 @@
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.usage.pageTitle', { default: 'Usage' })}
+				{$_('user.usage.pageTitle', { default: '用量' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.usage.pageSubtitle', {
-					default: 'Review API usage, costs, and download CSV reports.'
+					default: '查看 API 用量、费用并下载 CSV 报告。'
 				})}
 			</p>
 		</div>
@@ -326,7 +326,7 @@
 				type="button"
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.usage.refresh', { default: 'Refresh' })}
+				aria-label={$_('user.usage.refresh', { default: '刷新' })}
 				data-testid="usage-refresh-btn"
 				onclick={refreshAll}
 				class="h-9 w-9 text-muted-foreground hover:text-foreground"
@@ -342,8 +342,8 @@
 			>
 				<Download class="h-4 w-4" />
 				{exporting
-					? $_('user.usage.exporting', { default: 'Exporting…' })
-					: $_('user.usage.exportCsv', { default: 'Export CSV' })}
+					? $_('user.usage.exporting', { default: '导出中…' })
+					: $_('user.usage.exportCsv', { default: '导出 CSV' })}
 			</Button>
 		</div>
 	</header>
@@ -359,7 +359,7 @@
 				onclick={() => { activeTab = 'usage'; }}
 				data-testid="tab-usage"
 			>
-				{$_('user.usage.tabs.usage', { default: 'Usage' })}
+				{$_('user.usage.tabs.usage', { default: '用量' })}
 			</button>
 			<button
 				type="button"
@@ -369,7 +369,7 @@
 				onclick={switchToErrors}
 				data-testid="tab-errors"
 			>
-				{$_('user.usage.tabs.errors', { default: 'Errors' })}
+				{$_('user.usage.tabs.errors', { default: '错误' })}
 			</button>
 		</div>
 	{/if}
@@ -406,7 +406,7 @@
 	>
 		<div class="mb-3 flex items-center justify-between">
 			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.usage.chartTitle', { default: 'Usage over time' })}
+				{$_('user.usage.chartTitle', { default: '用量变化' })}
 			</h2>
 			{#if trendError && !loadingTrend}
 				<Button
@@ -416,7 +416,7 @@
 					onclick={() => loadTrend()}
 					data-testid="usage-chart-retry"
 				>
-					{$_('user.usage.retry', { default: 'Retry' })}
+					{$_('user.usage.retry', { default: '重试' })}
 				</Button>
 			{/if}
 		</div>

@@ -36,13 +36,13 @@
 		try {
 			await updateBasicInfo({ username, language, timezone });
 			showSuccess(
-				$_('user.profile.updateSuccess', { default: 'Profile updated successfully' })
+				$_('user.profile.updateSuccess', { default: '个人资料更新成功' })
 			);
 		} catch (err) {
 			const e = err as Error;
 			showError(
 				e?.message ??
-					$_('user.profile.updateFailed', { default: 'Failed to update profile' })
+					$_('user.profile.updateFailed', { default: '更新个人资料失败' })
 			);
 		} finally {
 			savingBasic = false;
@@ -57,11 +57,11 @@
 >
 	<header class="mb-5 space-y-1">
 		<h2 class="text-base font-semibold text-foreground">
-			{$_('user.profile.basicsTitle', { default: 'Basic information' })}
+			{$_('user.profile.basicsTitle', { default: '基本信息' })}
 		</h2>
 		<p class="text-sm text-muted-foreground">
 			{$_('user.profile.basicsDescription', {
-				default: 'Update your username, language, and timezone.'
+				default: '更新您的用户名、语言和时区。'
 			})}
 		</p>
 	</header>
@@ -70,7 +70,7 @@
 		<!-- email read-only -->
 		<div class="space-y-1.5">
 			<label for="pf-email" class="text-sm font-medium text-foreground">
-				{$_('user.profile.email', { default: 'Email' })}
+				{$_('user.profile.email', { default: '邮箱' })}
 			</label>
 			<Input
 				id="pf-email"
@@ -85,7 +85,7 @@
 		<!-- avatar read-only display -->
 		<div class="space-y-1.5">
 			<span class="text-sm font-medium text-foreground">
-				{$_('user.profile.avatar', { default: 'Avatar' })}
+				{$_('user.profile.avatar', { default: '头像' })}
 			</span>
 			<div
 				class="flex h-10 items-center gap-3 rounded-md border border-input bg-muted/30 px-3 text-sm text-muted-foreground"
@@ -98,7 +98,7 @@
 					<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
 						{(username || email).slice(0, 1).toUpperCase()}
 					</div>
-					<span>{$_('user.profile.avatarEmpty', { default: 'No avatar set' })}</span>
+					<span>{$_('user.profile.avatarEmpty', { default: '未设置头像' })}</span>
 				{/if}
 			</div>
 		</div>
@@ -106,7 +106,7 @@
 		<!-- username editable -->
 		<div class="space-y-1.5">
 			<label for="pf-username" class="text-sm font-medium text-foreground">
-				{$_('user.profile.username', { default: 'Username' })}
+				{$_('user.profile.username', { default: '用户名' })}
 			</label>
 			<Input
 				id="pf-username"
@@ -120,7 +120,7 @@
 		<!-- language select -->
 		<div class="space-y-1.5">
 			<label for="pf-language" class="text-sm font-medium text-foreground">
-				{$_('user.profile.language', { default: 'Language' })}
+				{$_('user.profile.language', { default: '语言' })}
 			</label>
 			<NativeSelect
 				id="pf-language"
@@ -135,7 +135,7 @@
 		<!-- timezone select -->
 		<div class="space-y-1.5 md:col-span-2">
 			<label for="pf-timezone" class="text-sm font-medium text-foreground">
-				{$_('user.profile.timezone', { default: 'Timezone' })}
+				{$_('user.profile.timezone', { default: '时区' })}
 			</label>
 			<NativeSelect
 				id="pf-timezone"
@@ -162,8 +162,8 @@
 			onclick={handleSaveBasic}
 		>
 			{savingBasic
-				? $_('user.profile.updating', { default: 'Updating…' })
-				: $_('user.profile.updateProfile', { default: 'Update profile' })}
+				? $_('user.profile.updating', { default: '更新中…' })
+				: $_('user.profile.updateProfile', { default: '更新个人资料' })}
 		</Button>
 	</div>
 </section>

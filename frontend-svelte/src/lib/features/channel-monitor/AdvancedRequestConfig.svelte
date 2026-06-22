@@ -132,7 +132,7 @@
 			const parsed = JSON.parse(trimmed);
 			if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
 				bodyError = $_('admin.channelMonitor.advanced.bodyJsonObjectError', {
-					default: 'Body must be a JSON object'
+					default: '请求体必须为 JSON 对象'
 				});
 				return;
 			}
@@ -140,7 +140,7 @@
 			bodyError = '';
 		} catch (e) {
 			bodyError =
-				$_('admin.channelMonitor.advanced.bodyJsonError', { default: 'Invalid JSON' }) +
+				$_('admin.channelMonitor.advanced.bodyJsonError', { default: 'JSON 格式无效' }) +
 				': ' +
 				(e instanceof Error ? e.message : String(e));
 		}
@@ -158,7 +158,7 @@
 			}
 		} catch (e) {
 			bodyError =
-				$_('admin.channelMonitor.advanced.bodyJsonError', { default: 'Invalid JSON' }) +
+				$_('admin.channelMonitor.advanced.bodyJsonError', { default: 'JSON 格式无效' }) +
 				': ' +
 				(e instanceof Error ? e.message : String(e));
 		}
@@ -180,14 +180,14 @@
 	const bodyModeHint = $derived(
 		bodyOverrideMode === 'merge'
 			? $_('admin.channelMonitor.advanced.bodyModeHintMerge', {
-					default: 'Shallow-merge your overrides onto the default body. model/messages fields are protected.'
+					default: '将您的覆盖浅合并到默认请求体上。model/messages 字段受保护。'
 				})
 			: bodyOverrideMode === 'replace'
 				? $_('admin.channelMonitor.advanced.bodyModeHintReplace', {
-						default: 'Use your JSON as the full request body. Challenge verification is skipped.'
+						default: '使用您的 JSON 作为完整请求体，质询验证被跳过。'
 					})
 				: $_('admin.channelMonitor.advanced.bodyModeHintOff', {
-						default: 'Use the default adapter body for this provider.'
+						default: '使用此供应商的默认适配器请求体。'
 					})
 	);
 
@@ -209,7 +209,7 @@
 	<!-- Headers key-value rows -->
 	<div>
 		<p class="mb-1.5 text-sm font-medium text-foreground">
-			{$_('admin.channelMonitor.advanced.headers', { default: 'Extra headers' })}
+			{$_('admin.channelMonitor.advanced.headers', { default: '额外头部' })}
 		</p>
 		<div class="space-y-1.5">
 			{#each headerRows as row, i (i)}
@@ -217,14 +217,14 @@
 					<Input
 						bind:value={row.name}
 						spellcheck="false"
-						placeholder={$_('admin.channelMonitor.advanced.headerNamePlaceholder', { default: 'Header name' })}
+						placeholder={$_('admin.channelMonitor.advanced.headerNamePlaceholder', { default: '头部名称' })}
 						class="w-52 flex-none font-mono text-xs"
 						onblur={commitHeaders}
 					/>
 					<Input
 						bind:value={row.value}
 						spellcheck="false"
-						placeholder={$_('admin.channelMonitor.advanced.headerValuePlaceholder', { default: 'Value' })}
+						placeholder={$_('admin.channelMonitor.advanced.headerValuePlaceholder', { default: '值' })}
 						class="flex-1 font-mono text-xs"
 						onblur={commitHeaders}
 					/>
@@ -244,7 +244,7 @@
 				onclick={addRow}
 			>
 				<Plus class="h-3.5 w-3.5" />
-				{$_('admin.channelMonitor.advanced.headerAddRow', { default: 'Add header' })}
+				{$_('admin.channelMonitor.advanced.headerAddRow', { default: '添加头部' })}
 			</Button>
 		</div>
 		{#if headersError}
@@ -252,7 +252,7 @@
 		{:else}
 			<p class="mt-1 text-xs text-muted-foreground">
 				{$_('admin.channelMonitor.advanced.headersHint', {
-					default: 'Custom HTTP headers merged into the health-check request. Hop-by-hop headers are filtered.'
+					default: '合并到健康检查请求中的自定义 HTTP 头。逐跳头已过滤。'
 				})}
 			</p>
 		{/if}
@@ -261,7 +261,7 @@
 	<!-- Body override mode -->
 	<div>
 		<p class="mb-1.5 text-sm font-medium text-foreground">
-			{$_('admin.channelMonitor.advanced.bodyMode', { default: 'Body override mode' })}
+			{$_('admin.channelMonitor.advanced.bodyMode', { default: '请求体覆盖模式' })}
 		</p>
 		<div class="grid grid-cols-3 gap-3">
 			{#each bodyModes as opt (opt.value)}
@@ -284,7 +284,7 @@
 		<div>
 			<div class="mb-1 flex items-center justify-between">
 				<p class="text-sm font-medium text-foreground">
-					{$_('admin.channelMonitor.advanced.bodyJson', { default: 'Body JSON' })}
+					{$_('admin.channelMonitor.advanced.bodyJson', { default: '请求体 JSON' })}
 				</p>
 				<Button
 					variant="ghost"
@@ -292,7 +292,7 @@
 					disabled={!bodyText.trim()}
 					onclick={formatBody}
 				>
-					{$_('admin.channelMonitor.advanced.bodyJsonFormat', { default: 'Format' })}
+					{$_('admin.channelMonitor.advanced.bodyJsonFormat', { default: '格式' })}
 				</Button>
 			</div>
 			<Textarea
@@ -309,7 +309,7 @@
 			{:else}
 				<p class="mt-1 text-xs text-muted-foreground">
 					{$_('admin.channelMonitor.advanced.bodyJsonHint', {
-						default: 'JSON object for the request body. Used according to the body override mode.'
+						default: '请求体 JSON 对象，按请求体覆盖模式使用。'
 					})}
 				</p>
 			{/if}

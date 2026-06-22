@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
@@ -41,7 +42,7 @@
 				<p class="p-4 text-sm text-muted-foreground">No target details returned.</p>
 			{:else}
 				<div class="grid grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_1.6fr] gap-3 border-b px-3 py-2 text-xs font-semibold uppercase text-muted-foreground">
-					<span>Target</span><span>Status</span><span>HTTP</span><span>Latency</span><span>Message</span>
+					<span>{$_('admin.proxies.target', { default: '目标' })}</span><span>{$_('common.status', { default: 'Status' })}</span><span>HTTP</span><span>{$_('common.latency', { default: '延迟' })}</span><span>{$_('common.message', { default: '消息' })}</span>
 				</div>
 				{#each qualityDetailRows(report) as item}
 					<div class="grid grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_1.6fr] gap-3 border-b px-3 py-2 text-sm last:border-b-0">
@@ -56,6 +57,6 @@
 		</div>
 	</div>
 	<div class="mt-5 flex justify-end">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>Close</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button>
 	</div>
 </StandardDialog>

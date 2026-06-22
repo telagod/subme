@@ -128,7 +128,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('payment.result.success', { default: 'Payment result' })} · sub2api</title>
+	<title>{$_('payment.result.success', { default: '支付结果' })} · sub2api</title>
 </svelte:head>
 
 <section class="mx-auto max-w-xl space-y-6 py-8" data-testid="payment-result-page">
@@ -143,18 +143,18 @@
 					<CheckCircle2 class="h-8 w-8" />
 				</div>
 				<h1 class="mt-4 text-xl font-semibold text-foreground">
-					{$_('payment.result.success', { default: 'Payment Successful' })}
+					{$_('payment.result.success', { default: '支付成功' })}
 				</h1>
 			{:else if phase === 'pending'}
 				<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">
 					<Loader2 class="h-8 w-8 animate-spin" />
 				</div>
 				<h1 class="mt-4 text-xl font-semibold text-foreground">
-					{$_('payment.result.processing', { default: 'Payment Processing' })}
+					{$_('payment.result.processing', { default: '支付处理中' })}
 				</h1>
 				<p class="mt-2 text-sm text-muted-foreground">
 					{$_('payment.result.processingHint', {
-						default: 'Payment confirmation is still pending. This page will refresh automatically.'
+						default: '支付确认仍在处理中，页面将自动刷新。'
 					})}
 				</p>
 			{:else}
@@ -166,7 +166,7 @@
 					{/if}
 				</div>
 				<h1 class="mt-4 text-xl font-semibold text-foreground">
-					{$_('payment.result.failed', { default: 'Payment Failed' })}
+					{$_('payment.result.failed', { default: '支付失败' })}
 				</h1>
 				{#if loadError}
 					<p class="mt-2 text-xs text-muted-foreground">{loadError}</p>
@@ -178,33 +178,33 @@
 			<div class="rounded-lg border border-border bg-card p-5" data-testid="payment-result-order">
 				<div class="space-y-3 text-sm">
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.orderId', { default: 'Order ID' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.orderId', { default: '订单号' })}</span>
 						<span class="font-medium text-foreground">#{order.id}</span>
 					</div>
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.orderNo', { default: 'Order No.' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.orderNo', { default: '订单号' })}</span>
 						<span class="font-medium text-foreground">{order.out_trade_no}</span>
 					</div>
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.baseAmount', { default: 'Base Amount' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.baseAmount', { default: '基础金额' })}</span>
 						<span class="font-medium text-foreground">{formatGatewayAmount(baseAmount(order), currency)}</span>
 					</div>
 					{#if order.fee_rate > 0}
 						<div class="flex justify-between gap-4">
-							<span class="text-muted-foreground">{$_('payment.orders.fee', { default: 'Fee' })} ({order.fee_rate}%)</span>
+							<span class="text-muted-foreground">{$_('payment.orders.fee', { default: '手续费' })} ({order.fee_rate}%)</span>
 							<span class="font-medium text-foreground">{formatGatewayAmount(feeAmount(order), currency)}</span>
 						</div>
 					{/if}
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.payAmount', { default: 'Paid' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.payAmount', { default: '已支付' })}</span>
 						<span class="font-semibold text-primary">{formatGatewayAmount(order.pay_amount, currency)}</span>
 					</div>
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.paymentMethod', { default: 'Payment Method' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.paymentMethod', { default: '支付方式' })}</span>
 						<span class="font-medium text-foreground">{paymentMethodLabel(order.payment_type)}</span>
 					</div>
 					<div class="flex justify-between gap-4">
-						<span class="text-muted-foreground">{$_('payment.orders.status', { default: 'Status' })}</span>
+						<span class="text-muted-foreground">{$_('payment.orders.status', { default: '状态' })}</span>
 						<span class="font-medium text-foreground">{order.status}</span>
 					</div>
 				</div>
@@ -214,19 +214,19 @@
 				<div class="space-y-3 text-sm">
 					{#if returnInfo.outTradeNo}
 						<div class="flex justify-between gap-4">
-							<span class="text-muted-foreground">{$_('payment.orders.orderNo', { default: 'Order No.' })}</span>
+							<span class="text-muted-foreground">{$_('payment.orders.orderNo', { default: '订单号' })}</span>
 							<span class="font-medium text-foreground">{returnInfo.outTradeNo}</span>
 						</div>
 					{/if}
 					{#if returnInfo.money}
 						<div class="flex justify-between gap-4">
-							<span class="text-muted-foreground">{$_('payment.orders.payAmount', { default: 'Paid' })}</span>
+							<span class="text-muted-foreground">{$_('payment.orders.payAmount', { default: '已支付' })}</span>
 							<span class="font-medium text-foreground">{formatGatewayAmount(Number(returnInfo.money) || 0)}</span>
 						</div>
 					{/if}
 					{#if returnInfo.type}
 						<div class="flex justify-between gap-4">
-							<span class="text-muted-foreground">{$_('payment.orders.paymentMethod', { default: 'Payment Method' })}</span>
+							<span class="text-muted-foreground">{$_('payment.orders.paymentMethod', { default: '支付方式' })}</span>
 							<span class="font-medium text-foreground">{paymentMethodLabel(returnInfo.type)}</span>
 						</div>
 					{/if}
@@ -236,10 +236,10 @@
 
 		<div class="flex gap-3">
 			<Button variant="outline" class="h-10 flex-1" onclick={goPurchase}>
-				{$_('payment.result.backToRecharge', { default: 'Back to Recharge' })}
+				{$_('payment.result.backToRecharge', { default: '返回充值' })}
 			</Button>
 			<Button class="h-10 flex-1" onclick={goOrders}>
-				{$_('payment.result.viewOrders', { default: 'View Orders' })}
+				{$_('payment.result.viewOrders', { default: '查看订单' })}
 			</Button>
 		</div>
 	{/if}

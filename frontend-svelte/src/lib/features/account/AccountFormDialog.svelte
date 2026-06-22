@@ -381,7 +381,7 @@
 		/>
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>Cancel</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 		<Button disabled={saving || !String(name ?? '').trim() || !String(type ?? '').trim()} onclick={save} data-testid="account-form-save">{saving ? 'Saving...' : 'Save'}</Button>
 	</div>
 </StandardDialog>

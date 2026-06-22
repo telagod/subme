@@ -100,7 +100,7 @@
 		{/snippet}
 		{#snippet empty()}
 			<div class="p-6 text-center text-sm text-muted-foreground">
-				{$_('admin.usage.empty', { default: 'No usage records found' })}
+				{$_('admin.usage.empty', { default: '暂无用量记录' })}
 			</div>
 		{/snippet}
 		{#snippet loadingSlot()}

@@ -75,7 +75,7 @@
 				phase = 'succeeded';
 				lastError = null;
 				showSuccess(
-					$_('user.payment.success.toast', { default: 'Payment confirmed.' })
+					$_('user.payment.success.toast', { default: '支付已确认。' })
 				);
 				const targetType = readType();
 				// 短延时让 toast 出现一拍后再跳，避免直接跳走看不到 success UI。
@@ -90,7 +90,7 @@
 				lastError = res.rawStatus ?? null;
 				showError(
 					$_('user.payment.success.failedToast', {
-						default: 'Payment did not complete.'
+						default: '支付未完成。'
 					})
 				);
 				return;
@@ -156,7 +156,7 @@
 
 <svelte:head>
 	<title>
-		{$_('user.payment.success.pageTitle', { default: 'Payment status' })} · sub2api
+		{$_('user.payment.success.pageTitle', { default: '支付状态' })} · sub2api
 	</title>
 </svelte:head>
 
@@ -173,12 +173,12 @@
 			</div>
 			<h1 class="mt-4 text-lg font-semibold text-foreground">
 				{$_('user.payment.success.pollingTitle', {
-					default: 'Confirming your payment…'
+					default: '正在确认您的支付…'
 				})}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
 				{$_('user.payment.success.pollingHint', {
-					default: 'This usually takes a few seconds.'
+					default: '通常需要几秒钟。'
 				})}
 			</p>
 		</div>
@@ -193,11 +193,11 @@
 				<CheckCircle2 class="h-6 w-6" />
 			</div>
 			<h1 class="mt-4 text-lg font-semibold text-foreground">
-				{$_('user.payment.success.doneTitle', { default: 'Payment confirmed' })}
+				{$_('user.payment.success.doneTitle', { default: '支付已确认' })}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
 				{$_('user.payment.success.doneHint', {
-					default: 'Redirecting you back to your account…'
+					default: '正在跳转回您的账户…'
 				})}
 			</p>
 		</div>
@@ -213,7 +213,7 @@
 			</div>
 			<h1 class="mt-4 text-lg font-semibold text-foreground">
 				{$_('user.payment.success.pendingTitle', {
-					default: 'Still confirming…'
+					default: '仍在确认中…'
 				})}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
@@ -230,14 +230,14 @@
 					class="h-9 gap-1.5"
 				>
 					<RotateCw class="h-4 w-4" />
-					{$_('user.payment.success.retry', { default: 'Retry' })}
+					{$_('user.payment.success.retry', { default: '重试' })}
 				</Button>
 				<Button
 					data-testid="payment-success-go-billing"
 					onclick={goBilling}
 					class="h-9"
 				>
-					{$_('user.payment.success.goBilling', { default: 'Go to billing' })}
+					{$_('user.payment.success.goBilling', { default: '前往计费' })}
 				</Button>
 			</div>
 		</div>
@@ -253,12 +253,12 @@
 			</div>
 			<h1 class="mt-4 text-lg font-semibold text-foreground">
 				{$_('user.payment.success.failedTitle', {
-					default: 'Payment failed'
+					default: '支付失败'
 				})}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
 				{$_('user.payment.success.failedHint', {
-					default: 'We could not confirm your payment. Please retry or contact support.'
+					default: '我们无法确认您的支付，请重试或联系客服。'
 				})}
 			</p>
 			{#if lastError}
@@ -277,14 +277,14 @@
 					class="h-9 gap-1.5"
 				>
 					<RotateCw class="h-4 w-4" />
-					{$_('user.payment.success.retry', { default: 'Retry' })}
+					{$_('user.payment.success.retry', { default: '重试' })}
 				</Button>
 				<Button
 					data-testid="payment-success-go-billing-failed"
 					onclick={goBilling}
 					class="h-9"
 				>
-					{$_('user.payment.success.goBilling', { default: 'Go to billing' })}
+					{$_('user.payment.success.goBilling', { default: '前往计费' })}
 				</Button>
 				<Button
 					variant="outline"
@@ -292,7 +292,7 @@
 					onclick={goSubs}
 					class="h-9"
 				>
-					{$_('user.payment.success.goSubs', { default: 'My subscriptions' })}
+					{$_('user.payment.success.goSubs', { default: '我的订阅' })}
 				</Button>
 			</div>
 		</div>

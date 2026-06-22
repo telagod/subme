@@ -157,7 +157,7 @@
 
 		<!-- Mode toggle -->
 		<div class="flex items-center gap-2 text-sm">
-			<Button variant={rawMode ? 'outline' : 'default'} size="sm" onclick={() => (rawMode = false)}>Structured</Button>
+			<Button variant={rawMode ? 'outline' : 'default'} size="sm" onclick={() => (rawMode = false)}>{$_('admin.accounts.structured', { default: '结构化' })}</Button>
 			<Button variant={rawMode ? 'default' : 'outline'} size="sm" onclick={() => (rawMode = true)}>Raw JSON</Button>
 		</div>
 
@@ -279,7 +279,7 @@
 		{/if}
 
 		<div class="flex justify-end gap-2">
-			<Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
+			<Button variant="outline" onclick={() => (open = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 			<Button disabled={busy} onclick={submit} data-testid="accounts-bulk-edit-confirm">
 				{busy ? 'Updating...' : 'Apply'}
 			</Button>

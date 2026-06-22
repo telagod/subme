@@ -87,10 +87,10 @@
 		const s = String(status ?? '')
 			.trim()
 			.toLowerCase();
-		if (s === 'firing') return $_('admin.ops.alertEvents.status.firing', { default: 'Firing' });
-		if (s === 'resolved') return $_('admin.ops.alertEvents.status.resolved', { default: 'Resolved' });
+		if (s === 'firing') return $_('admin.ops.alertEvents.status.firing', { default: '触发中' });
+		if (s === 'resolved') return $_('admin.ops.alertEvents.status.resolved', { default: '已解决' });
 		if (s === 'manual_resolved')
-			return $_('admin.ops.alertEvents.status.manualResolved', { default: 'Manually resolved' });
+			return $_('admin.ops.alertEvents.status.manualResolved', { default: '已手动解决' });
 		return s ? s.toUpperCase() : '—';
 	}
 
@@ -142,7 +142,7 @@
 			loadError =
 				err instanceof Error
 					? err.message
-					: $_('admin.ops.alertEvents.detail.loadFailed', { default: 'Failed to load alert detail.' });
+					: $_('admin.ops.alertEvents.detail.loadFailed', { default: '加载告警详情失败。' });
 		} finally {
 			loading = false;
 		}
@@ -155,7 +155,7 @@
 		try {
 			await updateOpsAlertEventStatus(ev.id, 'manual_resolved');
 			showSuccess(
-				$_('admin.ops.alertEvents.detail.manualResolvedSuccess', { default: 'Alert resolved.' })
+				$_('admin.ops.alertEvents.detail.manualResolvedSuccess', { default: '告警已解决。' })
 			);
 			onResolved();
 			await loadDetail(ev.id);
@@ -164,7 +164,7 @@
 				err instanceof Error
 					? err.message
 					: $_('admin.ops.alertEvents.detail.manualResolvedFailed', {
-							default: 'Failed to resolve alert.'
+							default: '解决告警失败。'
 						})
 			);
 		} finally {
@@ -180,7 +180,7 @@
 		if (!Number.isFinite(ruleId) || ruleId <= 0) {
 			showError(
 				$_('admin.ops.alertEvents.detail.silenceRuleRequired', {
-					default: 'A valid rule id is required.'
+					default: '需要有效的规则 ID。'
 				})
 			);
 			return;
@@ -188,7 +188,7 @@
 		if (!silUntil) {
 			showError(
 				$_('admin.ops.alertEvents.detail.silenceUntilRequired', {
-					default: 'A silence-until time is required.'
+					default: '需要指定静默截止时间。'
 				})
 			);
 			return;
@@ -197,7 +197,7 @@
 		if (Number.isNaN(untilDate.getTime())) {
 			showError(
 				$_('admin.ops.alertEvents.detail.silenceUntilInvalid', {
-					default: 'The silence-until time is invalid.'
+					default: '静默截止时间无效。'
 				})
 			);
 			return;
@@ -207,7 +207,7 @@
 		if (groupId !== undefined && !Number.isFinite(groupId)) {
 			showError(
 				$_('admin.ops.alertEvents.detail.silenceGroupInvalid', {
-					default: 'Group id must be a number.'
+					default: '分组 ID 必须为数字。'
 				})
 			);
 			return;
@@ -223,14 +223,14 @@
 				reason: silReason.trim() || undefined
 			});
 			showSuccess(
-				$_('admin.ops.alertEvents.detail.silenceSuccess', { default: 'Silence created.' })
+				$_('admin.ops.alertEvents.detail.silenceSuccess', { default: '静默已创建。' })
 			);
 		} catch (err) {
 			showError(
 				err instanceof Error
 					? err.message
 					: $_('admin.ops.alertEvents.detail.silenceFailed', {
-							default: 'Failed to create silence.'
+							default: '创建静默失败。'
 						})
 			);
 		} finally {
@@ -247,9 +247,9 @@
 <StandardDrawer
 	bind:open
 	width="lg"
-	title={$_('admin.ops.alertEvents.detail.title', { default: 'Alert event detail' })}
+	title={$_('admin.ops.alertEvents.detail.title', { default: '告警事件详情' })}
 	description={$_('admin.ops.alertEvents.detail.subtitle', {
-		default: 'Inspect, silence, or manually resolve this alert.'
+		default: '查看、静默或手动解决此告警。'
 	})}
 	data-testid="ops-alert-event-drawer"
 >
@@ -261,11 +261,11 @@
 				data-testid="ops-alert-event-loading"
 			>
 				<RefreshCw class="h-4 w-4 animate-spin" aria-hidden="true" />
-				{$_('admin.ops.alertEvents.detail.loading', { default: 'Loading alert detail…' })}
+				{$_('admin.ops.alertEvents.detail.loading', { default: '加载告警详情中…' })}
 			</div>
 		{:else if !shown}
 			<div class="py-8 text-center text-sm text-muted-foreground" data-testid="ops-alert-event-empty">
-				{$_('admin.ops.alertEvents.detail.empty', { default: 'No alert selected.' })}
+				{$_('admin.ops.alertEvents.detail.empty', { default: '未选择告警。' })}
 			</div>
 		{:else}
 			{#if loadError}
@@ -295,7 +295,7 @@
 			<section class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="rounded-lg border border-border bg-card p-3">
 					<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-						{$_('admin.ops.alertEvents.detail.metric', { default: 'Metric / threshold' })}
+						{$_('admin.ops.alertEvents.detail.metric', { default: '指标 / 阈值' })}
 					</div>
 					<div class="mt-1 font-mono text-sm text-foreground" data-testid="ops-alert-event-metric">
 						{metricPair(shown)}
@@ -303,13 +303,13 @@
 				</div>
 				<div class="rounded-lg border border-border bg-card p-3">
 					<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-						{$_('admin.ops.alertEvents.detail.ruleId', { default: 'Rule id' })}
+						{$_('admin.ops.alertEvents.detail.ruleId', { default: '规则 ID' })}
 					</div>
 					<div class="mt-1 font-mono text-sm font-semibold text-foreground">#{shown.rule_id}</div>
 				</div>
 				<div class="rounded-lg border border-border bg-card p-3">
 					<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-						{$_('admin.ops.alertEvents.detail.firedAt', { default: 'Fired at' })}
+						{$_('admin.ops.alertEvents.detail.firedAt', { default: '触发于' })}
 					</div>
 					<div class="mt-1 text-sm text-foreground">
 						{formatDateTime(shown.fired_at || shown.created_at)}
@@ -317,7 +317,7 @@
 				</div>
 				<div class="rounded-lg border border-border bg-card p-3">
 					<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-						{$_('admin.ops.alertEvents.detail.resolvedAt', { default: 'Resolved at' })}
+						{$_('admin.ops.alertEvents.detail.resolvedAt', { default: '解决于' })}
 					</div>
 					<div class="mt-1 text-sm text-foreground">
 						{shown.resolved_at ? formatDateTime(shown.resolved_at) : '—'}
@@ -325,7 +325,7 @@
 				</div>
 				<div class="rounded-lg border border-border bg-card p-3 sm:col-span-2">
 					<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-						{$_('admin.ops.alertEvents.detail.dimensions', { default: 'Dimensions' })}
+						{$_('admin.ops.alertEvents.detail.dimensions', { default: '维度' })}
 					</div>
 					<div class="mt-1 space-y-0.5 font-mono text-xs text-muted-foreground">
 						{#if dimString(shown, 'platform')}
@@ -347,18 +347,18 @@
 			<!-- Silence form -->
 			<section class="rounded-xl border border-border bg-card p-4" data-testid="ops-alert-silence-form">
 				<h4 class="text-sm font-semibold text-foreground">
-					{$_('admin.ops.alertEvents.detail.silence', { default: 'Silence' })}
+					{$_('admin.ops.alertEvents.detail.silence', { default: '静默' })}
 				</h4>
 				<p class="mt-0.5 text-xs text-muted-foreground">
 					{$_('admin.ops.alertEvents.detail.silenceHint', {
-						default: 'Suppress matching alerts until the given time.'
+						default: '在指定时间前抑制匹配的告警。'
 					})}
 				</p>
 
 				<div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
 					<label class="flex flex-col gap-1 text-xs">
 						<span class="font-medium text-foreground">
-							{$_('admin.ops.alertEvents.detail.silenceRuleId', { default: 'Rule id' })}
+							{$_('admin.ops.alertEvents.detail.silenceRuleId', { default: '规则 ID' })}
 						</span>
 						<Input
 							type="number"
@@ -369,7 +369,7 @@
 					</label>
 					<label class="flex flex-col gap-1 text-xs">
 						<span class="font-medium text-foreground">
-							{$_('admin.ops.alertEvents.detail.silencePlatform', { default: 'Platform' })}
+							{$_('admin.ops.alertEvents.detail.silencePlatform', { default: '平台' })}
 						</span>
 						<Input
 							type="text"
@@ -382,7 +382,7 @@
 					</label>
 					<label class="flex flex-col gap-1 text-xs">
 						<span class="font-medium text-foreground">
-							{$_('admin.ops.alertEvents.detail.silenceGroupId', { default: 'Group id (optional)' })}
+							{$_('admin.ops.alertEvents.detail.silenceGroupId', { default: '分组 ID（可选）' })}
 						</span>
 						<Input
 							type="number"
@@ -393,7 +393,7 @@
 					</label>
 					<label class="flex flex-col gap-1 text-xs">
 						<span class="font-medium text-foreground">
-							{$_('admin.ops.alertEvents.detail.silenceUntil', { default: 'Until' })}
+							{$_('admin.ops.alertEvents.detail.silenceUntil', { default: '截止' })}
 						</span>
 						<Input
 							type="datetime-local"
@@ -403,13 +403,13 @@
 					</label>
 					<label class="flex flex-col gap-1 text-xs sm:col-span-2">
 						<span class="font-medium text-foreground">
-							{$_('admin.ops.alertEvents.detail.silenceReason', { default: 'Reason (optional)' })}
+							{$_('admin.ops.alertEvents.detail.silenceReason', { default: '原因（可选）' })}
 						</span>
 						<Textarea
 							bind:value={silReason}
 							rows={2}
 							placeholder={$_('admin.ops.alertEvents.detail.silenceReasonPlaceholder', {
-								default: 'Why are you silencing this alert?'
+								default: '为什么要静默此告警？'
 							})}
 							data-testid="ops-silence-reason"
 						/>
@@ -425,7 +425,7 @@
 						data-testid="ops-silence-submit"
 					>
 						<BellOff class="h-4 w-4" aria-hidden="true" />
-						{$_('admin.ops.alertEvents.detail.silenceApply', { default: 'Create silence' })}
+						{$_('admin.ops.alertEvents.detail.silenceApply', { default: '创建静默' })}
 					</Button>
 				</div>
 			</section>
@@ -436,7 +436,7 @@
 	<div class="mt-4 flex flex-shrink-0 items-center justify-between gap-2 border-t border-border pt-4">
 		<Button variant="ghost" size="sm" onclick={handleClose} data-testid="ops-alert-event-close">
 			<X class="h-4 w-4" aria-hidden="true" />
-			{$_('common.close', { default: 'Close' })}
+			{$_('common.close', { default: '关闭' })}
 		</Button>
 		<Button
 			variant="default"
@@ -446,7 +446,7 @@
 			data-testid="ops-alert-manual-resolve"
 		>
 			<CheckCircle2 class="h-4 w-4" aria-hidden="true" />
-			{$_('admin.ops.alertEvents.detail.manualResolve', { default: 'Mark resolved' })}
+			{$_('admin.ops.alertEvents.detail.manualResolve', { default: '标记为已解决' })}
 		</Button>
 	</div>
 </StandardDrawer>

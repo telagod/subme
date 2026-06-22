@@ -181,7 +181,7 @@
 		} catch (err) {
 			loadError =
 				(err as Error)?.message ??
-				$_('admin.ops.settings.loadFailed', { default: 'Failed to load settings.' });
+				$_('admin.ops.settings.loadFailed', { default: '加载设置失败。' });
 			showError(loadError);
 		} finally {
 			loading = false;
@@ -222,7 +222,7 @@
 		const raw = (target === 'alert' ? alertRecipientInput : reportRecipientInput).trim();
 		if (!raw) return;
 		if (!isValidEmailAddress(raw)) {
-			showError($_('common.invalidEmail', { default: 'Invalid email address.' }));
+			showError($_('common.invalidEmail', { default: '邮箱地址无效。' }));
 			return;
 		}
 		const normalized = raw.toLowerCase();
@@ -246,7 +246,7 @@
 			if (!Number.isFinite(s) || s < 1 || s > 86400)
 				errors.push(
 					$_('admin.ops.settings.validation.evalIntervalRange', {
-						default: 'Evaluation interval must be between 1 and 86400 seconds.'
+						default: '评估间隔必须在 1 至 86400 秒之间。'
 					})
 				);
 		}
@@ -260,7 +260,7 @@
 				if (!Number.isFinite(d) || d < 0 || d > 365) {
 					errors.push(
 						$_('admin.ops.settings.validation.retentionDaysRange', {
-							default: 'Retention days must be between 0 and 365.'
+							default: '保留天数必须在 0 至 365 之间。'
 						})
 					);
 					break;
@@ -271,7 +271,7 @@
 			if (q5 < 0 || q5 > 1 || q7 < 0 || q7 > 1)
 				errors.push(
 					$_('admin.ops.settings.validation.openaiQuotaAutoPauseRange', {
-						default: 'Quota auto-pause thresholds must be between 0% and 100%.'
+						default: '配额自动暂停阈值必须在 0% 至 100% 之间。'
 					})
 				);
 			if (
@@ -282,7 +282,7 @@
 			)
 				errors.push(
 					$_('admin.ops.settings.validation.refreshIntervalRange', {
-						default: 'Refresh interval must be 15, 30 or 60 seconds.'
+						default: '刷新间隔必须为 15、30 或 60 秒。'
 					})
 				);
 		}
@@ -291,13 +291,13 @@
 		if (sla_percent_min != null && (sla_percent_min < 0 || sla_percent_min > 100))
 			errors.push(
 				$_('admin.ops.settings.validation.slaMinPercentRange', {
-					default: 'SLA minimum must be between 0% and 100%.'
+					default: 'SLA 最低值必须在 0% 至 100% 之间。'
 				})
 			);
 		if (ttft_p99_ms_max != null && ttft_p99_ms_max < 0)
 			errors.push(
 				$_('admin.ops.settings.validation.ttftP99MaxRange', {
-					default: 'TTFT p99 maximum must be non-negative.'
+					default: 'TTFT p99 上限必须为非负数。'
 				})
 			);
 		if (
@@ -306,7 +306,7 @@
 		)
 			errors.push(
 				$_('admin.ops.settings.validation.requestErrorRateMaxRange', {
-					default: 'Request error rate maximum must be between 0% and 100%.'
+					default: '请求错误率上限必须在 0% 至 100% 之间。'
 				})
 			);
 		if (
@@ -315,7 +315,7 @@
 		)
 			errors.push(
 				$_('admin.ops.settings.validation.upstreamErrorRateMaxRange', {
-					default: 'Upstream error rate maximum must be between 0% and 100%.'
+					default: '上游错误率上限必须在 0% 至 100% 之间。'
 				})
 			);
 		return errors;
@@ -347,12 +347,12 @@
 				advanced ? updateOpsAdvancedSettings(advanced) : Promise.resolve(),
 				updateOpsMetricThresholds(thresholds)
 			]);
-			showSuccess($_('admin.ops.settings.saveSuccess', { default: 'Settings saved.' }));
+			showSuccess($_('admin.ops.settings.saveSuccess', { default: '设置已保存。' }));
 			onSaved();
 		} catch (err) {
 			const msg =
 				(err as Error)?.message ??
-				$_('admin.ops.settings.saveFailed', { default: 'Failed to save settings.' });
+				$_('admin.ops.settings.saveFailed', { default: '保存设置失败。' });
 			showError(msg);
 		} finally {
 			saving = false;
@@ -382,16 +382,16 @@
 	bind:open
 	onOpenChange={handleOpenChange}
 	width="lg"
-	title={$_('admin.ops.settings.title', { default: 'Ops dashboard settings' })}
+	title={$_('admin.ops.settings.title', { default: '运维面板设置' })}
 	description={$_('admin.ops.settings.description', {
-		default: 'Email reports, runtime alerting, retention and metric thresholds.'
+		default: '邮件报告、运行时告警、数据保留和指标阈值。'
 	})}
 	data-testid="ops-settings-dialog"
 >
 	<div class="mt-4 flex flex-col gap-4">
 		{#if loading}
 			<p class="py-9 text-center text-sm text-muted-foreground" data-testid="ops-settings-loading">
-				{$_('common.loading', { default: 'Loading...' })}
+				{$_('common.loading', { default: '加载中...' })}
 			</p>
 		{:else if loadError}
 			<Alert variant="destructive" class="text-xs" data-testid="ops-settings-load-error">
@@ -401,7 +401,7 @@
 			{#if !isValid}
 				<Alert variant="warning" class="text-xs" data-testid="ops-settings-validation">
 					<div class="font-semibold">
-						{$_('admin.ops.settings.validation.title', { default: 'Please fix the following:' })}
+						{$_('admin.ops.settings.validation.title', { default: '请修正以下问题：' })}
 					</div>
 					<ul class="mt-1 list-inside list-disc pl-1">
 						{#each validationErrors as msg (msg)}
@@ -435,7 +435,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.alertConfig', { default: 'Alert emails' })}
+									{$_('admin.ops.settings.alertConfig', { default: '告警邮件' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-email-alert-enabled"
@@ -446,7 +446,7 @@
 								<div class="mt-3 flex flex-col gap-3">
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.alertRecipients', { default: 'Recipients' })}
+											{$_('admin.ops.settings.alertRecipients', { default: '收件人' })}
 										</span>
 										<div class="flex gap-1.5">
 											<Input
@@ -470,7 +470,7 @@
 												data-testid="ops-email-alert-add"
 												onclick={() => addRecipient('alert')}
 											>
-												{$_('common.add', { default: 'Add' })}
+												{$_('common.add', { default: '添加' })}
 											</Button>
 										</div>
 										<div class="flex flex-wrap gap-1.5">
@@ -480,7 +480,7 @@
 													<button
 														type="button"
 														class="opacity-70 hover:opacity-100"
-														aria-label={$_('common.remove', { default: 'Remove' })}
+														aria-label={$_('common.remove', { default: '移除' })}
 														onclick={() => removeRecipient('alert', addr)}>×</button
 													>
 												</Badge>
@@ -489,7 +489,7 @@
 									</div>
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.minSeverity', { default: 'Minimum severity' })}
+											{$_('admin.ops.settings.minSeverity', { default: '最低严重度' })}
 										</span>
 										<NativeSelect
 											class="w-full"
@@ -504,7 +504,7 @@
 									<div class="grid grid-cols-2 gap-3">
 										<div class="space-y-1.5">
 											<span class="text-xs font-medium text-muted-foreground">
-												{$_('admin.ops.settings.rateLimitPerHour', { default: 'Rate limit / hour' })}
+												{$_('admin.ops.settings.rateLimitPerHour', { default: '速率限制 / 小时' })}
 											</span>
 											<Input
 												type="number"
@@ -516,7 +516,7 @@
 										<div class="space-y-1.5">
 											<span class="text-xs font-medium text-muted-foreground">
 												{$_('admin.ops.settings.batchingWindowSeconds', {
-													default: 'Batching window (s)'
+													default: '批处理窗口 (s)'
 												})}
 											</span>
 											<Input
@@ -530,7 +530,7 @@
 									<label class="flex items-center justify-between gap-3">
 										<span class="text-xs text-muted-foreground">
 											{$_('admin.ops.settings.includeResolvedAlerts', {
-												default: 'Include resolved alerts'
+												default: '包含已解决告警'
 											})}
 										</span>
 										<Checkbox
@@ -546,7 +546,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.reportConfig', { default: 'Scheduled reports' })}
+									{$_('admin.ops.settings.reportConfig', { default: '定时报告' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-email-report-enabled"
@@ -557,7 +557,7 @@
 								<div class="mt-3 flex flex-col gap-3">
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.reportRecipients', { default: 'Recipients' })}
+											{$_('admin.ops.settings.reportRecipients', { default: '收件人' })}
 										</span>
 										<div class="flex gap-1.5">
 											<Input
@@ -581,7 +581,7 @@
 												data-testid="ops-email-report-add"
 												onclick={() => addRecipient('report')}
 											>
-												{$_('common.add', { default: 'Add' })}
+												{$_('common.add', { default: '添加' })}
 											</Button>
 										</div>
 										<div class="flex flex-wrap gap-1.5">
@@ -591,7 +591,7 @@
 													<button
 														type="button"
 														class="opacity-70 hover:opacity-100"
-														aria-label={$_('common.remove', { default: 'Remove' })}
+														aria-label={$_('common.remove', { default: '移除' })}
 														onclick={() => removeRecipient('report', addr)}>×</button
 													>
 												</Badge>
@@ -601,7 +601,7 @@
 									<div class="grid grid-cols-2 gap-3">
 										<label class="flex items-center justify-between gap-3">
 											<span class="text-xs text-muted-foreground">
-												{$_('admin.ops.settings.dailySummary', { default: 'Daily summary' })}
+												{$_('admin.ops.settings.dailySummary', { default: '每日摘要' })}
 											</span>
 											<Checkbox bind:checked={email.report.daily_summary_enabled} />
 										</label>
@@ -616,7 +616,7 @@
 										{/if}
 										<label class="flex items-center justify-between gap-3">
 											<span class="text-xs text-muted-foreground">
-												{$_('admin.ops.settings.weeklySummary', { default: 'Weekly summary' })}
+												{$_('admin.ops.settings.weeklySummary', { default: '每周摘要' })}
 											</span>
 											<Checkbox bind:checked={email.report.weekly_summary_enabled} />
 										</label>
@@ -631,7 +631,7 @@
 										{/if}
 										<label class="flex items-center justify-between gap-3">
 											<span class="text-xs text-muted-foreground">
-												{$_('admin.ops.settings.errorDigest', { default: 'Error digest' })}
+												{$_('admin.ops.settings.errorDigest', { default: '错误摘要' })}
 											</span>
 											<Checkbox bind:checked={email.report.error_digest_enabled} />
 										</label>
@@ -646,7 +646,7 @@
 										{/if}
 										<label class="flex items-center justify-between gap-3">
 											<span class="text-xs text-muted-foreground">
-												{$_('admin.ops.settings.accountHealth', { default: 'Account health' })}
+												{$_('admin.ops.settings.accountHealth', { default: '账户健康度' })}
 											</span>
 											<Checkbox bind:checked={email.report.account_health_enabled} />
 										</label>
@@ -671,12 +671,12 @@
 					<div class="flex flex-col gap-4" data-testid="ops-settings-section-runtime">
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<h4 class="mb-2.5 text-sm font-semibold text-foreground">
-								{$_('admin.ops.settings.dataCollection', { default: 'Evaluation' })}
+								{$_('admin.ops.settings.dataCollection', { default: '评估' })}
 							</h4>
 							<div class="space-y-1.5">
 								<span class="text-xs font-medium text-muted-foreground">
 									{$_('admin.ops.settings.evaluationInterval', {
-										default: 'Evaluation interval (seconds)'
+										default: '评估间隔（秒）'
 									})}
 								</span>
 								<Input
@@ -688,7 +688,7 @@
 								/>
 								<p class="text-[11px] text-muted-foreground">
 									{$_('admin.ops.settings.evaluationIntervalHint', {
-										default: 'How often alert rules are evaluated.'
+										default: '告警规则的评估频率。'
 									})}
 								</p>
 							</div>
@@ -698,7 +698,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.distributedLock', { default: 'Distributed lock' })}
+									{$_('admin.ops.settings.distributedLock', { default: '分布式锁' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-runtime-lock-enabled"
@@ -709,7 +709,7 @@
 								<div class="mt-3 grid grid-cols-2 gap-3">
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.lockKey', { default: 'Lock key' })}
+											{$_('admin.ops.settings.lockKey', { default: '锁定密钥' })}
 										</span>
 										<Input
 											type="text"
@@ -719,7 +719,7 @@
 									</div>
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.lockTtlSeconds', { default: 'Lock TTL (s)' })}
+											{$_('admin.ops.settings.lockTtlSeconds', { default: '锁 TTL (s)' })}
 										</span>
 										<Input
 											type="number"
@@ -736,7 +736,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.silencing', { default: 'Global silencing' })}
+									{$_('admin.ops.settings.silencing', { default: '全局静默' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-runtime-silence-enabled"
@@ -747,7 +747,7 @@
 								<div class="mt-3 flex flex-col gap-3">
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.silenceUntil', { default: 'Silence until (RFC3339)' })}
+											{$_('admin.ops.settings.silenceUntil', { default: '静默截止时间 (RFC3339)' })}
 										</span>
 										<Input
 											type="text"
@@ -758,7 +758,7 @@
 									</div>
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.silenceReason', { default: 'Reason' })}
+											{$_('admin.ops.settings.silenceReason', { default: '原因' })}
 										</span>
 										<Input
 											type="text"
@@ -779,7 +779,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.dataRetention', { default: 'Data retention' })}
+									{$_('admin.ops.settings.dataRetention', { default: '数据保留' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-adv-cleanup-enabled"
@@ -790,7 +790,7 @@
 								{#if advanced.data_retention.cleanup_enabled}
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.cleanupSchedule', { default: 'Cleanup schedule (cron)' })}
+											{$_('admin.ops.settings.cleanupSchedule', { default: '清理计划 (cron)' })}
 										</span>
 										<Input
 											type="text"
@@ -803,7 +803,7 @@
 								<div class="grid grid-cols-3 gap-2.5">
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
-											{$_('admin.ops.settings.errorLogRetentionDays', { default: 'Error logs (days)' })}
+											{$_('admin.ops.settings.errorLogRetentionDays', { default: '错误日志（天）' })}
 										</span>
 										<Input
 											type="number"
@@ -815,7 +815,7 @@
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
 											{$_('admin.ops.settings.minuteMetricsRetentionDays', {
-												default: 'Minute metrics (days)'
+												default: '分钟级指标（天）'
 											})}
 										</span>
 										<Input
@@ -828,7 +828,7 @@
 									<div class="space-y-1.5">
 										<span class="text-xs font-medium text-muted-foreground">
 											{$_('admin.ops.settings.hourlyMetricsRetentionDays', {
-												default: 'Hourly metrics (days)'
+												default: '小时级指标（天）'
 											})}
 										</span>
 										<Input
@@ -847,7 +847,7 @@
 							class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3.5"
 						>
 							<span class="text-sm font-medium text-foreground">
-								{$_('admin.ops.settings.enableAggregation', { default: 'Enable pre-aggregation' })}
+								{$_('admin.ops.settings.enableAggregation', { default: '启用预聚合' })}
 							</span>
 							<Checkbox
 								data-testid="ops-adv-aggregation"
@@ -859,12 +859,12 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<h4 class="mb-1 text-sm font-semibold text-foreground">
 								{$_('admin.ops.settings.openaiQuotaAutoPause', {
-									default: 'OpenAI quota auto-pause'
+									default: 'OpenAI 配额自动暂停'
 								})}
 							</h4>
 							<p class="mb-3 text-[11px] text-muted-foreground">
 								{$_('admin.ops.settings.openaiQuotaAutoPauseHint', {
-									default: 'Pause accounts when quota usage exceeds these thresholds.'
+									default: '配额使用超过阈值时自动暂停账户。'
 								})}
 							</p>
 							<div class="grid grid-cols-2 gap-2.5">
@@ -908,7 +908,7 @@
 						<!-- error filtering -->
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<h4 class="mb-3 text-sm font-semibold text-foreground">
-								{$_('admin.ops.settings.errorFiltering', { default: 'Error filtering' })}
+								{$_('admin.ops.settings.errorFiltering', { default: '错误筛选' })}
 							</h4>
 							<div class="flex flex-col gap-2.5">
 								{#each IGNORE_FLAGS as flag (flag)}
@@ -929,7 +929,7 @@
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<div class="flex items-center justify-between">
 								<h4 class="text-sm font-semibold text-foreground">
-									{$_('admin.ops.settings.autoRefresh', { default: 'Auto refresh' })}
+									{$_('admin.ops.settings.autoRefresh', { default: '自动刷新' })}
 								</h4>
 								<Checkbox
 									data-testid="ops-adv-auto-refresh-enabled"
@@ -939,7 +939,7 @@
 							{#if advanced.auto_refresh_enabled}
 								<div class="mt-3 space-y-1.5">
 									<span class="text-xs font-medium text-muted-foreground">
-										{$_('admin.ops.settings.refreshInterval', { default: 'Refresh interval' })}
+										{$_('admin.ops.settings.refreshInterval', { default: '刷新间隔' })}
 									</span>
 									<NativeSelect
 										class="w-full"
@@ -967,12 +967,12 @@
 						<!-- dashboard card toggles -->
 						<div class="rounded-lg border border-border bg-card p-3.5">
 							<h4 class="mb-3 text-sm font-semibold text-foreground">
-								{$_('admin.ops.settings.dashboardCards', { default: 'Dashboard cards' })}
+								{$_('admin.ops.settings.dashboardCards', { default: '仪表盘卡片' })}
 							</h4>
 							<div class="flex flex-col gap-2.5">
 								<label class="flex items-center justify-between gap-3">
 									<span class="text-xs text-muted-foreground">
-										{$_('admin.ops.settings.displayAlertEvents', { default: 'Show alert events' })}
+										{$_('admin.ops.settings.displayAlertEvents', { default: '显示告警事件' })}
 									</span>
 									<Checkbox
 										data-testid="ops-adv-display-alert-events"
@@ -982,7 +982,7 @@
 								<label class="flex items-center justify-between gap-3">
 									<span class="text-xs text-muted-foreground">
 										{$_('admin.ops.settings.displayOpenAITokenStats', {
-											default: 'Show OpenAI token stats'
+											default: '显示 OpenAI 令牌统计'
 										})}
 									</span>
 									<Checkbox
@@ -1000,13 +1000,13 @@
 					<div class="flex flex-col gap-3" data-testid="ops-settings-section-thresholds">
 						<p class="text-[11px] text-muted-foreground">
 							{$_('admin.ops.settings.metricThresholdsHint', {
-								default: 'Thresholds that colour the dashboard health indicators.'
+								default: '决定仪表盘健康指示颜色的阈值。'
 							})}
 						</p>
 						<div class="grid grid-cols-2 gap-3">
 							<div class="space-y-1.5">
 								<span class="text-xs font-medium text-muted-foreground">
-									{$_('admin.ops.settings.slaMinPercent', { default: 'SLA minimum (%)' })}
+									{$_('admin.ops.settings.slaMinPercent', { default: 'SLA 最低值 (%)' })}
 								</span>
 								<Input
 									type="number"
@@ -1019,7 +1019,7 @@
 							</div>
 							<div class="space-y-1.5">
 								<span class="text-xs font-medium text-muted-foreground">
-									{$_('admin.ops.settings.ttftP99MaxMs', { default: 'TTFT p99 maximum (ms)' })}
+									{$_('admin.ops.settings.ttftP99MaxMs', { default: 'TTFT p99 上限 (ms)' })}
 								</span>
 								<Input
 									type="number"
@@ -1032,7 +1032,7 @@
 							<div class="space-y-1.5">
 								<span class="text-xs font-medium text-muted-foreground">
 									{$_('admin.ops.settings.requestErrorRateMaxPercent', {
-										default: 'Request error rate max (%)'
+										default: '请求错误率上限 (%)'
 									})}
 								</span>
 								<Input
@@ -1047,7 +1047,7 @@
 							<div class="space-y-1.5">
 								<span class="text-xs font-medium text-muted-foreground">
 									{$_('admin.ops.settings.upstreamErrorRateMaxPercent', {
-										default: 'Upstream error rate max (%)'
+										default: '上游错误率上限 (%)'
 									})}
 								</span>
 								<Input
@@ -1073,7 +1073,7 @@
 				data-testid="ops-settings-cancel"
 				onclick={cancel}
 			>
-				{$_('common.cancel', { default: 'Cancel' })}
+				{$_('common.cancel', { default: '取消' })}
 			</Button>
 			<Button
 				class="h-9"
@@ -1082,8 +1082,8 @@
 				onclick={save}
 			>
 				{saving
-					? $_('common.saving', { default: 'Saving...' })
-					: $_('common.save', { default: 'Save' })}
+					? $_('common.saving', { default: '保存中...' })
+					: $_('common.save', { default: '保存' })}
 			</Button>
 		</div>
 	</div>

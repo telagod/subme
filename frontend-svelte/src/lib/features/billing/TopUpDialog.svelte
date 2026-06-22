@@ -103,7 +103,7 @@
 		// 范围拒绝（< 1）—— 显式提示，避免 silent submit。
 		if (!amountValid) {
 			formError = $_('user.topUp.errors.AMOUNT_MIN', {
-				default: 'Amount must be at least 1.'
+				default: '金额必须大于等于 1。'
 			});
 			return;
 		}
@@ -120,17 +120,17 @@
 				provider
 			});
 			showSuccess(
-				$_('user.topUp.successToast', { default: 'Top-up order created.' })
+				$_('user.topUp.successToast', { default: '充值订单已创建。' })
 			);
 			onTopUpStarted?.(result);
 			open = false;
 		} catch (err) {
 			const e = err as Error;
-			const msg = e?.message ?? $_('user.topUp.errors.UNKNOWN', { default: 'Unknown error' });
+			const msg = e?.message ?? $_('user.topUp.errors.UNKNOWN', { default: '未知错误' });
 			// 翻译可识别的 stub 错误码。
 			if (msg === 'TOPUP_AMOUNT_INVALID') {
 				formError = $_('user.topUp.errors.AMOUNT_MIN', {
-					default: 'Amount must be at least 1.'
+					default: '金额必须大于等于 1。'
 				});
 			} else {
 				formError = msg;
@@ -150,9 +150,9 @@
 <StandardDialog
 	bind:open
 	width="md"
-	title={$_('user.topUp.title', { default: 'Top up balance' })}
+	title={$_('user.topUp.title', { default: '余额充值' })}
 	description={$_('user.topUp.description', {
-		default: 'Add credit to your account balance.'
+		default: '为您的账户余额充值。'
 	})}
 	data-testid="topup-dialog"
 >
@@ -164,7 +164,7 @@
 				<!-- Amount -->
 				<div class="space-y-1.5">
 					<label class="text-sm font-medium text-foreground" for="topup-amount">
-						{$_('user.topUp.amountLabel', { default: 'Amount' })}
+						{$_('user.topUp.amountLabel', { default: '金额' })}
 					</label>
 					<Input
 						id="topup-amount"
@@ -185,7 +185,7 @@
 							data-testid="topup-amount-error"
 						>
 							{$_('user.topUp.errors.AMOUNT_MIN', {
-								default: 'Amount must be at least 1.'
+								default: '金额必须大于等于 1。'
 							})}
 						</p>
 					{/if}
@@ -195,7 +195,7 @@
 				{#if multiCurrency && currencies.length > 1}
 					<div class="space-y-1.5">
 						<label class="text-sm font-medium text-foreground" for="topup-currency">
-							{$_('user.topUp.currencyLabel', { default: 'Currency' })}
+							{$_('user.topUp.currencyLabel', { default: '币种' })}
 						</label>
 						<NativeSelect
 							id="topup-currency"
@@ -213,13 +213,13 @@
 				<!-- Provider -->
 				<div class="space-y-1.5">
 					<span class="text-sm font-medium text-foreground">
-						{$_('user.topUp.providerLabel', { default: 'Payment provider' })}
+						{$_('user.topUp.providerLabel', { default: '支付供应商' })}
 					</span>
 					<div
 						class="grid grid-cols-2 gap-2"
 						data-testid="topup-provider-group"
 						role="radiogroup"
-						aria-label={$_('user.topUp.providerLabel', { default: 'Payment provider' })}
+						aria-label={$_('user.topUp.providerLabel', { default: '支付供应商' })}
 					>
 						{#each providers as p (p)}
 							<Button
@@ -260,7 +260,7 @@
 						onclick={handleClose}
 						class="h-9"
 					>
-						{$_('user.topUp.cancel', { default: 'Cancel' })}
+						{$_('user.topUp.cancel', { default: '取消' })}
 					</Button>
 					<Button
 						type="submit"
@@ -269,8 +269,8 @@
 						class="h-9"
 					>
 						{submitting
-							? $_('user.topUp.submitting', { default: 'Processing…' })
-							: $_('user.topUp.submit', { default: 'Continue to payment' })}
+							? $_('user.topUp.submitting', { default: '处理中…' })
+							: $_('user.topUp.submit', { default: '继续支付' })}
 					</Button>
 				</div>
 	</form>

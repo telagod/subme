@@ -50,7 +50,7 @@
 	const CATEGORY_CODES = ['auth', 'rate_limit', 'quota', 'invalid_request', 'service_unavailable', 'upstream', 'internal'];
 
 	const categoryOptions = $derived([
-		{ value: CATEGORY_ALL, label: $_('user.usage.errors.allCategories', { default: 'All Categories' }) },
+		{ value: CATEGORY_ALL, label: $_('user.usage.errors.allCategories', { default: '全部分类' }) },
 		...CATEGORY_CODES.map((c) => ({
 			value: c,
 			label: $_(`user.usage.errors.categories.${c}`, { default: c })
@@ -97,19 +97,19 @@
 	<div class="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
 		<div class="min-w-[160px] space-y-1">
 			<label for="err-model" class="text-xs font-medium text-muted-foreground">
-				{$_('user.usage.errors.model', { default: 'Model' })}
+				{$_('user.usage.errors.model', { default: '模型' })}
 			</label>
 			<Input
 				id="err-model"
 				type="text"
-				placeholder={$_('user.usage.errors.modelPlaceholder', { default: 'Filter by model...' })}
+				placeholder={$_('user.usage.errors.modelPlaceholder', { default: '按模型筛选...' })}
 				bind:value={localModel}
 				class="h-9"
 			/>
 		</div>
 		<div class="min-w-[160px] space-y-1">
 			<label for="err-category" class="text-xs font-medium text-muted-foreground">
-				{$_('user.usage.errors.category', { default: 'Category' })}
+				{$_('user.usage.errors.category', { default: '分类' })}
 			</label>
 			<NativeSelect
 				id="err-category"
@@ -120,7 +120,7 @@
 		</div>
 		<Button type="button" size="sm" class="h-9" onclick={apply}>
 			<Search class="mr-1.5 h-3.5 w-3.5" />
-			{$_('common.search', { default: 'Search' })}
+			{$_('common.search', { default: '搜索' })}
 		</Button>
 	</div>
 
@@ -131,28 +131,28 @@
 				<thead>
 					<tr class="border-b border-border bg-muted/40 text-left">
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.model', { default: 'Model' })}
+							{$_('user.usage.errors.model', { default: '模型' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.keyName', { default: 'API Key' })}
+							{$_('user.usage.errors.keyName', { default: 'API 密钥' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.endpoint', { default: 'Endpoint' })}
+							{$_('user.usage.errors.endpoint', { default: '端点' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.status', { default: 'Status' })}
+							{$_('user.usage.errors.status', { default: '状态' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.category', { default: 'Category' })}
+							{$_('user.usage.errors.category', { default: '分类' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.message', { default: 'Message' })}
+							{$_('user.usage.errors.message', { default: '消息' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.platform', { default: 'Platform' })}
+							{$_('user.usage.errors.platform', { default: '平台' })}
 						</th>
 						<th class="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted-foreground">
-							{$_('user.usage.errors.time', { default: 'Time' })}
+							{$_('user.usage.errors.time', { default: '时间' })}
 						</th>
 					</tr>
 				</thead>
@@ -170,7 +170,7 @@
 					{:else if rows.length === 0}
 						<tr>
 							<td colspan="8" class="px-4 py-12 text-center text-sm text-muted-foreground">
-								{$_('user.usage.errors.empty', { default: 'No error requests found.' })}
+								{$_('user.usage.errors.empty', { default: '暂无错误请求。' })}
 							</td>
 						</tr>
 					{:else}
@@ -213,7 +213,7 @@
 			<div class="flex items-center justify-between border-t border-border px-4 py-2.5 text-xs text-muted-foreground">
 				<span>
 					{$_('user.usage.showingRange', {
-						default: 'Showing {start}-{end} of {total}',
+						default: '显示 {start}-{end} / {total}',
 						values: { start: startRow, end: endRow, total }
 					})}
 				</span>
@@ -226,7 +226,7 @@
 						disabled={page <= 1}
 						onclick={onPrev}
 					>
-						{$_('user.usage.prev', { default: 'Prev' })}
+						{$_('user.usage.prev', { default: '上一页' })}
 					</Button>
 					<span class="px-2 tabular-nums">
 						{page} / {totalPages || 1}
@@ -239,7 +239,7 @@
 						disabled={totalPages > 0 && page >= totalPages}
 						onclick={onNext}
 					>
-						{$_('user.usage.next', { default: 'Next' })}
+						{$_('user.usage.next', { default: '下一步' })}
 					</Button>
 				</div>
 			</div>

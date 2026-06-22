@@ -34,7 +34,7 @@
 			labels: points.map((p) => p.date),
 			datasets: [
 				{
-					label: $_('user.dashboard.chart.legendInput', { default: 'Input tokens' }),
+					label: $_('user.dashboard.chart.legendInput', { default: '输入令牌' }),
 					data: points.map((p) => p.inputTokens),
 					borderColor: '#3b82f6',
 					backgroundColor: 'rgba(59,130,246,0.15)',
@@ -42,7 +42,7 @@
 					fill: false
 				},
 				{
-					label: $_('user.dashboard.chart.legendOutput', { default: 'Output tokens' }),
+					label: $_('user.dashboard.chart.legendOutput', { default: '输出令牌' }),
 					data: points.map((p) => p.outputTokens),
 					borderColor: '#10b981',
 					backgroundColor: 'rgba(16,185,129,0.15)',
@@ -100,35 +100,35 @@
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-chart-loading"
 		>
-			{$_('user.dashboard.chart.loading', { default: 'Loading chart…' })}
+			{$_('user.dashboard.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else if chartError}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="usage-chart-error"
 		>
-			{$_('user.dashboard.chart.failed', { default: 'Failed to load chart' })}
+			{$_('user.dashboard.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data === null}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-destructive"
 			data-testid="usage-chart-error"
 		>
-			{$_('user.dashboard.chart.failed', { default: 'Failed to load chart' })}
+			{$_('user.dashboard.chart.failed', { default: '加载图表失败' })}
 		</div>
 	{:else if data.length === 0}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-chart-empty"
 		>
-			{$_('user.dashboard.chart.empty', { default: 'No usage in the last 7 days' })}
+			{$_('user.dashboard.chart.empty', { default: '最近 7 天无用量' })}
 		</div>
 	{:else if !chartReady || !LineCmp}
 		<div
 			class="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground"
 			data-testid="usage-chart-loading"
 		>
-			{$_('user.dashboard.chart.loading', { default: 'Loading chart…' })}
+			{$_('user.dashboard.chart.loading', { default: '加载图表中…' })}
 		</div>
 	{:else}
 		{@const LC = LineCmp as unknown as import('svelte').Component<{

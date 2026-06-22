@@ -34,7 +34,7 @@
 			<Input bind:value={restorePassword} type="password" data-testid="backup-restore-password" />
 		</label>
 		<div class="flex justify-end gap-2 border-t pt-4">
-			<Button variant="outline" onclick={onClose}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+			<Button variant="outline" onclick={onClose}>{$_('common.cancel', { default: '取消' })}</Button>
 			<Button onclick={handleConfirm} disabled={!restorePassword.trim() || !target || restoringId === target.id} data-testid="backup-restore-confirm">
 				{$_('admin.backup.actions.restore')}
 			</Button>

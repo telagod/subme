@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Button from '$lib/ui/Button.svelte';
 	import StandardDialog from '$lib/ui/StandardDialog.svelte';
 	import type { Proxy, ProxyAccountSummary } from '$lib/api/admin/proxies';
@@ -30,6 +31,6 @@
 		{/if}
 	</div>
 	<div class="mt-5 flex justify-end">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>Close</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button>
 	</div>
 </StandardDialog>

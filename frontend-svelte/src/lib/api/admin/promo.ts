@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 
 export type PromoCodeStatus = 'active' | 'disabled';
 
@@ -61,20 +61,20 @@ export async function listPromoCodes(
 	);
 }
 
-export function getPromoCode(id: number): Promise<PromoCode> {
-	return apiClient.get<PromoCode>(`${PROMO_BASE}/${id}`);
+export async function getPromoCode(id: number): Promise<PromoCode> {
+	return unwrapData(await apiClient.get<PromoCode | ApiEnvelope<PromoCode>>(`${PROMO_BASE}/${id}`));
 }
 
-export function createPromoCode(payload: CreatePromoCodeRequest): Promise<PromoCode> {
-	return apiClient.post<PromoCode>(PROMO_BASE, payload);
+export async function createPromoCode(payload: CreatePromoCodeRequest): Promise<PromoCode> {
+	return unwrapData(await apiClient.post<PromoCode | ApiEnvelope<PromoCode>>(PROMO_BASE, payload));
 }
 
-export function updatePromoCode(id: number, payload: UpdatePromoCodeRequest): Promise<PromoCode> {
-	return apiClient.put<PromoCode>(`${PROMO_BASE}/${id}`, payload);
+export async function updatePromoCode(id: number, payload: UpdatePromoCodeRequest): Promise<PromoCode> {
+	return unwrapData(await apiClient.put<PromoCode | ApiEnvelope<PromoCode>>(`${PROMO_BASE}/${id}`, payload));
 }
 
-export function deletePromoCode(id: number): Promise<{ message: string }> {
-	return apiClient.delete<{ message: string }>(`${PROMO_BASE}/${id}`);
+export async function deletePromoCode(id: number): Promise<{ message: string }> {
+	return unwrapData(await apiClient.delete<{ message: string } | ApiEnvelope<{ message: string }>>(`${PROMO_BASE}/${id}`));
 }
 
 export function listPromoCodeUsages(

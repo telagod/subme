@@ -40,15 +40,15 @@
 	}: Props = $props();
 
 	const statusOptions = $derived([
-		{ value: STATUS_ALL, label: $_('admin.subscriptions.statusAll', { default: 'All statuses' }) },
-		{ value: 'active', label: $_('admin.subscriptions.statusActive', { default: 'Active' }) },
-		{ value: 'cancelled', label: $_('admin.subscriptions.statusCancelled', { default: 'Cancelled' }) },
-		{ value: 'expired', label: $_('admin.subscriptions.statusExpired', { default: 'Expired' }) }
+		{ value: STATUS_ALL, label: $_('admin.subscriptions.statusAll', { default: '全部状态' }) },
+		{ value: 'active', label: $_('admin.subscriptions.statusActive', { default: '活跃' }) },
+		{ value: 'cancelled', label: $_('admin.subscriptions.statusCancelled', { default: '已取消' }) },
+		{ value: 'expired', label: $_('admin.subscriptions.statusExpired', { default: '已过期' }) }
 	]);
 
 	const planOptions = $derived.by<Array<{ value: string; label: string }>>(() => {
 		return [
-			{ value: PLAN_ALL, label: $_('admin.subscriptions.planAll', { default: 'All plans' }) },
+			{ value: PLAN_ALL, label: $_('admin.subscriptions.planAll', { default: '全部方案' }) },
 			...plans.map((p) => ({ value: String(p.id), label: p.name }))
 		];
 	});
@@ -62,7 +62,7 @@
 			type="search"
 			class="h-8 w-56 pl-7 pr-2"
 			placeholder={$_('admin.subscriptions.searchPlaceholder', {
-				default: 'Search user email or ID…'
+				default: '搜索用户邮箱或 ID…'
 			})}
 			value={searchInput}
 			oninput={(e) => {
@@ -78,7 +78,7 @@
 	</div>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-status-filter">
-		{$_('common.status', { default: 'Status' })}
+		{$_('common.status', { default: '状态' })}
 	</label>
 	<NativeSelect
 		id="admin-subs-status-filter"
@@ -90,7 +90,7 @@
 	/>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-plan-filter">
-		{$_('admin.subscriptions.planLabel', { default: 'Plan' })}
+		{$_('admin.subscriptions.planLabel', { default: '方案' })}
 	</label>
 	<NativeSelect
 		id="admin-subs-plan-filter"
@@ -102,7 +102,7 @@
 	/>
 
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-expires-after">
-		{$_('admin.subscriptions.expiresAfter', { default: 'Expires after' })}
+		{$_('admin.subscriptions.expiresAfter', { default: '过期于之后' })}
 	</label>
 	<Input
 		id="admin-subs-expires-after"
@@ -113,7 +113,7 @@
 		data-testid="admin-subs-expires-after"
 	/>
 	<label class="ml-1 text-xs text-muted-foreground" for="admin-subs-expires-before">
-		{$_('admin.subscriptions.expiresBefore', { default: 'Expires before' })}
+		{$_('admin.subscriptions.expiresBefore', { default: '过期于之前' })}
 	</label>
 	<Input
 		id="admin-subs-expires-before"

@@ -18,7 +18,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('errors.pageNotFound', { default: 'Page not found' })} · sub2api</title>
+	<title>{$_('errors.pageNotFound', { default: '页面未找到' })} · sub2api</title>
 </svelte:head>
 
 <section
@@ -43,7 +43,7 @@
 
 		<div class="mb-8">
 			<h1 class="mb-3 text-2xl font-bold text-foreground">
-				{$_('errors.pageNotFound', { default: 'Page not found' })}
+				{$_('errors.pageNotFound', { default: '页面未找到' })}
 			</h1>
 			<p class="text-muted-foreground">
 				{$_('errors.pageNotFoundDescription', {
@@ -59,14 +59,14 @@
 				data-testid="not-found-back"
 			>
 				<ArrowLeft class="h-4 w-4" />
-				{$_('common.back', { default: 'Back' })}
+				{$_('common.back', { default: '返回' })}
 			</Button>
 			<Button
 				onclick={goDashboard}
 				data-testid="not-found-dashboard"
 			>
 				<Home class="h-4 w-4" />
-				{$_('common.dashboard', { default: 'Dashboard' })}
+				{$_('common.dashboard', { default: '控制面板' })}
 			</Button>
 		</div>
 	</div>

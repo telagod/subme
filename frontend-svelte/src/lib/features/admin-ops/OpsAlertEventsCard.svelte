@@ -66,7 +66,7 @@
 	]);
 
 	const severityOptions = $derived([
-		{ value: ALL, label: $_('common.all', { default: 'All' }) },
+		{ value: ALL, label: $_('common.all', { default: '全部' }) },
 		{ value: 'P0', label: 'P0' },
 		{ value: 'P1', label: 'P1' },
 		{ value: 'P2', label: 'P2' },
@@ -74,15 +74,15 @@
 	]);
 
 	const statusOptions = $derived([
-		{ value: ALL, label: $_('common.all', { default: 'All' }) },
-		{ value: 'firing', label: $_('admin.ops.alertEvents.status.firing', { default: 'Firing' }) },
+		{ value: ALL, label: $_('common.all', { default: '全部' }) },
+		{ value: 'firing', label: $_('admin.ops.alertEvents.status.firing', { default: '触发中' }) },
 		{
 			value: 'resolved',
-			label: $_('admin.ops.alertEvents.status.resolved', { default: 'Resolved' })
+			label: $_('admin.ops.alertEvents.status.resolved', { default: '已解决' })
 		},
 		{
 			value: 'manual_resolved',
-			label: $_('admin.ops.alertEvents.status.manualResolved', { default: 'Manually resolved' })
+			label: $_('admin.ops.alertEvents.status.manualResolved', { default: '已手动解决' })
 		}
 	]);
 
@@ -115,7 +115,7 @@
 		} catch (err) {
 			loadError =
 				(err as Error)?.message ??
-				$_('admin.ops.alertEvents.loadFailed', { default: 'Failed to load alert events' });
+				$_('admin.ops.alertEvents.loadFailed', { default: '加载告警事件失败' });
 			events = [];
 			hasMore = false;
 		} finally {
@@ -227,10 +227,10 @@
 			.trim()
 			.toLowerCase();
 		if (!v) return '—';
-		if (v === 'firing') return $_('admin.ops.alertEvents.status.firing', { default: 'Firing' });
-		if (v === 'resolved') return $_('admin.ops.alertEvents.status.resolved', { default: 'Resolved' });
+		if (v === 'firing') return $_('admin.ops.alertEvents.status.firing', { default: '触发中' });
+		if (v === 'resolved') return $_('admin.ops.alertEvents.status.resolved', { default: '已解决' });
 		if (v === 'manual_resolved')
-			return $_('admin.ops.alertEvents.status.manualResolved', { default: 'Manually resolved' });
+			return $_('admin.ops.alertEvents.status.manualResolved', { default: '已手动解决' });
 		return v.toUpperCase();
 	}
 
@@ -245,12 +245,12 @@
 			if (!Number.isNaN(resolved.getTime())) {
 				const prefix =
 					s === 'manual_resolved'
-						? $_('admin.ops.alertEvents.status.manualResolved', { default: 'Manually resolved' })
-						: $_('admin.ops.alertEvents.status.resolved', { default: 'Resolved' });
+						? $_('admin.ops.alertEvents.status.manualResolved', { default: '已手动解决' })
+						: $_('admin.ops.alertEvents.status.resolved', { default: '已解决' });
 				return `${prefix} ${formatDurationMs(resolved.getTime() - fired.getTime())}`;
 			}
 		}
-		return `${$_('admin.ops.alertEvents.status.firing', { default: 'Firing' })} ${formatDurationMs(Date.now() - fired.getTime())}`;
+		return `${$_('admin.ops.alertEvents.status.firing', { default: '触发中' })} ${formatDurationMs(Date.now() - fired.getTime())}`;
 	}
 
 	// Severity badge tone (Zinc + semantic tokens, no raw hex)
@@ -283,7 +283,7 @@
 		} catch (err) {
 			showError(
 				(err as Error)?.message ??
-					$_('admin.ops.alertEvents.detail.loadFailed', { default: 'Failed to load detail' })
+					$_('admin.ops.alertEvents.detail.loadFailed', { default: '加载详情失败' })
 			);
 		} finally {
 			detailLoading = false;
@@ -362,12 +362,12 @@
 				reason: `silence from UI (${silenceDuration})`
 			});
 			showSuccess(
-				$_('admin.ops.alertEvents.detail.silenceSuccess', { default: 'Alert silenced' })
+				$_('admin.ops.alertEvents.detail.silenceSuccess', { default: '告警已静默' })
 			);
 		} catch (err) {
 			showError(
 				(err as Error)?.message ??
-					$_('admin.ops.alertEvents.detail.silenceFailed', { default: 'Failed to silence alert' })
+					$_('admin.ops.alertEvents.detail.silenceFailed', { default: '静默告警失败' })
 			);
 		} finally {
 			actionLoading = false;
@@ -381,7 +381,7 @@
 		try {
 			await updateOpsAlertEventStatus(ev.id, 'manual_resolved');
 			showSuccess(
-				$_('admin.ops.alertEvents.detail.manualResolvedSuccess', { default: 'Alert resolved' })
+				$_('admin.ops.alertEvents.detail.manualResolvedSuccess', { default: '告警已解决' })
 			);
 			// refetch detail + first page to reflect new status
 			selected = await getOpsAlertEvent(ev.id);
@@ -391,7 +391,7 @@
 			showError(
 				(err as Error)?.message ??
 					$_('admin.ops.alertEvents.detail.manualResolvedFailed', {
-						default: 'Failed to resolve alert'
+						default: '解决告警失败'
 					})
 			);
 		} finally {
@@ -407,11 +407,11 @@
 	<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
 		<div>
 			<h3 class="text-sm font-bold text-foreground">
-				{$_('admin.ops.alertEvents.title', { default: 'Alert events' })}
+				{$_('admin.ops.alertEvents.title', { default: '告警事件' })}
 			</h3>
 			<p class="mt-1 text-xs text-muted-foreground">
 				{$_('admin.ops.alertEvents.description', {
-					default: 'Recent alert firings with silence and manual-resolve actions.'
+					default: '近期告警触发记录，含静默和手动解决操作。'
 				})}
 			</p>
 		</div>
@@ -420,21 +420,21 @@
 				bind:value={timeRange}
 				options={timeRangeOptions}
 				class="h-9 w-[110px]"
-				aria-label={$_('admin.ops.alertEvents.filter.timeRange', { default: 'Time range' })}
+				aria-label={$_('admin.ops.alertEvents.filter.timeRange', { default: '时间范围' })}
 				data-testid="ops-alert-events-filter-time"
 			/>
 			<NativeSelect
 				bind:value={severity}
 				options={severityOptions}
 				class="h-9 w-[100px]"
-				aria-label={$_('admin.ops.alertEvents.filter.severity', { default: 'Severity' })}
+				aria-label={$_('admin.ops.alertEvents.filter.severity', { default: '严重度' })}
 				data-testid="ops-alert-events-filter-severity"
 			/>
 			<NativeSelect
 				bind:value={status}
 				options={statusOptions}
 				class="h-9 w-[140px]"
-				aria-label={$_('admin.ops.alertEvents.filter.status', { default: 'Status' })}
+				aria-label={$_('admin.ops.alertEvents.filter.status', { default: '状态' })}
 				data-testid="ops-alert-events-filter-status"
 			/>
 			<Button
@@ -445,7 +445,7 @@
 				data-testid="ops-alert-events-refresh"
 			>
 				<RefreshCw class={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 		</div>
 	</div>
@@ -457,7 +457,7 @@
 			data-testid="ops-alert-events-loading"
 		>
 			<Loader2 class="h-4 w-4 animate-spin" />
-			{$_('admin.ops.alertEvents.loading', { default: 'Loading…' })}
+			{$_('admin.ops.alertEvents.loading', { default: '加载中…' })}
 		</div>
 	{:else if loadError}
 		<div
@@ -472,7 +472,7 @@
 			class="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground"
 			data-testid="ops-alert-events-empty"
 		>
-			{$_('admin.ops.alertEvents.empty', { default: 'No alert events in this range.' })}
+			{$_('admin.ops.alertEvents.empty', { default: '该范围内无告警事件。' })}
 		</div>
 	{:else}
 		<div class="overflow-hidden rounded-lg border border-border">
@@ -481,28 +481,28 @@
 					<thead class="sticky top-0 z-10 border-b border-border bg-muted">
 						<tr>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.time', { default: 'Time' })}
+								{$_('admin.ops.alertEvents.table.time', { default: '时间' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.severity', { default: 'Severity' })}
+								{$_('admin.ops.alertEvents.table.severity', { default: '严重度' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.platform', { default: 'Platform' })}
+								{$_('admin.ops.alertEvents.table.platform', { default: '平台' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.ruleId', { default: 'Rule' })}
+								{$_('admin.ops.alertEvents.table.ruleId', { default: '规则' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.title', { default: 'Title' })}
+								{$_('admin.ops.alertEvents.table.title', { default: '标题' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.duration', { default: 'Duration' })}
+								{$_('admin.ops.alertEvents.table.duration', { default: '时长' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.dimensions', { default: 'Dimensions' })}
+								{$_('admin.ops.alertEvents.table.dimensions', { default: '维度' })}
 							</th>
 							<th class="px-3.5 py-2.5 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-								{$_('admin.ops.alertEvents.table.email', { default: 'Email' })}
+								{$_('admin.ops.alertEvents.table.email', { default: '邮箱' })}
 							</th>
 						</tr>
 					</thead>
@@ -562,12 +562,12 @@
 										{#if row.email_sent}
 											<CheckCircle2 class="h-3.5 w-3.5 text-emerald-500" />
 											<span class="text-muted-foreground">
-												{$_('admin.ops.alertEvents.table.emailSent', { default: 'Sent' })}
+												{$_('admin.ops.alertEvents.table.emailSent', { default: '已发送' })}
 											</span>
 										{:else}
 											<Ban class="h-3.5 w-3.5 text-muted-foreground" />
 											<span class="text-muted-foreground">
-												{$_('admin.ops.alertEvents.table.emailIgnored', { default: 'Ignored' })}
+												{$_('admin.ops.alertEvents.table.emailIgnored', { default: '已忽略' })}
 											</span>
 										{/if}
 									</span>
@@ -583,7 +583,7 @@
 						data-testid="ops-alert-events-loading-more"
 					>
 						<Loader2 class="h-3 w-3 animate-spin" />
-						{$_('admin.ops.alertEvents.loading', { default: 'Loading…' })}
+						{$_('admin.ops.alertEvents.loading', { default: '加载中…' })}
 					</div>
 				{:else if !hasMore && events.length > 0}
 					<div class="p-2.5 text-center text-[11px] text-muted-foreground">—</div>
@@ -597,9 +597,9 @@
 <StandardDrawer
 	bind:open={detailOpen}
 	width="lg"
-	title={$_('admin.ops.alertEvents.detail.title', { default: 'Alert event' })}
+	title={$_('admin.ops.alertEvents.detail.title', { default: '告警事件' })}
 	description={$_('admin.ops.alertEvents.detail.subtitle', {
-		default: 'Silence the rule or mark this alert as manually resolved.'
+		default: '静默规则或将此告警标记为手动解决。'
 	})}
 	data-testid="ops-alert-event-detail-drawer"
 >
@@ -610,11 +610,11 @@
 				data-testid="ops-alert-event-detail-loading"
 			>
 				<Loader2 class="h-4 w-4 animate-spin" />
-				{$_('admin.ops.alertEvents.detail.loading', { default: 'Loading…' })}
+				{$_('admin.ops.alertEvents.detail.loading', { default: '加载中…' })}
 			</div>
 		{:else if !selected}
 			<div class="py-9 text-center text-sm text-muted-foreground">
-				{$_('admin.ops.alertEvents.detail.empty', { default: 'No alert selected.' })}
+				{$_('admin.ops.alertEvents.detail.empty', { default: '未选择告警。' })}
 			</div>
 		{:else}
 			<div class="flex flex-col gap-4">
@@ -644,13 +644,13 @@
 								class="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5"
 							>
 								<span class="text-[11px] font-semibold text-muted-foreground">
-									{$_('admin.ops.alertEvents.detail.silence', { default: 'Silence' })}
+									{$_('admin.ops.alertEvents.detail.silence', { default: '静默' })}
 								</span>
 								<NativeSelect
 									bind:value={silenceDuration}
 									options={silenceDurationOptions}
 									class="h-8 w-[90px]"
-									aria-label={$_('admin.ops.alertEvents.detail.silence', { default: 'Silence' })}
+									aria-label={$_('admin.ops.alertEvents.detail.silence', { default: '静默' })}
 									data-testid="ops-alert-event-silence-duration"
 								/>
 								<Button
@@ -661,7 +661,7 @@
 									data-testid="ops-alert-event-silence-apply"
 								>
 									<Ban class="mr-1 h-3.5 w-3.5" />
-									{$_('common.apply', { default: 'Apply' })}
+									{$_('common.apply', { default: '应用' })}
 								</Button>
 							</div>
 							<Button
@@ -672,7 +672,7 @@
 								data-testid="ops-alert-event-resolve"
 							>
 								<CheckCircle2 class="mr-1 h-3.5 w-3.5" />
-								{$_('admin.ops.alertEvents.detail.manualResolve', { default: 'Resolve' })}
+								{$_('admin.ops.alertEvents.detail.manualResolve', { default: '解决' })}
 							</Button>
 						</div>
 					</div>
@@ -682,7 +682,7 @@
 				<div class="grid grid-cols-2 gap-2.5">
 					<div class="rounded-lg border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.firedAt', { default: 'Fired at' })}
+							{$_('admin.ops.alertEvents.detail.firedAt', { default: '触发于' })}
 						</div>
 						<div class="mt-1 text-[13px] font-medium text-foreground">
 							{formatDateTime(selected.fired_at || selected.created_at)}
@@ -690,7 +690,7 @@
 					</div>
 					<div class="rounded-lg border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.resolvedAt', { default: 'Resolved at' })}
+							{$_('admin.ops.alertEvents.detail.resolvedAt', { default: '解决于' })}
 						</div>
 						<div class="mt-1 text-[13px] font-medium text-foreground">
 							{selected.resolved_at ? formatDateTime(selected.resolved_at) : '—'}
@@ -698,7 +698,7 @@
 					</div>
 					<div class="rounded-lg border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.ruleId', { default: 'Rule' })}
+							{$_('admin.ops.alertEvents.detail.ruleId', { default: '规则' })}
 						</div>
 						<div class="mt-1 flex flex-wrap items-center gap-1.5">
 							<span class="font-mono text-[13px] font-bold text-foreground">#{selected.rule_id}</span>
@@ -707,13 +707,13 @@
 								href={`/admin/ops?open_alert_rules=1&alert_rule_id=${selected.rule_id}`}
 							>
 								<ExternalLink class="h-3 w-3" />
-								{$_('admin.ops.alertEvents.detail.viewRule', { default: 'View rule' })}
+								{$_('admin.ops.alertEvents.detail.viewRule', { default: '查看规则' })}
 							</a>
 						</div>
 					</div>
 					<div class="rounded-lg border border-border bg-card p-3">
 						<div class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.dimensions', { default: 'Dimensions' })}
+							{$_('admin.ops.alertEvents.detail.dimensions', { default: '维度' })}
 						</div>
 						<div class="mt-1 text-xs text-muted-foreground">
 							{#if dimString(selected, 'platform')}
@@ -734,11 +734,11 @@
 					<div class="mb-3 flex flex-wrap items-center justify-between gap-2.5">
 						<div>
 							<div class="text-[13px] font-bold text-foreground">
-								{$_('admin.ops.alertEvents.detail.historyTitle', { default: 'Recent history' })}
+								{$_('admin.ops.alertEvents.detail.historyTitle', { default: '近期记录' })}
 							</div>
 							<div class="mt-0.5 text-[11px] text-muted-foreground">
 								{$_('admin.ops.alertEvents.detail.historyHint', {
-									default: 'Same rule and dimensions.'
+									default: '相同规则和维度。'
 								})}
 							</div>
 						</div>
@@ -747,18 +747,18 @@
 							options={historyRangeOptions}
 							class="h-8 w-[120px]"
 							aria-label={$_('admin.ops.alertEvents.detail.historyTitle', {
-								default: 'Recent history'
+								default: '近期记录'
 							})}
 							data-testid="ops-alert-event-history-range"
 						/>
 					</div>
 					{#if historyLoading}
 						<div class="py-5 text-center text-[11.5px] text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.historyLoading', { default: 'Loading…' })}
+							{$_('admin.ops.alertEvents.detail.historyLoading', { default: '加载中…' })}
 						</div>
 					{:else if history.length === 0}
 						<div class="py-5 text-center text-[11.5px] text-muted-foreground">
-							{$_('admin.ops.alertEvents.detail.historyEmpty', { default: 'No history.' })}
+							{$_('admin.ops.alertEvents.detail.historyEmpty', { default: '暂无记录。' })}
 						</div>
 					{:else}
 						<div class="overflow-hidden rounded-lg border border-border">
@@ -766,13 +766,13 @@
 								<thead class="border-b border-border bg-muted">
 									<tr>
 										<th class="px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-											{$_('admin.ops.alertEvents.table.time', { default: 'Time' })}
+											{$_('admin.ops.alertEvents.table.time', { default: '时间' })}
 										</th>
 										<th class="px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-											{$_('admin.ops.alertEvents.table.status', { default: 'Status' })}
+											{$_('admin.ops.alertEvents.table.status', { default: '状态' })}
 										</th>
 										<th class="px-3 py-1.5 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-											{$_('admin.ops.alertEvents.table.metric', { default: 'Metric' })}
+											{$_('admin.ops.alertEvents.table.metric', { default: '指标' })}
 										</th>
 									</tr>
 								</thead>

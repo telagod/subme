@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
@@ -161,7 +162,7 @@
 		</div>
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>Cancel</Button>
-		<Button disabled={saving || !form.name.trim() || !form.host.trim()} onclick={saveProxy}>Save</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+		<Button disabled={saving || !form.name.trim() || !form.host.trim()} onclick={saveProxy}>{$_('common.save', { default: 'Save' })}</Button>
 	</div>
 </StandardDialog>

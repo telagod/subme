@@ -143,7 +143,7 @@
 		const total = mainstreamProviders.reduce((acc, p) => acc + p.count, 0);
 		const tabs: ProviderTab[] = [{
 			key: ALL_SENTINEL,
-			label: $_('admin.pricingList.providerTabs.all', { default: 'All' }),
+			label: $_('admin.pricingList.providerTabs.all', { default: '全部' }),
 			count: total
 		}];
 		for (const p of mainstreamProviders) {
@@ -210,7 +210,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.pricingList.title', { default: 'PayGo Pricing' })} · sub2api admin</title>
+	<title>{$_('admin.pricingList.title', { default: '按量计费定价' })} · sub2api admin</title>
 </svelte:head>
 
 <section class="flex h-[calc(100vh-8rem)] flex-col gap-3" data-testid="pricing-page">

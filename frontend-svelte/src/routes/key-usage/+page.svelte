@@ -46,10 +46,10 @@
 	const docUrl = $derived(settings?.doc_url || '');
 	const githubUrl = 'https://github.com/telagod/subme';
 	const dateRanges = $derived([
-		{ key: 'today' as const, label: $_('keyUsage.dateRangeToday', { default: 'Today' }) },
+		{ key: 'today' as const, label: $_('keyUsage.dateRangeToday', { default: '今天' }) },
 		{ key: '7d' as const, label: $_('keyUsage.dateRange7d', { default: '7 Days' }) },
 		{ key: '30d' as const, label: $_('keyUsage.dateRange30d', { default: '30 Days' }) },
-		{ key: 'custom' as const, label: $_('keyUsage.dateRangeCustom', { default: 'Custom' }) }
+		{ key: 'custom' as const, label: $_('keyUsage.dateRangeCustom', { default: '自定义' }) }
 	]);
 	const ringItems = $derived(buildRingItems(resultData));
 	const usageStatCells = $derived(summarizeUsageStats(resultData));
@@ -60,13 +60,13 @@
 		if (resultData.mode === 'quota_limited') {
 			const status = resultData.status || 'unknown';
 			return {
-				label: $_('keyUsage.quotaMode', { default: 'Key Quota Mode' }),
+				label: $_('keyUsage.quotaMode', { default: '密钥配额模式' }),
 				statusText: status,
 				active: resultData.isValid !== false && status === 'active'
 			};
 		}
 		return {
-			label: resultData.planName || $_('keyUsage.walletBalance', { default: 'Wallet Balance' }),
+			label: resultData.planName || $_('keyUsage.walletBalance', { default: '钱包余额' }),
 			statusText: 'active',
 			active: true
 		};
@@ -102,7 +102,7 @@
 		if (isQuerying) return;
 		const key = apiKey.trim();
 		if (!key) {
-			showInfo($_('keyUsage.enterApiKey', { default: 'Please enter an API Key' }));
+			showInfo($_('keyUsage.enterApiKey', { default: '请输入 API 密钥' }));
 			return;
 		}
 
@@ -112,13 +112,13 @@
 		try {
 			resultData = await fetchKeyUsage(key, getDateParams());
 			showDatePicker = true;
-			showSuccess($_('keyUsage.querySuccess', { default: 'Query successful' }));
+			showSuccess($_('keyUsage.querySuccess', { default: '查询成功' }));
 		} catch (err) {
 			showResults = false;
 			showError(
 				err instanceof Error
 					? err.message
-					: $_('keyUsage.queryFailedRetry', { default: 'Query failed, please try again later' })
+					: $_('keyUsage.queryFailedRetry', { default: '查询失败，请稍后重试' })
 			);
 		} finally {
 			isQuerying = false;
@@ -127,7 +127,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('keyUsage.title', { default: 'API Key Usage' })} · {siteName}</title>
+	<title>{$_('keyUsage.title', { default: 'API 密钥用量' })} · {siteName}</title>
 </svelte:head>
 
 <main class="min-h-screen bg-background text-foreground" data-testid="key-usage-page">
@@ -142,7 +142,7 @@
 			<div class="flex items-center gap-2">
 				{#if docUrl}
 					<a href={docUrl} target="_blank" rel="noopener noreferrer" class="hidden rounded-md border border-border px-3 py-2 text-sm hover:bg-accent sm:inline-flex">
-						{$_('home.viewDocs', { default: 'Docs' })}
+						{$_('home.viewDocs', { default: '文档' })}
 				</a>
 			{/if}
 			<a href={githubUrl} target="_blank" rel="noopener noreferrer" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-accent" aria-label="GitHub">
@@ -159,11 +159,11 @@
 				<span class="text-sm font-medium">/v1/usage</span>
 			</div>
 			<h1 class="text-2xl font-semibold tracking-normal sm:text-3xl">
-				{$_('keyUsage.title', { default: 'API Key Usage' })}
+				{$_('keyUsage.title', { default: 'API 密钥用量' })}
 			</h1>
 			<p class="max-w-2xl text-sm text-muted-foreground">
 				{$_('keyUsage.subtitle', {
-					default: 'Enter your API Key to view real-time spending and usage status'
+					default: '输入您的 API Key 以查看实时消费金额和使用状态'
 				})}
 			</p>
 		</div>
@@ -199,16 +199,16 @@
 				>
 					{#if isQuerying}
 						<Loader2 class="h-4 w-4 animate-spin" />
-						{$_('keyUsage.querying', { default: 'Querying...' })}
+						{$_('keyUsage.querying', { default: '查询中...' })}
 					{:else}
 						<Search class="h-4 w-4" />
-						{$_('keyUsage.query', { default: 'Query' })}
+						{$_('keyUsage.query', { default: '查询' })}
 					{/if}
 				</Button>
 			</div>
 			<p class="mt-3 text-xs text-muted-foreground">
 				{$_('keyUsage.privacyNote', {
-					default: 'Your Key is processed locally in the browser and will not be stored'
+					default: '您的 Key 仅在浏览器本地处理，不会被存储'
 				})}
 			</p>
 		</div>
@@ -218,7 +218,7 @@
 				<div class="flex flex-wrap items-center gap-2">
 					<span class="mr-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
 						<CalendarDays class="h-4 w-4" />
-						{$_('keyUsage.dateRange', { default: 'Date Range:' })}
+						{$_('keyUsage.dateRange', { default: '日期范围：' })}
 					</span>
 					{#each dateRanges as range}
 						<Button
@@ -233,7 +233,7 @@
 						<Input class="h-8 w-auto px-2 text-xs" type="date" bind:value={customStartDate} />
 						<Input class="h-8 w-auto px-2 text-xs" type="date" bind:value={customEndDate} />
 						<Button size="sm" onclick={queryKey}>
-							{$_('keyUsage.apply', { default: 'Apply' })}
+							{$_('keyUsage.apply', { default: '应用' })}
 						</Button>
 					{/if}
 				</div>
@@ -244,7 +244,7 @@
 			{#if isQuerying && !resultData}
 				<div class="rounded-lg border border-border bg-card p-10 text-center text-sm text-muted-foreground" data-testid="key-usage-loading">
 					<Loader2 class="mx-auto mb-3 h-8 w-8 animate-spin" />
-					{$_('keyUsage.querying', { default: 'Querying...' })}
+					{$_('keyUsage.querying', { default: '查询中...' })}
 				</div>
 			{:else if resultData}
 				<section class="space-y-6" data-testid="key-usage-results">
@@ -288,7 +288,7 @@
 					{#if usageStatCells.length > 0}
 						<div class="rounded-lg border border-border bg-card p-4">
 							<h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-								{$_('keyUsage.tokenStats', { default: 'Token Statistics' })}
+								{$_('keyUsage.tokenStats', { default: '令牌统计' })}
 							</h2>
 							<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 								{#each usageStatCells as cell}
@@ -304,7 +304,7 @@
 					<div class="rounded-lg border border-border bg-card p-4">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-								{$_('keyUsage.dailyDetail', { default: 'Daily Detail' })}
+								{$_('keyUsage.dailyDetail', { default: '按日明细' })}
 							</h2>
 							<div class="flex items-center gap-2">
 								{#each [7, 30, 90] as days}
@@ -327,13 +327,13 @@
 								<table class="w-full min-w-[760px] text-sm">
 									<thead class="border-b text-xs uppercase text-muted-foreground">
 										<tr>
-											<th class="py-2 text-left">{$_('keyUsage.date', { default: 'Date' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.requests', { default: 'Requests' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.inputTokens', { default: 'Input Tokens' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.outputTokens', { default: 'Output Tokens' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.cacheReadTokens', { default: 'Cache Read' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.cacheWriteTokens', { default: 'Cache Write' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.cost', { default: 'Cost' })}</th>
+											<th class="py-2 text-left">{$_('keyUsage.date', { default: '日期' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.requests', { default: '请求数' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.inputTokens', { default: '输入令牌' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.outputTokens', { default: '输出令牌' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.cacheReadTokens', { default: '缓存读取' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.cacheWriteTokens', { default: '缓存写入' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.cost', { default: '费用' })}</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -353,7 +353,7 @@
 							</div>
 						{:else}
 							<p class="mt-4 rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-								{$_('keyUsage.noDailyUsage', { default: 'No daily usage data' })}
+								{$_('keyUsage.noDailyUsage', { default: '暂无按日用量数据' })}
 							</p>
 						{/if}
 					</div>
@@ -361,16 +361,16 @@
 					{#if modelStats.length > 0}
 						<div class="rounded-lg border border-border bg-card p-4">
 							<h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-								{$_('keyUsage.modelStats', { default: 'Model Usage Statistics' })}
+								{$_('keyUsage.modelStats', { default: '模型用量统计' })}
 							</h2>
 							<div class="mt-4 overflow-x-auto">
 								<table class="w-full min-w-[760px] text-sm">
 									<thead class="border-b text-xs uppercase text-muted-foreground">
 										<tr>
-											<th class="py-2 text-left">{$_('keyUsage.model', { default: 'Model' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.requests', { default: 'Requests' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.totalTokens', { default: 'Total Tokens' })}</th>
-											<th class="py-2 text-right">{$_('keyUsage.cost', { default: 'Cost' })}</th>
+											<th class="py-2 text-left">{$_('keyUsage.model', { default: '模型' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.requests', { default: '请求数' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.totalTokens', { default: '总令牌量' })}</th>
+											<th class="py-2 text-right">{$_('keyUsage.cost', { default: '费用' })}</th>
 										</tr>
 									</thead>
 									<tbody>

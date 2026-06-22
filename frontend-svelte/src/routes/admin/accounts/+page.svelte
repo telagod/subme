@@ -148,17 +148,17 @@
 	onMount(() => void loadRows());
 </script>
 
-<svelte:head><title>{$_('admin.accountsQuench.title', { default: 'Account Pool' })}</title></svelte:head>
+<svelte:head><title>{$_('admin.accountsQuench.title', { default: '账户池' })}</title></svelte:head>
 
 <section class="space-y-5">
 	<!-- Header -->
 	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-normal text-foreground">
-				{$_('admin.accountsQuench.title', { default: 'Account Pool' })}
+				{$_('admin.accountsQuench.title', { default: '账户池' })}
 			</h1>
 			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
-				{$_('admin.accountsQuench.description', { default: 'Operate upstream accounts, group bindings, proxy fallback state, and pool-mode routing.' })}
+				{$_('admin.accountsQuench.description', { default: '管理上游账户、分组绑定、代理回退状态和池模式路由。' })}
 			</p>
 		</div>
 		<div class="flex gap-2">
@@ -227,13 +227,13 @@
 
 	<!-- Pagination -->
 	<div class="flex items-center justify-between text-sm text-muted-foreground">
-		<p>{total} {$_('admin.accounts.accounts', { default: 'accounts' })} · {$_('admin.accounts.page', { default: 'page' })} {page}/{totalPages}</p>
+		<p>{total} {$_('admin.accounts.accounts', { default: '个账户' })} · {$_('admin.accounts.page', { default: 'page' })} {page}/{totalPages}</p>
 		<div class="flex gap-1">
 			<Button variant="outline" size="sm" disabled={page <= 1} onclick={() => { page--; void loadRows(); }}>
-				{$_('common.prev', { default: 'Prev' })}
+				{$_('common.prev', { default: '上一页' })}
 			</Button>
 			<Button variant="outline" size="sm" disabled={page >= totalPages} onclick={() => { page++; void loadRows(); }}>
-				{$_('common.next', { default: 'Next' })}
+				{$_('common.next', { default: '下一步' })}
 			</Button>
 		</div>
 	</div>

@@ -520,7 +520,7 @@
 			cleanupOpen = false;
 			error = null;
 			runtimeNotice = $_('admin.ops.systemLog.cleanupDone', {
-				default: 'Cleanup done, deleted {n} logs',
+				default: '清理完成，已删除 {n} 条日志',
 				values: { n: res.deleted ?? 0 }
 			});
 			page = 1;

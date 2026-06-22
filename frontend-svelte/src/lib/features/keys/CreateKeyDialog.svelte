@@ -100,12 +100,12 @@
 				createdKey = created;
 				revealPanel = true;
 				showSuccess(
-					$_('user.keys.createSuccess', { default: 'API key created successfully' })
+					$_('user.keys.createSuccess', { default: 'API 密钥创建成功' })
 				);
 				onCreated?.(created);
 			} catch (err) {
 				const e = err as Error;
-				formError = e?.message ?? $_('user.keys.errors.UNKNOWN', { default: 'Unknown error' });
+				formError = e?.message ?? $_('user.keys.errors.UNKNOWN', { default: '未知错误' });
 				showError(formError);
 			}
 		}
@@ -156,9 +156,9 @@
 			copied = true;
 			if (copyTimer) clearTimeout(copyTimer);
 			copyTimer = setTimeout(() => (copied = false), 1200);
-			showSuccess($_('user.keys.copiedToast', { default: 'Copied to clipboard' }));
+			showSuccess($_('user.keys.copiedToast', { default: '已复制到剪贴板' }));
 		} else {
-			showError($_('user.keys.copyFailed', { default: 'Failed to copy. Select and copy manually.' }));
+			showError($_('user.keys.copyFailed', { default: '复制失败，请手动选择复制。' }));
 		}
 	}
 
@@ -198,7 +198,7 @@
 		if (!canClose()) {
 			showError(
 				$_('user.keys.mustSaveKeyWarning', {
-					default: 'Please copy the key or confirm you have saved it before closing.'
+					default: '关闭前请复制密钥或确认已保存。'
 				})
 			);
 			return;
@@ -214,14 +214,14 @@
 	width="md"
 	showHeader={false}
 	title={revealPanel
-		? $_('user.keys.revealTitle', { default: 'Save your new API key' })
-		: $_('user.keys.createTitle', { default: 'Create API key' })}
+		? $_('user.keys.revealTitle', { default: '保存您的新 API 密钥' })
+		: $_('user.keys.createTitle', { default: '创建 API 密钥' })}
 	description={revealPanel
 		? $_('user.keys.revealDescription', {
 				default: "Copy this key now. We won't show it again."
 			})
 		: $_('user.keys.createDescription', {
-				default: 'Generate a new key for API access.'
+				default: '生成新的 API 访问密钥。'
 			})}
 	data-testid="create-key-dialog"
 	class="max-w-[480px] p-6"
@@ -235,8 +235,8 @@
 				<div class="space-y-1">
 					<h2 class="text-base font-semibold text-foreground">
 						{revealPanel
-							? $_('user.keys.revealTitle', { default: 'Save your new API key' })
-							: $_('user.keys.createTitle', { default: 'Create API key' })}
+							? $_('user.keys.revealTitle', { default: '保存您的新 API 密钥' })
+							: $_('user.keys.createTitle', { default: '创建 API 密钥' })}
 					</h2>
 					<p class="text-sm text-muted-foreground">
 						{revealPanel
@@ -244,7 +244,7 @@
 									default: "Copy this key now. We won't show it again."
 								})
 							: $_('user.keys.createDescription', {
-									default: 'Generate a new key for API access.'
+									default: '生成新的 API 访问密钥。'
 								})}
 					</p>
 				</div>
@@ -260,7 +260,7 @@
 					<!-- name -->
 					<div class="space-y-1.5">
 						<label for="key-name" class="text-sm font-medium text-foreground">
-							{$_('user.keys.nameLabel', { default: 'Name' })}
+							{$_('user.keys.nameLabel', { default: '名称' })}
 						</label>
 						<Input
 							id="key-name"
@@ -268,7 +268,7 @@
 							type="text"
 							autocomplete="off"
 							data-testid="create-key-name"
-							placeholder={$_('user.keys.namePlaceholder', { default: 'My API key' })}
+							placeholder={$_('user.keys.namePlaceholder', { default: '我的 API 密钥' })}
 							bind:value={$form.name}
 							aria-invalid={$errors.name ? 'true' : undefined}
 						/>
@@ -282,7 +282,7 @@
 					<!-- group -->
 					<div class="space-y-1.5">
 						<label for="key-group" class="text-sm font-medium text-foreground">
-							{$_('user.keys.groupLabel', { default: 'Group (optional)' })}
+							{$_('user.keys.groupLabel', { default: '分组（可选）' })}
 						</label>
 						<NativeSelect
 							id="key-group"
@@ -290,7 +290,7 @@
 							bind:value={$form.groupId}
 							disabled={groupsLoading}
 						>
-							<option value="__none__">{$_('user.keys.groupDefault', { default: 'Default group' })}</option>
+							<option value="__none__">{$_('user.keys.groupDefault', { default: '默认分组' })}</option>
 							{#each groups as g (g.id)}
 								<option value={g.id}>{g.name} ({g.platform})</option>
 							{/each}
@@ -300,7 +300,7 @@
 					<!-- quota -->
 					<div class="space-y-1.5">
 						<label for="key-quota" class="text-sm font-medium text-foreground">
-							{$_('user.keys.quotaLabel', { default: 'Quota (USD, optional)' })}
+							{$_('user.keys.quotaLabel', { default: '配额 (USD, 可选)' })}
 						</label>
 						<Input
 							id="key-quota"
@@ -310,7 +310,7 @@
 							step="0.01"
 							min="0"
 							data-testid="create-key-quota"
-							placeholder={$_('user.keys.quotaPlaceholder', { default: 'Leave empty for unlimited' })}
+							placeholder={$_('user.keys.quotaPlaceholder', { default: '留空则不限制' })}
 							bind:value={$form.quota}
 							aria-invalid={$errors.quota ? 'true' : undefined}
 						/>
@@ -324,7 +324,7 @@
 					<!-- expires in days -->
 					<div class="space-y-1.5">
 						<label for="key-expires" class="text-sm font-medium text-foreground">
-							{$_('user.keys.expiresLabel', { default: 'Expires in (days, optional)' })}
+							{$_('user.keys.expiresLabel', { default: '过期时间（天，可选）' })}
 						</label>
 						<Input
 							id="key-expires"
@@ -365,7 +365,7 @@
 							onclick={() => handleOpenChange(false)}
 							class="h-9"
 						>
-							{$_('user.keys.cancel', { default: 'Cancel' })}
+							{$_('user.keys.cancel', { default: '取消' })}
 						</Button>
 						<Button
 							type="submit"
@@ -374,8 +374,8 @@
 							class="h-9"
 						>
 							{$submitting
-								? $_('user.keys.creating', { default: 'Creating...' })
-								: $_('user.keys.create', { default: 'Create' })}
+								? $_('user.keys.creating', { default: '创建中...' })
+								: $_('user.keys.create', { default: '创建' })}
 						</Button>
 					</div>
 				</form>
@@ -396,7 +396,7 @@
 
 					<div class="space-y-1.5">
 						<span class="block text-sm font-medium text-foreground" id="reveal-key-label">
-							{$_('user.keys.apiKey', { default: 'API Key' })}
+							{$_('user.keys.apiKey', { default: 'API 密钥' })}
 						</span>
 						<div
 							data-testid="reveal-key-panel"
@@ -415,7 +415,7 @@
 								size="icon"
 								data-testid="reveal-copy-btn"
 								onclick={copyKey}
-								aria-label={$_('user.keys.copyToClipboard', { default: 'Copy to clipboard' })}
+								aria-label={$_('user.keys.copyToClipboard', { default: '复制到剪贴板' })}
 								class="h-auto rounded-none border-l border-input px-3 text-muted-foreground"
 							>
 								{#if copied}
@@ -449,7 +449,7 @@
 							onclick={handleDoneClick}
 							class="h-9"
 						>
-							{$_('user.keys.done', { default: 'Done' })}
+							{$_('user.keys.done', { default: '完成' })}
 						</Button>
 					</div>
 				</div>

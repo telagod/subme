@@ -36,7 +36,7 @@
 			${totalRevenue.toFixed(2)}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.orders.statRevenue', { default: 'Revenue' })}
+			{$_('admin.orders.statRevenue', { default: '收入' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -48,7 +48,7 @@
 			${totalRefunds.toFixed(2)}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.orders.statRefunds', { default: 'Refunds' })}
+			{$_('admin.orders.statRefunds', { default: '退款' })}
 		</span>
 	</div>
 	<div class="h-6 w-px bg-border" aria-hidden="true"></div>
@@ -60,7 +60,7 @@
 			{cancellationCount}
 		</span>
 		<span class="text-[11.5px] text-muted-foreground">
-			{$_('admin.orders.statCancellations', { default: 'Cancelled' })}
+			{$_('admin.orders.statCancellations', { default: '已取消' })}
 		</span>
 	</div>
 	<div class="ml-auto text-xs text-muted-foreground tabular-nums">

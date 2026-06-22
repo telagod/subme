@@ -107,7 +107,7 @@
 		try {
 			await retryOrder(detail.id);
 			showSuccess(
-				$_('admin.orders.retrySuccess', { default: 'Order retry queued' })
+				$_('admin.orders.retrySuccess', { default: '订单重试已排队' })
 			);
 			onChanged?.();
 			await loadDetail(detail.id);
@@ -115,7 +115,7 @@
 			const e = err as Error;
 			showError(
 				$_('admin.orders.retryError', {
-					default: 'Retry failed: {error}',
+					default: '重试失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -130,7 +130,7 @@
 		try {
 			await cancelOrder(detail.id);
 			showSuccess(
-				$_('admin.orders.cancelSuccess', { default: 'Order cancelled' })
+				$_('admin.orders.cancelSuccess', { default: '订单已取消' })
 			);
 			onChanged?.();
 			await loadDetail(detail.id);
@@ -138,7 +138,7 @@
 			const e = err as Error;
 			showError(
 				$_('admin.orders.cancelError', {
-					default: 'Cancel failed: {error}',
+					default: '取消失败：{error}',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -231,7 +231,7 @@
 	bind:open
 	width="md"
 	showHeader={false}
-	title={$_('admin.orders.detailTitle', { default: 'Order detail' })}
+	title={$_('admin.orders.detailTitle', { default: '订单详情' })}
 	data-testid="order-detail-drawer"
 	class="gap-0 p-0"
 >
@@ -239,7 +239,7 @@
 			<div class="flex items-center justify-between border-b border-border bg-muted px-4 py-3">
 				<div class="min-w-0">
 					<h2 class="truncate text-sm font-semibold tracking-tight text-foreground">
-						{$_('admin.orders.detailTitle', { default: 'Order detail' })}
+						{$_('admin.orders.detailTitle', { default: '订单详情' })}
 					</h2>
 					<div
 						class="truncate font-mono text-[11px] text-muted-foreground"
@@ -252,7 +252,7 @@
 					variant="ghost"
 					size="icon"
 					class="h-8 w-8 text-muted-foreground hover:bg-card hover:text-foreground"
-					aria-label={$_('common.close', { default: 'Close' })}
+					aria-label={$_('common.close', { default: '关闭' })}
 					data-testid="order-detail-close"
 					onclick={close}
 				>
@@ -284,7 +284,7 @@
 								class="border-destructive/40 text-destructive hover:bg-destructive/20"
 								onclick={() => loadDetail(order!.id)}
 							>
-								{$_('common.confirm', { default: 'Retry' })}
+								{$_('common.confirm', { default: '重试' })}
 							</Button>
 						{/if}
 					</Alert>
@@ -313,17 +313,17 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.orders.userBlock', { default: 'Customer' })}
+							{$_('admin.orders.userBlock', { default: '客户' })}
 						</h3>
 						<dl class="grid grid-cols-[100px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.userId', { default: 'User ID' })}
+								{$_('admin.orders.userId', { default: '用户 ID' })}
 							</dt>
 							<dd class="font-mono text-foreground" data-testid="order-detail-user-id">
 								{detail.user_id}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.userEmail', { default: 'Email' })}
+								{$_('admin.orders.userEmail', { default: '邮箱' })}
 							</dt>
 							<dd class="font-mono text-foreground" data-testid="order-detail-user-email">
 								{maskEmail(detail.user_email)}
@@ -336,17 +336,17 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.orders.planBlock', { default: 'Plan / Type' })}
+							{$_('admin.orders.planBlock', { default: '方案 / 类型' })}
 						</h3>
 						<dl class="grid grid-cols-[100px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.planName', { default: 'Plan' })}
+								{$_('admin.orders.planName', { default: '方案' })}
 							</dt>
 							<dd class="text-foreground" data-testid="order-detail-plan-name">
 								{detail.plan_name ?? '—'}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.orderType', { default: 'Order type' })}
+								{$_('admin.orders.orderType', { default: '订单类型' })}
 							</dt>
 							<dd class="text-foreground">{detail.order_type ?? '—'}</dd>
 						</dl>
@@ -357,42 +357,42 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.orders.paymentBlock', { default: 'Payment' })}
+							{$_('admin.orders.paymentBlock', { default: '支付' })}
 						</h3>
 						<dl class="grid grid-cols-[100px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.providerLabel', { default: 'Provider' })}
+								{$_('admin.orders.providerLabel', { default: '供应商' })}
 							</dt>
 							<dd class="text-foreground">
 								{detail.provider_name ?? detail.payment_provider ?? detail.payment_type ?? '—'}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.baseAmount', { default: 'Base amount' })}
+								{$_('admin.orders.baseAmount', { default: '基础金额' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.base_amount, detail.currency)}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.fee', { default: 'Fee' })}
+								{$_('admin.orders.fee', { default: '手续费' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.fee, detail.currency)}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.payAmount', { default: 'Pay amount' })}
+								{$_('admin.orders.payAmount', { default: '支付金额' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.pay_amount, detail.currency)}
 							</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.creditedAmount', { default: 'Credited' })}
+								{$_('admin.orders.creditedAmount', { default: '已到账' })}
 							</dt>
 							<dd class="font-mono tabular-nums text-foreground">
 								{fmtMoney(detail.credited_amount, detail.currency)}
 							</dd>
 							{#if (detail.actually_refunded ?? 0) > 0}
 								<dt class="text-muted-foreground">
-									{$_('admin.orders.refunded', { default: 'Refunded' })}
+									{$_('admin.orders.refunded', { default: '已退款' })}
 								</dt>
 								<dd class="font-mono tabular-nums text-amber-600 dark:text-amber-400">
 									{fmtMoney(detail.actually_refunded, detail.currency)}
@@ -406,32 +406,32 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.orders.timelineBlock', { default: 'Timeline' })}
+							{$_('admin.orders.timelineBlock', { default: '时间线' })}
 						</h3>
 						<dl class="grid grid-cols-[100px,1fr] gap-y-1 text-xs">
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.createdAt', { default: 'Created' })}
+								{$_('admin.orders.createdAt', { default: '创建时间' })}
 							</dt>
 							<dd class="font-mono text-foreground">{fmtDate(detail.created_at)}</dd>
 							<dt class="text-muted-foreground">
-								{$_('admin.orders.expiresAt', { default: 'Expires' })}
+								{$_('admin.orders.expiresAt', { default: '过期' })}
 							</dt>
 							<dd class="font-mono text-foreground">{fmtDate(detail.expires_at)}</dd>
 							{#if detail.paid_at}
 								<dt class="text-muted-foreground">
-									{$_('admin.orders.paidAt', { default: 'Paid' })}
+									{$_('admin.orders.paidAt', { default: '已支付' })}
 								</dt>
 								<dd class="font-mono text-foreground">{fmtDate(detail.paid_at)}</dd>
 							{/if}
 							{#if detail.completed_at}
 								<dt class="text-muted-foreground">
-									{$_('admin.orders.completedAt', { default: 'Completed' })}
+									{$_('admin.orders.completedAt', { default: '已完成' })}
 								</dt>
 								<dd class="font-mono text-foreground">{fmtDate(detail.completed_at)}</dd>
 							{/if}
 							{#if detail.refund_at}
 								<dt class="text-muted-foreground">
-									{$_('admin.orders.refundAt', { default: 'Refunded at' })}
+									{$_('admin.orders.refundAt', { default: '退款于' })}
 								</dt>
 								<dd class="font-mono text-foreground">{fmtDate(detail.refund_at)}</dd>
 							{/if}
@@ -443,14 +443,14 @@
 						<h3
 							class="m-0 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
 						>
-							{$_('admin.orders.auditLog', { default: 'Audit log' })}
+							{$_('admin.orders.auditLog', { default: '审计日志' })}
 						</h3>
 						{#if auditLog.length === 0}
 							<p
 								class="m-0 text-xs text-muted-foreground"
 								data-testid="order-detail-audit-empty"
 							>
-								{$_('admin.orders.auditEmpty', { default: 'No audit entries yet.' })}
+								{$_('admin.orders.auditEmpty', { default: '暂无审计记录。' })}
 							</p>
 						{:else}
 							<ol class="m-0 flex flex-col gap-2 p-0 list-none" data-testid="order-detail-audit-log">
@@ -469,7 +469,7 @@
 										</div>
 										{#if entry.actor}
 											<div class="mt-0.5 text-[11px] text-muted-foreground">
-												{$_('admin.orders.auditActor', { default: 'By' })}: {entry.actor}
+												{$_('admin.orders.auditActor', { default: '按' })}: {entry.actor}
 											</div>
 										{/if}
 										{#if entry.reason}
@@ -494,7 +494,7 @@
 							data-testid="order-detail-refresh"
 						>
 							<RefreshCw class="h-3.5 w-3.5" />
-							{$_('common.refresh', { default: 'Refresh' })}
+							{$_('common.refresh', { default: '刷新' })}
 						</Button>
 						{#if canRetry}
 							<Button
@@ -506,8 +506,8 @@
 							>
 								<RotateCcw class="h-3.5 w-3.5" />
 								{retrying
-									? $_('common.submitting', { default: 'Submitting…' })
-									: $_('admin.orders.retryBtn', { default: 'Retry' })}
+									? $_('common.submitting', { default: '提交中…' })
+									: $_('admin.orders.retryBtn', { default: '重试' })}
 							</Button>
 						{/if}
 						{#if canRefund}
@@ -518,7 +518,7 @@
 								data-testid="order-detail-refund-btn"
 							>
 								<Banknote class="h-3.5 w-3.5" />
-								{$_('admin.orders.refundBtn', { default: 'Refund' })}
+								{$_('admin.orders.refundBtn', { default: '退款' })}
 							</Button>
 						{/if}
 						{#if canCancel}
@@ -531,8 +531,8 @@
 							>
 								<Trash2 class="h-3.5 w-3.5" />
 								{cancelling
-									? $_('common.submitting', { default: 'Submitting…' })
-									: $_('admin.orders.cancelBtn', { default: 'Cancel order' })}
+									? $_('common.submitting', { default: '提交中…' })
+									: $_('admin.orders.cancelBtn', { default: '取消订单' })}
 							</Button>
 						{/if}
 					</div>

@@ -26,14 +26,14 @@
 	data-testid="purchase-promo"
 >
 	<label for="promo-code" class="text-sm font-medium text-foreground">
-		{$_('user.purchase.promoLabel', { default: 'Promo code' })}
+		{$_('user.purchase.promoLabel', { default: '优惠码' })}
 	</label>
 	<Input
 		id="promo-code"
 		data-testid="purchase-promo-input"
 		type="text"
 		autocomplete="off"
-		placeholder={$_('user.purchase.promoPlaceholder', { default: 'Enter code (optional)' })}
+		placeholder={$_('user.purchase.promoPlaceholder', { default: '输入代码（可选）' })}
 		value={promoCode}
 		oninput={(e) => onCodeChange((e.currentTarget as HTMLInputElement).value)}
 		disabled={promoApplied}
@@ -46,7 +46,7 @@
 			onclick={onClear}
 			class="h-9 px-3"
 		>
-			{$_('user.purchase.promoClear', { default: 'Clear' })}
+			{$_('user.purchase.promoClear', { default: '清除' })}
 		</Button>
 	{:else}
 		<Button
@@ -55,7 +55,7 @@
 			onclick={onApply}
 			class="h-9 px-3"
 		>
-			{$_('user.purchase.promoApply', { default: 'Apply' })}
+			{$_('user.purchase.promoApply', { default: '应用' })}
 		</Button>
 	{/if}
 </div>

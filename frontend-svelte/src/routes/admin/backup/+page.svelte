@@ -208,7 +208,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.backup.title', { default: 'Database Backup' })}</title>
+	<title>{$_('admin.backup.title', { default: '数据库备份' })}</title>
 </svelte:head>
 
 <div class="space-y-4 px-5 py-5">
@@ -219,7 +219,7 @@
 		</div>
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loadingRows}>
-				<RefreshCw size={15} class={loadingRows ? 'animate-spin' : ''} />{$_('common.refresh', { default: 'Refresh' })}
+				<RefreshCw size={15} class={loadingRows ? 'animate-spin' : ''} />{$_('common.refresh', { default: '刷新' })}
 			</Button>
 			<Button onclick={() => handleCreateBackup(normalizeRetainNumber(manualExpireDays, 14))} disabled={creatingBackup}>
 				<HardDrive size={15} />{creatingBackup ? $_('admin.backup.operations.backing') : $_('admin.backup.operations.createBackup')}

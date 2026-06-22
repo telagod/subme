@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('admin.orderDashboard.title', { default: 'Payment Dashboard' })} · sub2api admin</title>
+	<title>{$_('admin.orderDashboard.title', { default: '支付仪表盘' })} · sub2api admin</title>
 </svelte:head>
 
 <section
@@ -94,11 +94,11 @@
 	<div class="flex items-start justify-between gap-3">
 		<div class="min-w-0">
 			<h1 class="m-0 text-xl font-bold tracking-tight text-foreground">
-				{$_('admin.orderDashboard.title', { default: 'Payment Dashboard' })}
+				{$_('admin.orderDashboard.title', { default: '支付仪表盘' })}
 			</h1>
 			<p class="m-0 text-xs text-muted-foreground">
 				{$_('admin.orderDashboard.desc', {
-					default: 'Revenue ledger · live KPIs · provider breakdown'
+					default: '收入账本 · 实时 KPIs · 供应商分布'
 				})}
 			</p>
 		</div>
@@ -131,11 +131,11 @@
 					disabled={loading}
 					onclick={() => loadAll()}
 					data-testid="admin-orderdash-refresh"
-				title={$_('common.refresh', { default: 'Refresh' })}
-				aria-label={$_('common.refresh', { default: 'Refresh' })}
+				title={$_('common.refresh', { default: '刷新' })}
+				aria-label={$_('common.refresh', { default: '刷新' })}
 				>
 					<RefreshCw class="h-3.5 w-3.5 {loading ? 'animate-spin' : ''}" />
-					{$_('common.refresh', { default: 'Refresh' })}
+					{$_('common.refresh', { default: '刷新' })}
 				</Button>
 			</div>
 		</div>
@@ -155,7 +155,7 @@
 					class="ml-auto h-6 px-2 text-xs"
 					onclick={() => loadAll()}
 				>
-					{$_('common.confirm', { default: 'Retry' })}
+					{$_('common.confirm', { default: '重试' })}
 				</Button>
 			</Alert>
 		{/if}
@@ -168,7 +168,7 @@
 		<h2
 			class="m-0 px-1 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground"
 		>
-			{$_('admin.orderDashboard.chart.title', { default: 'Revenue trend' })}
+			{$_('admin.orderDashboard.chart.title', { default: '收入趋势' })}
 		</h2>
 		<PaymentDashboardChart data={trend} {loading} />
 	</div>
@@ -178,7 +178,7 @@
 		<h2
 			class="m-0 px-1 text-[12px] font-semibold uppercase tracking-wider text-muted-foreground"
 		>
-			{$_('admin.orderDashboard.provider.title', { default: 'Provider breakdown' })}
+			{$_('admin.orderDashboard.provider.title', { default: '供应商分布' })}
 		</h2>
 		<ProviderBreakdown rows={providers} {loading} />
 	</div>

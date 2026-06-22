@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import { buildQuery, getPaginated, type PaginatedResponse } from './supply';
+import { buildQuery, getPaginated, unwrapData, type ApiEnvelope, type PaginatedResponse } from './supply';
 
 export type UsageRequestType = 'unknown' | 'sync' | 'stream' | 'ws_v2' | string;
 export type SortOrder = 'asc' | 'desc';
@@ -198,22 +198,22 @@ export async function listAdminUsage(
 export async function getAdminUsageStats(
 	params: Omit<AdminUsageQueryParams, 'page' | 'page_size' | 'exact_total' | 'sort_by' | 'sort_order'> = {}
 ): Promise<AdminUsageStatsResponse> {
-	return apiClient.get<AdminUsageStatsResponse>(`${USAGE_BASE}/stats${buildQuery({ ...params })}`);
+	return unwrapData(await apiClient.get<AdminUsageStatsResponse | ApiEnvelope<AdminUsageStatsResponse>>(`${USAGE_BASE}/stats${buildQuery({ ...params })}`));
 }
 
 export async function searchAdminUsageUsers(keyword: string): Promise<SimpleUsageUser[]> {
-	return apiClient.get<SimpleUsageUser[]>(
+	return unwrapData(await apiClient.get<SimpleUsageUser[] | ApiEnvelope<SimpleUsageUser[]>>(
 		`${USAGE_BASE}/search-users${buildQuery({ q: keyword.trim() })}`
-	);
+	)) ?? [];
 }
 
 export async function searchAdminUsageApiKeys(
 	userId?: number,
 	keyword?: string
 ): Promise<SimpleUsageApiKey[]> {
-	return apiClient.get<SimpleUsageApiKey[]>(
+	return unwrapData(await apiClient.get<SimpleUsageApiKey[] | ApiEnvelope<SimpleUsageApiKey[]>>(
 		`${USAGE_BASE}/search-api-keys${buildQuery({ user_id: userId, q: keyword?.trim() })}`
-	);
+	)) ?? [];
 }
 
 export async function listUsageCleanupTasks(
@@ -225,15 +225,15 @@ export async function listUsageCleanupTasks(
 export async function createUsageCleanupTask(
 	payload: CreateUsageCleanupTaskRequest
 ): Promise<UsageCleanupTask> {
-	return apiClient.post<UsageCleanupTask>(`${USAGE_BASE}/cleanup-tasks`, payload);
+	return unwrapData(await apiClient.post<UsageCleanupTask | ApiEnvelope<UsageCleanupTask>>(`${USAGE_BASE}/cleanup-tasks`, payload));
 }
 
 export async function cancelUsageCleanupTask(
 	taskId: number
 ): Promise<{ id: number; status: string }> {
-	return apiClient.post<{ id: number; status: string }>(
+	return unwrapData(await apiClient.post<{ id: number; status: string } | ApiEnvelope<{ id: number; status: string }>>(
 		`${USAGE_BASE}/cleanup-tasks/${taskId}/cancel`
-	);
+	));
 }
 
 export const adminUsageApi = {
