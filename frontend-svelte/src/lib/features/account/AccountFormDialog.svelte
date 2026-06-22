@@ -259,7 +259,7 @@
 	}
 </script>
 
-<StandardDialog bind:open title={account ? $_('admin.accounts.editTitle', { default: 'Edit account' }) : $_('admin.accounts.newTitle', { default: 'New account' })} width="lg" data-testid="account-dialog">
+<StandardDialog bind:open title={account ? $_('admin.accounts.editTitle', { default: '编辑账户' }) : $_('admin.accounts.newTitle', { default: '新建账户' })} width="lg" data-testid="account-dialog">
 	<div class="mt-4 grid gap-4">
 		{#if error}<Alert variant="destructive" data-testid="account-form-error">{error}</Alert>{/if}
 
@@ -381,7 +381,7 @@
 		/>
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
-		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: '取消' })}</Button>
 		<Button disabled={saving || !String(name ?? '').trim() || !String(type ?? '').trim()} onclick={save} data-testid="account-form-save">{saving ? 'Saving...' : 'Save'}</Button>
 	</div>
 </StandardDialog>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { Clock, RefreshCw, Shield, Wrench } from '@lucide/svelte';
+	import { Clock, Pencil, RefreshCw, Shield, Wrench } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Checkbox from '$lib/ui/Checkbox.svelte';
@@ -208,46 +208,46 @@
 			<!-- Models + Quota -->
 			<td class="px-3">
 				<div class="flex flex-col gap-0.5 text-[11px]">
-					<span class="text-muted-foreground" title="Model whitelist count">{modelCount(account)} {$_('admin.accounts.models', { default: 'models' })}</span>
+					<span class="text-muted-foreground" title="Model whitelist count">{modelCount(account)} {$_('admin.accounts.models', { default: '个模型' })}</span>
 					<span class="font-mono text-muted-foreground" title="Quota">{quotaSummary(account)}</span>
 				</div>
 			</td>
 			<!-- Actions -->
 			<td class="px-3 text-right">
-				<div class="flex justify-end gap-0.5">
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onEdit(account)}>
-						{$_('common.edit', { default: 'Edit' })}
+				<div class="flex flex-wrap justify-end gap-0.5">
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onEdit(account)} title={$_('common.edit', { default: '编辑' })}>
+						<Pencil size={12} />
 					</Button>
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onTools(account)}>
-						<Wrench size={12} class="mr-0.5" />{$_('admin.accounts.tools', { default: 'Tools' })}
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onTools(account)} title={$_('admin.accounts.tools', { default: '工具' })}>
+						<Wrench size={12} />
 					</Button>
 					{#if account.type === 'oauth' || account.type === 'setup-token'}
-						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onReAuth(account)}>
+						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => onReAuth(account)} title={$_('admin.accounts.reauth', { default: '重新认证' })}>
 							{$_('admin.accounts.reauth', { default: 'ReAuth' })}
 						</Button>
-						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.tokenRefreshed', { default: '令牌已刷新' }), () => refreshAccount(account.id))}>
-							Refresh token
+						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.tokenRefreshed', { default: '令牌已刷新' }), () => refreshAccount(account.id))} title={$_('admin.accounts.refreshToken', { default: '刷新令牌' })}>
+							{$_('admin.accounts.refreshToken', { default: '刷新令牌' })}
 						</Button>
 					{/if}
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.privacySet', { default: '隐私已设置' }), () => setAccountPrivacy(account.id, true))}>
-						Privacy
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.privacySet', { default: '隐私已设置' }), () => setAccountPrivacy(account.id, true))} title={$_('admin.accounts.privacy', { default: '隐私' })}>
+						{$_('admin.accounts.privacy', { default: '隐私' })}
 					</Button>
-					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: '状态已恢复' }), () => recoverAccountState(account.id))}>
-						Recover
+					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: '状态已恢复' }), () => recoverAccountState(account.id))} title={$_('admin.accounts.recover', { default: '恢复' })}>
+						{$_('admin.accounts.recover', { default: '恢复' })}
 					</Button>
 					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act(
-						accountIsSchedulable(account) ? $_('admin.accounts.unscheduled', { default: 'Unscheduled' }) : $_('admin.accounts.scheduled', { default: '已计划' }),
+						accountIsSchedulable(account) ? $_('admin.accounts.unscheduled', { default: '已取消调度' }) : $_('admin.accounts.scheduled', { default: '已调度' }),
 						() => setAccountSchedulable(account.id, !accountIsSchedulable(account))
 					)}>
-						{accountIsSchedulable(account) ? $_('admin.accounts.unsched', { default: 'Unsched' }) : $_('admin.accounts.sched', { default: '计划' })}
+						{accountIsSchedulable(account) ? $_('admin.accounts.unsched', { default: '取消调度' }) : $_('admin.accounts.sched', { default: '调度' })}
 					</Button>
 					{#if account.status === 'error'}
-						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs text-amber-600" onclick={() => act($_('admin.accounts.errorCleared', { default: '错误已清除' }), () => clearAccountError(account.id))}>
-							{$_('admin.accounts.clearErr', { default: 'Clear errors' })}
+						<Button variant="ghost" size="sm" class="h-7 px-2 text-xs text-amber-600" onclick={() => act($_('admin.accounts.errorCleared', { default: '错误已清除' }), () => clearAccountError(account.id))} title={$_('admin.accounts.clearErr', { default: '清除错误' })}>
+							{$_('admin.accounts.clearErr', { default: '清除错误' })}
 						</Button>
 					{/if}
 					<Button variant="ghost" size="sm" class="h-7 px-2 text-xs" onclick={() => act(account.status === 'active' ? $_('admin.accounts.disabled', { default: '已禁用' }) : $_('admin.accounts.activated', { default: '已激活' }), () => updateAccountStatus(account.id, account.status === 'active' ? 'inactive' : 'active'))}>
-						{account.status === 'active' ? $_('admin.accounts.disable', { default: 'Disable' }) : $_('admin.accounts.enable', { default: 'Enable' })}
+						{account.status === 'active' ? $_('admin.accounts.disable', { default: '禁用' }) : $_('admin.accounts.enable', { default: '启用' })}
 					</Button>
 				</div>
 			</td>

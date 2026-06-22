@@ -147,11 +147,11 @@
 				<Button variant="outline" size="sm" disabled={toolsLoading} onclick={loadTools}>{$_('common.reload', { default: '重新加载' })}</Button>
 			</div>
 			<div class="flex flex-wrap gap-2">
-				<Button variant="outline" disabled={busy || !account} onclick={runTest}>{$_('common.test', { default: 'Test' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('State recovered', () => recoverAccountState(account!.id))}>{$_('admin.accounts.recoverState', { default: 'Recover state' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Rate limit cleared', () => clearAccountRateLimit(account!.id))}>{$_('admin.accounts.clearRateLimit', { default: 'Clear rate limit' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Quota reset', () => resetAccountQuota(account!.id))}>{$_('admin.accounts.resetQuota', { default: 'Reset quota' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={syncMod}>{$_('admin.accounts.syncModels', { default: 'Sync models' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={runTest}>{$_('common.test', { default: '测试' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('State recovered', () => recoverAccountState(account!.id))}>{$_('admin.accounts.recoverState', { default: '恢复状态' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Rate limit cleared', () => clearAccountRateLimit(account!.id))}>{$_('admin.accounts.clearRateLimit', { default: '清除限速' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Quota reset', () => resetAccountQuota(account!.id))}>{$_('admin.accounts.resetQuota', { default: '重置配额' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={syncMod}>{$_('admin.accounts.syncModels', { default: '同步模型' })}</Button>
 			</div>
 			<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-test-panel">
 				<div class="grid gap-3 lg:grid-cols-[minmax(180px,1fr)_160px_auto]">
@@ -194,7 +194,7 @@
 				<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-scheduled-create-form">
 					<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Model ID<Input bind:value={newForm.model_id} data-testid="account-scheduled-model" /></label><label class="grid gap-1 text-sm">Cron<Input bind:value={newForm.cron_expression} placeholder="*/30 * * * *" data-testid="account-scheduled-cron" /></label><label class="grid gap-1 text-sm">Max results<Input type="number" min="1" bind:value={newForm.max_results} data-testid="account-scheduled-max-results" /></label></div>
 					<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.enabled} data-testid="account-scheduled-enabled" />Enabled</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.auto_recover} data-testid="account-scheduled-auto-recover" />Auto recover</label></div>
-					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>Save plan</Button></div>
+					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>保存计划</Button></div>
 				</div>
 			{/if}
 			<div class="max-h-80 overflow-auto rounded-md border border-border" data-testid="account-scheduled-list">
@@ -225,5 +225,5 @@
 			</div>
 		</Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: '关闭' })}</Button></div>
 </StandardDialog>

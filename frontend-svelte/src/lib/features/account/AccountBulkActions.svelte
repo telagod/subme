@@ -130,35 +130,35 @@
 
 <div class="flex flex-wrap items-center gap-2">
 	{#if hasActiveFilters}
-		<span class="text-xs text-muted-foreground">{activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'}</span>
+		<span class="text-xs text-muted-foreground">{activeFilterCount} {$_('admin.accounts.activeFilters', { default: '个筛选条件' })}</span>
 	{/if}
 	<Button variant="outline" onclick={() => onOpenData()}>
-		{$_('admin.accounts.dataTools', { default: 'Data tools' })}
+		{$_('admin.accounts.dataTools', { default: '数据工具' })}
 	</Button>
 	<Button variant="outline" onclick={onOpenAdvanced}>
-		{$_('admin.accounts.advancedTools', { default: 'Advanced tools' })}
+		{$_('admin.accounts.advancedTools', { default: '高级工具' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={exportSelected}>
-		<Download size={14} class="mr-1" />{$_('admin.accounts.exportSelected', { default: 'Export selected' })}
+		<Download size={14} class="mr-1" />{$_('admin.accounts.exportSelected', { default: '导出选中' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.refreshed', { default: '已刷新' }), () => batchRefreshAccounts(selArr()))}>
-		<RotateCw size={14} class="mr-1" />{$_('admin.accounts.refreshSelected', { default: 'Refresh selected' })}
+		<RotateCw size={14} class="mr-1" />{$_('admin.accounts.refreshSelected', { default: '刷新选中' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.errorsCleared', { default: '错误已清除' }), () => batchClearAccountErrors(selArr()))}>
-		<ShieldCheck size={14} class="mr-1" />{$_('admin.accounts.clearErrors', { default: 'Clear errors' })}
+		<ShieldCheck size={14} class="mr-1" />{$_('admin.accounts.clearErrors', { default: '清除错误' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0} onclick={() => onOpenBulkEdit('selected', selArr())}>
-		<Pencil size={14} class="mr-1" />{$_('admin.accounts.editSelected', { default: 'Edit selected' })}
+		<Pencil size={14} class="mr-1" />{$_('admin.accounts.editSelected', { default: '编辑选中' })}
 	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0} class="border-destructive/30 text-destructive" onclick={() => { deleteOpen = true; }}>
-		<Trash2 size={14} class="mr-1" />{$_('admin.accounts.deleteSelected', { default: 'Delete selected' })}
+		<Trash2 size={14} class="mr-1" />{$_('admin.accounts.deleteSelected', { default: '删除选中' })}
 	</Button>
 	{#if total > 0 && hasActiveFilters}
 		<Button variant="outline" onclick={openBulkEditFiltered}>
-			{$_('admin.accounts.editFiltered', { default: 'Edit filtered' })} ({total})
+			{$_('admin.accounts.editFiltered', { default: '编辑筛选结果' })} ({total})
 		</Button>
 		<Button variant="outline" onclick={() => openFilteredBulk('refresh')}>
-			{$_('admin.accounts.refreshFiltered', { default: 'Refresh filtered' })}
+			{$_('admin.accounts.refreshFiltered', { default: '刷新筛选结果' })}
 		</Button>
 	{/if}
 </div>
@@ -166,9 +166,9 @@
 <!-- Delete confirmation -->
 <ConfirmDialog
 	bind:open={deleteOpen}
-	title={$_('admin.accounts.deleteTitle', { default: 'Delete selected accounts' })}
+	title={$_('admin.accounts.deleteTitle', { default: '删除选中账户' })}
 	description={$_('admin.accounts.deleteConfirm', { default: '删除 {count} 个账户？此操作不可撤销。', values: { count: selectedIds.size } })}
-	confirmLabel={busy ? $_('common.deleting', { default: 'Deleting...' }) : $_('common.delete', { default: 'Delete' })}
+	confirmLabel={busy ? $_('common.deleting', { default: '删除中...' }) : $_('common.delete', { default: '删除' })}
 	loading={busy}
 	onConfirm={confirmDelete}
 	data-testid="accounts-delete-dialog"
@@ -187,7 +187,7 @@
 			<p class="text-sm text-muted-foreground">{$_('admin.accounts.noStatusReturned', { default: '未返回状态。' })}</p>
 		{/if}
 		<div class="flex justify-end gap-2">
-			<Button variant="outline" onclick={() => (tempOpen = false)}>{$_('common.close', { default: 'Close' })}</Button>
+			<Button variant="outline" onclick={() => (tempOpen = false)}>{$_('common.close', { default: '关闭' })}</Button>
 			<Button variant="outline" disabled={busy || !tempAccount} onclick={clearTemp} data-testid="account-temp-unsched-clear">
 				{$_('admin.accounts.clearHold', { default: '清除暂停' })}
 			</Button>
@@ -196,15 +196,15 @@
 </StandardDialog>
 
 <!-- Filtered bulk confirm -->
-<StandardDialog bind:open={filteredBulkOpen} title="{filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshFiltered', { default: 'Refresh' }) : $_('admin.accounts.deleteFiltered', { default: 'Delete' })} {$_('admin.accounts.filteredAccounts', { default: '个筛选账户' })}" width="sm" data-testid="accounts-filtered-bulk-dialog">
+<StandardDialog bind:open={filteredBulkOpen} title={filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshFilteredTitle', { default: '刷新筛选账户' }) : $_('admin.accounts.deleteFilteredTitle', { default: '删除筛选账户' })} width="sm" data-testid="accounts-filtered-bulk-dialog">
 	<div class="mt-4 space-y-4">
 		<p class="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-			{filteredBulkCount} {$_('admin.accounts.willBe', { default: 'accounts will be' })} {filteredBulkAction === 'refresh' ? $_('admin.accounts.refreshedVerb', { default: 'refreshed' }) : $_('admin.accounts.deletedVerb', { default: 'deleted' })}.
+			{$_('admin.accounts.filteredBulkDesc', { default: '将对 {count} 个筛选账户执行此操作。', values: { count: filteredBulkCount } })}
 		</p>
 		<div class="flex justify-end gap-2">
-			<Button variant="outline" onclick={() => (filteredBulkOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
+			<Button variant="outline" onclick={() => (filteredBulkOpen = false)}>{$_('common.cancel', { default: '取消' })}</Button>
 			<Button disabled={busy} onclick={confirmFilteredBulk} data-testid="accounts-filtered-confirm">
-				{busy ? $_('common.processing', { default: '处理中...' }) : $_('common.confirm', { default: 'Confirm' })}
+				{busy ? $_('common.processing', { default: '处理中...' }) : $_('common.confirm', { default: '确认' })}
 			</Button>
 		</div>
 	</div>

@@ -164,10 +164,10 @@
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
 				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} />
-				{$_('common.refresh', { default: 'Refresh' })}
+				{$_('common.refresh', { default: '刷新' })}
 			</Button>
 			<Button onclick={openCreate}>
-				<Plus size={16} />{$_('admin.accounts.newAccount', { default: 'New account' })}
+				<Plus size={16} />{$_('admin.accounts.newAccount', { default: '新建账户' })}
 			</Button>
 		</div>
 	</header>
@@ -227,15 +227,15 @@
 
 	<!-- Pagination -->
 	<div class="flex items-center justify-between text-sm text-muted-foreground">
-		<p>{total} {$_('admin.accounts.accounts', { default: '个账户' })} · {$_('admin.accounts.page', { default: 'page' })} {page}/{totalPages}</p>
-		<div class="flex gap-1">
-			<Button variant="outline" size="sm" disabled={page <= 1} onclick={() => { page--; void loadRows(); }}>
-				{$_('common.prev', { default: '上一页' })}
-			</Button>
-			<Button variant="outline" size="sm" disabled={page >= totalPages} onclick={() => { page++; void loadRows(); }}>
-				{$_('common.next', { default: '下一步' })}
-			</Button>
-		</div>
+		<p>{$_('admin.accounts.totalCount', { default: '共 {total} 个账户', values: { total } })}
+			{#if totalPages > 1} · {$_('admin.accounts.pageInfo', { default: '第 {page}/{pages} 页', values: { page, pages: totalPages } })}{/if}
+		</p>
+		{#if totalPages > 1}
+			<div class="flex gap-1.5">
+				<Button variant="outline" size="sm" disabled={page <= 1} onclick={() => { page--; void loadRows(); }}>←</Button>
+				<Button variant="outline" size="sm" disabled={page >= totalPages} onclick={() => { page++; void loadRows(); }}>→</Button>
+			</div>
+		{/if}
 	</div>
 </section>
 
