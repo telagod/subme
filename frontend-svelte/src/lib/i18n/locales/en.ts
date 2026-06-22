@@ -301,6 +301,7 @@ export default {
     saving: 'Saving...',
     selectedCount: '({count} selected)',
     refresh: 'Refresh',
+    seconds: 's',
     autoRefresh: {
       title: 'Auto Refresh',
       enable: 'Enable auto refresh',
@@ -7343,6 +7344,29 @@ export default {
       usageColCost: 'Cost',
       usageColToken: 'Tokens',
       usageStatsFailed: 'Failed to load stats',
+    },
+
+    accounts: {
+      title: 'Account Pool',
+      searchPlaceholder: 'Search name, email...',
+      autoRefresh: 'Auto refresh',
+      moreTools: 'More tools',
+      toolsSync: 'Sync models',
+      toolsImport: 'Import / Export',
+      toolsAdvanced: 'Advanced tools',
+      viewMatrix: 'Card view',
+      viewTable: 'Table view',
+      showFilters: 'Filters',
+      hideFilters: 'Hide filters',
+      clearAll: 'Clear all',
+      newAccount: 'New account',
+      totalCount: '{total} accounts',
+      pageInfo: 'Page {page}/{pages}',
+      empty: 'No accounts',
+      editTitle: 'Edit account',
+      newTitle: 'New account',
+      deleteTitle: 'Delete account',
+      deleteConfirm: 'Delete "{name}"? This cannot be undone.',
     },
 
     accountsQuench: {

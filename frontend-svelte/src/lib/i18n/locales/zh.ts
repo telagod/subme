@@ -301,6 +301,7 @@ export default {
     saving: '保存中...',
     selectedCount: '（已选 {count} 个）',
     refresh: '刷新',
+    seconds: '秒',
     autoRefresh: {
       title: '自动刷新',
       enable: '启用自动刷新',
@@ -7326,6 +7327,29 @@ export default {
       usageColCost: '费用',
       usageColToken: 'Token',
       usageStatsFailed: '统计失败',
+    },
+
+    accounts: {
+      title: '账号池',
+      searchPlaceholder: '搜索账号名、邮箱…',
+      autoRefresh: '自动刷新',
+      moreTools: '更多工具',
+      toolsSync: '同步模型',
+      toolsImport: '导入 / 导出',
+      toolsAdvanced: '高级工具',
+      viewMatrix: '卡片视图',
+      viewTable: '表格视图',
+      showFilters: '筛选',
+      hideFilters: '收起筛选',
+      clearAll: '清除全部',
+      newAccount: '新建账号',
+      totalCount: '共 {total} 个账号',
+      pageInfo: '第 {page}/{pages} 页',
+      empty: '暂无账号',
+      editTitle: '编辑账号',
+      newTitle: '新建账号',
+      deleteTitle: '删除账号',
+      deleteConfirm: '确认删除「{name}」？此操作不可撤销。',
     },
 
     accountsQuench: {
