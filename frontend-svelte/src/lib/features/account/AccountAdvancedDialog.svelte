@@ -76,8 +76,8 @@
 
 <StandardDrawer side="right" width="lg" bind:open title={$_('admin.accountsQuench.advancedTitle', { default: 'Advanced account tools' })}  data-testid="account-advanced-dialog">
 	<div class="mt-4 grid gap-4">
-		<Card class="space-y-3"><h2 class="text-sm font-semibold">Error passthrough rules</h2>
-			<Textarea rows={6} bind:value={ruleJson} data-testid="error-passthrough-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addRule}>Create passthrough rule</Button></div>
+		<Card class="space-y-3"><h2 class="text-sm font-semibold">{$_('admin.accounts.advanced.errorPassthroughRules', { default: 'Error passthrough rules' })}</h2>
+			<Textarea rows={6} bind:value={ruleJson} data-testid="error-passthrough-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addRule}>{$_('admin.accounts.advanced.createRule', { default: 'Create passthrough rule' })}</Button></div>
 			{#if rules.length === 0}<p class="text-sm text-muted-foreground">No rules.</p>
 			{:else}<div data-testid="error-passthrough-list">{#each rules as r}<div class="flex items-center justify-between border-b px-2 py-1 text-sm last:border-b-0"><span class="truncate">{r.name}</span><div class="flex gap-1">
 				<Badge variant="outline" class={r.enabled ? 'text-emerald-600' : 'text-muted-foreground'}>{r.enabled ? 'on' : 'off'}</Badge>
@@ -90,8 +90,8 @@
 				<Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delProfile(p)}>{$_('common.delete', { default: 'Delete' })}</Button></div>{/each}</div>{/if}
 		</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">CRS sync</h2>
-			<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Base URL<Input bind:value={crsBase} data-testid="crs-base-url" /></label><label class="grid gap-1 text-sm">Username<Input bind:value={crsUser} data-testid="crs-username" /></label><label class="grid gap-1 text-sm">Password<Input type="password" bind:value={crsPwd} data-testid="crs-password" /></label></div>
-			<div class="flex items-center gap-3"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={crsSyncProxies} />Sync proxies</label><Input placeholder="Selected account IDs" bind:value={crsSelected} data-testid="crs-selected-ids" /></div>
+			<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Base URL<Input bind:value={crsBase} data-testid="crs-base-url" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.advanced.username', { default: 'Username' })}<Input bind:value={crsUser} data-testid="crs-username" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.advanced.password', { default: 'Password' })}<Input type="password" bind:value={crsPwd} data-testid="crs-password" /></label></div>
+			<div class="flex items-center gap-3"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={crsSyncProxies} />{$_('admin.accounts.advanced.syncProxies', { default: 'Sync proxies' })}</label><Input placeholder="Selected account IDs" bind:value={crsSelected} data-testid="crs-selected-ids" /></div>
 			<div class="flex justify-end gap-2"><Button variant="outline" disabled={busy} onclick={previewCRS}>Preview CRS</Button><Button disabled={busy} onclick={syncCRS}>Sync CRS</Button></div>
 			{#if crsPreview}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="crs-preview-result">{fmt(crsPreview)}</pre>{/if}
 			{#if crsResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs">{fmt(crsResult)}</pre>{/if}

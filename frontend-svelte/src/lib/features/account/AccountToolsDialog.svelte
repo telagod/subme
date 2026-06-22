@@ -135,33 +135,33 @@
 	<div class="mt-4 space-y-4">
 		{#if toolsError}<Alert variant="destructive">{toolsError}</Alert>{/if}
 		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-			<Card><p class="text-xs font-medium uppercase text-muted-foreground">Requests</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['requests', 'total_requests', 'request_count'])}</p></Card>
-			<Card><p class="text-xs font-medium uppercase text-muted-foreground">Tokens</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['total_tokens', 'tokens', 'token_count'])}</p></Card>
-			<Card><p class="text-xs font-medium uppercase text-muted-foreground">Cost</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['actual_cost', 'total_cost', 'cost'])}</p></Card>
-			<Card><p class="text-xs font-medium uppercase text-muted-foreground">Usage source</p><p class="mt-2 text-xl font-semibold">{metric(usage, ['source', 'status', 'state'])}</p></Card>
+			<Card><p class="text-xs font-medium uppercase text-muted-foreground">{$_('admin.accounts.tools.requests', { default: 'Requests' })}</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['requests', 'total_requests', 'request_count'])}</p></Card>
+			<Card><p class="text-xs font-medium uppercase text-muted-foreground">{$_('admin.accounts.tools.tokens', { default: 'Tokens' })}</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['total_tokens', 'tokens', 'token_count'])}</p></Card>
+			<Card><p class="text-xs font-medium uppercase text-muted-foreground">{$_('admin.accounts.tools.cost', { default: 'Cost' })}</p><p class="mt-2 text-xl font-semibold">{metric(stats, ['actual_cost', 'total_cost', 'cost'])}</p></Card>
+			<Card><p class="text-xs font-medium uppercase text-muted-foreground">{$_('admin.accounts.tools.usageSource', { default: 'Usage source' })}</p><p class="mt-2 text-xl font-semibold">{metric(usage, ['source', 'status', 'state'])}</p></Card>
 		</div>
 
 		<Card class="space-y-3">
 			<div class="flex items-center justify-between gap-3">
-				<div><h2 class="text-sm font-semibold">Runtime actions</h2><p class="text-xs text-muted-foreground">Operational controls for upstream account health and quota state.</p></div>
+				<div><h2 class="text-sm font-semibold">{$_('admin.accounts.tools.runtimeActions', { default: 'Runtime actions' })}</h2><p class="text-xs text-muted-foreground">{$_('admin.accounts.tools.runtimeActionsHint', { default: 'Operational controls for upstream account health and quota state.' })}</p></div>
 				<Button variant="outline" size="sm" disabled={toolsLoading} onclick={loadTools}>{$_('common.reload', { default: '重新加载' })}</Button>
 			</div>
 			<div class="flex flex-wrap gap-2">
 				<Button variant="outline" disabled={busy || !account} onclick={runTest}>{$_('common.test', { default: 'Test' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('State recovered', () => recoverAccountState(account!.id))}>{$_('admin.accounts.recoverState', { default: 'Recover state' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Rate limit cleared', () => clearAccountRateLimit(account!.id))}>{$_('admin.accounts.clearRateLimit', { default: 'Clear rate limit' })}</Button>
-				<Button variant="outline" disabled={busy || !account} onclick={() => account && act('Quota reset', () => resetAccountQuota(account!.id))}>{$_('admin.accounts.resetQuota', { default: 'Reset quota' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act($_('admin.accounts.tools.stateRecovered', { default: 'State recovered' }), () => recoverAccountState(account!.id))}>{$_('admin.accounts.recoverState', { default: 'Recover state' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act($_('admin.accounts.tools.rateLimitCleared', { default: 'Rate limit cleared' }), () => clearAccountRateLimit(account!.id))}>{$_('admin.accounts.clearRateLimit', { default: 'Clear rate limit' })}</Button>
+				<Button variant="outline" disabled={busy || !account} onclick={() => account && act($_('admin.accounts.tools.quotaReset', { default: 'Quota reset' }), () => resetAccountQuota(account!.id))}>{$_('admin.accounts.resetQuota', { default: 'Reset quota' })}</Button>
 				<Button variant="outline" disabled={busy || !account} onclick={syncMod}>{$_('admin.accounts.syncModels', { default: 'Sync models' })}</Button>
 			</div>
 			<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-test-panel">
 				<div class="grid gap-3 lg:grid-cols-[minmax(180px,1fr)_160px_auto]">
-					<label class="grid gap-1 text-sm">Test model<NativeSelect bind:value={testModelId} options={modelOptions().length ? modelOptions() : [{ value: '__manual__', label: 'Manual model' }]} disabled={busy || toolsLoading} data-testid="account-test-model" /></label>
-					<label class="grid gap-1 text-sm">Mode<NativeSelect bind:value={testMode} options={[{ value: 'default', label: 'Default' }, { value: 'compact', label: 'Compact' }]} disabled={busy} data-testid="account-test-mode" /></label>
-					<label class="grid gap-1 text-sm">Manual model<Input placeholder="model id" bind:value={testModelId} disabled={busy} data-testid="account-test-manual-model" /></label>
+					<label class="grid gap-1 text-sm">{$_('admin.accounts.tools.testModel', { default: 'Test model' })}<NativeSelect bind:value={testModelId} options={modelOptions().length ? modelOptions() : [{ value: '__manual__', label: 'Manual model' }]} disabled={busy || toolsLoading} data-testid="account-test-model" /></label>
+					<label class="grid gap-1 text-sm">{$_('admin.accounts.tools.mode', { default: 'Mode' })}<NativeSelect bind:value={testMode} options={[{ value: 'default', label: 'Default' }, { value: 'compact', label: 'Compact' }]} disabled={busy} data-testid="account-test-mode" /></label>
+					<label class="grid gap-1 text-sm">{$_('admin.accounts.tools.manualModel', { default: 'Manual model' })}<Input placeholder="model id" bind:value={testModelId} disabled={busy} data-testid="account-test-manual-model" /></label>
 				</div>
-				{#if isImage(testModelId)}<label class="grid gap-1 text-sm">Image prompt<Textarea rows={3} bind:value={testPrompt} placeholder="Describe the image test prompt" disabled={busy} data-testid="account-test-prompt" /></label>{/if}
+				{#if isImage(testModelId)}<label class="grid gap-1 text-sm">{$_('admin.accounts.tools.imagePrompt', { default: 'Image prompt' })}<Textarea rows={3} bind:value={testPrompt} placeholder="Describe the image test prompt" disabled={busy} data-testid="account-test-prompt" /></label>{/if}
 				<div class="min-h-28 max-h-56 overflow-auto rounded-md border border-border bg-muted/20 p-3 font-mono text-xs" data-testid="account-test-output">
-					{#if testLines.length === 0}<p class="text-muted-foreground">Ready to test account connectivity.</p>
+					{#if testLines.length === 0}<p class="text-muted-foreground">{$_('admin.accounts.tools.readyTest', { default: 'Ready to test account connectivity.' })}</p>
 					{:else}{#each testLines as line, i (`${i}-${line.text}`)}<p class={lineTone(line.tone)}>{line.text}</p>{/each}{/if}
 				</div>
 				{#if testImages.length > 0}<div class="grid gap-2 sm:grid-cols-2" data-testid="account-test-images">{#each testImages as img, i (`${img.url}-${i}`)}<a href={img.url} target="_blank" rel="noreferrer" class="overflow-hidden rounded-md border border-border bg-background"><img src={img.url} alt={`test-${i + 1}`} class="max-h-72 w-full object-contain" /><p class="border-t px-3 py-1.5 text-xs text-muted-foreground">{img.mimeType ?? 'image/*'}</p></a>{/each}</div>{/if}
@@ -169,8 +169,8 @@
 			</div>
 			{#if isOpenAIOAuth(account)}
 				<div class="grid gap-2 rounded-md border border-border p-3" data-testid="openai-quota-reset">
-					<div class="flex items-center justify-between gap-3"><div><p class="text-sm font-medium">OpenAI reset credits</p><p class="text-xs text-muted-foreground">Query upstream reset credits before consuming one reset.</p></div><Badge variant="outline" data-testid="openai-quota-credit-count">{quota?.rate_limit_reset_credits?.available_count ?? '-'}</Badge></div>
-					<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy || !account} onclick={queryQuota}>Query OpenAI quota</Button><Button variant="outline" size="sm" disabled={busy || !quota || Number(quota.rate_limit_reset_credits?.available_count ?? 0) <= 0} onclick={resetQuotaAction}>Use reset credit</Button></div>
+					<div class="flex items-center justify-between gap-3"><div><p class="text-sm font-medium">{$_('admin.accounts.tools.openaiResetCredits', { default: 'OpenAI reset credits' })}</p><p class="text-xs text-muted-foreground">{$_('admin.accounts.tools.openaiResetHint', { default: 'Query upstream reset credits before consuming one reset.' })}</p></div><Badge variant="outline" data-testid="openai-quota-credit-count">{quota?.rate_limit_reset_credits?.available_count ?? '-'}</Badge></div>
+					<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy || !account} onclick={queryQuota}>{$_('admin.accounts.tools.queryQuota', { default: 'Query OpenAI quota' })}</Button><Button variant="outline" size="sm" disabled={busy || !quota || Number(quota.rate_limit_reset_credits?.available_count ?? 0) <= 0} onclick={resetQuotaAction}>{$_('admin.accounts.tools.useResetCredit', { default: 'Use reset credit' })}</Button></div>
 					{#if quota}<div class="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3"><p>Plan: <span class="text-foreground">{quota.plan_type ?? '-'}</span></p><p>Email: <span class="text-foreground">{quota.email ?? account?.email ?? '-'}</span></p><p>Fetched: <span class="text-foreground">{quota.fetched_at ? new Date(Number(quota.fetched_at) * 1000).toLocaleString() : '-'}</span></p></div>{/if}
 					{#if quotaResult}<p class="rounded-md bg-muted p-2 text-sm" data-testid="openai-quota-reset-result">Reset {quotaResult.windows_reset} windows · {quotaResult.code}</p>{/if}
 				</div>
@@ -178,45 +178,45 @@
 		</Card>
 
 		<Card class="space-y-3">
-			<div class="flex items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">Models</h2><p class="text-xs text-muted-foreground">Supported upstream model list.</p></div><Badge variant="outline">{models.length}</Badge></div>
+			<div class="flex items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">{$_('admin.accounts.tools.models', { default: 'Models' })}</h2><p class="text-xs text-muted-foreground">{$_('admin.accounts.tools.modelsHint', { default: 'Supported upstream model list.' })}</p></div><Badge variant="outline">{models.length}</Badge></div>
 			<div class="max-h-56 overflow-auto rounded-md border border-border" data-testid="account-models-list">
-				{#if toolsLoading}<p class="p-4 text-sm text-muted-foreground">Loading...</p>
-				{:else if models.length === 0}<p class="p-4 text-sm text-muted-foreground">No models reported.</p>
+				{#if toolsLoading}<p class="p-4 text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</p>
+				{:else if models.length === 0}<p class="p-4 text-sm text-muted-foreground">{$_('admin.accounts.tools.noModels', { default: 'No models reported.' })}</p>
 				{:else}{#each models as m, i (`${modelLabel(m)}-${i}`)}<div class="flex items-center justify-between gap-3 border-b px-3 py-2 text-sm last:border-b-0"><p class="truncate font-medium">{modelLabel(m)}</p>{#if typeof m.type === 'string'}<Badge variant="outline">{m.type}</Badge>{/if}</div>{/each}{/if}
 			</div>
 		</Card>
 
 		<Card class="space-y-3" data-testid="account-scheduled-tests">
-			<div class="flex items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">Scheduled tests</h2><p class="text-xs text-muted-foreground">Run recurring account connectivity tests.</p></div>
-				<div class="flex items-center gap-2"><Badge variant="outline">{plans.length}</Badge><Button variant="outline" size="sm" disabled={busy || !account} onclick={() => { newPlanOpen = !newPlanOpen; }} data-testid="account-scheduled-add"><Plus size={15} />Add plan</Button></div>
+			<div class="flex items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">{$_('admin.accounts.tools.scheduledTests', { default: 'Scheduled tests' })}</h2><p class="text-xs text-muted-foreground">{$_('admin.accounts.tools.scheduledTestsHint', { default: 'Run recurring account connectivity tests.' })}</p></div>
+				<div class="flex items-center gap-2"><Badge variant="outline">{plans.length}</Badge><Button variant="outline" size="sm" disabled={busy || !account} onclick={() => { newPlanOpen = !newPlanOpen; }} data-testid="account-scheduled-add"><Plus size={15} />{$_('admin.accounts.tools.addPlan', { default: 'Add plan' })}</Button></div>
 			</div>
 			{#if newPlanOpen}
 				<div class="grid gap-3 rounded-md border border-border p-3" data-testid="account-scheduled-create-form">
-					<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Model ID<Input bind:value={newForm.model_id} data-testid="account-scheduled-model" /></label><label class="grid gap-1 text-sm">Cron<Input bind:value={newForm.cron_expression} placeholder="*/30 * * * *" data-testid="account-scheduled-cron" /></label><label class="grid gap-1 text-sm">Max results<Input type="number" min="1" bind:value={newForm.max_results} data-testid="account-scheduled-max-results" /></label></div>
-					<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.enabled} data-testid="account-scheduled-enabled" />Enabled</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.auto_recover} data-testid="account-scheduled-auto-recover" />Auto recover</label></div>
-					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>Save plan</Button></div>
+					<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.modelId', { default: 'Model ID' })}<Input bind:value={newForm.model_id} data-testid="account-scheduled-model" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.cron', { default: 'Cron' })}<Input bind:value={newForm.cron_expression} placeholder="*/30 * * * *" data-testid="account-scheduled-cron" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.maxResults', { default: 'Max results' })}<Input type="number" min="1" bind:value={newForm.max_results} data-testid="account-scheduled-max-results" /></label></div>
+					<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.enabled} data-testid="account-scheduled-enabled" />{$_('admin.accounts.tools.enabled', { default: 'Enabled' })}</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={newForm.auto_recover} data-testid="account-scheduled-auto-recover" />{$_('admin.accounts.tools.autoRecover', { default: 'Auto recover' })}</label></div>
+					<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (newPlanOpen = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !newForm.model_id.trim() || !newForm.cron_expression.trim()} onclick={createPlan}>{$_('admin.accounts.tools.savePlan', { default: 'Save plan' })}</Button></div>
 				</div>
 			{/if}
 			<div class="max-h-80 overflow-auto rounded-md border border-border" data-testid="account-scheduled-list">
-				{#if toolsLoading}<p class="p-4 text-sm text-muted-foreground">Loading...</p>
-				{:else if plans.length === 0}<p class="p-4 text-sm text-muted-foreground">No scheduled test plans.</p>
+				{#if toolsLoading}<p class="p-4 text-sm text-muted-foreground">{$_('common.loading', { default: 'Loading...' })}</p>
+				{:else if plans.length === 0}<p class="p-4 text-sm text-muted-foreground">{$_('admin.accounts.tools.noPlans', { default: 'No scheduled test plans.' })}</p>
 				{:else}{#each plans as plan}
 					<div class="border-b p-3 last:border-b-0" data-testid="account-scheduled-row">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<div class="min-w-0"><div class="flex items-center gap-2"><CalendarClock size={15} class="text-muted-foreground" /><p class="truncate text-sm font-medium">{plan.model_id}</p><Badge variant="outline" class={plan.enabled ? statusTone('active') : statusTone('inactive')}>{plan.enabled ? 'enabled' : 'disabled'}</Badge>{#if plan.auto_recover}<Badge variant="outline">auto recover</Badge>{/if}</div><p class="mt-1 truncate font-mono text-xs text-muted-foreground">{plan.cron_expression}</p><p class="mt-1 text-xs text-muted-foreground">last {fmtTs(plan.last_run_at)} · next {fmtTs(plan.next_run_at)}</p></div>
-							<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy} onclick={() => toggleResults(plan)}>{expandedPlanId === plan.id ? 'Hide results' : 'Results'}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => startEdit(plan)}>{$_('common.edit', { default: 'Edit' })}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => togglePlan(plan, !plan.enabled)}>{plan.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => removePlan(plan)}>{$_('common.delete', { default: 'Delete' })}</Button></div>
+							<div class="flex flex-wrap gap-2"><Button variant="outline" size="sm" disabled={busy} onclick={() => toggleResults(plan)}>{expandedPlanId === plan.id ? $_('admin.accounts.tools.hideResults', { default: 'Hide results' }) : $_('admin.accounts.tools.results', { default: 'Results' })}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => startEdit(plan)}>{$_('common.edit', { default: 'Edit' })}</Button><Button variant="outline" size="sm" disabled={busy} onclick={() => togglePlan(plan, !plan.enabled)}>{plan.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => removePlan(plan)}>{$_('common.delete', { default: 'Delete' })}</Button></div>
 						</div>
 						{#if editingPlanId === plan.id}
 							<div class="mt-3 grid gap-3 rounded-md border border-border p-3" data-testid="account-scheduled-edit-form">
-								<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Model ID<Input bind:value={editForm.model_id} data-testid="account-scheduled-edit-model" /></label><label class="grid gap-1 text-sm">Cron<Input bind:value={editForm.cron_expression} data-testid="account-scheduled-edit-cron" /></label><label class="grid gap-1 text-sm">Max results<Input type="number" min="1" bind:value={editForm.max_results} data-testid="account-scheduled-edit-max-results" /></label></div>
-								<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.enabled} data-testid="account-scheduled-edit-enabled" />Enabled</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.auto_recover} data-testid="account-scheduled-edit-auto-recover" />Auto recover</label></div>
-								<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (editingPlanId = null)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !editForm.model_id.trim() || !editForm.cron_expression.trim()} onclick={() => saveEdit(plan.id)}>Save edit</Button></div>
+								<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.modelId', { default: 'Model ID' })}<Input bind:value={editForm.model_id} data-testid="account-scheduled-edit-model" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.cron', { default: 'Cron' })}<Input bind:value={editForm.cron_expression} data-testid="account-scheduled-edit-cron" /></label><label class="grid gap-1 text-sm">{$_('admin.accounts.tools.maxResults', { default: 'Max results' })}<Input type="number" min="1" bind:value={editForm.max_results} data-testid="account-scheduled-edit-max-results" /></label></div>
+								<div class="flex flex-wrap items-center gap-4"><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.enabled} data-testid="account-scheduled-edit-enabled" />{$_('admin.accounts.tools.enabled', { default: 'Enabled' })}</label><label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={editForm.auto_recover} data-testid="account-scheduled-edit-auto-recover" />{$_('admin.accounts.tools.autoRecover', { default: 'Auto recover' })}</label></div>
+								<div class="flex justify-end gap-2"><Button variant="outline" size="sm" onclick={() => (editingPlanId = null)}>{$_('common.cancel', { default: 'Cancel' })}</Button><Button size="sm" disabled={busy || !editForm.model_id.trim() || !editForm.cron_expression.trim()} onclick={() => saveEdit(plan.id)}>{$_('admin.accounts.tools.saveEdit', { default: 'Save edit' })}</Button></div>
 							</div>
 						{/if}
 						{#if expandedPlanId === plan.id}
 							<div class="mt-3 rounded-md border border-border bg-muted/20 p-3" data-testid="account-scheduled-results">
-								{#if resultsLoading.has(plan.id)}<p class="text-sm text-muted-foreground">Loading results...</p>
-								{:else if !(results[plan.id]?.length)}<p class="text-sm text-muted-foreground">No results yet.</p>
+								{#if resultsLoading.has(plan.id)}<p class="text-sm text-muted-foreground">{$_('admin.accounts.tools.loadingResults', { default: 'Loading results...' })}</p>
+								{:else if !(results[plan.id]?.length)}<p class="text-sm text-muted-foreground">{$_('admin.accounts.tools.noResults', { default: 'No results yet.' })}</p>
 								{:else}<div class="grid gap-2">{#each results[plan.id] as result}<div class="rounded-md border border-border bg-background p-2 text-xs" data-testid="account-scheduled-result"><div class="flex flex-wrap items-center justify-between gap-2"><div class="flex items-center gap-2"><Badge variant="outline" class={statusTone(result.status)}>{result.status}</Badge>{#if result.latency_ms > 0}<span class="text-muted-foreground">{result.latency_ms}ms</span>{/if}</div><span class="text-muted-foreground">{fmtTs(result.started_at)}</span></div>{#if result.error_message}<pre class="mt-2 max-h-24 overflow-auto whitespace-pre-wrap rounded border border-destructive/30 bg-destructive/10 p-2 text-destructive">{result.error_message}</pre>{:else if result.response_text}<pre class="mt-2 max-h-24 overflow-auto whitespace-pre-wrap rounded border border-border bg-muted/30 p-2">{result.response_text}</pre>{/if}</div>{/each}</div>{/if}
 							</div>
 						{/if}

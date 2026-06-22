@@ -265,14 +265,14 @@
 
 		<!-- Basic info -->
 		<div class="grid gap-3 sm:grid-cols-2">
-			<label class="grid gap-1 text-sm"><span class="font-medium">Name</span><Input bind:value={name} data-testid="account-form-name" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Email</span><Input type="email" bind:value={email} data-testid="account-form-email" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.name', { default: 'Name' })}</span><Input bind:value={name} data-testid="account-form-name" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.email', { default: 'Email' })}</span><Input type="email" bind:value={email} data-testid="account-form-email" /></label>
 		</div>
-		<label class="grid gap-1 text-sm"><span class="font-medium">Notes</span><Textarea rows={2} bind:value={notes} placeholder="Optional notes about this account" data-testid="account-form-notes" /></label>
+		<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.notes', { default: 'Notes' })}</span><Textarea rows={2} bind:value={notes} placeholder={$_('admin.accounts.form.notesPlaceholder', { default: 'Optional notes about this account' })} data-testid="account-form-notes" /></label>
 
 		<!-- Platform selection (segmented) -->
 		<div>
-			<p class="mb-1.5 text-sm font-medium">Platform</p>
+			<p class="mb-1.5 text-sm font-medium">{$_('admin.accounts.form.platform', { default: 'Platform' })}</p>
 			<div class="flex rounded-md bg-muted p-1" data-testid="account-form-platform">
 				{#each PLATFORMS as p (p)}
 					<button type="button"
@@ -285,60 +285,60 @@
 		</div>
 
 		<div class="grid gap-3 sm:grid-cols-[1fr_1fr_1fr]">
-			<label class="grid gap-1 text-sm"><span class="font-medium">Type</span><NativeSelect bind:value={type} options={currentTypeOpts} data-testid="account-form-type" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Status</span><NativeSelect bind:value={status} options={statusOpts} data-testid="account-form-status" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Proxy ID</span><Input type="number" bind:value={proxyId} data-testid="account-form-proxy" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.type', { default: 'Type' })}</span><NativeSelect bind:value={type} options={currentTypeOpts} data-testid="account-form-type" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.status', { default: 'Status' })}</span><NativeSelect bind:value={status} options={statusOpts} data-testid="account-form-status" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.proxyId', { default: 'Proxy ID' })}</span><Input type="number" bind:value={proxyId} data-testid="account-form-proxy" /></label>
 		</div>
 
 		<!-- Platform-specific credential fields -->
 		{#if !showRawCredentials}
 			<Card class="space-y-3 p-3">
 				<div class="flex items-center justify-between">
-					<p class="text-sm font-medium">Credentials</p>
-					<Button variant="ghost" size="sm" onclick={() => (showRawCredentials = true)} class="text-xs text-muted-foreground">Switch to raw JSON</Button>
+					<p class="text-sm font-medium">{$_('admin.accounts.form.credentials', { default: 'Credentials' })}</p>
+					<Button variant="ghost" size="sm" onclick={() => (showRawCredentials = true)} class="text-xs text-muted-foreground">{$_('admin.accounts.form.switchRawJson', { default: 'Switch to raw JSON' })}</Button>
 				</div>
 
 				{#if showApiKeyField}
-					<label class="grid gap-1 text-sm"><span class="font-medium">API Key</span><Input type="password" bind:value={apiKey} placeholder="sk-..." data-testid="account-form-api-key" /></label>
+					<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.apiKey', { default: 'API Key' })}</span><Input type="password" bind:value={apiKey} placeholder="sk-..." data-testid="account-form-api-key" /></label>
 				{/if}
 
 				{#if showBaseUrl}
 					<label class="grid gap-1 text-sm">
-						<span class="font-medium">Base URL</span>
+						<span class="font-medium">{$_('admin.accounts.form.baseUrl', { default: 'Base URL' })}</span>
 						<Input bind:value={baseUrl} placeholder={platform === 'openai' ? 'https://api.openai.com' : 'https://api.anthropic.com'} data-testid="account-form-base-url" />
-						<span class="text-xs text-muted-foreground">Custom API endpoint. Leave empty for default.</span>
+						<span class="text-xs text-muted-foreground">{$_('admin.accounts.form.baseUrlHint', { default: 'Custom API endpoint. Leave empty for default.' })}</span>
 					</label>
 				{/if}
 
 				{#if showOrgId}
-					<label class="grid gap-1 text-sm"><span class="font-medium">Organization ID</span><Input bind:value={organizationId} placeholder="org-..." data-testid="account-form-org-id" /></label>
+					<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.orgId', { default: 'Organization ID' })}</span><Input bind:value={organizationId} placeholder="org-..." data-testid="account-form-org-id" /></label>
 				{/if}
 
 				{#if showProjectId}
-					<label class="grid gap-1 text-sm"><span class="font-medium">Project ID</span><Input bind:value={projectId} data-testid="account-form-project-id" /></label>
+					<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.projectId', { default: 'Project ID' })}</span><Input bind:value={projectId} data-testid="account-form-project-id" /></label>
 				{/if}
 
 				{#if showTierId}
-					<label class="grid gap-1 text-sm"><span class="font-medium">Tier ID</span><Input bind:value={tierId} data-testid="account-form-tier-id" /></label>
+					<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.tierId', { default: 'Tier ID' })}</span><Input bind:value={tierId} data-testid="account-form-tier-id" /></label>
 				{/if}
 
 				{#if showInterceptWarmup}
-					<label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={interceptWarmup} data-testid="account-form-intercept-warmup" />Intercept warmup requests</label>
+					<label class="flex items-center gap-2 text-sm"><Checkbox bind:checked={interceptWarmup} data-testid="account-form-intercept-warmup" />{$_('admin.accounts.form.interceptWarmup', { default: 'Intercept warmup requests' })}</label>
 				{/if}
 
 				{#if showWebSearch}
-					<label class="grid gap-1 text-sm"><span class="font-medium">Web search mode</span><NativeSelect bind:value={webSearchMode} options={webSearchOpts} data-testid="account-form-web-search" /></label>
+					<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.webSearch', { default: 'Web search mode' })}</span><NativeSelect bind:value={webSearchMode} options={webSearchOpts} data-testid="account-form-web-search" /></label>
 				{/if}
 
 				{#if isOAuth}
-					<p class="text-xs text-muted-foreground">OAuth credentials are managed via the ReAuth flow. Use raw JSON to edit manually.</p>
+					<p class="text-xs text-muted-foreground">{$_('admin.accounts.form.oauthHint', { default: 'OAuth credentials are managed via the ReAuth flow. Use raw JSON to edit manually.' })}</p>
 				{/if}
 			</Card>
 		{:else}
 			<div class="space-y-2">
 				<div class="flex items-center justify-between">
-					<p class="text-sm font-medium">Credentials JSON</p>
-					<Button variant="ghost" size="sm" onclick={() => (showRawCredentials = false)} class="text-xs text-muted-foreground">Switch to structured</Button>
+					<p class="text-sm font-medium">{$_('admin.accounts.form.credentialsJson', { default: 'Credentials JSON' })}</p>
+					<Button variant="ghost" size="sm" onclick={() => (showRawCredentials = false)} class="text-xs text-muted-foreground">{$_('admin.accounts.form.switchStructured', { default: 'Switch to structured' })}</Button>
 				</div>
 				<Textarea rows={8} bind:value={credentialsJson} data-testid="account-form-credentials" />
 			</div>
@@ -346,23 +346,23 @@
 
 		<!-- Scheduling parameters -->
 		<div class="grid gap-3 sm:grid-cols-4">
-			<label class="grid gap-1 text-sm"><span class="font-medium">Priority</span><Input type="number" bind:value={priority} data-testid="account-form-priority" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Weight</span><Input type="number" bind:value={weight} data-testid="account-form-weight" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Concurrency</span><Input type="number" bind:value={concurrency} data-testid="account-form-concurrency" /></label>
-			<label class="grid gap-1 text-sm"><span class="font-medium">Rate multiplier</span><Input type="number" step="0.1" bind:value={rateMultiplier} data-testid="account-form-rate" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.priority', { default: 'Priority' })}</span><Input type="number" bind:value={priority} data-testid="account-form-priority" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.weight', { default: 'Weight' })}</span><Input type="number" bind:value={weight} data-testid="account-form-weight" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.concurrency', { default: 'Concurrency' })}</span><Input type="number" bind:value={concurrency} data-testid="account-form-concurrency" /></label>
+			<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.rateMultiplier', { default: 'Rate multiplier' })}</span><Input type="number" step="0.1" bind:value={rateMultiplier} data-testid="account-form-rate" /></label>
 		</div>
 
-		<label class="grid gap-1 text-sm"><span class="font-medium">Group IDs</span><Input placeholder="7, 9" bind:value={groupIds} data-testid="account-form-groups" /></label>
+		<label class="grid gap-1 text-sm"><span class="font-medium">{$_('admin.accounts.form.groupIds', { default: 'Group IDs' })}</span><Input placeholder="7, 9" bind:value={groupIds} data-testid="account-form-groups" /></label>
 
 		<div class="flex flex-wrap gap-4 text-sm">
-			<label class="flex items-center gap-2"><Checkbox bind:checked={schedulable} data-testid="account-form-schedulable" />Schedulable</label>
-			<label class="flex items-center gap-2"><Checkbox bind:checked={privacyMode} data-testid="account-form-privacy" />Privacy mode</label>
-			<label class="flex items-center gap-2"><Checkbox bind:checked={poolMode} data-testid="account-form-pool" />Pool mode</label>
+			<label class="flex items-center gap-2"><Checkbox bind:checked={schedulable} data-testid="account-form-schedulable" />{$_('admin.accounts.form.schedulable', { default: 'Schedulable' })}</label>
+			<label class="flex items-center gap-2"><Checkbox bind:checked={privacyMode} data-testid="account-form-privacy" />{$_('admin.accounts.form.privacyMode', { default: 'Privacy mode' })}</label>
+			<label class="flex items-center gap-2"><Checkbox bind:checked={poolMode} data-testid="account-form-pool" />{$_('admin.accounts.form.poolMode', { default: 'Pool mode' })}</label>
 		</div>
 
 		<!-- Model whitelist -->
 		<Card class="space-y-3 p-3">
-			<p class="text-sm font-medium">Model restriction</p>
+			<p class="text-sm font-medium">{$_('admin.accounts.form.modelRestriction', { default: 'Model restriction' })}</p>
 			<ModelWhitelistSelector
 				bind:selected={modelWhitelist}
 				platform={platform}
@@ -382,6 +382,6 @@
 	</div>
 	<div class="mt-5 flex justify-end gap-2">
 		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
-		<Button disabled={saving || !String(name ?? '').trim() || !String(type ?? '').trim()} onclick={save} data-testid="account-form-save">{saving ? 'Saving...' : 'Save'}</Button>
+		<Button disabled={saving || !String(name ?? '').trim() || !String(type ?? '').trim()} onclick={save} data-testid="account-form-save">{saving ? $_('common.saving', { default: 'Saving...' }) : $_('common.save', { default: 'Save' })}</Button>
 	</div>
 </StandardDrawer>

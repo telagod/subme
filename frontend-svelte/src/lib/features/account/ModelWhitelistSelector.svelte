@@ -143,7 +143,7 @@
 				{/each}
 			</div>
 		{:else}
-			<p class="text-sm text-muted-foreground">No models selected</p>
+			<p class="text-sm text-muted-foreground">{$_('admin.accounts.modelWhitelist.noSelected', { default: 'No models selected' })}</p>
 		{/if}
 		<div class="mt-2 flex items-center justify-between border-t border-border pt-2">
 			<span class="text-xs text-muted-foreground">{selected.length} model{selected.length !== 1 ? 's' : ''}</span>
@@ -168,7 +168,7 @@
 						<span class="truncate">{model.value}</span>
 					</button>
 				{:else}
-					<p class="px-3 py-4 text-center text-sm text-muted-foreground">No matching models</p>
+					<p class="px-3 py-4 text-center text-sm text-muted-foreground">{$_('admin.accounts.modelWhitelist.noMatching', { default: 'No matching models' })}</p>
 				{/each}
 			</div>
 		</div>
@@ -183,15 +183,15 @@
 				{syncing ? 'Syncing...' : 'Sync upstream'}
 			</Button>
 		{/if}
-		<Button type="button" variant="outline" size="sm" onclick={clearAll} class="border-destructive/30 text-destructive hover:bg-destructive/10">Clear all</Button>
+		<Button type="button" variant="outline" size="sm" onclick={clearAll} class="border-destructive/30 text-destructive hover:bg-destructive/10">{$_('admin.accounts.modelWhitelist.clearAll', { default: 'Clear all' })}</Button>
 	</div>
 
 	<!-- Custom model input -->
 	<div class="mt-3">
-		<p class="mb-1 text-xs font-medium">Custom model</p>
+		<p class="mb-1 text-xs font-medium">{$_('admin.accounts.modelWhitelist.customModel', { default: 'Custom model' })}</p>
 		<div class="flex gap-2">
 			<Input bind:value={customModel} placeholder="Enter model name" class="flex-1" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustom())} data-testid="model-whitelist-custom" />
-			<Button type="button" onclick={addCustom}>Add</Button>
+			<Button type="button" onclick={addCustom}>{$_('admin.accounts.modelWhitelist.add', { default: 'Add' })}</Button>
 		</div>
 	</div>
 </div>

@@ -156,7 +156,7 @@
 				{#if account.platform === 'gemini'}
 					<label class="grid gap-1 text-sm">OAuth type<NativeSelect bind:value={geminiType} options={geminiOAuthTypeOptions} data-testid="account-reauth-gemini-type" /></label>
 				{:else if account.platform !== 'openai' && account.platform !== 'antigravity'}
-					<label class="grid gap-1 text-sm">Mode<NativeSelect bind:value={mode} options={oauthModeOptions} data-testid="account-reauth-mode" /></label>
+					<label class="grid gap-1 text-sm">{$_('admin.accounts.reauth.mode', { default: 'Mode' })}<NativeSelect bind:value={mode} options={oauthModeOptions} data-testid="account-reauth-mode" /></label>
 				{/if}
 				<label class="grid gap-1 text-sm">Proxy ID<Input type="number" bind:value={proxyId} data-testid="account-reauth-proxy-id" /></label>
 				<label class="grid gap-1 text-sm">Redirect URI<Input bind:value={redirectUri} data-testid="account-reauth-redirect-uri" /></label>
@@ -171,13 +171,13 @@
 			{#if authResult}<pre class="max-h-40 overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs" data-testid="account-reauth-auth-result">{fmt(authResult)}</pre>{/if}
 			<div class="grid gap-3 sm:grid-cols-3">
 				<label class="grid gap-1 text-sm">Session ID<Input bind:value={sessionId} data-testid="account-reauth-session-id" /></label>
-				<label class="grid gap-1 text-sm">State<Input bind:value={stateVal} data-testid="account-reauth-state" /></label>
-				<label class="grid gap-1 text-sm">Code<Input bind:value={code} data-testid="account-reauth-code" /></label>
+				<label class="grid gap-1 text-sm">{$_('admin.accounts.reauth.state', { default: 'State' })}<Input bind:value={stateVal} data-testid="account-reauth-state" /></label>
+				<label class="grid gap-1 text-sm">{$_('admin.accounts.reauth.code', { default: 'Code' })}<Input bind:value={code} data-testid="account-reauth-code" /></label>
 			</div>
-			<div class="flex justify-end"><Button variant="outline" disabled={busy || !code.trim()} onclick={exchangeCodeAction}>Exchange code</Button></div>
+			<div class="flex justify-end"><Button variant="outline" disabled={busy || !code.trim()} onclick={exchangeCodeAction}>{$_('admin.accounts.reauth.exchangeCode', { default: 'Exchange code' })}</Button></div>
 			{#if account.platform !== 'openai' && account.platform !== 'gemini' && account.platform !== 'antigravity'}
 				<div class="grid gap-3 sm:grid-cols-[1fr_auto]">
-					<label class="grid gap-1 text-sm">Cookie session key<Input bind:value={cookieKey} data-testid="account-reauth-cookie-key" /></label>
+					<label class="grid gap-1 text-sm">{$_('admin.accounts.reauth.cookieKey', { default: 'Cookie session key' })}<Input bind:value={cookieKey} data-testid="account-reauth-cookie-key" /></label>
 					<div class="flex items-end"><Button variant="outline" disabled={busy || !cookieKey.trim()} onclick={runCookieAuth}>Cookie auth</Button></div>
 				</div>
 			{/if}

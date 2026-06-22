@@ -170,7 +170,7 @@
 					<Checkbox bind:checked={enableStatus} data-testid="bulk-enable-status" />
 					<div class="flex-1" class:opacity-50={!enableStatus} class:pointer-events-none={!enableStatus}>
 						<label class="grid gap-1 text-sm">
-							<span class="font-medium">Status</span>
+							<span class="font-medium">{$_('common.status', { default: 'Status' })}</span>
 							<NativeSelect bind:value={statusVal} options={statusOpts} data-testid="bulk-status" />
 						</label>
 					</div>
@@ -181,28 +181,28 @@
 					<div class="flex items-center gap-3 rounded-md border border-border p-3">
 						<Checkbox bind:checked={enablePriority} data-testid="bulk-enable-priority" />
 						<label class="flex-1 grid gap-1 text-sm" class:opacity-50={!enablePriority} class:pointer-events-none={!enablePriority}>
-							<span class="font-medium">Priority</span>
+							<span class="font-medium">{$_('admin.accounts.form.priority', { default: 'Priority' })}</span>
 							<Input type="number" bind:value={priorityVal} data-testid="bulk-priority" />
 						</label>
 					</div>
 					<div class="flex items-center gap-3 rounded-md border border-border p-3">
 						<Checkbox bind:checked={enableWeight} data-testid="bulk-enable-weight" />
 						<label class="flex-1 grid gap-1 text-sm" class:opacity-50={!enableWeight} class:pointer-events-none={!enableWeight}>
-							<span class="font-medium">Weight</span>
+							<span class="font-medium">{$_('admin.accounts.form.weight', { default: 'Weight' })}</span>
 							<Input type="number" bind:value={weightVal} data-testid="bulk-weight" />
 						</label>
 					</div>
 					<div class="flex items-center gap-3 rounded-md border border-border p-3">
 						<Checkbox bind:checked={enableConcurrency} data-testid="bulk-enable-concurrency" />
 						<label class="flex-1 grid gap-1 text-sm" class:opacity-50={!enableConcurrency} class:pointer-events-none={!enableConcurrency}>
-							<span class="font-medium">Concurrency</span>
+							<span class="font-medium">{$_('admin.accounts.form.concurrency', { default: 'Concurrency' })}</span>
 							<Input type="number" bind:value={concurrencyVal} data-testid="bulk-concurrency" />
 						</label>
 					</div>
 					<div class="flex items-center gap-3 rounded-md border border-border p-3">
 						<Checkbox bind:checked={enableRateMultiplier} data-testid="bulk-enable-rate" />
 						<label class="flex-1 grid gap-1 text-sm" class:opacity-50={!enableRateMultiplier} class:pointer-events-none={!enableRateMultiplier}>
-							<span class="font-medium">Rate multiplier</span>
+							<span class="font-medium">{$_('admin.accounts.form.rateMultiplier', { default: 'Rate multiplier' })}</span>
 							<Input type="number" step="0.1" bind:value={rateMultiplierVal} data-testid="bulk-rate" />
 						</label>
 					</div>
