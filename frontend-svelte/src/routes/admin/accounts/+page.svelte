@@ -164,10 +164,10 @@
 		<div class="flex gap-2">
 			<Button variant="outline" onclick={loadRows} disabled={loading}>
 				<RefreshCw size={16} class={loading ? 'animate-spin' : ''} />
-				{$_('common.refresh', { default: '刷新' })}
+				{$_('common.refresh', { default: 'Refresh' })}
 			</Button>
 			<Button onclick={openCreate}>
-				<Plus size={16} />{$_('admin.accounts.newAccount', { default: '新建账户' })}
+				<Plus size={16} />{$_('admin.accounts.newAccount', { default: 'New account' })}
 			</Button>
 		</div>
 	</header>

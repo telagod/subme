@@ -52,42 +52,42 @@
 	async function loadInfra() { try { const [r, p] = await Promise.all([listPassthrough(), listTLSProfiles()]); rules = r; profiles = p; } catch (err) { showError(err instanceof Error ? err.message : String(err)); } }
 	async function run(label: string, fn: () => Promise<void>) { busy = true; try { await fn(); showSuccess(label); } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { busy = false; } }
 
-	async function addRule() { await run('规则已创建', async () => { await createPassthrough(JSON.parse(ruleJson)); await loadInfra(); }); }
-	async function togRule(r: ErrorPassthroughRule) { await run('规则已更新', async () => { await togglePassthrough(r.id, !r.enabled); await loadInfra(); }); }
-	async function delRule(r: ErrorPassthroughRule) { await run('规则已删除', async () => { await deletePassthrough(r.id); await loadInfra(); }); }
-	async function addProfile() { await run('配置已创建', async () => { await createTLSProfile(JSON.parse(profileJson)); await loadInfra(); }); }
-	async function delProfile(p: TLSFingerprintProfile) { await run('配置已删除', async () => { await deleteTLSProfile(p.id); await loadInfra(); }); }
+	async function addRule() { await run('Rule created', async () => { await createPassthrough(JSON.parse(ruleJson)); await loadInfra(); }); }
+	async function togRule(r: ErrorPassthroughRule) { await run('Rule updated', async () => { await togglePassthrough(r.id, !r.enabled); await loadInfra(); }); }
+	async function delRule(r: ErrorPassthroughRule) { await run('Rule deleted', async () => { await deletePassthrough(r.id); await loadInfra(); }); }
+	async function addProfile() { await run('Profile created', async () => { await createTLSProfile(JSON.parse(profileJson)); await loadInfra(); }); }
+	async function delProfile(p: TLSFingerprintProfile) { await run('Profile deleted', async () => { await deleteTLSProfile(p.id); await loadInfra(); }); }
 
 	function crsPayload() { if (!crsBase.trim() || !crsUser.trim() || !crsPwd) throw new Error('CRS fields required'); return { base_url: crsBase.trim(), username: crsUser.trim(), password: crsPwd }; }
 	async function previewCRS() { await run('CRS preview loaded', async () => { crsPreview = await previewSyncFromCRS(crsPayload()); }); }
 	async function syncCRS() { await run('CRS sync completed', async () => { const sel = crsSelected.trim().split(/[,\s]+/).filter(Boolean); crsResult = await syncFromCRS({ ...crsPayload(), sync_proxies: crsSyncProxies, selected_account_ids: sel.length ? sel : undefined }); onRefresh(); }); }
-	async function importCodex() { if (!codexContent.trim()) return; await run('Codex 已导入', async () => { const p: Record<string, unknown> = { content: codexContent.trim(), update_existing: codexUpdate }; if (codexName.trim()) p.name = codexName.trim(); const gids = parseIds(codexGroups); if (gids.length) p.group_ids = gids; const pid = parseIds(codexProxy)[0]; if (pid) p.proxy_id = pid; codexResult = await importCodexSession(p); onRefresh(); }); }
+	async function importCodex() { if (!codexContent.trim()) return; await run('Codex imported', async () => { const p: Record<string, unknown> = { content: codexContent.trim(), update_existing: codexUpdate }; if (codexName.trim()) p.name = codexName.trim(); const gids = parseIds(codexGroups); if (gids.length) p.group_ids = gids; const pid = parseIds(codexProxy)[0]; if (pid) p.proxy_id = pid; codexResult = await importCodexSession(p); onRefresh(); }); }
 
 	function oauthBase(): Record<string, unknown> { const p: Record<string, unknown> = {}; const pid = parseProxy(); if (pid) p.proxy_id = pid; if (oauthRedirect.trim()) p.redirect_uri = oauthRedirect.trim(); return p; }
 	async function genOAuthUrl() { await run('OAuth URL generated', async () => { oauthAuth = oauthMode === 'setup-token' ? await generateSetupTokenUrl(oauthBase()) : await generateAuthUrl(oauthBase()); if (typeof oauthAuth.session_id === 'string') oauthSession = oauthAuth.session_id; try { const u = new URL((oauthAuth.auth_url ?? oauthAuth.url) as string); const s = u.searchParams.get('state'); if (s) oauthState = s; } catch {} }); }
-	async function exchangeOAuthCode() { if (!oauthCode.trim()) return; await run('代码已交换', async () => { const p: Record<string, unknown> = { code: oauthCode.trim(), ...oauthBase() }; if (oauthSession.trim()) p.session_id = oauthSession.trim(); if (oauthState.trim()) p.state = oauthState.trim(); oauthExchange = oauthMode === 'setup-token' ? await exchangeSetupTokenCode(p) : await exchangeCode(p); }); }
-	async function oauthCookieAuth() { if (!oauthCookie.trim()) return; await run('Cookie 认证完成', async () => { oauthExchange = oauthMode === 'setup-token' ? await setupTokenCookieAuth({ code: oauthCookie.trim(), ...oauthBase() }) : await cookieAuth({ code: oauthCookie.trim(), ...oauthBase() }); }); }
-	async function applyOAuth() { const aid = parseIds(oauthAcctId)[0]; if (!aid || !oauthExchange) return; await run('凭证已应用', async () => { let extra: Record<string, unknown> | undefined; try { const e = JSON.parse(oauthExtra); if (e && typeof e === 'object' && Object.keys(e).length) extra = e; } catch {} await applyOAuthCredentials(aid, { type: oauthMode, credentials: oauthExchange!, extra }); onRefresh(); }); }
+	async function exchangeOAuthCode() { if (!oauthCode.trim()) return; await run('Code exchanged', async () => { const p: Record<string, unknown> = { code: oauthCode.trim(), ...oauthBase() }; if (oauthSession.trim()) p.session_id = oauthSession.trim(); if (oauthState.trim()) p.state = oauthState.trim(); oauthExchange = oauthMode === 'setup-token' ? await exchangeSetupTokenCode(p) : await exchangeCode(p); }); }
+	async function oauthCookieAuth() { if (!oauthCookie.trim()) return; await run('Cookie auth done', async () => { oauthExchange = oauthMode === 'setup-token' ? await setupTokenCookieAuth({ code: oauthCookie.trim(), ...oauthBase() }) : await cookieAuth({ code: oauthCookie.trim(), ...oauthBase() }); }); }
+	async function applyOAuth() { const aid = parseIds(oauthAcctId)[0]; if (!aid || !oauthExchange) return; await run('Credentials applied', async () => { let extra: Record<string, unknown> | undefined; try { const e = JSON.parse(oauthExtra); if (e && typeof e === 'object' && Object.keys(e).length) extra = e; } catch {} await applyOAuthCredentials(aid, { type: oauthMode, credentials: oauthExchange!, extra }); onRefresh(); }); }
 
-	async function checkRisk() { await run('风险已检查', async () => { riskResult = await checkMixedChannelRisk(JSON.parse(riskJson)); }); }
-	async function previewUpstream() { await run('上游预览完成', async () => { upstreamResult = await previewSyncUpstreamModels(JSON.parse(upstreamJson)); }); }
+	async function checkRisk() { await run('Risk checked', async () => { riskResult = await checkMixedChannelRisk(JSON.parse(riskJson)); }); }
+	async function previewUpstream() { await run('Upstream preview done', async () => { upstreamResult = await previewSyncUpstreamModels(JSON.parse(upstreamJson)); }); }
 	async function loadAntigravity() { await run('映射已加载', async () => { antigravityMap = await getAntigravityDefaultModelMapping(); }); }
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.advancedTitle', { default: '账户高级工具' })} width="lg" data-testid="account-advanced-dialog">
+<StandardDialog bind:open title={$_('admin.accountsQuench.advancedTitle', { default: 'Advanced account tools' })} width="lg" data-testid="account-advanced-dialog">
 	<div class="mt-4 grid gap-4">
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Error passthrough rules</h2>
 			<Textarea rows={6} bind:value={ruleJson} data-testid="error-passthrough-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addRule}>Create passthrough rule</Button></div>
 			{#if rules.length === 0}<p class="text-sm text-muted-foreground">No rules.</p>
 			{:else}<div data-testid="error-passthrough-list">{#each rules as r}<div class="flex items-center justify-between border-b px-2 py-1 text-sm last:border-b-0"><span class="truncate">{r.name}</span><div class="flex gap-1">
 				<Badge variant="outline" class={r.enabled ? 'text-emerald-600' : 'text-muted-foreground'}>{r.enabled ? 'on' : 'off'}</Badge>
-				<Button variant="ghost" size="sm" disabled={busy} onclick={() => togRule(r)}>{r.enabled ? '禁用' : '启用'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delRule(r)}>{$_('common.delete', { default: '删除' })}</Button></div></div>{/each}</div>{/if}
+				<Button variant="ghost" size="sm" disabled={busy} onclick={() => togRule(r)}>{r.enabled ? 'Disable' : 'Enable'}</Button><Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delRule(r)}>{$_('common.delete', { default: 'Delete' })}</Button></div></div>{/each}</div>{/if}
 		</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">TLS fingerprint profiles</h2>
 			<Textarea rows={6} bind:value={profileJson} data-testid="tls-profile-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addProfile}>Create TLS profile</Button></div>
 			{#if profiles.length === 0}<p class="text-sm text-muted-foreground">No profiles.</p>
 			{:else}<div data-testid="tls-profile-list">{#each profiles as p}<div class="flex items-center justify-between border-b px-2 py-1 text-sm last:border-b-0"><span class="truncate">{p.name}</span>
-				<Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delProfile(p)}>{$_('common.delete', { default: '删除' })}</Button></div>{/each}</div>{/if}
+				<Button variant="ghost" size="sm" class="text-destructive" disabled={busy} onclick={() => delProfile(p)}>{$_('common.delete', { default: 'Delete' })}</Button></div>{/each}</div>{/if}
 		</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">CRS sync</h2>
 			<div class="grid gap-3 sm:grid-cols-3"><label class="grid gap-1 text-sm">Base URL<Input bind:value={crsBase} data-testid="crs-base-url" /></label><label class="grid gap-1 text-sm">Username<Input bind:value={crsUser} data-testid="crs-username" /></label><label class="grid gap-1 text-sm">Password<Input type="password" bind:value={crsPwd} data-testid="crs-password" /></label></div>
@@ -115,5 +115,5 @@
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Mixed channel risk</h2><Textarea rows={3} bind:value={riskJson} data-testid="mixed-risk-json" /><div class="flex justify-end"><Button disabled={busy} onclick={checkRisk}>Check mixed risk</Button></div>{#if riskResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="mixed-risk-result">{fmt(riskResult)}</pre>{/if}</Card>
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Upstream models</h2><Textarea rows={3} bind:value={upstreamJson} data-testid="upstream-models-json" /><div class="flex justify-end gap-2"><Button variant="outline" disabled={busy} onclick={previewUpstream}>Preview upstream models</Button><Button variant="outline" disabled={busy} onclick={loadAntigravity}>Load Antigravity defaults</Button></div>{#if upstreamResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="upstream-models-result">{fmt(upstreamResult)}</pre>{/if}{#if antigravityMap}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="antigravity-default-mapping">{fmt(antigravityMap)}</pre>{/if}</Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: '关闭' })}</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
 </StandardDialog>

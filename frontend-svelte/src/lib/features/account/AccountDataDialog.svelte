@@ -46,5 +46,5 @@
 			<Textarea rows={8} bind:value={dataJson} data-testid="account-data-json" />
 			<div class="flex flex-wrap justify-end gap-2"><Button variant="outline" disabled={busy || selectedIds.size === 0} onclick={exportSel}>Export selected</Button><Button disabled={busy || !dataJson.trim()} onclick={importDataFn}>Import data</Button></div></Card>
 	</div>
-	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: '关闭' })}</Button></div>
+	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
 </StandardDialog>

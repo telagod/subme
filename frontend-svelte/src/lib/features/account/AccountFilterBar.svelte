@@ -80,7 +80,7 @@
 	<div class="flex flex-wrap items-center gap-2">
 		<label class="relative min-w-[200px] flex-1 sm:max-w-xs">
 			<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={14} />
-			<Input class="h-9 pl-8 text-sm" placeholder={$_('admin.accounts.searchPlaceholder', { default: '搜索账号名 / email...' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-search" />
+			<Input class="h-9 pl-8 text-sm" placeholder={$_('admin.accounts.searchPlaceholder', { default: 'Search accounts' })} bind:value={search} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-search" />
 		</label>
 		<NativeSelect class="h-9 w-auto min-w-[120px] text-sm" bind:value={platform} options={platformOptions} onchange={onApply} data-testid="accounts-platform-filter" />
 		<NativeSelect class="h-9 w-auto min-w-[120px] text-sm" bind:value={type} options={typeOptions} onchange={onApply} data-testid="accounts-type-filter" />
@@ -90,33 +90,33 @@
 			{$_('admin.accounts.advanced', { default: '高级' })}
 			{#if activeFilterCount > 4}<span class="rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">{activeFilterCount - 4}</span>{/if}
 		</Button>
-		<Button size="sm" class="h-9" onclick={onApply}>{$_('common.apply', { default: '筛选' })}</Button>
+		<Button size="sm" class="h-9" onclick={onApply}>{$_('common.apply', { default: 'Apply' })}</Button>
 		{#if activeFilterCount > 0}
 			<Button variant="ghost" size="sm" class="h-9 text-muted-foreground" onclick={clearAll}>
-				<X size={14} /> {$_('common.clearAll', { default: '清除' })}
+				<X size={14} /> {$_('common.clearAll', { default: 'Clear' })}
 			</Button>
 		{/if}
 	</div>
 
-	<!-- Advanced filters (collapsed by default) -->
-	{#if showAdvanced}
+	<!-- Advanced filters (collapsed by default, always in DOM for testid access) -->
+	<div class:hidden={!showAdvanced}>
 		<div class="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
 			<label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-				{$_('admin.accounts.groupLabel', { default: '分组 ID' })}
+				{$_('admin.accounts.groupLabel', { default: 'Group ID' })}
 				<Input class="h-8 w-24 text-xs" placeholder="e.g. 7" bind:value={group} onkeydown={(e) => e.key === 'Enter' && onApply()} data-testid="accounts-group-filter" />
 			</label>
 			<label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-				{$_('admin.accounts.privacyLabel', { default: '隐私模式' })}
+				{$_('admin.accounts.privacyLabel', { default: 'Privacy mode' })}
 				<NativeSelect class="h-8 text-xs" bind:value={privacy} options={privacyOptions} onchange={onApply} data-testid="accounts-privacy-filter" />
 			</label>
 			<label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-				{$_('admin.accounts.schedulableLabel', { default: '可调度' })}
+				{$_('admin.accounts.schedulableLabel', { default: 'Schedulable' })}
 				<NativeSelect class="h-8 text-xs" bind:value={schedulable} options={boolOpts} onchange={onApply} data-testid="accounts-schedulable-filter" />
 			</label>
 			<label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-				{$_('admin.accounts.hasProxyLabel', { default: '有代理' })}
+				{$_('admin.accounts.hasProxyLabel', { default: 'Has proxy' })}
 				<NativeSelect class="h-8 text-xs" bind:value={hasProxy} options={boolOpts} onchange={onApply} data-testid="accounts-has-proxy-filter" />
 			</label>
 		</div>
-	{/if}
+	</div>
 </div>

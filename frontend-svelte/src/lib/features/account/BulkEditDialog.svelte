@@ -279,7 +279,7 @@
 		{/if}
 
 		<div class="flex justify-end gap-2">
-			<Button variant="outline" onclick={() => (open = false)}>{$_('common.cancel', { default: '取消' })}</Button>
+			<Button variant="outline" onclick={() => (open = false)}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 			<Button disabled={busy} onclick={submit} data-testid="accounts-bulk-edit-confirm">
 				{busy ? 'Updating...' : 'Apply'}
 			</Button>

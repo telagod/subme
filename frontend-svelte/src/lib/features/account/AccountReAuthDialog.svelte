@@ -91,7 +91,7 @@
 			else authResult = mode === 'setup-token' ? await generateSetupTokenUrl(payload) : await generateAuthUrl(payload);
 			if (typeof authResult.session_id === 'string') sessionId = authResult.session_id;
 			const s = extractState(authResult); if (s) stateVal = s;
-			showSuccess($_('admin.accounts.reauthUrlGenerated', { default: '认证 URL 已生成' }));
+			showSuccess($_('admin.accounts.reauthUrlGenerated', { default: 'Auth URL generated' }));
 		} catch (err) { error = err instanceof Error ? err.message : String(err); showError(error); }
 		finally { busy = false; }
 	}
@@ -107,7 +107,7 @@
 			else if (account.platform === 'gemini') { if (geminiType) payload.oauth_type = geminiType; exchangeResult = await geminiOAuthApi.exchangeCode(payload); }
 			else if (account.platform === 'antigravity') exchangeResult = await antigravityOAuthApi.exchangeCode(payload);
 			else exchangeResult = mode === 'setup-token' ? await exchangeSetupTokenCode(payload) : await exchangeCode(payload);
-			showSuccess($_('admin.accounts.codeExchanged', { default: '代码已交换' }));
+			showSuccess($_('admin.accounts.codeExchanged', { default: 'Code exchanged' }));
 		} catch (err) { error = err instanceof Error ? err.message : String(err); showError(error); }
 		finally { busy = false; }
 	}
@@ -117,7 +117,7 @@
 		try {
 			const payload: Record<string, unknown> = { cookie_key: cookieKey.trim(), ...proxyPayload() };
 			exchangeResult = mode === 'setup-token' ? await setupTokenCookieAuth(payload) : await cookieAuth(payload);
-			showSuccess($_('admin.accounts.cookieAuthDone', { default: 'Cookie 认证完成' }));
+			showSuccess($_('admin.accounts.cookieAuthDone', { default: 'Cookie auth done' }));
 		} catch (err) { error = err instanceof Error ? err.message : String(err); showError(error); }
 		finally { busy = false; }
 	}
@@ -127,7 +127,7 @@
 		try {
 			const payload: Record<string, unknown> = { refresh_token: refreshToken.trim(), ...proxyPayload() };
 			exchangeResult = await refreshOpenAIToken(payload);
-			showSuccess($_('admin.accounts.tokenRefreshedMsg', { default: '令牌已刷新' }));
+			showSuccess($_('admin.accounts.tokenRefreshedMsg', { default: 'Token refreshed' }));
 		} catch (err) { error = err instanceof Error ? err.message : String(err); showError(error); }
 		finally { busy = false; }
 	}
@@ -138,7 +138,7 @@
 			const cred = extractCredentials(exchangeResult);
 			const extra = exchangeResult.extra && typeof exchangeResult.extra === 'object' && !Array.isArray(exchangeResult.extra) ? exchangeResult.extra as Record<string, unknown> : undefined;
 			await applyOAuthCredentials(account.id, { type: mode, credentials: cleanRecord(cred), extra: extra ? cleanRecord(extra) : undefined });
-			showSuccess($_('admin.accounts.credentialsApplied', { default: '凭证已应用' })); open = false; onApplied();
+			showSuccess($_('admin.accounts.credentialsApplied', { default: 'Credentials applied' })); open = false; onApplied();
 		} catch (err) { error = err instanceof Error ? err.message : String(err); showError(error); }
 		finally { busy = false; }
 	}
@@ -191,7 +191,7 @@
 		</div>
 		<div class="mt-5 flex justify-end gap-2">
 			<Button variant="outline" disabled={busy} onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: '取消' })}</Button>
-			<Button disabled={busy || !exchangeResult} onclick={applyResult}>{$_('admin.accounts.applyCredentials', { default: '应用凭证' })}</Button>
+			<Button disabled={busy || !exchangeResult} onclick={applyResult}>{$_('admin.accounts.applyCredentials', { default: 'Apply credentials' })}</Button>
 		</div>
 	{/if}
 </StandardDialog>
