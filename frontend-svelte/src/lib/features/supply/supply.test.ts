@@ -242,10 +242,10 @@ describe('M13 supply helpers', () => {
 		expect(formatGroupNames(accounts[0])).toBe('gold');
 		expect(formatGroupNames(accounts[1])).toBe('#20, #21');
 		expect(summarizeAccounts(accounts)).toEqual([
-			{ label: 'Total', value: 2 },
-			{ label: 'Active', value: 1 },
-			{ label: 'Pool mode', value: 1 },
-			{ label: 'Schedulable', value: 1 }
+			{ label: 'Total', labelKey: 'admin.accounts.statsTotal', value: 2 },
+			{ label: 'Active', labelKey: 'admin.accounts.statsActive', value: 1 },
+			{ label: 'Pool mode', labelKey: 'admin.accounts.statsPoolMode', value: 1 },
+			{ label: 'Schedulable', labelKey: 'admin.accounts.statsSchedulable', value: 1 }
 		]);
 	});
 

@@ -105,10 +105,10 @@ export function statusTone(status: string | undefined): string {
 
 export function summarizeAccounts(accounts: Account[]): SupplySummary[] {
 	return [
-		{ label: 'Total', value: accounts.length },
-		{ label: 'Active', value: accounts.filter((a) => a.status === 'active').length },
-		{ label: 'Pool mode', value: accounts.filter(accountPoolMode).length },
-		{ label: 'Schedulable', value: accounts.filter(accountIsSchedulable).length }
+		{ label: 'Total', labelKey: 'admin.accounts.statsTotal', value: accounts.length },
+		{ label: 'Active', labelKey: 'admin.accounts.statsActive', value: accounts.filter((a) => a.status === 'active').length },
+		{ label: 'Pool mode', labelKey: 'admin.accounts.statsPoolMode', value: accounts.filter(accountPoolMode).length },
+		{ label: 'Schedulable', labelKey: 'admin.accounts.statsSchedulable', value: accounts.filter(accountIsSchedulable).length }
 	];
 }
 
@@ -141,6 +141,7 @@ export function summarizeChannels(channels: Channel[]): SupplySummary[] {
 
 export interface SupplySummary {
 	label: string;
+	labelKey?: string;
 	value: number;
 }
 

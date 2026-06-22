@@ -315,7 +315,7 @@
 		<div class="inline-flex items-center gap-2.5 rounded-md border border-border bg-card px-3 py-1 text-xs shadow-sm">
 			{#each summary as item}
 				<span class="inline-flex items-baseline gap-1 whitespace-nowrap">
-					<span class="text-muted-foreground">{item.label}</span>
+					<span class="text-muted-foreground">{item.labelKey ? $_(item.labelKey, { default: item.label }) : item.label}</span>
 					<span class="font-mono text-sm font-semibold tabular-nums">{item.value}</span>
 				</span>
 				{#if item !== summary[summary.length - 1]}
