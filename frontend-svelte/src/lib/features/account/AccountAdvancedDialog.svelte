@@ -7,7 +7,7 @@
 	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import Textarea from '$lib/ui/Textarea.svelte';
 	import {
 		create as createPassthrough, deleteRule as deletePassthrough, list as listPassthrough, toggleEnabled as togglePassthrough,
@@ -74,7 +74,7 @@
 	async function loadAntigravity() { await run('映射已加载', async () => { antigravityMap = await getAntigravityDefaultModelMapping(); }); }
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.advancedTitle', { default: 'Advanced account tools' })} width="lg" data-testid="account-advanced-dialog">
+<StandardDrawer side="right" width="lg" bind:open title={$_('admin.accountsQuench.advancedTitle', { default: 'Advanced account tools' })}  data-testid="account-advanced-dialog">
 	<div class="mt-4 grid gap-4">
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Error passthrough rules</h2>
 			<Textarea rows={6} bind:value={ruleJson} data-testid="error-passthrough-json" /><div class="flex justify-end"><Button disabled={busy} onclick={addRule}>Create passthrough rule</Button></div>
@@ -116,4 +116,4 @@
 		<Card class="space-y-3"><h2 class="text-sm font-semibold">Upstream models</h2><Textarea rows={3} bind:value={upstreamJson} data-testid="upstream-models-json" /><div class="flex justify-end gap-2"><Button variant="outline" disabled={busy} onclick={previewUpstream}>Preview upstream models</Button><Button variant="outline" disabled={busy} onclick={loadAntigravity}>Load Antigravity defaults</Button></div>{#if upstreamResult}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="upstream-models-result">{fmt(upstreamResult)}</pre>{/if}{#if antigravityMap}<pre class="max-h-40 overflow-auto rounded-md border bg-muted/30 p-3 text-xs" data-testid="antigravity-default-mapping">{fmt(antigravityMap)}</pre>{/if}</Card>
 	</div>
 	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: 'Close' })}</Button></div>
-</StandardDialog>
+</StandardDrawer>

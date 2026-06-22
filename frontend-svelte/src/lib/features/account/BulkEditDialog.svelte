@@ -7,7 +7,7 @@
 	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import Textarea from '$lib/ui/Textarea.svelte';
 	import ModelWhitelistSelector from './ModelWhitelistSelector.svelte';
 	import QuotaLimitEditor from './QuotaLimitEditor.svelte';
@@ -143,7 +143,7 @@
 	}
 </script>
 
-<StandardDialog bind:open title={$_('admin.accounts.bulkEdit.title', { default: mode === 'selected' ? 'Edit selected accounts' : 'Edit filtered accounts' })} width="lg" data-testid="accounts-bulk-edit-dialog">
+<StandardDrawer side="right" width="lg" bind:open title={$_('admin.accounts.bulkEdit.title', { default: mode === 'selected' ? 'Edit selected accounts' : 'Edit filtered accounts' })}  data-testid="accounts-bulk-edit-dialog">
 	<div class="mt-4 space-y-4">
 		<!-- Target info -->
 		<div class="rounded-md border border-border bg-muted/30 px-4 py-3">
@@ -285,4 +285,4 @@
 			</Button>
 		</div>
 	</div>
-</StandardDialog>
+</StandardDrawer>

@@ -8,7 +8,7 @@
 	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import Textarea from '$lib/ui/Textarea.svelte';
 	import {
 		clearAccountRateLimit, createScheduledTestPlan, deleteScheduledTestPlan,
@@ -131,7 +131,7 @@
 	async function toggleResults(plan: ScheduledTestPlan) { if (expandedPlanId === plan.id) { expandedPlanId = null; return; } expandedPlanId = plan.id; if (results[plan.id]) return; resultsLoading = new Set([...resultsLoading, plan.id]); try { results = { ...results, [plan.id]: await listScheduledTestResults(plan.id, 50) }; } catch (err) { showError(err instanceof Error ? err.message : String(err)); } finally { const n = new Set(resultsLoading); n.delete(plan.id); resultsLoading = n; } }
 </script>
 
-<StandardDialog bind:open title={account ? `${account.name || account.email || `#${account.id}`} tools` : 'Account tools'} width="lg" data-testid="account-tools-dialog">
+<StandardDrawer side="right" width="lg" bind:open title={account ? `${account.name || account.email || `#${account.id}`} tools` : 'Account tools'}  data-testid="account-tools-dialog">
 	<div class="mt-4 space-y-4">
 		{#if toolsError}<Alert variant="destructive">{toolsError}</Alert>{/if}
 		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -226,4 +226,4 @@
 		</Card>
 	</div>
 	<div class="mt-5 flex justify-end"><Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.close', { default: '关闭' })}</Button></div>
-</StandardDialog>
+</StandardDrawer>

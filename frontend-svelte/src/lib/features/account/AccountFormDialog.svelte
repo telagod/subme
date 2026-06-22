@@ -6,7 +6,7 @@
 	import Checkbox from '$lib/ui/Checkbox.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import Textarea from '$lib/ui/Textarea.svelte';
 	import ModelWhitelistSelector from './ModelWhitelistSelector.svelte';
 	import QuotaLimitEditor from './QuotaLimitEditor.svelte';
@@ -259,7 +259,7 @@
 	}
 </script>
 
-<StandardDialog bind:open title={account ? $_('admin.accounts.editTitle', { default: 'Edit account' }) : $_('admin.accounts.newTitle', { default: 'New account' })} width="lg" data-testid="account-dialog">
+<StandardDrawer side="right" width="lg" bind:open title={account ? $_('admin.accounts.editTitle', { default: 'Edit account' }) : $_('admin.accounts.newTitle', { default: 'New account' })}  data-testid="account-dialog">
 	<div class="mt-4 grid gap-4">
 		{#if error}<Alert variant="destructive" data-testid="account-form-error">{error}</Alert>{/if}
 
@@ -384,4 +384,4 @@
 		<Button variant="outline" onclick={() => { open = false; onClose(); }}>{$_('common.cancel', { default: 'Cancel' })}</Button>
 		<Button disabled={saving || !String(name ?? '').trim() || !String(type ?? '').trim()} onclick={save} data-testid="account-form-save">{saving ? 'Saving...' : 'Save'}</Button>
 	</div>
-</StandardDialog>
+</StandardDrawer>

@@ -6,7 +6,7 @@
 	import Card from '$lib/ui/Card.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import StandardDialog from '$lib/ui/StandardDialog.svelte';
+	import StandardDrawer from '$lib/ui/StandardDrawer.svelte';
 	import {
 		applyOAuthCredentials, cookieAuth, exchangeCode, exchangeOpenAICode,
 		exchangeSetupTokenCode, generateAuthUrl, generateOpenAIAuthUrl,
@@ -144,7 +144,7 @@
 	}
 </script>
 
-<StandardDialog bind:open title={$_('admin.accountsQuench.reauthTitle', { default: '重新授权账户' })} width="lg" data-testid="account-reauth-dialog">
+<StandardDrawer side="right" width="lg" bind:open title={$_('admin.accountsQuench.reauthTitle', { default: '重新授权账户' })}  data-testid="account-reauth-dialog">
 	{#if account}
 		<div class="mt-4 grid gap-4">
 			<Card class="space-y-1">
@@ -194,4 +194,4 @@
 			<Button disabled={busy || !exchangeResult} onclick={applyResult}>{$_('admin.accounts.applyCredentials', { default: 'Apply credentials' })}</Button>
 		</div>
 	{/if}
-</StandardDialog>
+</StandardDrawer>
