@@ -39,10 +39,10 @@
 	let formData = $state(defaultInstallRequest());
 
 	const steps = $derived([
-		{ id: SETUP_STEPS[0], title: $_('setup.database.title', { default: '数据库配置' }) },
-		{ id: SETUP_STEPS[1], title: $_('setup.redis.title', { default: 'Redis 配置' }) },
-		{ id: SETUP_STEPS[2], title: $_('setup.admin.title', { default: '管理员账户' }) },
-		{ id: SETUP_STEPS[3], title: $_('setup.ready.title', { default: '准备安装' }) }
+		{ id: SETUP_STEPS[0], title: $_('setup.database.title', { default: 'Database Configuration' }) },
+		{ id: SETUP_STEPS[1], title: $_('setup.redis.title', { default: 'Redis Configuration' }) },
+		{ id: SETUP_STEPS[2], title: $_('setup.admin.title', { default: 'Admin Account' }) },
+		{ id: SETUP_STEPS[3], title: $_('setup.ready.title', { default: 'Ready to Install' }) }
 	]);
 	const canMoveNext = $derived(canProceed(currentStep, {
 		dbConnected,
@@ -107,7 +107,7 @@
 				}, 1500);
 			} else {
 				errorMessage = $_('setup.status.timeout', {
-					default: '服务重启时间超出预期，请手动刷新页面。'
+					default: 'Service restart took longer than expected. Please refresh the page manually.'
 				});
 			}
 		} catch (err) {
@@ -134,11 +134,11 @@
 				{$_('setup.title', { default: 'subme Setup' })}
 			</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
-				{$_('setup.description', { default: '配置您的 subme 实例' })}
+				{$_('setup.description', { default: 'Configure your subme instance' })}
 			</p>
 		</header>
 
-		<nav class="mb-8 overflow-x-auto" aria-label="Setup progress">
+		<nav class="mb-8 overflow-x-auto" aria-label={$_('setup.progress', { default: 'Setup progress' })}>
 			<div class="flex min-w-max items-center justify-center px-1">
 				{#each steps as step, index}
 					<div class="flex items-center">
@@ -176,47 +176,47 @@
 					<div class="text-center">
 						<Database class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 						<h2 class="text-xl font-semibold tracking-normal text-foreground">
-							{$_('setup.database.title', { default: '数据库配置' })}
+							{$_('setup.database.title', { default: 'Database Configuration' })}
 						</h2>
 						<p class="mt-1 text-sm text-muted-foreground">
-							{$_('setup.database.description', { default: '连接到您的 PostgreSQL 数据库' })}
+							{$_('setup.database.description', { default: 'Connect to your PostgreSQL database' })}
 						</p>
 					</div>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div>
-							<label class={labelClass} for="setup-db-host">{$_('setup.database.host', { default: '主机' })}</label>
+							<label class={labelClass} for="setup-db-host">{$_('setup.database.host', { default: 'Host' })}</label>
 							<Input id="setup-db-host" data-testid="setup-db-host" bind:value={formData.database.host} />
 						</div>
 						<div>
-							<label class={labelClass} for="setup-db-port">{$_('setup.database.port', { default: '端口' })}</label>
+							<label class={labelClass} for="setup-db-port">{$_('setup.database.port', { default: 'Port' })}</label>
 							<Input id="setup-db-port" data-testid="setup-db-port" type="number" bind:value={formData.database.port} />
 						</div>
 					</div>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div>
-							<label class={labelClass} for="setup-db-user">{$_('setup.database.username', { default: '用户名' })}</label>
+							<label class={labelClass} for="setup-db-user">{$_('setup.database.username', { default: 'Username' })}</label>
 							<Input id="setup-db-user" data-testid="setup-db-user" bind:value={formData.database.user} />
 						</div>
 						<div>
-							<label class={labelClass} for="setup-db-password">{$_('setup.database.password', { default: '密码' })}</label>
+							<label class={labelClass} for="setup-db-password">{$_('setup.database.password', { default: 'Password' })}</label>
 							<Input id="setup-db-password" type="password" bind:value={formData.database.password} />
 						</div>
 					</div>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div>
-							<label class={labelClass} for="setup-db-name">{$_('setup.database.databaseName', { default: '数据库名称' })}</label>
+							<label class={labelClass} for="setup-db-name">{$_('setup.database.databaseName', { default: 'Database name' })}</label>
 							<Input id="setup-db-name" data-testid="setup-db-name" bind:value={formData.database.dbname} />
 						</div>
 						<div>
-							<label class={labelClass} for="setup-db-ssl">{$_('setup.database.sslMode', { default: 'SSL 模式' })}</label>
+							<label class={labelClass} for="setup-db-ssl">{$_('setup.database.sslMode', { default: 'SSL Mode' })}</label>
 							<NativeSelect id="setup-db-ssl" class="w-full" bind:value={formData.database.sslmode}>
-								<option value="disable">{$_('setup.database.ssl.disable', { default: '禁用' })}</option>
-								<option value="require">{$_('setup.database.ssl.require', { default: '要求' })}</option>
-								<option value="verify-ca">{$_('setup.database.ssl.verifyCa', { default: '验证 CA' })}</option>
-								<option value="verify-full">{$_('setup.database.ssl.verifyFull', { default: '完全验证' })}</option>
+								<option value="disable">{$_('setup.database.ssl.disable', { default: 'Disable' })}</option>
+								<option value="require">{$_('setup.database.ssl.require', { default: 'Require' })}</option>
+								<option value="verify-ca">{$_('setup.database.ssl.verifyCa', { default: 'Verify CA' })}</option>
+								<option value="verify-full">{$_('setup.database.ssl.verifyFull', { default: 'Verify Full' })}</option>
 							</NativeSelect>
 						</div>
 					</div>
@@ -230,12 +230,12 @@
 					>
 						{#if testingDb}
 							<Loader2 class="h-4 w-4 animate-spin" />
-							{$_('setup.status.testing', { default: '测试中...' })}
+							{$_('setup.status.testing', { default: 'Testing...' })}
 						{:else if dbConnected}
 							<CheckCircle2 class="h-4 w-4 text-emerald-500" />
-							{$_('setup.status.success', { default: '连接成功' })}
+							{$_('setup.status.success', { default: 'Connection successful' })}
 						{:else}
-							{$_('setup.status.testConnection', { default: '测试连接' })}
+							{$_('setup.status.testConnection', { default: 'Test connection' })}
 						{/if}
 					</Button>
 				</div>
@@ -244,37 +244,37 @@
 					<div class="text-center">
 						<Server class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 						<h2 class="text-xl font-semibold tracking-normal text-foreground">
-							{$_('setup.redis.title', { default: 'Redis 配置' })}
+							{$_('setup.redis.title', { default: 'Redis Configuration' })}
 						</h2>
 						<p class="mt-1 text-sm text-muted-foreground">
-							{$_('setup.redis.description', { default: '连接到您的 Redis 服务器' })}
+							{$_('setup.redis.description', { default: 'Connect to your Redis server' })}
 						</p>
 					</div>
 
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div>
-							<label class={labelClass} for="setup-redis-host">{$_('setup.redis.host', { default: '主机' })}</label>
+							<label class={labelClass} for="setup-redis-host">{$_('setup.redis.host', { default: 'Host' })}</label>
 							<Input id="setup-redis-host" data-testid="setup-redis-host" bind:value={formData.redis.host} />
 						</div>
 						<div>
-							<label class={labelClass} for="setup-redis-port">{$_('setup.redis.port', { default: '端口' })}</label>
+							<label class={labelClass} for="setup-redis-port">{$_('setup.redis.port', { default: 'Port' })}</label>
 							<Input id="setup-redis-port" type="number" bind:value={formData.redis.port} />
 						</div>
 					</div>
 					<div class="grid gap-4 sm:grid-cols-2">
 						<div>
-							<label class={labelClass} for="setup-redis-password">{$_('setup.redis.password', { default: '密码（可选）' })}</label>
+							<label class={labelClass} for="setup-redis-password">{$_('setup.redis.password', { default: 'Password (optional)' })}</label>
 							<Input id="setup-redis-password" type="password" bind:value={formData.redis.password} />
 						</div>
 						<div>
-							<label class={labelClass} for="setup-redis-db">{$_('setup.redis.database', { default: '数据库' })}</label>
+							<label class={labelClass} for="setup-redis-db">{$_('setup.redis.database', { default: 'Database' })}</label>
 							<Input id="setup-redis-db" type="number" bind:value={formData.redis.db} />
 						</div>
 					</div>
 					<label class="flex items-center justify-between gap-4 rounded-md border border-border p-3">
 						<span>
-							<span class="block text-sm font-medium text-foreground">{$_('setup.redis.enableTls', { default: '启用 TLS' })}</span>
-							<span class="block text-xs text-muted-foreground">{$_('setup.redis.enableTlsHint', { default: '连接 Redis 时使用 TLS' })}</span>
+							<span class="block text-sm font-medium text-foreground">{$_('setup.redis.enableTls', { default: 'Enable TLS' })}</span>
+							<span class="block text-xs text-muted-foreground">{$_('setup.redis.enableTlsHint', { default: 'Use TLS when connecting to Redis' })}</span>
 						</span>
 						<Checkbox bind:checked={formData.redis.enable_tls} />
 					</label>
@@ -287,12 +287,12 @@
 					>
 						{#if testingRedis}
 							<Loader2 class="h-4 w-4 animate-spin" />
-							{$_('setup.status.testing', { default: '测试中...' })}
+							{$_('setup.status.testing', { default: 'Testing...' })}
 						{:else if redisConnected}
 							<CheckCircle2 class="h-4 w-4 text-emerald-500" />
-							{$_('setup.status.success', { default: '连接成功' })}
+							{$_('setup.status.success', { default: 'Connection successful' })}
 						{:else}
-							{$_('setup.status.testConnection', { default: '测试连接' })}
+							{$_('setup.status.testConnection', { default: 'Test connection' })}
 						{/if}
 					</Button>
 				</div>
@@ -301,26 +301,26 @@
 					<div class="text-center">
 						<ShieldCheck class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 						<h2 class="text-xl font-semibold tracking-normal text-foreground">
-							{$_('setup.admin.title', { default: '管理员账户' })}
+							{$_('setup.admin.title', { default: 'Admin Account' })}
 						</h2>
 						<p class="mt-1 text-sm text-muted-foreground">
-							{$_('setup.admin.description', { default: '创建管理员账户' })}
+							{$_('setup.admin.description', { default: 'Create admin account' })}
 						</p>
 					</div>
 					<div>
-						<label class={labelClass} for="setup-admin-email">{$_('setup.admin.email', { default: '邮箱' })}</label>
+						<label class={labelClass} for="setup-admin-email">{$_('setup.admin.email', { default: 'Email' })}</label>
 						<Input id="setup-admin-email" data-testid="setup-admin-email" type="email" bind:value={formData.admin.email} />
 					</div>
 					<div>
-						<label class={labelClass} for="setup-admin-password">{$_('setup.admin.password', { default: '密码' })}</label>
+						<label class={labelClass} for="setup-admin-password">{$_('setup.admin.password', { default: 'Password' })}</label>
 						<Input id="setup-admin-password" data-testid="setup-admin-password" type="password" bind:value={formData.admin.password} />
 					</div>
 					<div>
-						<label class={labelClass} for="setup-admin-confirm">{$_('setup.admin.confirmPassword', { default: '确认密码' })}</label>
+						<label class={labelClass} for="setup-admin-confirm">{$_('setup.admin.confirmPassword', { default: 'Confirm password' })}</label>
 						<Input id="setup-admin-confirm" data-testid="setup-admin-confirm" type="password" bind:value={confirmPassword} />
 						{#if passwordMismatch}
 							<p class="mt-1 text-sm text-destructive" data-testid="setup-password-mismatch">
-								{$_('setup.admin.passwordMismatch', { default: '密码不匹配' })}
+								{$_('setup.admin.passwordMismatch', { default: 'Passwords do not match' })}
 							</p>
 						{/if}
 					</div>
@@ -330,15 +330,15 @@
 					<div class="text-center">
 						<RefreshCw class="mx-auto mb-3 h-7 w-7 text-muted-foreground" />
 						<h2 class="text-xl font-semibold tracking-normal text-foreground">
-							{$_('setup.ready.title', { default: '准备安装' })}
+							{$_('setup.ready.title', { default: 'Ready to Install' })}
 						</h2>
 						<p class="mt-1 text-sm text-muted-foreground">
-							{$_('setup.ready.description', { default: '检查您的配置并完成安装' })}
+							{$_('setup.ready.description', { default: 'Review your configuration and complete installation' })}
 						</p>
 					</div>
 					<div class="space-y-4">
 						<div class="rounded-md border border-border bg-muted p-4">
-							<h3 class="mb-2 text-sm font-medium text-muted-foreground">{$_('setup.ready.database', { default: '数据库' })}</h3>
+							<h3 class="mb-2 text-sm font-medium text-muted-foreground">{$_('setup.ready.database', { default: 'Database' })}</h3>
 							<p class="break-words text-sm text-foreground">{formData.database.user}@{formData.database.host}:{formData.database.port}/{formData.database.dbname}</p>
 						</div>
 						<div class="rounded-md border border-border bg-muted p-4">
@@ -346,7 +346,7 @@
 							<p class="break-words text-sm text-foreground">{formData.redis.host}:{formData.redis.port}</p>
 						</div>
 						<div class="rounded-md border border-border bg-muted p-4">
-							<h3 class="mb-2 text-sm font-medium text-muted-foreground">{$_('setup.ready.adminEmail', { default: '管理员邮箱' })}</h3>
+							<h3 class="mb-2 text-sm font-medium text-muted-foreground">{$_('setup.ready.adminEmail', { default: 'Admin email' })}</h3>
 							<p class="break-words text-sm text-foreground">{formData.admin.email}</p>
 						</div>
 					</div>
@@ -372,12 +372,12 @@
 						{/if}
 						<div>
 							<p class="text-sm font-medium text-emerald-600">
-								{$_('setup.status.completed', { default: '安装完成！' })}
+								{$_('setup.status.completed', { default: 'Installation complete!' })}
 							</p>
 							<p class="mt-1 text-sm text-emerald-600/80">
 								{serviceReady
-									? $_('setup.status.redirecting', { default: '跳转到登录页面中...' })
-									: $_('setup.status.restarting', { default: '服务正在重启，请稍候...' })}
+									? $_('setup.status.redirecting', { default: 'Redirecting to login page...' })
+									: $_('setup.status.restarting', { default: 'Service is restarting, please wait...' })}
 							</p>
 						</div>
 					</div>
@@ -394,7 +394,7 @@
 						}}
 					>
 						<ChevronLeft class="h-4 w-4" />
-						{$_('common.back', { default: '返回' })}
+						{$_('common.back', { default: 'Back' })}
 					</Button>
 				{:else}
 					<span></span>
@@ -406,7 +406,7 @@
 						disabled={!canMoveNext}
 						onclick={nextStep}
 					>
-						{$_('common.next', { default: '下一步' })}
+						{$_('common.next', { default: 'Next' })}
 						<ChevronRight class="h-4 w-4" />
 					</Button>
 				{:else if !installSuccess}
@@ -417,9 +417,9 @@
 					>
 						{#if installing}
 							<Loader2 class="h-4 w-4 animate-spin" />
-							{$_('setup.status.installing', { default: '安装中...' })}
+							{$_('setup.status.installing', { default: 'Installing...' })}
 						{:else}
-							{$_('setup.status.completeInstallation', { default: '完成安装' })}
+							{$_('setup.status.completeInstallation', { default: 'Complete installation' })}
 						{/if}
 					</Button>
 				{/if}

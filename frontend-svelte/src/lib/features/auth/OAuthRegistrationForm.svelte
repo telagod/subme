@@ -42,7 +42,7 @@
 >
 	<div class="space-y-1.5">
 		<label for="oauth-registration-email" class="text-sm font-medium text-foreground">
-			{$_('auth.emailLabel', { default: '邮箱' })}
+			{$_('auth.emailLabel', { default: 'Email' })}
 		</label>
 		<Input
 			id="oauth-registration-email"
@@ -57,7 +57,7 @@
 
 	<div class="space-y-1.5">
 		<label for="oauth-registration-password" class="text-sm font-medium text-foreground">
-			{$_('auth.register.passwordLabel', { default: '密码' })}
+			{$_('auth.register.passwordLabel', { default: 'Password' })}
 		</label>
 		<Input
 			id="oauth-registration-password"
@@ -71,7 +71,7 @@
 
 	<div class="space-y-1.5">
 		<label for="oauth-registration-confirm" class="text-sm font-medium text-foreground">
-			{$_('auth.register.confirmPasswordLabel', { default: '确认密码' })}
+			{$_('auth.register.confirmPasswordLabel', { default: 'Confirm password' })}
 		</label>
 		<Input
 			id="oauth-registration-confirm"
@@ -86,7 +86,7 @@
 	{#if invitationRequired}
 		<div class="space-y-1.5">
 			<label for="oauth-registration-invitation" class="text-sm font-medium text-foreground">
-				{$_('auth.invitationCodeLabel', { default: '邀请码' })}
+				{$_('auth.invitationCodeLabel', { default: 'Invitation code' })}
 			</label>
 			<Input
 				id="oauth-registration-invitation"
@@ -111,7 +111,7 @@
 		class="w-full"
 	>
 		{submitting
-			? $_('auth.callback.totpSubmitting', { default: '验证中...' })
-			: $_('auth.emailCompletion.submit', { default: '完成登录' })}
+			? $_('auth.callback.totpSubmitting', { default: 'Verifying...' })
+			: $_('auth.emailCompletion.submit', { default: 'Complete sign-in' })}
 	</Button>
 </form>

@@ -71,7 +71,7 @@
 		} catch (err) {
 			const e = err as Error;
 			loadError = e?.message ?? 'Failed to load keys';
-			showError($_('user.keys.failedToLoad', { default: '加载 API 密钥失败' }));
+			showError($_('user.keys.failedToLoad', { default: 'Failed to load API keys' }));
 		} finally {
 			loading = false;
 		}
@@ -112,11 +112,11 @@
 			// Update the key in place
 			keys = keys.map(existing => existing.id === updated.id ? updated : existing);
 			const label = updated.status === 'active'
-				? $_('user.keys.enabled', { default: '密钥已启用' })
-				: $_('user.keys.disabled', { default: '密钥已禁用' });
+				? $_('user.keys.enabled', { default: 'Key enabled' })
+				: $_('user.keys.disabled', { default: 'Key disabled' });
 			showSuccess(label);
 		} catch (err) {
-			showError((err as Error)?.message ?? $_('user.keys.toggleError', { default: '切换密钥状态失败' }));
+			showError((err as Error)?.message ?? $_('user.keys.toggleError', { default: 'Failed to toggle key status' }));
 		} finally {
 			const next = new Set(toggling);
 			next.delete(k.id);
@@ -130,7 +130,7 @@
 	}
 	function fmtQuota(k: ApiKey): string {
 		if (!k.quotaTotal) {
-			return `$${k.quotaUsed.toFixed(2)} / ${$_('user.keys.unlimited', { default: '不限' })}`;
+			return `$${k.quotaUsed.toFixed(2)} / ${$_('user.keys.unlimited', { default: 'Unlimited' })}`;
 		}
 		return `$${k.quotaUsed.toFixed(2)} / $${k.quotaTotal.toFixed(2)}`;
 	}
@@ -160,7 +160,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.apiKeys', { default: 'API 密钥' })} · sub2api</title>
+	<title>{$_('nav.apiKeys', { default: 'API Keys' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="keys-page">
@@ -168,11 +168,11 @@
 	<header class="flex items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.keys.pageTitle', { default: 'API 密钥' })}
+				{$_('user.keys.pageTitle', { default: 'API Keys' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.keys.pageSubtitle', {
-					default: '创建和管理您用于程序访问的 API 密钥。'
+					default: 'Create and manage your API keys for programmatic access.'
 				})}
 			</p>
 		</div>
@@ -180,7 +180,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.keys.refresh', { default: '刷新' })}
+				aria-label={$_('user.keys.refresh', { default: 'Refresh' })}
 				data-testid="keys-refresh-btn"
 				onclick={refreshList}
 				class="h-9 w-9 text-muted-foreground"
@@ -193,7 +193,7 @@
 				class="h-9 gap-1.5 px-3"
 			>
 				<Plus class="h-4 w-4" />
-				{$_('user.keys.newKey', { default: '新 API 密钥' })}
+				{$_('user.keys.newKey', { default: 'New API Key' })}
 			</Button>
 		</div>
 	</header>
@@ -201,7 +201,7 @@
 	<!-- Filters -->
 	<div class="flex flex-wrap items-center gap-3">
 		<label class="text-sm text-muted-foreground" for="status-filter">
-			{$_('user.keys.statusFilter', { default: '状态' })}
+			{$_('user.keys.statusFilter', { default: 'State' })}
 		</label>
 		<NativeSelect
 			id="status-filter"
@@ -210,7 +210,7 @@
 			onchange={handleStatusChange}
 			class="h-9"
 		>
-			<option value={STATUS_ALL}>{$_('user.keys.allStatus', { default: '全部状态' })}</option>
+			<option value={STATUS_ALL}>{$_('user.keys.allStatus', { default: 'All statuses' })}</option>
 			<option value="active">{statusLabel('active')}</option>
 			<option value="inactive">{statusLabel('inactive')}</option>
 			<option value="quota_exhausted">{statusLabel('quota_exhausted')}</option>
@@ -221,12 +221,12 @@
 	<!-- Table -->
 	{#if loading}
 		<div class="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground" data-testid="keys-loading">
-			{$_('user.keys.loading', { default: '加载中…' })}
+			{$_('user.keys.loading', { default: 'Loading...' })}
 		</div>
 	{:else if loadError && filteredKeys.length === 0}
 		<Alert variant="destructive" class="p-8 text-center" data-testid="keys-error">
 			<p class="text-sm font-medium text-destructive">
-				{$_('user.keys.failedToLoad', { default: '加载 API 密钥失败' })}
+				{$_('user.keys.failedToLoad', { default: 'Failed to load API keys' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
 			<Button
@@ -235,7 +235,7 @@
 				onclick={refreshList}
 				class="mt-4"
 			>
-				{$_('user.keys.retry', { default: '重试' })}
+				{$_('user.keys.retry', { default: 'Retry' })}
 			</Button>
 		</Alert>
 	{:else if filteredKeys.length === 0}
@@ -249,11 +249,11 @@
 			</div>
 			<div class="space-y-1">
 				<h2 class="text-base font-semibold text-foreground">
-					{$_('user.keys.emptyTitle', { default: '暂无 API 密钥' })}
+					{$_('user.keys.emptyTitle', { default: 'No API keys' })}
 				</h2>
 				<p class="max-w-sm text-sm text-muted-foreground">
 					{$_('user.keys.emptyDescription', {
-						default: '创建您的第一个密钥以开始调用 API。'
+						default: 'Create your first key to start making API calls.'
 					})}
 				</p>
 			</div>
@@ -263,21 +263,21 @@
 				class="mt-1 h-9 gap-1.5"
 			>
 				<Plus class="h-4 w-4" />
-				{$_('user.keys.createFirstKey', { default: '创建您的第一个密钥' })}
+				{$_('user.keys.createFirstKey', { default: 'Create your first key' })}
 			</Button>
 		</div>
 	{:else if useVirtual}
 		<!-- Virtual table 路径（> 50 行） -->
 		<div class="rounded-lg border border-border bg-card" data-testid="keys-virtual-wrap">
 			<div class="grid grid-cols-[1.2fr_1.4fr_0.8fr_0.9fr_1fr_0.7fr_0.9fr_0.8fr] gap-3 border-b border-border bg-muted/40 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-				<div>{$_('user.keys.colName', { default: '名称' })}</div>
-				<div>{$_('user.keys.colKey', { default: '密钥' })}</div>
-				<div>{$_('user.keys.colGroup', { default: '分组' })}</div>
-				<div>{$_('user.keys.colUsage', { default: '用量' })}</div>
-				<div>{$_('user.keys.colQuota', { default: '配额' })}</div>
-				<div>{$_('user.keys.colStatus', { default: '状态' })}</div>
-				<div>{$_('user.keys.colCreated', { default: '创建时间' })}</div>
-				<div class="text-right">{$_('user.keys.colActions', { default: '操作' })}</div>
+				<div>{$_('user.keys.colName', { default: 'Name' })}</div>
+				<div>{$_('user.keys.colKey', { default: 'Key' })}</div>
+				<div>{$_('user.keys.colGroup', { default: 'Group' })}</div>
+				<div>{$_('user.keys.colUsage', { default: 'Usage' })}</div>
+				<div>{$_('user.keys.colQuota', { default: 'Quota' })}</div>
+				<div>{$_('user.keys.colStatus', { default: 'State' })}</div>
+				<div>{$_('user.keys.colCreated', { default: 'Created' })}</div>
+				<div class="text-right">{$_('user.keys.colActions', { default: 'Actions' })}</div>
 			</div>
 			<div class="h-[60vh]">
 				<VirtualTable rows={filteredKeys} rowHeight={56} getRowKey={(r) => r.id}>
@@ -301,8 +301,8 @@
 								{/if}
 							</div>
 							<div class="text-xs text-muted-foreground space-y-0.5">
-								<div>{$_('user.keys.today', { default: '今天' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
-								<div>{$_('user.keys.total', { default: '总计' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
+								<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+								<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
 							</div>
 							<div class="text-muted-foreground">{fmtQuota(k)}</div>
 							<div>
@@ -316,8 +316,8 @@
 									variant="outline"
 									size="icon"
 									aria-label={k.status === 'active'
-										? $_('user.keys.disableAria', { default: '禁用密钥' })
-										: $_('user.keys.enableAria', { default: '启用密钥' })}
+										? $_('user.keys.disableAria', { default: 'Disable key' })
+										: $_('user.keys.enableAria', { default: 'Enable key' })}
 									data-testid="keys-toggle-btn"
 									onclick={() => handleToggleStatus(k)}
 									disabled={toggling.has(k.id)}
@@ -328,7 +328,7 @@
 								<Button
 									variant="outline"
 									size="icon"
-									aria-label={$_('user.keys.editAria', { default: '编辑密钥' })}
+									aria-label={$_('user.keys.editAria', { default: 'Edit key' })}
 									data-testid="keys-edit-btn"
 									onclick={() => openEdit(k)}
 									class="h-8 w-8"
@@ -338,7 +338,7 @@
 								<Button
 									variant="outline"
 									size="icon"
-									aria-label={$_('user.keys.revokeAria', { default: '撤销密钥' })}
+									aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
 									data-testid="keys-revoke-btn"
 									data-key-id={k.id}
 									onclick={() => openRevoke(k)}
@@ -358,14 +358,14 @@
 			<table class="w-full text-sm" data-testid="keys-table">
 				<thead>
 					<tr class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colName', { default: '名称' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colKey', { default: '密钥' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colGroup', { default: '分组' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colUsage', { default: '用量' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colQuota', { default: '配额' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colStatus', { default: '状态' })}</th>
-						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colCreated', { default: '创建时间' })}</th>
-						<th class="px-4 py-2 text-right font-medium">{$_('user.keys.colActions', { default: '操作' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colName', { default: 'Name' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colKey', { default: 'Key' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colGroup', { default: 'Group' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colUsage', { default: 'Usage' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colQuota', { default: 'Quota' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colStatus', { default: 'State' })}</th>
+						<th class="px-4 py-2 text-left font-medium">{$_('user.keys.colCreated', { default: 'Created' })}</th>
+						<th class="px-4 py-2 text-right font-medium">{$_('user.keys.colActions', { default: 'Actions' })}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -392,8 +392,8 @@
 							</td>
 							<td class="px-4 py-3">
 								<div class="text-xs text-muted-foreground space-y-0.5">
-									<div>{$_('user.keys.today', { default: '今天' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
-									<div>{$_('user.keys.total', { default: '总计' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
+									<div>{$_('user.keys.today', { default: 'Today' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageToday ?? 0).toFixed(4)}</span></div>
+									<div>{$_('user.keys.total', { default: 'Total' })}: <span class="font-mono tabular-nums text-foreground">${(k.usageTotal ?? 0).toFixed(4)}</span></div>
 								</div>
 							</td>
 							<td class="px-4 py-3 text-muted-foreground">{fmtQuota(k)}</td>
@@ -409,8 +409,8 @@
 										variant="outline"
 										size="icon"
 										aria-label={k.status === 'active'
-											? $_('user.keys.disableAria', { default: '禁用密钥' })
-											: $_('user.keys.enableAria', { default: '启用密钥' })}
+											? $_('user.keys.disableAria', { default: 'Disable key' })
+											: $_('user.keys.enableAria', { default: 'Enable key' })}
 										data-testid="keys-toggle-btn"
 										onclick={() => handleToggleStatus(k)}
 										disabled={toggling.has(k.id)}
@@ -421,7 +421,7 @@
 									<Button
 										variant="outline"
 										size="icon"
-										aria-label={$_('user.keys.editAria', { default: '编辑密钥' })}
+										aria-label={$_('user.keys.editAria', { default: 'Edit key' })}
 										data-testid="keys-edit-btn"
 										onclick={() => openEdit(k)}
 										class="h-8 w-8"
@@ -431,7 +431,7 @@
 									<Button
 										variant="outline"
 										size="icon"
-										aria-label={$_('user.keys.revokeAria', { default: '撤销密钥' })}
+										aria-label={$_('user.keys.revokeAria', { default: 'Revoke key' })}
 										data-testid="keys-revoke-btn"
 										data-key-id={k.id}
 										onclick={() => openRevoke(k)}

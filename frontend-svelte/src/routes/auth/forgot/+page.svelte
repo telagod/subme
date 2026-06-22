@@ -42,7 +42,7 @@
 				success = true;
 			} catch (err) {
 				const key = mapAuthError(err, 'forgot');
-				formError = $_(key, { default: '发送重置链接失败。' });
+				formError = $_(key, { default: 'Failed to send reset link.' });
 				showError(formError);
 			}
 		}
@@ -59,13 +59,13 @@
 </script>
 
 <svelte:head>
-	<title>{$_('auth.forgotPasswordTitle', { default: '重置密码' })} · sub2api</title>
+	<title>{$_('auth.forgotPasswordTitle', { default: 'Reset Password' })} · sub2api</title>
 </svelte:head>
 
 <AuthLayout
-	title={$_('auth.forgotPasswordTitle', { default: '重置密码' })}
+	title={$_('auth.forgotPasswordTitle', { default: 'Reset Password' })}
 	subtitle={$_('auth.forgotPasswordHint', {
-		default: '输入您的邮箱，我们将发送重置链接。'
+		default: 'Enter your email and we will send a reset link.'
 	})}
 >
 	{#if success}
@@ -74,7 +74,7 @@
 				<span class="block pt-1 text-base">✓</span>
 			</div>
 			<h2 class="text-base font-medium text-foreground">
-				{$_('auth.resetEmailSent', { default: '请查收邮箱' })}
+				{$_('auth.resetEmailSent', { default: 'Check your email' })}
 			</h2>
 			<p class="text-xs text-muted-foreground">
 				{$_('auth.resetEmailSentHint', {
@@ -90,7 +90,7 @@
 		<form method="POST" use:enhance class="space-y-4" data-testid="forgot-form">
 			<div class="space-y-1.5">
 				<label for="forgot-email" class="text-sm font-medium text-foreground">
-					{$_('auth.emailLabel', { default: '邮箱' })}
+					{$_('auth.emailLabel', { default: 'Email' })}
 				</label>
 				<Input
 					id="forgot-email"
@@ -122,16 +122,16 @@
 				class="w-full"
 			>
 				{$submitting
-					? $_('auth.sendingResetLink', { default: '发送中...' })
-					: $_('auth.sendResetLink', { default: '发送重置链接' })}
+					? $_('auth.sendingResetLink', { default: 'Sending...' })
+					: $_('auth.sendResetLink', { default: 'Send reset link' })}
 			</Button>
 		</form>
 	{/if}
 
 	{#snippet footer()}
-		{$_('auth.rememberedPassword', { default: '想起密码了？' })}
+		{$_('auth.rememberedPassword', { default: 'Remembered your password?' })}
 		<a class="ml-1 text-foreground underline-offset-4 hover:underline" href="/auth/login">
-			{$_('auth.backToLogin', { default: '返回登录' })}
+			{$_('auth.backToLogin', { default: 'Back to login' })}
 		</a>
 	{/snippet}
 </AuthLayout>

@@ -88,7 +88,7 @@
 			const msg = (err as Error)?.message ?? '';
 			if (msg === 'unauthorized') return;
 			loadError = msg || 'load failed';
-			showError($_('user.purchase.failedToLoad', { default: '加载方案失败' }));
+			showError($_('user.purchase.failedToLoad', { default: 'Failed to load plans' }));
 		} finally {
 			loading = false;
 		}
@@ -130,11 +130,11 @@
 	function providerLabel(kind: string): string {
 		switch (kind) {
 			case 'stripe':
-				return $_('user.purchase.providerStripe', { default: 'Stripe（银行卡 / 支付宝 / 微信）' });
+				return $_('user.purchase.providerStripe', { default: 'Stripe (Card / Alipay / WeChat)' });
 			case 'airwallex':
 				return $_('user.purchase.providerAirwallex', { default: 'Airwallex' });
 			case 'balance':
-				return $_('user.purchase.providerBalance', { default: '余额支付' });
+				return $_('user.purchase.providerBalance', { default: 'Balance payment' });
 			default:
 				return kind;
 		}
@@ -190,7 +190,7 @@
 
 			// Balance deduction: backend handles it server-side, just show success
 			if (selectedProvider === 'balance') {
-				showSuccess($_('user.purchase.balanceSuccess', { default: '已通过余额完成支付' }));
+				showSuccess($_('user.purchase.balanceSuccess', { default: 'Payment completed via balance' }));
 				closeProvider();
 				return;
 			}
@@ -221,7 +221,7 @@
 
 			// Execute launch decision
 			if (decision.kind === 'unhandled') {
-				showError($_('user.purchase.checkoutError', { default: '此订单不支持该支付方式' }));
+				showError($_('user.purchase.checkoutError', { default: 'This payment method is not supported for this order' }));
 				return;
 			}
 
@@ -275,7 +275,7 @@
 			const e = err as Error;
 			showError(
 				$_('user.purchase.checkoutError', {
-					default: '启动结账失败',
+					default: 'Failed to start checkout',
 					values: { error: e?.message ?? 'unknown' }
 				})
 			);
@@ -289,7 +289,7 @@
 		promoApplied = true;
 		showInfo(
 			$_('user.purchase.promoApplied', {
-				default: '优惠码已应用：{code}',
+				default: 'Promo code applied: {code}',
 				values: { code: promoCode.trim() }
 			})
 		);
@@ -302,7 +302,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.buySubscription', { default: '购买订阅' })} · sub2api</title>
+	<title>{$_('nav.buySubscription', { default: 'Buy Subscription' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="purchase-page">
@@ -310,11 +310,11 @@
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.purchase.pageTitle', { default: '选择方案' })}
+				{$_('user.purchase.pageTitle', { default: 'Choose a Plan' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.purchase.pageSubtitle', {
-					default: '订阅以解锁更高配额和专属渠道。'
+					default: 'Subscribe to unlock higher quotas and exclusive channels.'
 				})}
 			</p>
 		</div>
@@ -322,7 +322,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.purchase.refresh', { default: '刷新' })}
+				aria-label={$_('user.purchase.refresh', { default: 'Refresh' })}
 				data-testid="purchase-refresh-btn"
 				onclick={loadPlans}
 				class="h-9 w-9 text-muted-foreground"
@@ -336,10 +336,10 @@
 	<div class="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3">
 		<div class="flex items-center gap-2 text-sm text-muted-foreground">
 			<Wallet class="h-4 w-4" />
-			<span>{$_('user.purchase.currentBalance', { default: '当前余额' })}</span>
+			<span>{$_('user.purchase.currentBalance', { default: 'Current balance' })}</span>
 		</div>
 		<a href="/billing" class="text-sm font-medium text-primary hover:underline" data-testid="purchase-topup-link">
-			{$_('user.purchase.goTopUp', { default: '余额充值 →' })}
+			{$_('user.purchase.goTopUp', { default: 'Top up balance →' })}
 		</a>
 	</div>
 
@@ -349,14 +349,14 @@
 		data-testid="purchase-promo"
 	>
 		<label for="promo-code" class="text-sm font-medium text-foreground">
-			{$_('user.purchase.promoLabel', { default: '优惠码' })}
+			{$_('user.purchase.promoLabel', { default: 'Promo code' })}
 		</label>
 		<Input
 			id="promo-code"
 			data-testid="purchase-promo-input"
 			type="text"
 			autocomplete="off"
-			placeholder={$_('user.purchase.promoPlaceholder', { default: '输入代码（可选）' })}
+			placeholder={$_('user.purchase.promoPlaceholder', { default: 'Enter code (optional)' })}
 			bind:value={promoCode}
 			disabled={promoApplied}
 			class="h-9 min-w-[12rem] flex-1"
@@ -368,7 +368,7 @@
 				onclick={handleClearPromo}
 				class="h-9 px-3"
 			>
-				{$_('user.purchase.promoClear', { default: '清除' })}
+				{$_('user.purchase.promoClear', { default: 'Clear' })}
 			</Button>
 		{:else}
 			<Button
@@ -377,7 +377,7 @@
 				onclick={handleApplyPromo}
 				class="h-9 px-3"
 			>
-				{$_('user.purchase.promoApply', { default: '应用' })}
+				{$_('user.purchase.promoApply', { default: 'Apply' })}
 			</Button>
 		{/if}
 	</div>
@@ -408,7 +408,7 @@
 			data-testid="purchase-error"
 		>
 			<p class="text-sm font-medium text-destructive">
-				{$_('user.purchase.failedToLoad', { default: '加载方案失败' })}
+				{$_('user.purchase.failedToLoad', { default: 'Failed to load plans' })}
 			</p>
 			<p class="mt-1 text-xs text-muted-foreground">{loadError}</p>
 			<Button
@@ -417,7 +417,7 @@
 				onclick={loadPlans}
 				class="mt-4"
 			>
-				{$_('user.purchase.retry', { default: '重试' })}
+				{$_('user.purchase.retry', { default: 'Retry' })}
 			</Button>
 		</Alert>
 	{:else if plans.length === 0}
@@ -430,11 +430,11 @@
 			</div>
 			<div class="space-y-1">
 				<h2 class="text-base font-semibold text-foreground">
-					{$_('user.purchase.emptyTitle', { default: '暂无可用方案' })}
+					{$_('user.purchase.emptyTitle', { default: 'No plans available' })}
 				</h2>
 				<p class="max-w-sm text-sm text-muted-foreground">
 					{$_('user.purchase.emptyDescription', {
-						default: '请稍后查看，如果预期应有方案请联系客服。'
+						default: 'Please check back later. Contact support if plans should be available.'
 					})}
 				</p>
 			</div>
@@ -454,7 +454,7 @@
 <StandardDialog
 	open={providerOpen && Boolean(selectedPlan)}
 	width="sm"
-	title={$_('user.purchase.providerTitle', { default: '选择支付方式' })}
+	title={$_('user.purchase.providerTitle', { default: 'Choose payment method' })}
 	data-testid="purchase-provider-panel"
 >
 	{#if selectedPlan}
@@ -465,7 +465,7 @@
 		<div
 			class="mt-5 space-y-2"
 			role="radiogroup"
-			aria-label={$_('user.purchase.providerTitle', { default: '选择支付方式' })}
+			aria-label={$_('user.purchase.providerTitle', { default: 'Choose payment method' })}
 		>
 			{#each availableProviders as provider (provider.id)}
 				{@const Icon = providerIcon(provider.kind)}
@@ -488,7 +488,7 @@
 			{/each}
 			{#if availableProviders.length === 0}
 				<p class="py-4 text-center text-sm text-muted-foreground">
-					{$_('user.purchase.noPaymentMethods', { default: '暂无可用支付方式。' })}
+					{$_('user.purchase.noPaymentMethods', { default: 'No payment methods available.' })}
 				</p>
 			{/if}
 		</div>
@@ -501,7 +501,7 @@
 				onclick={closeProvider}
 				class="h-9"
 			>
-				{$_('user.purchase.cancel', { default: '取消' })}
+				{$_('user.purchase.cancel', { default: 'Cancel' })}
 			</Button>
 			<Button
 				data-testid="purchase-provider-confirm"
@@ -510,8 +510,8 @@
 				class="h-9"
 			>
 				{checkoutSubmitting
-					? $_('user.purchase.processing', { default: '处理中...' })
-					: $_('user.purchase.continueToPayment', { default: '继续支付' })}
+					? $_('user.purchase.processing', { default: 'Processing...' })
+					: $_('user.purchase.continueToPayment', { default: 'Continue to payment' })}
 			</Button>
 		</div>
 	{/if}

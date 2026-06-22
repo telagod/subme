@@ -70,13 +70,13 @@
 			await updateBasicInfo({ username, language, timezone });
 			// 不强刷 user store，等后端响应后下次 hydrate 自然更新。
 			showSuccess(
-				$_('user.profile.updateSuccess', { default: '个人资料更新成功' })
+				$_('user.profile.updateSuccess', { default: 'Profile updated successfully' })
 			);
 		} catch (err) {
 			const e = err as Error;
 			showError(
 				e?.message ??
-					$_('user.profile.updateFailed', { default: '更新个人资料失败' })
+					$_('user.profile.updateFailed', { default: 'Failed to update profile' })
 			);
 		} finally {
 			savingBasic = false;
@@ -144,13 +144,13 @@
 		try {
 			await deleteAccount({ email: confirmEmail.trim(), password: deletePassword });
 			showSuccess(
-				$_('user.danger.deleteSuccess', { default: '账户已删除，正在登出…' })
+				$_('user.danger.deleteSuccess', { default: 'Account deleted, logging out...' })
 			);
 			await auth.logout();
 		} catch (err) {
 			const e = err as Error;
 			showError(
-				e?.message ?? $_('user.danger.deleteFailed', { default: '删除账户失败' })
+				e?.message ?? $_('user.danger.deleteFailed', { default: 'Failed to delete account' })
 			);
 		} finally {
 			deletingAccount = false;
@@ -170,17 +170,17 @@
 </script>
 
 <svelte:head>
-	<title>{$_('user.profile.title', { default: '个人资料' })} · sub2api</title>
+	<title>{$_('user.profile.title', { default: 'Profile' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="profile-page">
 	<header class="space-y-1">
 		<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-			{$_('user.profile.title', { default: '个人设置' })}
+			{$_('user.profile.title', { default: 'Settings' })}
 		</h1>
 		<p class="text-sm text-muted-foreground">
 			{$_('user.profile.description', {
-				default: '管理您的账户、安全、关联和危险操作。'
+				default: 'Manage your account, security, connections and danger zone.'
 			})}
 		</p>
 	</header>
@@ -197,7 +197,7 @@
 			onclick={() => (activeTab = 'basic')}
 		>
 			<UserIcon class="h-4 w-4" />
-			{$_('user.profile.tabBasic', { default: '基本信息' })}
+			{$_('user.profile.tabBasic', { default: 'Basic Info' })}
 		</Button>
 		<Button
 			type="button"
@@ -209,7 +209,7 @@
 			onclick={() => (activeTab = 'security')}
 		>
 			<ShieldCheck class="h-4 w-4" />
-			{$_('user.profile.tabSecurity', { default: '安全' })}
+			{$_('user.profile.tabSecurity', { default: 'Security' })}
 		</Button>
 		<Button
 			type="button"
@@ -221,7 +221,7 @@
 			onclick={() => (activeTab = 'connections')}
 		>
 			<Link2 class="h-4 w-4" />
-			{$_('user.profile.tabConnections', { default: '连接数' })}
+			{$_('user.profile.tabConnections', { default: 'Connections' })}
 		</Button>
 		<Button
 			type="button"
@@ -233,7 +233,7 @@
 			onclick={() => (activeTab = 'danger')}
 		>
 			<AlertOctagon class="h-4 w-4" />
-			{$_('user.profile.tabDanger', { default: '危险操作' })}
+			{$_('user.profile.tabDanger', { default: 'Danger Zone' })}
 		</Button>
 	</div>
 
@@ -246,11 +246,11 @@
 		>
 			<header class="mb-5 space-y-1">
 				<h2 class="text-base font-semibold text-foreground">
-					{$_('user.profile.basicsTitle', { default: '基本信息' })}
+					{$_('user.profile.basicsTitle', { default: 'Basic Info' })}
 				</h2>
 				<p class="text-sm text-muted-foreground">
 					{$_('user.profile.basicsDescription', {
-						default: '更新您的用户名、语言和时区。'
+						default: 'Update your username, language and timezone.'
 					})}
 				</p>
 			</header>
@@ -259,7 +259,7 @@
 				<!-- email read-only -->
 				<div class="space-y-1.5">
 					<label for="pf-email" class="text-sm font-medium text-foreground">
-						{$_('user.profile.email', { default: '邮箱' })}
+						{$_('user.profile.email', { default: 'Email' })}
 					</label>
 					<Input
 						id="pf-email"
@@ -274,7 +274,7 @@
 				<!-- avatar read-only display -->
 				<div class="space-y-1.5">
 					<span class="text-sm font-medium text-foreground">
-						{$_('user.profile.avatar', { default: '头像' })}
+						{$_('user.profile.avatar', { default: 'Avatar' })}
 					</span>
 					<div
 						class="flex h-10 items-center gap-3 rounded-md border border-input bg-muted/30 px-3 text-sm text-muted-foreground"
@@ -287,7 +287,7 @@
 							<div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
 								{(username || email).slice(0, 1).toUpperCase()}
 							</div>
-							<span>{$_('user.profile.avatarEmpty', { default: '未设置头像' })}</span>
+							<span>{$_('user.profile.avatarEmpty', { default: 'No avatar set' })}</span>
 						{/if}
 					</div>
 				</div>
@@ -295,7 +295,7 @@
 				<!-- username editable -->
 				<div class="space-y-1.5">
 					<label for="pf-username" class="text-sm font-medium text-foreground">
-						{$_('user.profile.username', { default: '用户名' })}
+						{$_('user.profile.username', { default: 'Username' })}
 					</label>
 					<Input
 						id="pf-username"
@@ -309,14 +309,14 @@
 				<!-- language select -->
 				<div class="space-y-1.5">
 					<label for="pf-language" class="text-sm font-medium text-foreground">
-						{$_('user.profile.language', { default: '语言' })}
+						{$_('user.profile.language', { default: 'Language' })}
 					</label>
 					<NativeSelect
 						id="pf-language"
 						data-testid="pf-language"
 						bind:value={language}
 					>
-						<option value="zh">{$_('user.profile.languages.zh', { default: '简体中文' })}</option>
+						<option value="zh">{$_('user.profile.languages.zh', { default: 'Simplified Chinese' })}</option>
 						<option value="en">{$_('user.profile.languages.en', { default: 'English' })}</option>
 					</NativeSelect>
 				</div>
@@ -324,7 +324,7 @@
 				<!-- timezone select -->
 				<div class="space-y-1.5 md:col-span-2">
 					<label for="pf-timezone" class="text-sm font-medium text-foreground">
-						{$_('user.profile.timezone', { default: '时区' })}
+						{$_('user.profile.timezone', { default: 'Timezone' })}
 					</label>
 					<NativeSelect
 						id="pf-timezone"
@@ -351,8 +351,8 @@
 					onclick={handleSaveBasic}
 				>
 					{savingBasic
-						? $_('user.profile.updating', { default: '更新中…' })
-						: $_('user.profile.updateProfile', { default: '更新个人资料' })}
+						? $_('user.profile.updating', { default: 'Updating...' })
+						: $_('user.profile.updateProfile', { default: 'Update profile' })}
 				</Button>
 			</div>
 		</section>
@@ -368,12 +368,12 @@
 					<div class="space-y-1">
 						<h2 class="text-base font-semibold text-foreground">
 							{$_('user.security.totp.title', {
-								default: '双因素认证 (2FA)'
+								default: 'Two-Factor Authentication (2FA)'
 							})}
 						</h2>
 						<p class="text-sm text-muted-foreground">
 							{$_('user.security.totp.description', {
-								default: '使用身份验证器应用增强账户安全。'
+								default: 'Enhance account security with an authenticator app.'
 							})}
 						</p>
 					</div>
@@ -387,8 +387,8 @@
 						data-testid="totp-status"
 					>
 						{totpEnabled
-							? $_('user.security.totp.enabled', { default: '已启用' })
-							: $_('user.security.totp.notEnabled', { default: '未启用' })}
+							? $_('user.security.totp.enabled', { default: 'Enabled' })
+							: $_('user.security.totp.notEnabled', { default: 'Not enabled' })}
 					</Badge>
 				</header>
 
@@ -401,7 +401,7 @@
 							onclick={() => (totpDisableOpen = true)}
 							class="text-destructive hover:bg-destructive/10"
 						>
-							{$_('user.security.totp.disable', { default: '禁用双因素认证' })}
+							{$_('user.security.totp.disable', { default: 'Disable 2FA' })}
 						</Button>
 					{:else}
 						<Button
@@ -409,7 +409,7 @@
 							data-testid="totp-enable-btn"
 							onclick={() => (totpEnrollOpen = true)}
 						>
-							{$_('user.security.totp.enable', { default: '启用双因素认证' })}
+							{$_('user.security.totp.enable', { default: 'Enable 2FA' })}
 						</Button>
 					{/if}
 				</div>
@@ -435,7 +435,7 @@
 				</div>
 				<div class="space-y-1">
 					<h2 class="text-base font-semibold text-destructive">
-						{$_('user.danger.title', { default: '删除账户' })}
+						{$_('user.danger.title', { default: 'Delete Account' })}
 					</h2>
 					<p class="text-sm text-muted-foreground">
 						{$_('user.danger.description', {
@@ -450,7 +450,7 @@
 				<div class="space-y-1.5">
 					<label for="dz-email" class="text-sm font-medium text-foreground">
 						{$_('user.danger.confirmEmail', {
-							default: '输入您的邮箱以确认 ({email})',
+							default: 'Enter your email to confirm ({email})',
 							values: { email }
 						})}
 					</label>
@@ -465,7 +465,7 @@
 				</div>
 				<div class="space-y-1.5">
 					<label for="dz-password" class="text-sm font-medium text-foreground">
-						{$_('user.danger.password', { default: '当前密码' })}
+						{$_('user.danger.password', { default: 'Current password' })}
 					</label>
 					<Input
 						id="dz-password"
@@ -485,8 +485,8 @@
 						onclick={handleDeleteAccount}
 					>
 						{deletingAccount
-							? $_('user.danger.deleting', { default: '删除中…' })
-							: $_('user.danger.deleteButton', { default: '删除我的账户' })}
+							? $_('user.danger.deleting', { default: 'Deleting...' })
+							: $_('user.danger.deleteButton', { default: 'Delete my account' })}
 					</Button>
 				</div>
 			</div>

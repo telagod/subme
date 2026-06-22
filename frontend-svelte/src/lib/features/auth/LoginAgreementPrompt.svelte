@@ -79,7 +79,7 @@
 			<div class="min-w-0 flex-1">
 				<p class="text-[13px] leading-5 text-foreground/85">
 					<label for="login-agreement-consent" class="cursor-pointer text-foreground/85">
-						{$_('auth.agreement.iAgree', { default: '我已阅读并同意' })}
+						{$_('auth.agreement.iAgree', { default: 'I have read and agree to' })}
 					</label>
 					{#each filteredDocs as doc, i (doc.id || doc.title)}
 						<a
@@ -104,10 +104,10 @@
 			</svg>
 			<div class="min-w-0 flex-1">
 				<p class="font-medium">
-					{$_('auth.agreement.reviewRequired', { default: '请同意最新条款后继续。' })}
+					{$_('auth.agreement.reviewRequired', { default: 'Please accept the latest terms to continue.' })}
 				</p>
 				<p class="mt-1 text-muted-foreground">
-					{$_('auth.agreement.disabledUntilAccepted', { default: '接受条款前无法登录。' })}
+					{$_('auth.agreement.disabledUntilAccepted', { default: 'Sign-in is disabled until terms are accepted.' })}
 				</p>
 			</div>
 			<Button
@@ -118,7 +118,7 @@
 				onclick={() => onOpen?.()}
 				data-testid="agreement-open-btn"
 			>
-				{$_('auth.agreement.viewTerms', { default: '查看条款' })}
+				{$_('auth.agreement.viewTerms', { default: 'View terms' })}
 			</Button>
 		</div>
 	</div>
@@ -144,7 +144,7 @@
 					<div class="min-w-0 flex-1">
 						<div class="flex flex-wrap items-center gap-2">
 							<h2 class="text-xl font-bold tracking-normal text-foreground">
-								{$_('auth.agreement.modalTitle', { default: '条款更新通知' })}
+								{$_('auth.agreement.modalTitle', { default: 'Terms Update Notice' })}
 							</h2>
 							{#if updatedAt}
 								<Badge variant="secondary" class="rounded-full">{updatedAt}</Badge>
@@ -152,7 +152,7 @@
 						</div>
 						<p class="mt-2 text-sm leading-6 text-muted-foreground">
 							{$_('auth.agreement.modalDescription', {
-								default: '我们的服务条款已更新，请审阅并同意后继续。',
+								default: 'Our terms of service have been updated. Please review and accept to continue.',
 								values: { date: updatedAt || '' }
 							})}
 						</p>
@@ -164,7 +164,7 @@
 			<div class="max-h-[58vh] overflow-y-auto px-6 py-5">
 				<div class="mb-3 flex items-center justify-between gap-3">
 					<p class="text-sm font-semibold text-foreground">
-						{$_('auth.agreement.relatedDocuments', { default: '相关文档' })}
+						{$_('auth.agreement.relatedDocuments', { default: 'Related documents' })}
 					</p>
 				</div>
 				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -205,7 +205,7 @@
 						onclick={() => onReject?.()}
 						data-testid="agreement-reject"
 					>
-						{$_('auth.agreement.reject', { default: '拒绝' })}
+						{$_('auth.agreement.reject', { default: 'Decline' })}
 					</Button>
 					<Button
 						type="button"
@@ -214,7 +214,7 @@
 						onclick={() => onAccept?.()}
 						data-testid="agreement-accept"
 					>
-						{$_('auth.agreement.accept', { default: '同意并继续' })}
+						{$_('auth.agreement.accept', { default: 'Accept and continue' })}
 					</Button>
 				</div>
 			</div>

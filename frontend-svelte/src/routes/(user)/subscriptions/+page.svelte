@@ -59,7 +59,7 @@
 			if (msg === 'unauthorized') return;
 			currentError = msg || 'load failed';
 			showError(
-				$_('user.subscriptions.failedToLoad', { default: '加载订阅失败' })
+				$_('user.subscriptions.failedToLoad', { default: 'Failed to load subscriptions' })
 			);
 		} finally {
 			loadingCurrent = false;
@@ -150,7 +150,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.mySubscriptions', { default: '我的订阅' })} · sub2api</title>
+	<title>{$_('nav.mySubscriptions', { default: 'My Subscriptions' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="subscriptions-page">
@@ -158,11 +158,11 @@
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.subscriptions.pageTitle', { default: '我的订阅' })}
+				{$_('user.subscriptions.pageTitle', { default: 'My Subscriptions' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.subscriptions.pageSubtitle', {
-					default: '管理您的活跃订阅并查看历史方案。'
+					default: 'Manage your active subscriptions and view plan history.'
 				})}
 			</p>
 		</div>
@@ -170,7 +170,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.subscriptions.refresh', { default: '刷新' })}
+				aria-label={$_('user.subscriptions.refresh', { default: 'Refresh' })}
 				data-testid="subscriptions-refresh-btn"
 				onclick={refreshAll}
 				class="h-9 w-9 text-muted-foreground"
@@ -199,7 +199,7 @@
 			class="flex items-center justify-between gap-3 px-4 py-3 text-sm"
 			data-testid="subscriptions-current-error"
 		>
-			<span>{$_('user.subscriptions.failedToLoad', { default: '加载订阅失败' })}</span>
+			<span>{$_('user.subscriptions.failedToLoad', { default: 'Failed to load subscriptions' })}</span>
 			<Button
 				variant="outline"
 				size="sm"
@@ -207,7 +207,7 @@
 				onclick={() => loadCurrent()}
 				data-testid="subscriptions-current-retry"
 			>
-				{$_('user.subscriptions.retry', { default: '重试' })}
+				{$_('user.subscriptions.retry', { default: 'Retry' })}
 			</Button>
 		</Alert>
 	{:else if current}
@@ -227,11 +227,11 @@
 			</div>
 			<div class="space-y-1">
 				<h2 class="text-base font-semibold text-foreground">
-					{$_('user.subscriptions.emptyTitle', { default: '暂无活跃订阅' })}
+					{$_('user.subscriptions.emptyTitle', { default: 'No active subscriptions' })}
 				</h2>
 				<p class="max-w-sm text-sm text-muted-foreground">
 					{$_('user.subscriptions.emptyDescription', {
-						default: '选择一个方案，超出免费配额后即可使用 API。'
+						default: 'Choose a plan to use the API beyond the free quota.'
 					})}
 				</p>
 			</div>
@@ -240,7 +240,7 @@
 				onclick={handleBrowsePlans}
 				class="mt-1 h-9"
 			>
-				{$_('user.subscriptions.browsePlans', { default: '浏览方案' })}
+				{$_('user.subscriptions.browsePlans', { default: 'Browse plans' })}
 			</Button>
 		</div>
 	{/if}
@@ -249,7 +249,7 @@
 	<section class="space-y-3" data-testid="subscriptions-history">
 		<header class="flex items-center justify-between">
 			<h2 class="text-base font-semibold text-foreground">
-				{$_('user.subscriptions.historyTitle', { default: '订阅历史' })}
+				{$_('user.subscriptions.historyTitle', { default: 'Subscription history' })}
 			</h2>
 			{#if historyError && !loadingHistory}
 				<Button
@@ -259,7 +259,7 @@
 					onclick={() => loadHistory()}
 					data-testid="subscriptions-history-retry"
 				>
-					{$_('user.subscriptions.retry', { default: '重试' })}
+					{$_('user.subscriptions.retry', { default: 'Retry' })}
 				</Button>
 			{/if}
 		</header>
@@ -275,7 +275,7 @@
 				class="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground"
 				data-testid="subscriptions-history-empty"
 			>
-				{$_('user.subscriptions.historyEmpty', { default: '暂无历史订阅。' })}
+				{$_('user.subscriptions.historyEmpty', { default: 'No subscription history.' })}
 			</div>
 		{:else}
 			<div
@@ -288,16 +288,16 @@
 							class="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground"
 						>
 							<th class="px-4 py-2 text-left font-medium">
-								{$_('user.subscriptions.colPlan', { default: '方案' })}
+								{$_('user.subscriptions.colPlan', { default: 'Plan' })}
 							</th>
 							<th class="px-4 py-2 text-left font-medium">
-								{$_('user.subscriptions.colStatus', { default: '状态' })}
+								{$_('user.subscriptions.colStatus', { default: 'State' })}
 							</th>
 							<th class="px-4 py-2 text-left font-medium">
-								{$_('user.subscriptions.colEnded', { default: '已结束' })}
+								{$_('user.subscriptions.colEnded', { default: 'Ended' })}
 							</th>
 							<th class="px-4 py-2 text-right font-medium">
-								{$_('user.subscriptions.colAmount', { default: '金额' })}
+								{$_('user.subscriptions.colAmount', { default: 'Amount' })}
 							</th>
 						</tr>
 					</thead>

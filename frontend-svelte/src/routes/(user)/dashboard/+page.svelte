@@ -42,7 +42,7 @@
 	const greetingText = $derived(
 		userEmail
 			? $_('user.dashboard.greeting', { values: { email: userEmail }, default: `Hello, ${userEmail}` })
-			: $_('user.dashboard.greetingFallback', { default: '欢迎回来' })
+			: $_('user.dashboard.greetingFallback', { default: 'Welcome back' })
 	);
 
 	// ── data loaders ───────────────────────────────────────────────────
@@ -111,7 +111,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.dashboard', { default: '控制面板' })} · sub2api</title>
+	<title>{$_('nav.dashboard', { default: 'Dashboard' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="user-dashboard">
@@ -126,8 +126,8 @@
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{auth.isSimpleMode
-					? $_('user.dashboard.simpleMode', { default: '简单模式' })
-					: $_('user.dashboard.standardMode', { default: '标准模式' })}
+					? $_('user.dashboard.simpleMode', { default: 'Simple mode' })
+					: $_('user.dashboard.standardMode', { default: 'Standard mode' })}
 			</p>
 		</div>
 	</header>
@@ -140,7 +140,7 @@
 			data-testid="dashboard-card-quota"
 		>
 			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.dashboard.quotaCard.title', { default: '配额' })}
+				{$_('user.dashboard.quotaCard.title', { default: 'Quota' })}
 			</h2>
 			{#if loadingSummary}
 				<div class="mt-3 h-6 w-32 animate-pulse rounded bg-muted"></div>
@@ -151,7 +151,7 @@
 					data-testid="dashboard-quota-value"
 				>
 					{#if summary.quota.unlimited}
-						{$_('user.dashboard.quotaCard.unlimited', { default: '不限' })}
+						{$_('user.dashboard.quotaCard.unlimited', { default: 'Unlimited' })}
 					{:else}
 						{$_('user.dashboard.quotaCard.usedOf', {
 							values: {
@@ -204,7 +204,7 @@
 					{fmtInt(summary.todayRequests)}
 				</p>
 				<p class="mt-1 text-xs text-muted-foreground">
-					{$_('user.dashboard.requestsCard.subtitle', { default: '所有密钥合计' })}
+					{$_('user.dashboard.requestsCard.subtitle', { default: 'All keys combined' })}
 				</p>
 			{:else}
 				<p class="mt-2 text-3xl font-semibold text-muted-foreground">--</p>
@@ -217,7 +217,7 @@
 			data-testid="dashboard-card-subscriptions"
 		>
 			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.dashboard.subscriptionsCard.title', { default: '活跃订阅' })}
+				{$_('user.dashboard.subscriptionsCard.title', { default: 'Active subscriptions' })}
 			</h2>
 			{#if loadingSummary}
 				<div class="mt-3 h-8 w-16 animate-pulse rounded bg-muted"></div>
@@ -230,7 +230,7 @@
 				</p>
 				<p class="mt-1 text-xs text-muted-foreground">
 					{summary.activeSubscriptions === 0
-						? $_('user.dashboard.subscriptionsCard.none', { default: '暂无活跃订阅' })
+						? $_('user.dashboard.subscriptionsCard.none', { default: 'No active subscriptions' })
 						: $_('user.dashboard.subscriptionsCard.subtitle', {
 								values: { count: String(summary.activeSubscriptions) },
 								default: `${summary.activeSubscriptions} active`
@@ -249,7 +249,7 @@
 			class="flex items-center justify-between gap-3 px-4 py-3 text-sm"
 			data-testid="dashboard-summary-error"
 		>
-			<span>{$_('user.dashboard.errors.loadFailed', { default: '加载面板失败' })}</span>
+			<span>{$_('user.dashboard.errors.loadFailed', { default: 'Failed to load dashboard' })}</span>
 			<Button
 				variant="outline"
 				size="sm"
@@ -257,7 +257,7 @@
 				onclick={() => loadSummary()}
 				data-testid="dashboard-summary-retry"
 			>
-				{$_('user.dashboard.errors.retry', { default: '重试' })}
+				{$_('user.dashboard.errors.retry', { default: 'Retry' })}
 			</Button>
 		</Alert>
 	{/if}
@@ -280,7 +280,7 @@
 	>
 		<div class="mb-3 flex items-center justify-between">
 			<h2 class="text-sm font-medium text-muted-foreground">
-				{$_('user.dashboard.recent.title', { default: '近期活动' })}
+				{$_('user.dashboard.recent.title', { default: 'Recent activity' })}
 			</h2>
 			{#if recentError && !loadingRecent}
 				<Button
@@ -290,7 +290,7 @@
 					onclick={() => loadRecent()}
 					data-testid="dashboard-recent-retry"
 				>
-					{$_('user.dashboard.errors.retry', { default: '重试' })}
+					{$_('user.dashboard.errors.retry', { default: 'Retry' })}
 				</Button>
 			{/if}
 		</div>
@@ -306,17 +306,17 @@
 				data-testid="dashboard-recent-empty"
 			>
 				<p class="text-sm font-medium text-foreground">
-					{$_('user.dashboard.recent.empty', { default: '暂无活动记录' })}
+					{$_('user.dashboard.recent.empty', { default: 'No activity yet' })}
 				</p>
 				<p class="text-xs text-muted-foreground">
-					{$_('user.dashboard.recent.emptyHint', { default: '从创建 API 密钥开始。' })}
+					{$_('user.dashboard.recent.emptyHint', { default: 'Get started by creating an API key.' })}
 				</p>
 				<a
 					href="/keys"
 					class="mt-1 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90"
 					data-testid="dashboard-recent-empty-cta"
 				>
-					{$_('user.dashboard.recent.emptyCta', { default: '创建 API 密钥' })}
+					{$_('user.dashboard.recent.emptyCta', { default: 'Create API Key' })}
 				</a>
 			</div>
 		{:else}
@@ -328,19 +328,19 @@
 					<thead>
 						<tr class="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
 							<th class="py-2 pr-3 font-medium">
-								{$_('user.dashboard.recent.columnTimestamp', { default: '时间' })}
+								{$_('user.dashboard.recent.columnTimestamp', { default: 'Time' })}
 							</th>
 							<th class="py-2 pr-3 font-medium">
-								{$_('user.dashboard.recent.columnEndpoint', { default: '端点' })}
+								{$_('user.dashboard.recent.columnEndpoint', { default: 'Endpoint' })}
 							</th>
 							<th class="py-2 pr-3 font-medium">
-								{$_('user.dashboard.recent.columnModel', { default: '模型' })}
+								{$_('user.dashboard.recent.columnModel', { default: 'Model' })}
 							</th>
 							<th class="py-2 pr-3 text-right font-medium">
-								{$_('user.dashboard.recent.columnTokens', { default: '令牌' })}
+								{$_('user.dashboard.recent.columnTokens', { default: 'Tokens' })}
 							</th>
 							<th class="py-2 text-right font-medium">
-								{$_('user.dashboard.recent.columnCost', { default: '费用' })}
+								{$_('user.dashboard.recent.columnCost', { default: 'Cost' })}
 							</th>
 						</tr>
 					</thead>

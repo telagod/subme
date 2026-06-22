@@ -96,7 +96,7 @@
 			onclick={onToggleLocale}
 			class="gap-1 bg-transparent text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); padding-left: var(--px); padding-right: var(--px);"
-			aria-label="Toggle language"
+			aria-label={$_('topbar.toggleLanguage', { default: 'Toggle language' })}
 			data-testid="topbar-locale"
 		>
 			<Languages class="h-4 w-4" />
@@ -110,7 +110,7 @@
 			onclick={onToggleDensity}
 			class="bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); width: var(--input-h);"
-			aria-label="Toggle density"
+			aria-label={$_('topbar.toggleDensity', { default: 'Toggle density' })}
 			aria-pressed={density === 'compact'}
 			data-testid="topbar-density"
 			title={density}
@@ -125,7 +125,7 @@
 			onclick={onToggleTheme}
 			class="bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
 			style="height: var(--input-h); width: var(--input-h);"
-			aria-label="Toggle theme"
+			aria-label={$_('topbar.toggleTheme', { default: 'Toggle theme' })}
 			data-testid="topbar-theme"
 		>
 			{#if isDark}
@@ -141,7 +141,7 @@
 				<DropdownMenu.Trigger
 					class="inline-flex items-center gap-1.5 rounded-full border bg-transparent pl-1 pr-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 					style="height: var(--input-h);"
-					aria-label="Account menu"
+					aria-label={$_('topbar.accountMenu', { default: 'Account menu' })}
 					data-testid="topbar-avatar"
 				>
 					{#if user.avatarUrl}
@@ -179,7 +179,7 @@
 							{#snippet child({ props })}
 								<a {...props} href="/profile" data-testid="topbar-profile">
 									<User class="h-4 w-4" />
-									<span>{$_('nav.profile')}</span>
+									<span>{$_('nav.profile', { default: 'Profile' })}</span>
 								</a>
 							{/snippet}
 						</DropdownMenu.Item>
@@ -195,7 +195,7 @@
 										data-testid="topbar-switch-to-user"
 									>
 										<LayoutDashboard class="h-4 w-4" />
-										<span>{$_('nav.switchToUserView')}</span>
+										<span>{$_('nav.switchToUserView', { default: 'Switch to user view' })}</span>
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -210,7 +210,7 @@
 										data-testid="topbar-switch-to-admin"
 									>
 										<ShieldCheck class="h-4 w-4" />
-										<span>{$_('nav.switchToAdminView')}</span>
+										<span>{$_('nav.switchToAdminView', { default: 'Switch to admin view' })}</span>
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>
@@ -224,7 +224,7 @@
 							data-testid="topbar-logout"
 						>
 							<LogOut class="h-4 w-4" />
-							<span>{$_('nav.logout')}</span>
+							<span>{$_('nav.logout', { default: 'Log out' })}</span>
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>
 				</DropdownMenu.Portal>

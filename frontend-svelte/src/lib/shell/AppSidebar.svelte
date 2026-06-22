@@ -43,7 +43,7 @@
 		? '64px'
 		: '256px'};"
 	data-collapsed={collapsed}
-	aria-label="Primary navigation"
+	aria-label={$_('nav.primaryNavigation', { default: 'Primary navigation' })}
 >
 	<!-- 品牌块 -->
 	<div class="flex items-center gap-2 border-b px-3 py-3" style="min-height: 64px;">

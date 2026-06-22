@@ -158,7 +158,7 @@
 </script>
 
 <svelte:head>
-	<title>{menuItem?.label ?? $_('customPage.title', { default: '自定义页面' })} · sub2api</title>
+	<title>{menuItem?.label ?? $_('customPage.title', { default: 'Custom Page' })} · sub2api</title>
 </svelte:head>
 
 <section class="flex min-h-[calc(100vh-9rem)] flex-col" data-testid="custom-page">
@@ -174,11 +174,11 @@
 						<Link2 class="h-5 w-5 text-muted-foreground" />
 					</div>
 					<h1 class="text-lg font-semibold text-foreground">
-						{$_('customPage.notFoundTitle', { default: '页面未找到' })}
+						{$_('customPage.notFoundTitle', { default: 'Page not found' })}
 					</h1>
 					<p class="mt-2 text-sm text-muted-foreground">
 						{$_('customPage.notFoundDesc', {
-							default: '此自定义页面不存在或已被删除。'
+							default: 'This custom page does not exist or has been removed.'
 						})}
 					</p>
 				</div>
@@ -188,11 +188,11 @@
 				{#if tocVisible && tocItems.length > 0}
 					<aside class="hidden h-full w-[min(240px,30%)] min-w-40 max-w-72 shrink-0 flex-col border-r border-border bg-card md:flex">
 						<div class="flex items-center justify-between border-b border-border px-4 py-3">
-							<span class="text-sm font-semibold text-foreground/85">目录</span>
+							<span class="text-sm font-semibold text-foreground/85">{$_('customPage.toc', { default: 'Table of Contents' })}</span>
 							<Button
 								variant="ghost"
 								size="icon"
-								aria-label="Hide table of contents"
+								aria-label={$_('customPage.hideToc', { default: 'Hide table of contents' })}
 								class="h-7 w-7"
 								onclick={() => (tocVisible = false)}
 							>
@@ -225,7 +225,7 @@
 						onclick={() => (tocVisible = true)}
 					>
 						<List class="h-4 w-4" />
-						目录
+						{$_('customPage.toc', { default: 'Table of Contents' })}
 					</Button>
 				{/if}
 
@@ -250,11 +250,11 @@
 						<Link2 class="h-5 w-5 text-muted-foreground" />
 					</div>
 					<h1 class="text-lg font-semibold text-foreground">
-						{$_('customPage.notConfiguredTitle', { default: '页面 URL 未配置' })}
+						{$_('customPage.notConfiguredTitle', { default: 'Page URL not configured' })}
 					</h1>
 					<p class="mt-2 text-sm text-muted-foreground">
 						{$_('customPage.notConfiguredDesc', {
-							default: '此自定义页面的 URL 尚未正确配置。'
+							default: 'The URL for this custom page has not been properly configured.'
 						})}
 					</p>
 				</div>
@@ -268,7 +268,7 @@
 					class="absolute right-4 top-4 z-10 inline-flex h-9 items-center gap-2 rounded-md bg-secondary px-3 text-sm font-medium text-secondary-foreground shadow-sm hover:bg-accent"
 				>
 					<ExternalLink class="h-4 w-4" />
-					{$_('customPage.openInNewTab', { default: '新标签页打开' })}
+					{$_('customPage.openInNewTab', { default: 'Open in new tab' })}
 				</a>
 				<iframe src={embeddedUrl} title={menuItem.label} class="h-full w-full border-0" allowfullscreen></iframe>
 			</div>

@@ -72,7 +72,7 @@
 			const msg = (err as Error)?.message ?? '';
 			if (msg === 'unauthorized') return;
 			balanceError = msg || 'load failed';
-			showError($_('user.billing.failedToLoadBalance', { default: '加载余额失败' }));
+			showError($_('user.billing.failedToLoadBalance', { default: 'Failed to load balance' }));
 		} finally {
 			loadingBalance = false;
 		}
@@ -100,7 +100,7 @@
 			totalRows = 0;
 			totalPages = 0;
 			showError(
-				$_('user.billing.failedToLoadTxs', { default: '加载交易记录失败' })
+				$_('user.billing.failedToLoadTxs', { default: 'Failed to load transactions' })
 			);
 		} finally {
 			loadingTxs = false;
@@ -166,7 +166,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('nav.billing', { default: '计费' })} · sub2api</title>
+	<title>{$_('nav.billing', { default: 'Billing' })} · sub2api</title>
 </svelte:head>
 
 <section class="space-y-6" data-testid="billing-page">
@@ -174,11 +174,11 @@
 	<header class="flex flex-wrap items-start justify-between gap-4">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-semibold tracking-tight text-foreground">
-				{$_('user.billing.pageTitle', { default: '计费' })}
+				{$_('user.billing.pageTitle', { default: 'Billing' })}
 			</h1>
 			<p class="text-sm text-muted-foreground">
 				{$_('user.billing.pageSubtitle', {
-					default: '查看您的余额和交易记录。'
+					default: 'View your balance and transaction history.'
 				})}
 			</p>
 		</div>
@@ -186,7 +186,7 @@
 			<Button
 				variant="outline"
 				size="icon"
-				aria-label={$_('user.billing.refresh', { default: '刷新' })}
+				aria-label={$_('user.billing.refresh', { default: 'Refresh' })}
 				data-testid="billing-refresh-btn"
 				onclick={refreshAll}
 				class="h-9 w-9 text-muted-foreground"
