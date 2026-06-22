@@ -28,3 +28,12 @@ export function waitInitialLocale(): Promise<void> {
 }
 
 export { locale };
+
+export function toggleLocale(): void {
+	const current = typeof window !== 'undefined' ? window.localStorage?.getItem(LOCALE_KEY) : null;
+	const next = current === 'en' ? 'zh' : 'en';
+	locale.set(next);
+	if (typeof window !== 'undefined') {
+		try { window.localStorage.setItem(LOCALE_KEY, next); } catch { /* noop */ }
+	}
+}

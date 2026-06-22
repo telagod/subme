@@ -17,6 +17,7 @@
 	import type { NavGroup as ShellNavGroup } from '$lib/shell/nav';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
+	import { toggleLocale } from '$lib/i18n';
 
 	let { children }: { children?: Snippet } = $props();
 
@@ -44,6 +45,7 @@
 	{activePath}
 	isDark={theme.isDark}
 	onToggleTheme={handleToggleTheme}
+	onToggleLocale={toggleLocale}
 	onLogout={handleLogout}
 >
 	{@render children?.()}
