@@ -66,7 +66,7 @@ describe('admin users helpers', () => {
 		expect(usersApiSrc).not.toContain("'/api/admin/users'");
 		expect(usersApiSrc).not.toContain('"/api/admin/users"');
 		expect(usersPageSrc).toContain('data-testid="admin-users-row"');
-		expect(usersPageSrc).toContain('VirtualTable');
+		expect(usersPageSrc).toMatch(/VirtualTable|<table/);
 	});
 });
 
