@@ -13,7 +13,6 @@
 	import AccountFormDialog from '$lib/features/account/AccountFormDialog.svelte';
 	import AccountToolsDialog from '$lib/features/account/AccountToolsDialog.svelte';
 	import AccountReAuthDialog from '$lib/features/account/AccountReAuthDialog.svelte';
-	import AccountAdvancedDialog from '$lib/features/account/AccountAdvancedDialog.svelte';
 	import AccountDataDialog from '$lib/features/account/AccountDataDialog.svelte';
 	import BulkEditDialog from '$lib/features/account/BulkEditDialog.svelte';
 	import { listAccounts, refreshAccount, deleteAccount, getBatchAccountTodayStats, type Account, type AccountFilters, type WindowStats } from '$lib/api/admin/accounts';
@@ -61,7 +60,6 @@
 	let toolsAccount = $state<Account | null>(null);
 	let reauthOpen = $state(false);
 	let reauthAccount = $state<Account | null>(null);
-	let advancedOpen = $state(false);
 	let dataOpen = $state(false);
 	let exportJson = $state('');
 	let bulkEditOpen = $state(false);
@@ -251,30 +249,9 @@
 			{#if showToolsMenu}
 				<div class="absolute right-0 top-[calc(100%+4px)] z-50 min-w-[180px] rounded-lg border border-border bg-popover p-1 shadow-lg">
 					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
-						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
-						<RefreshCw size={13} />
-						{$_('admin.accounts.toolsSync', { default: 'Sync models' })}
-					</Button>
-					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
 						onclick={() => { showToolsMenu = false; handleOpenData(); }}>
 						<Upload size={13} />
-						{$_('admin.accounts.toolsImport', { default: 'Import data' })}
-					</Button>
-					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
-						onclick={() => { showToolsMenu = false; handleOpenData(); }}>
-						<Download size={13} />
-						{$_('admin.accounts.toolsExport', { default: 'Export data' })}
-					</Button>
-					<div class="my-1 h-px bg-border"></div>
-					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
-						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
-						<ShieldAlert size={13} />
-						{$_('admin.accounts.toolsErrorPassthrough', { default: 'Error passthrough' })}
-					</Button>
-					<Button variant="ghost" class="flex w-full items-center gap-2 justify-start h-auto px-2.5 py-1.5 text-[13px] font-normal"
-						onclick={() => { showToolsMenu = false; advancedOpen = true; }}>
-						<Fingerprint size={13} />
-						{$_('admin.accounts.toolsTLS', { default: 'TLS profiles' })}
+						{$_('admin.accounts.toolsBatchCreate', { default: 'Batch create / update' })}
 					</Button>
 				</div>
 			{/if}
@@ -344,8 +321,7 @@
 		<AccountBulkActions bind:this={bulkActionsRef}
 			{selectedIds} {total} {hasActiveFilters} filters={buildFilters}
 			onRefresh={loadRows} onOpenData={handleOpenData}
-			onOpenAdvanced={() => { advancedOpen = true; }}
-			onOpenBulkEdit={handleOpenBulkEdit}
+				onOpenBulkEdit={handleOpenBulkEdit}
 		/>
 	{/if}
 
@@ -387,7 +363,6 @@
 	onSaved={loadRows} onClose={() => {}} />
 <AccountToolsDialog bind:open={toolsOpen} account={toolsAccount} onRefresh={loadRows} onClose={() => {}} />
 <AccountReAuthDialog bind:open={reauthOpen} account={reauthAccount} onApplied={loadRows} onClose={() => {}} />
-<AccountAdvancedDialog bind:open={advancedOpen} onRefresh={loadRows} onClose={() => {}} />
 <AccountDataDialog bind:open={dataOpen} {selectedIds} {exportJson} onRefresh={loadRows} onClose={() => {}} />
 <BulkEditDialog bind:open={bulkEditOpen} mode={bulkEditMode} selectedIds={bulkEditIds}
 	{filteredIds} previewCount={bulkEditIds.length} accounts={rows} onDone={loadRows} />

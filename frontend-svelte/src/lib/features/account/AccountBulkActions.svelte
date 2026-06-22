@@ -132,12 +132,6 @@
 	{#if hasActiveFilters}
 		<span class="text-xs text-muted-foreground">{activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'}</span>
 	{/if}
-	<Button variant="outline" onclick={() => onOpenData()}>
-		{$_('admin.accounts.dataTools', { default: 'Data tools' })}
-	</Button>
-	<Button variant="outline" onclick={onOpenAdvanced}>
-		{$_('admin.accounts.advancedTools', { default: 'Advanced tools' })}
-	</Button>
 	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={exportSelected}>
 		<Download size={14} class="mr-1" />{$_('admin.accounts.exportSelected', { default: 'Export selected' })}
 	</Button>
