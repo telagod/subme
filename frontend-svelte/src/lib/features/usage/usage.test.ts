@@ -256,12 +256,11 @@ describe('usage page · Select sentinel contract', () => {
 		) as HTMLSelectElement;
 		expect(endpointSel.querySelector('option[value="__all__"]')).not.toBeNull();
 
-		// models Select 必须含 __all__ sentinel（默认选中）
-		const modelsSel = container.querySelector(
+		// models filter area exists (chip buttons, not a <select>)
+		const modelsArea = container.querySelector(
 			'[data-testid="usage-models-filter"]'
-		) as HTMLSelectElement;
-		expect(modelsSel).not.toBeNull();
-		expect(modelsSel.querySelector('option[value="__all__"]')).not.toBeNull();
+		);
+		expect(modelsArea).not.toBeNull();
 
 		// groupBy Select 不含 __all__（业务上必须二选其一），但同样禁空字符串 value
 		const groupBySel = container.querySelector(

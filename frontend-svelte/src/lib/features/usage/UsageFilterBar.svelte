@@ -1,10 +1,4 @@
 <script lang="ts">
-	/**
-	 * UsageFilterBar · usage page filter controls
-	 *
-	 * Renders date range inputs, models multi-select, endpoint select, and groupBy select.
-	 * All Select controls use sentinel values ('__all__') per reshadcn-migration contract.
-	 */
 	import { _ } from 'svelte-i18n';
 	import type { UsageGranularity } from '$lib/api/user/usage';
 	import Input from '$lib/ui/Input.svelte';
@@ -14,18 +8,9 @@
 	const ENDPOINT_ALL = '__all__' as const;
 
 	let {
-		startDate,
-		endDate,
-		modelsFilter,
-		endpointFilter,
-		groupBy,
-		knownModels,
-		knownEndpoints,
-		onStartDateChange,
-		onEndDateChange,
-		onModelsChange,
-		onEndpointChange,
-		onGroupByChange
+		startDate, endDate, modelsFilter, endpointFilter, groupBy,
+		knownModels, knownEndpoints,
+		onStartDateChange, onEndDateChange, onModelsChange, onEndpointChange, onGroupByChange
 	}: {
 		startDate: string;
 		endDate: string;
@@ -40,115 +25,115 @@
 		onEndpointChange: (e: Event) => void;
 		onGroupByChange: (e: Event) => void;
 	} = $props();
+
+	const isAllModels = $derived(modelsFilter === MODELS_ALL);
+
+	function toggleModel(model: string) {
+		const fakeEvent = {
+			currentTarget: { value: '', selectedOptions: [] as unknown as HTMLCollectionOf<HTMLOptionElement> }
+		};
+
+		if (model === MODELS_ALL) {
+			fakeEvent.currentTarget.value = MODELS_ALL;
+			onModelsChange(fakeEvent as unknown as Event);
+			return;
+		}
+
+		const current = isAllModels ? [] : [...(modelsFilter as string[])];
+		const idx = current.indexOf(model);
+		if (idx >= 0) current.splice(idx, 1);
+		else current.push(model);
+
+		if (current.length === 0 || current.length === knownModels.length) {
+			fakeEvent.currentTarget.value = MODELS_ALL;
+		} else {
+			fakeEvent.currentTarget.value = current.join(',');
+			const opts = current.map(v => ({ value: v, selected: true }));
+			fakeEvent.currentTarget.selectedOptions = opts as unknown as HTMLCollectionOf<HTMLOptionElement>;
+		}
+		onModelsChange(fakeEvent as unknown as Event);
+	}
+
+	function isModelSelected(model: string): boolean {
+		if (isAllModels) return false;
+		return (modelsFilter as string[]).includes(model);
+	}
 </script>
 
-<section class="flex flex-wrap items-end gap-3" data-testid="usage-filters">
-	<div class="space-y-1.5">
-		<label
-			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-			for="usage-start-date"
-		>
-			{$_('user.usage.startDate', { default: '从' })}
-		</label>
-		<Input
-			id="usage-start-date"
-			data-testid="usage-start-date"
-			type="date"
-			value={startDate}
-			onchange={onStartDateChange}
-			class="h-9 w-auto"
-		/>
+<section class="space-y-3" data-testid="usage-filters">
+	<!-- Row 1: date range + endpoint + groupBy -->
+	<div class="flex flex-wrap items-end gap-3">
+		<div class="space-y-1">
+			<label class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground" for="usage-start-date">
+				{$_('user.usage.startDate', { default: 'From' })}
+			</label>
+			<Input id="usage-start-date" data-testid="usage-start-date" type="date" value={startDate} onchange={onStartDateChange} class="h-9 w-auto" />
+		</div>
+		<div class="space-y-1">
+			<label class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground" for="usage-end-date">
+				{$_('user.usage.endDate', { default: 'To' })}
+			</label>
+			<Input id="usage-end-date" data-testid="usage-end-date" type="date" value={endDate} onchange={onEndDateChange} class="h-9 w-auto" />
+		</div>
+		<div class="space-y-1">
+			<label class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground" for="usage-endpoint-filter">
+				{$_('user.usage.endpointFilter', { default: 'Endpoint' })}
+			</label>
+			<NativeSelect id="usage-endpoint-filter" data-testid="usage-endpoint-filter" value={endpointFilter} onchange={onEndpointChange}
+				options={[
+					{ value: ENDPOINT_ALL, label: $_('user.usage.allEndpoints', { default: 'All endpoints' }) },
+					...knownEndpoints.map(ep => ({ value: ep, label: ep }))
+				]}
+				class="h-9"
+			/>
+		</div>
+		<div class="space-y-1">
+			<label class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground" for="usage-groupby">
+				{$_('user.usage.groupBy', { default: 'Group by' })}
+			</label>
+			<NativeSelect id="usage-groupby" data-testid="usage-groupby" value={groupBy} onchange={onGroupByChange}
+				options={[
+					{ value: 'day', label: $_('user.usage.groupDay', { default: 'Day' }) },
+					{ value: 'hour', label: $_('user.usage.groupHour', { default: 'Hour' }) },
+					{ value: 'model', label: $_('user.usage.groupModel', { default: 'Model' }) },
+					{ value: 'endpoint', label: $_('user.usage.groupEndpoint', { default: 'Endpoint' }) }
+				]}
+				class="h-9"
+			/>
+		</div>
 	</div>
-	<div class="space-y-1.5">
-		<label
-			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-			for="usage-end-date"
-		>
-			{$_('user.usage.endDate', { default: '至' })}
-		</label>
-		<Input
-			id="usage-end-date"
-			data-testid="usage-end-date"
-			type="date"
-			value={endDate}
-			onchange={onEndDateChange}
-			class="h-9 w-auto"
-		/>
-	</div>
-	<div class="space-y-1.5">
-		<label
-			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-			for="usage-models-filter"
-		>
-			{$_('user.usage.modelsFilter', { default: '模型' })}
-		</label>
-		<NativeSelect
-			id="usage-models-filter"
-			data-testid="usage-models-filter"
-			value={MODELS_ALL}
-			multiple
-			size={3}
-			onchange={onModelsChange}
-			class="min-w-[180px] rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-		>
-			<option
-				value={MODELS_ALL}
-				selected={modelsFilter === MODELS_ALL}
-			>
-				{$_('user.usage.allModels', { default: '全部模型' })}
-			</option>
-			{#each knownModels as m (m)}
-				<option
-					value={m}
-					selected={modelsFilter !== MODELS_ALL && modelsFilter.includes(m)}
+
+	<!-- Row 2: model filter chips -->
+		<div class="space-y-1.5" data-testid="usage-models-filter">
+	{#if knownModels.length > 0}
+			<span class="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+				{$_('user.usage.modelsFilter', { default: 'Models' })}
+			</span>
+			<div class="flex flex-wrap gap-1.5">
+				<button
+					type="button"
+					class="rounded-md border px-2.5 py-1 text-xs font-medium transition-all {isAllModels
+						? 'border-primary bg-primary/10 text-primary'
+						: 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'}"
+					onclick={() => toggleModel(MODELS_ALL)}
 				>
-					{m}
-				</option>
-			{/each}
-		</NativeSelect>
-	</div>
-	<div class="space-y-1.5">
-		<label
-			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-			for="usage-endpoint-filter"
-		>
-			{$_('user.usage.endpointFilter', { default: '端点' })}
-		</label>
-		<NativeSelect
-			id="usage-endpoint-filter"
-			data-testid="usage-endpoint-filter"
-			value={endpointFilter}
-			onchange={onEndpointChange}
-			class="h-9"
-		>
-			<option value={ENDPOINT_ALL}>
-				{$_('user.usage.allEndpoints', { default: '全部端点' })}
-			</option>
-			{#each knownEndpoints as ep (ep)}
-				<option value={ep}>{ep}</option>
-			{/each}
-		</NativeSelect>
-	</div>
-	<div class="space-y-1.5">
-		<label
-			class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
-			for="usage-groupby"
-		>
-			{$_('user.usage.groupBy', { default: '分组方式' })}
-		</label>
-		<NativeSelect
-			id="usage-groupby"
-			data-testid="usage-groupby"
-			value={groupBy}
-			onchange={onGroupByChange}
-			class="h-9"
-		>
-			<option value="day">{$_('user.usage.groupDay', { default: '日' })}</option>
-			<option value="hour">{$_('user.usage.groupHour', { default: '小时' })}</option>
-			<option value="model">{$_('user.usage.groupModel', { default: '模型' })}</option>
-			<option value="endpoint">
-				{$_('user.usage.groupEndpoint', { default: '端点' })}
-			</option>
-		</NativeSelect>
-	</div>
+					{$_('user.usage.allModels', { default: 'All' })}
+					{#if knownModels.length > 0}
+						<span class="ml-1 opacity-60">{knownModels.length}</span>
+					{/if}
+				</button>
+				{#each knownModels as m (m)}
+					<button
+						type="button"
+						class="rounded-md border px-2.5 py-1 text-xs font-medium transition-all {isModelSelected(m)
+							? 'border-primary bg-primary/10 text-primary'
+							: 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'}"
+						onclick={() => toggleModel(m)}
+					>
+						{m}
+					</button>
+				{/each}
+			</div>
+	{/if}
+		</div>
 </section>
