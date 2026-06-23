@@ -367,6 +367,7 @@ export default {
     buySubscription: '充值/订阅',
     billing: '账单',
     docs: '文档',
+    billingHistory: '账单明细',
     myOrders: '我的订单',
     orderManagement: '订单管理',
     paymentDashboard: '支付概览',

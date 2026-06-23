@@ -36,6 +36,9 @@
 		type OrderType
 	} from '$lib/features/payment-flow/payment-flow';
 	import PlanCard from '$lib/features/subscriptions/PlanCard.svelte';
+	import BalanceCard from '$lib/features/billing/BalanceCard.svelte';
+	import TopUpDialog from '$lib/features/billing/TopUpDialog.svelte';
+	import { getBalance, type Balance } from '$lib/api/user/billing';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -55,6 +58,14 @@
 	let selectedPlan = $state<Plan | null>(null);
 	let selectedProvider = $state<string | null>(null);
 	let checkoutSubmitting = $state(false);
+
+	// Balance + TopUp
+	let balance = $state<Balance | null>(null);
+	let topUpOpen = $state(false);
+
+	async function loadBalance() {
+		try { balance = await getBalance(); } catch { /* non-fatal */ }
+	}
 
 	// Promo code
 	let promoCode = $state('');
@@ -109,6 +120,7 @@
 
 	onMount(() => {
 		loadPlans();
+		loadBalance();
 	});
 
 	// ── helpers ──────────────────────────────────────────────────────────
@@ -332,16 +344,8 @@
 		</div>
 	</header>
 
-	<!-- Balance quick-top-up link -->
-	<div class="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3">
-		<div class="flex items-center gap-2 text-sm text-muted-foreground">
-			<Wallet class="h-4 w-4" />
-			<span>{$_('user.purchase.currentBalance', { default: 'Current balance' })}</span>
-		</div>
-		<a href="/billing" class="text-sm font-medium text-primary hover:underline" data-testid="purchase-topup-link">
-			{$_('user.purchase.goTopUp', { default: 'Top up balance →' })}
-		</a>
-	</div>
+	<!-- Balance card + Top Up -->
+	<BalanceCard {balance} loading={false} error={null} onTopUp={() => (topUpOpen = true)} />
 
 	<!-- Promo code row -->
 	<div
@@ -516,3 +520,5 @@
 		</div>
 	{/if}
 </StandardDialog>
+
+<TopUpDialog bind:open={topUpOpen} onTopUpStarted={() => { topUpOpen = false; loadBalance(); }} />

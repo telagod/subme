@@ -367,6 +367,7 @@ export default {
     buySubscription: 'Recharge / Subscription',
     billing: 'Billing',
     docs: 'Docs',
+    billingHistory: 'Billing History',
     myOrders: 'My Orders',
     orderManagement: 'Orders',
     paymentDashboard: 'Payment Dashboard',

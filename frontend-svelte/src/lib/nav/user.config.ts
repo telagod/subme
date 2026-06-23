@@ -38,7 +38,8 @@ import {
 	ShoppingCart,
 	Gift,
 	Users,
-	CircleUser
+	CircleUser,
+	Receipt
 } from '@lucide/svelte';
 
 import type { NavGroup } from './types';
@@ -122,6 +123,13 @@ export function buildUserNavGroups(_opts: BuildUserNavOptions = {}): NavGroup[] 
 					icon: Wallet,
 					hideInSimpleMode: true,
 					featureFlag: 'payment'
+				},
+				{
+					key: 'billingHistory',
+					labelKey: 'nav.billingHistory',
+					path: '/billing',
+					icon: Receipt,
+					hideInSimpleMode: true
 				},
 				{
 					key: 'myOrders',
