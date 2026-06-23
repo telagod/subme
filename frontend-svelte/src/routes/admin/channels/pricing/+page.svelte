@@ -1,31 +1,14 @@
 <script lang="ts">
-	/**
-	 * Admin · Channels · Pricing Table（M13）
-	 *
-	 * Read-only surface by design. It lists channel-side pricing rules from
-	 * the existing admin channel list response and never imports create/update/
-	 * delete helpers or default-pricing lookup helpers.
-	 */
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import { AlertTriangle, ChevronLeft, ChevronRight, DollarSign, RefreshCw, Search } from '@lucide/svelte';
+	import { AlertTriangle, ChevronLeft, ChevronRight, DollarSign, Info, RefreshCw, Search } from '@lucide/svelte';
 	import Alert from '$lib/ui/Alert.svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
-	import Card from '$lib/ui/Card.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import NativeSelect from '$lib/ui/NativeSelect.svelte';
-	import VirtualTable from '$lib/ui/table/VirtualTable.svelte';
 	import { listChannels, type Channel } from '$lib/api/admin/channels';
-	import {
-		ALL,
-		PAGE_SIZE,
-		flattenChannelPricing,
-		formatPrice,
-		statusTone,
-		summarizeChannels,
-		type ChannelPricingRow
-	} from '$lib/features/supply/supply';
+	import { ALL, PAGE_SIZE, flattenChannelPricing, formatPrice, statusTone, type ChannelPricingRow } from '$lib/features/supply/supply';
 
 	let channels = $state<Channel[]>([]);
 	let pricingRows = $state<ChannelPricingRow[]>([]);
@@ -35,89 +18,90 @@
 	let page = $state(1);
 	let searchInput = $state('');
 	let statusFilter = $state(ALL);
-	const statusOptions = [
-		{ value: ALL, label: 'All statuses' },
-		{ value: 'active', label: 'active' },
-		{ value: 'inactive', label: 'inactive' }
-	];
 
 	const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-	const summary = $derived(summarizeChannels(channels));
+	const activeCount = $derived(channels.filter(c => c.status === 'active').length);
+	const totalPricingRows = $derived(pricingRows.length);
 
 	async function loadRows() {
-		loading = true;
-		loadError = null;
+		loading = true; loadError = null;
 		try {
 			const resp = await listChannels(page, PAGE_SIZE, {
 				status: statusFilter === ALL ? undefined : statusFilter,
 				search: searchInput.trim() || undefined,
-				sort_by: 'created_at',
-				sort_order: 'desc'
+				sort_by: 'created_at', sort_order: 'desc'
 			});
-			channels = resp.items;
-			total = resp.total;
+			channels = resp.items; total = resp.total;
 			pricingRows = flattenChannelPricing(channels);
 		} catch (err) {
 			loadError = err instanceof Error ? err.message : String(err);
-			channels = [];
-			pricingRows = [];
-			total = 0;
-		} finally {
-			loading = false;
-		}
+			channels = []; pricingRows = []; total = 0;
+		} finally { loading = false; }
 	}
 
-	onMount(() => {
-		void loadRows();
-	});
-
-	function applyFilters() {
-		page = 1;
-		void loadRows();
-	}
+	onMount(() => { void loadRows(); });
+	function applyFilters() { page = 1; void loadRows(); }
 </script>
 
 <svelte:head>
-	<title>{$_('admin.channels.title', { default: '渠道定价' })}</title>
+	<title>{$_('admin.channelsPricing.title', { default: 'Channel Pricing' })} · sub2api</title>
 </svelte:head>
 
-<section class="space-y-5">
-	<header class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+<div class="space-y-5 p-4 lg:p-6" data-testid="channels-pricing-page">
+	<!-- Header -->
+	<div class="flex items-start justify-between gap-4">
 		<div>
-			<p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">M13 · Supply · Read-only</p>
-			<h1 class="text-2xl font-semibold tracking-normal text-foreground">{$_('admin.channels.title', { default: '渠道定价' })}</h1>
-			<p class="mt-1 max-w-3xl text-sm text-muted-foreground">
-				{$_('admin.channels.description', { default: '查看渠道端定价规则、关联分组、计费模式和区间定价，不修改计费配置。' })}
-			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{$_('admin.channelsPricing.title', { default: 'Channel Pricing' })}</h1>
+			<p class="mt-1 text-sm text-muted-foreground">{$_('admin.channelsPricing.desc', { default: 'View channel pricing rules, associated groups, and billing modes.' })}</p>
 		</div>
 		<Button variant="outline" onclick={loadRows} disabled={loading}>
-			<RefreshCw size={16} class={loading ? 'animate-spin' : ''} /> Refresh
+			<RefreshCw size={16} class={loading ? 'animate-spin' : ''} />
+			{$_('common.refresh', { default: 'Refresh' })}
 		</Button>
-	</header>
-
-	<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-		{#each summary as item}
-			<Card>
-				<p class="text-xs font-medium uppercase text-muted-foreground">{item.label}</p>
-				<p class="mt-2 text-2xl font-semibold">{item.value}</p>
-			</Card>
-		{/each}
 	</div>
 
-	<Alert variant="warning" data-testid="channel-pricing-readonly-banner">
-		This is a read-only virtual table. Use the channel editor for pricing mutations.
-	</Alert>
-
-	<Card class="p-3">
-		<div class="grid gap-3 lg:grid-cols-[1fr_180px_auto]">
-			<label class="relative">
-				<Search class="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" size={16} />
-				<Input class="pl-9" placeholder={$_('admin.channelsPricing.searchPlaceholder', { default: '搜索渠道或模型' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
-			</label>
-			<NativeSelect bind:value={statusFilter} options={statusOptions} onchange={applyFilters} data-testid="channels-status-filter" />
-			<Button onclick={applyFilters}>{$_('common.apply', { default: 'Apply' })}</Button>
+	<!-- Stats -->
+	<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+		<div class="rounded-lg border border-border bg-card px-4 py-3">
+			<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{$_('admin.channelsPricing.statsChannels', { default: 'Channels' })}</p>
+			<p class="mt-1 text-2xl font-semibold">{total}</p>
 		</div>
-	</Card>
+		<div class="rounded-lg border border-border bg-card px-4 py-3">
+			<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{$_('admin.channelsPricing.statsActive', { default: 'Active' })}</p>
+			<p class="mt-1 text-2xl font-semibold">{activeCount}</p>
+		</div>
+		<div class="rounded-lg border border-border bg-card px-4 py-3">
+			<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{$_('admin.channelsPricing.statsPricingRules', { default: 'Pricing rules' })}</p>
+			<p class="mt-1 text-2xl font-semibold">{totalPricingRows}</p>
+		</div>
+		<div class="rounded-lg border border-border bg-card px-4 py-3">
+			<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{$_('admin.channelsPricing.statsPage', { default: 'Page' })}</p>
+			<p class="mt-1 text-2xl font-semibold">{page}<span class="text-sm font-normal text-muted-foreground">/{totalPages}</span></p>
+		</div>
+	</div>
+
+	<!-- Info banner -->
+	<div class="flex items-center gap-2 rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-2.5 text-sm text-blue-700 dark:text-blue-300" data-testid="channel-pricing-readonly-banner">
+		<Info size={16} class="shrink-0" />
+		{$_('admin.channelsPricing.readonlyHint', { default: 'Read-only view. Use the channel editor to modify pricing.' })}
+	</div>
+
+	<!-- Filters -->
+	<div class="flex flex-wrap items-end gap-3">
+		<div class="relative min-w-0 flex-1">
+			<Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+			<Input class="h-9 pl-9" placeholder={$_('admin.channelsPricing.searchPlaceholder', { default: 'Search channels or models...' })} bind:value={searchInput} onkeydown={(e) => e.key === 'Enter' && applyFilters()} />
+		</div>
+		<NativeSelect value={statusFilter} onchange={(e) => { statusFilter = (e.currentTarget as HTMLSelectElement).value; applyFilters(); }}
+			options={[
+				{ value: ALL, label: $_('admin.channelsPricing.allStatuses', { default: 'All statuses' }) },
+				{ value: 'active', label: $_('admin.channelsPricing.active', { default: 'Active' }) },
+				{ value: 'inactive', label: $_('admin.channelsPricing.inactive', { default: 'Inactive' }) }
+			]}
+			class="h-9"
+			data-testid="channels-status-filter"
+		/>
+	</div>
 
 	{#if loadError}
 		<Alert variant="destructive" class="flex items-center gap-2">
@@ -125,45 +109,78 @@
 		</Alert>
 	{/if}
 
-	<Card padded={false} class="overflow-hidden" data-testid="channels-pricing-page">
-		<VirtualTable rows={pricingRows} rowHeight={68} loading={loading} getRowKey={(row) => row.key} class="max-h-[700px]">
-			{#snippet header()}
-				<div class="grid grid-cols-[1.2fr_1fr_1.1fr_0.8fr_0.8fr_0.8fr_0.8fr] gap-3 border-b px-4 py-3 text-xs font-semibold uppercase text-muted-foreground">
-					<span>{$_('admin.channelsPricing.channel', { default: 'Channels' })}</span><span>{$_('admin.channelsPricing.model', { default: '模型' })}</span><span>{$_('admin.channelsPricing.platform', { default: '平台' })}</span><span>{$_('admin.channelsPricing.mode', { default: '模式' })}</span><span>{$_('admin.channelsPricing.input', { default: '输入' })}</span><span>{$_('admin.channelsPricing.output', { default: '输出' })}</span><span>{$_('admin.channelsPricing.request', { default: '请求' })}</span>
-				</div>
-			{/snippet}
-			{#snippet row({ row })}
-				<div class="grid grid-cols-[1.2fr_1fr_1.1fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center gap-3 border-b px-4 py-3 text-sm" data-testid="channel-pricing-row">
-					<div class="min-w-0">
-						<div class="flex items-center gap-2">
-							<DollarSign size={15} class="text-muted-foreground" />
-							<p class="truncate font-medium">{row.channel.name}</p>
-						</div>
-						<p class="truncate text-xs text-muted-foreground">
-							<Badge variant="outline" class={statusTone(row.channel.status)}>{row.channel.status}</Badge>
-							<span class="ml-1">{row.channel.group_ids?.length ?? 0} groups</span>
-						</p>
-					</div>
-					<p class="truncate text-xs" title={row.model}>{row.model}</p>
-					<p class="truncate text-xs">{row.pricing?.platform ?? '-'}</p>
-					<p class="truncate text-xs">{row.pricing?.billing_mode ?? '-'}</p>
-					<p class="font-mono text-xs">{formatPrice(row.pricing?.input_price)}</p>
-					<p class="font-mono text-xs">{formatPrice(row.pricing?.output_price)}</p>
-					<p class="font-mono text-xs">{formatPrice(row.pricing?.per_request_price)}</p>
-				</div>
-			{/snippet}
-			{#snippet empty()}
-				<div class="p-10 text-center text-sm text-muted-foreground">No channel pricing rows match the current filters.</div>
-			{/snippet}
-		</VirtualTable>
-	</Card>
-
-	<div class="flex items-center justify-between">
-		<p class="text-sm text-muted-foreground">{total} channels · {pricingRows.length} pricing rows on this page</p>
-		<div class="flex items-center gap-2">
-			<Button variant="outline" size="icon" disabled={page <= 1 || loading} onclick={() => { page -= 1; void loadRows(); }} aria-label="Previous page"><ChevronLeft size={16} /></Button>
-			<span class="text-sm">{page} / {totalPages}</span>
-			<Button variant="outline" size="icon" disabled={page >= totalPages || loading} onclick={() => { page += 1; void loadRows(); }} aria-label="Next page"><ChevronRight size={16} /></Button>
+	<!-- Table -->
+	<div class="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+		<div class="overflow-x-auto">
+			<table class="w-full text-sm">
+				<thead>
+					<tr class="border-b border-border bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+						<th class="min-w-[200px] px-4 py-2.5 text-left">{$_('admin.channelsPricing.colChannel', { default: 'Channel' })}</th>
+						<th class="min-w-[160px] px-3 py-2.5 text-left">{$_('admin.channelsPricing.colModel', { default: 'Model' })}</th>
+						<th class="w-[100px] px-3 py-2.5 text-left">{$_('admin.channelsPricing.colPlatform', { default: 'Platform' })}</th>
+						<th class="w-[80px] px-3 py-2.5 text-left">{$_('admin.channelsPricing.colMode', { default: 'Mode' })}</th>
+						<th class="w-[90px] px-3 py-2.5 text-right">{$_('admin.channelsPricing.colInput', { default: 'Input' })}</th>
+						<th class="w-[90px] px-3 py-2.5 text-right">{$_('admin.channelsPricing.colOutput', { default: 'Output' })}</th>
+						<th class="w-[90px] px-3 py-2.5 text-right">{$_('admin.channelsPricing.colRequest', { default: 'Request' })}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{#if loading}
+						{#each Array(6) as _, i (i)}
+							<tr class="border-b border-border"><td colspan="7" class="px-4 py-3"><div class="h-4 animate-pulse rounded bg-muted"></div></td></tr>
+						{/each}
+					{:else if pricingRows.length === 0}
+						<tr>
+							<td colspan="7" class="py-16 text-center">
+								<DollarSign class="mx-auto h-10 w-10 text-muted-foreground/20" />
+								<p class="mt-3 text-sm text-muted-foreground">{$_('admin.channelsPricing.empty', { default: 'No pricing rules match current filters' })}</p>
+							</td>
+						</tr>
+					{:else}
+						{#each pricingRows as row (row.key)}
+							<tr class="border-b border-border transition-colors hover:bg-muted/30" data-testid="channel-pricing-row">
+								<td class="px-4 py-2.5">
+									<p class="truncate font-medium">{row.channel.name}</p>
+									<div class="mt-0.5 flex items-center gap-1.5">
+										<Badge variant="outline" class="text-[10px] {statusTone(row.channel.status)}">{row.channel.status}</Badge>
+										<span class="text-[10px] text-muted-foreground">{row.channel.group_ids?.length ?? 0} {$_('admin.channelsPricing.groups', { default: 'groups' })}</span>
+									</div>
+								</td>
+								<td class="px-3 py-2.5">
+									<p class="truncate font-mono text-xs" title={row.model}>{row.model}</p>
+								</td>
+								<td class="px-3 py-2.5">
+									<span class="inline-flex rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase">{row.pricing?.platform ?? '—'}</span>
+								</td>
+								<td class="px-3 py-2.5 text-xs text-muted-foreground">{row.pricing?.billing_mode ?? '—'}</td>
+								<td class="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{formatPrice(row.pricing?.input_price)}</td>
+								<td class="px-3 py-2.5 text-right font-mono text-xs tabular-nums">{formatPrice(row.pricing?.output_price)}</td>
+								<td class="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-muted-foreground">{formatPrice(row.pricing?.per_request_price)}</td>
+							</tr>
+						{/each}
+					{/if}
+				</tbody>
+			</table>
 		</div>
 	</div>
-</section>
+
+	<!-- Pagination -->
+	{#if total > 0}
+		<div class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2.5 text-sm">
+			<span class="text-muted-foreground">
+				{$_('admin.channelsPricing.totalInfo', { default: '{channels} channels · {rules} pricing rules', values: { channels: total, rules: totalPricingRows } })}
+			</span>
+			{#if totalPages > 1}
+				<div class="flex items-center gap-1.5">
+					<Button size="sm" variant="outline" disabled={page <= 1 || loading} onclick={() => { page--; void loadRows(); }}>
+						<ChevronLeft size={16} />
+					</Button>
+					<span class="min-w-[60px] text-center text-xs text-muted-foreground">{page} / {totalPages}</span>
+					<Button size="sm" variant="outline" disabled={page >= totalPages || loading} onclick={() => { page++; void loadRows(); }}>
+						<ChevronRight size={16} />
+					</Button>
+				</div>
+			{/if}
+		</div>
+	{/if}
+</div>

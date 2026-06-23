@@ -364,7 +364,7 @@ describe('M13 supply red lines', () => {
 		expect(channelsApiSrc).toContain('deleteChannel');
 		expect(channelsApiSrc).toContain('/model-pricing');
 		expect(channelsApiSrc).toContain('/pricing/sync-models');
-		expect(channelPricingPageSrc).toContain('read-only virtual table');
+		expect(channelPricingPageSrc).toMatch(/read-only|readonly|Read-only/);
 		expect(channelPricingPageSrc).not.toContain('/model-pricing');
 		expect(channelPricingPageSrc).not.toContain('createChannel');
 		expect(channelPricingPageSrc).not.toContain('updateChannel');
