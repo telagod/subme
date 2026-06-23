@@ -140,51 +140,51 @@
 <Card class="p-4" data-testid="monitor-editor-card">
 	<div class="mb-3 flex items-center gap-2 text-sm font-semibold">
 		<Activity class="h-4 w-4 text-muted-foreground" />
-		{editing ? 'Edit monitor' : 'Create monitor'}
+		{editing ? $_('admin.monitor.editMonitor', { default: 'Edit monitor' }) : $_('admin.monitor.createMonitor', { default: 'Create monitor' })}
 	</div>
 	<div class="grid gap-3 lg:grid-cols-3">
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Name</span>
+			<span>{$_('admin.monitor.name', { default: 'Name' })}</span>
 			<Input bind:value={form.name} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Provider</span>
+			<span>{$_('admin.monitor.provider', { default: 'Provider' })}</span>
 			<NativeSelect bind:value={form.provider} options={formProviderOptions} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>API mode</span>
+			<span>{$_('admin.monitor.apiMode', { default: 'API mode' })}</span>
 			<NativeSelect bind:value={form.api_mode} options={apiModeOptions} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground lg:col-span-2">
-			<span>Endpoint</span>
+			<span>{$_('admin.monitor.endpoint', { default: 'Endpoint' })}</span>
 			<Input bind:value={form.endpoint} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>API key {editing ? '(blank keeps current)' : ''}</span>
+			<span>{$_('admin.monitor.apiKey', { default: 'API key' })} {editing ? $_('admin.monitor.apiKeyBlankHint', { default: '(blank keeps current)' }) : ''}</span>
 			<Input type="password" bind:value={form.api_key} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Primary model</span>
+			<span>{$_('admin.monitor.primaryModel', { default: 'Primary model' })}</span>
 			<Input bind:value={form.primary_model} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Group name</span>
+			<span>{$_('admin.monitor.groupName', { default: 'Group name' })}</span>
 			<Input bind:value={form.group_name} />
 		</label>
 		<label class="flex items-center gap-2 pt-6 text-sm text-foreground">
 			<Checkbox bind:checked={form.enabled} />
-			<span>Enabled</span>
+			<span>{$_('admin.monitor.enabled', { default: 'Enabled' })}</span>
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Interval seconds</span>
+			<span>{$_('admin.monitor.intervalSeconds', { default: 'Interval seconds' })}</span>
 			<Input type="number" min="30" bind:value={form.interval_seconds} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground">
-			<span>Jitter seconds</span>
+			<span>{$_('admin.monitor.jitterSeconds', { default: 'Jitter seconds' })}</span>
 			<Input type="number" min="0" bind:value={form.jitter_seconds} />
 		</label>
 		<label class="space-y-1 text-xs font-medium text-muted-foreground lg:col-span-3">
-			<span>Extra models</span>
+			<span>{$_('admin.monitor.extraModels', { default: 'Extra models' })}</span>
 			<Textarea
 				class="font-mono text-xs"
 				placeholder="one model per line or comma separated"

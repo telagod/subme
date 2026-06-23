@@ -488,7 +488,7 @@
 				{/if}
 				<div class="grid gap-2 sm:grid-cols-[1fr_auto]">
 					<NativeSelect bind:value={copyAccountsSelect} options={copyAccountsSelectOptions} data-testid="group-copy-accounts-select" />
-					<Button variant="outline" onclick={addCopyAccountsGroup} disabled={copyAccountsSelect === '__none__'}>Add source</Button>
+					<Button variant="outline" onclick={addCopyAccountsGroup} disabled={copyAccountsSelect === '__none__'}>{$_('admin.groups.addSource', { default: 'Add source' })}</Button>
 				</div>
 			</div>
 		{/if}
@@ -562,7 +562,7 @@
 						</div>
 					{/each}
 				</div>
-				<Button variant="outline" size="sm" onclick={addModelRoutingRule}>Add routing rule</Button>
+				<Button variant="outline" size="sm" onclick={addModelRoutingRule}>{$_('admin.groups.addRoutingRule', { default: 'Add routing rule' })}</Button>
 			{:else}
 				<p class="text-sm text-muted-foreground">Routing is disabled for this group.</p>
 			{/if}
@@ -639,8 +639,8 @@
 				<p class="rounded-md border border-border p-3 text-sm text-muted-foreground">Loading model candidates...</p>
 			{:else if modelsListItems.length > 0}
 				<div class="flex flex-wrap justify-end gap-2">
-					<Button variant="outline" size="sm" onclick={selectAllModelsListItems}>Select all</Button>
-					<Button variant="outline" size="sm" onclick={invertModelsListItems}>Invert</Button>
+					<Button variant="outline" size="sm" onclick={selectAllModelsListItems}>{$_('common.selectAll', { default: 'Select all' })}</Button>
+					<Button variant="outline" size="sm" onclick={invertModelsListItems}>{$_('common.invert', { default: 'Invert' })}</Button>
 				</div>
 				<div class="max-h-48 overflow-auto rounded-md border border-border" data-testid="group-models-list-items">
 					{#each modelsListItems as item, index (item.id)}
@@ -649,8 +649,8 @@
 								<Checkbox checked={item.selected} onchange={(event) => setModelsListItem(item.id, event.currentTarget.checked)} data-testid={`group-models-list-item-${item.id}`} />
 								<span class="truncate font-mono text-xs">{item.id}</span>
 							</label>
-							<Button variant="ghost" size="sm" disabled={index === 0} onclick={() => moveModelsListItem(index, -1)}>Up</Button>
-							<Button variant="ghost" size="sm" disabled={index === modelsListItems.length - 1} onclick={() => moveModelsListItem(index, 1)}>Down</Button>
+							<Button variant="ghost" size="sm" disabled={index === 0} onclick={() => moveModelsListItem(index, -1)}>{$_('common.up', { default: 'Up' })}</Button>
+							<Button variant="ghost" size="sm" disabled={index === modelsListItems.length - 1} onclick={() => moveModelsListItem(index, 1)}>{$_('common.down', { default: 'Down' })}</Button>
 						</div>
 					{/each}
 				</div>

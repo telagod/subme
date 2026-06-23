@@ -158,7 +158,7 @@
 		<!-- Mode toggle -->
 		<div class="flex items-center gap-2 text-sm">
 			<Button variant={rawMode ? 'outline' : 'default'} size="sm" onclick={() => (rawMode = false)}>{$_('admin.accounts.structured', { default: '结构化' })}</Button>
-			<Button variant={rawMode ? 'default' : 'outline'} size="sm" onclick={() => (rawMode = true)}>Raw JSON</Button>
+			<Button variant={rawMode ? 'default' : 'outline'} size="sm" onclick={() => (rawMode = true)}>{$_('admin.accounts.rawJson', { default: 'Raw JSON' })}</Button>
 		</div>
 
 		{#if rawMode}

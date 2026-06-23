@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { _ } from 'svelte-i18n';
 	import { RefreshCw } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -35,7 +36,7 @@
 			</p>
 		</div>
 		<Button variant="outline" size="sm" onclick={resetAll}>
-			<RefreshCw size={14} />Reset defaults
+			<RefreshCw size={14} />{$_('admin.risk.resetDefaults', { default: 'Reset defaults' })}
 		</Button>
 	</div>
 

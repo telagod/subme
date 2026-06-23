@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { _ } from 'svelte-i18n';
 	import { RefreshCw } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -75,7 +76,7 @@
 		<!-- Queue usage bar -->
 		<div>
 			<div class="flex justify-between text-xs text-muted-foreground">
-				<span>Queue usage</span>
+				<span>{$_('admin.risk.queueUsage', { default: 'Queue usage' })}</span>
 				<span>{Math.round(queueUsage * 10) / 10}%</span>
 			</div>
 			<div class="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
@@ -201,7 +202,7 @@
 
 		{#if status?.last_cleanup_at}
 			<div class="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-				<span>Last cleanup: {new Date(status.last_cleanup_at).toLocaleString()}</span>
+				<span>{$_('admin.risk.lastCleanup', { default: 'Last cleanup' })}: {new Date(status.last_cleanup_at).toLocaleString()}</span>
 				<span>&middot; hit: {status.last_cleanup_deleted_hit}</span>
 				<span>&middot; non-hit: {status.last_cleanup_deleted_non_hit}</span>
 			</div>

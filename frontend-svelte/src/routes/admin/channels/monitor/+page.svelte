@@ -193,7 +193,7 @@
 				<RefreshCw size={15} class={loading ? 'animate-spin' : ''} />Refresh
 			</Button>
 			<Button onclick={openCreate}>
-				<Plus size={15} />Create
+				<Plus size={15} />{$_('common.create', { default: 'Create' })}
 			</Button>
 		</div>
 	</header>

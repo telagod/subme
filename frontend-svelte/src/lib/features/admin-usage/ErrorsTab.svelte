@@ -209,9 +209,9 @@
 				</div>
 			{/if}
 			<div class="grid grid-cols-4 gap-2 text-xs text-muted-foreground">
-				<div>Auth: {detail.auth_latency_ms != null ? `${detail.auth_latency_ms}ms` : '—'}</div>
-				<div>Route: {detail.routing_latency_ms != null ? `${detail.routing_latency_ms}ms` : '—'}</div>
-				<div>Upstream: {detail.upstream_latency_ms != null ? `${detail.upstream_latency_ms}ms` : '—'}</div>
+				<div>{$_('admin.usage.authLatency', { default: 'Auth' })}: {detail.auth_latency_ms != null ? `${detail.auth_latency_ms}ms` : '—'}</div>
+				<div>{$_('admin.usage.routeLatency', { default: 'Route' })}: {detail.routing_latency_ms != null ? `${detail.routing_latency_ms}ms` : '—'}</div>
+				<div>{$_('admin.usage.upstreamLatency', { default: 'Upstream' })}: {detail.upstream_latency_ms != null ? `${detail.upstream_latency_ms}ms` : '—'}</div>
 				<div>TTFT: {detail.time_to_first_token_ms != null ? `${detail.time_to_first_token_ms}ms` : '—'}</div>
 			</div>
 		</div>

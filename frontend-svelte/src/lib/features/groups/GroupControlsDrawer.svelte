@@ -418,7 +418,7 @@
 			<div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
 				<Input placeholder="User ID" inputmode="numeric" bind:value={newRateUserId} data-testid="group-rate-user-id" />
 				<Input placeholder="Rate multiplier" type="number" min="0.01" step="0.1" bind:value={newRateMultiplier} data-testid="group-rate-new-value" />
-				<Button variant="outline" onclick={addRateEntry}>Add</Button>
+				<Button variant="outline" onclick={addRateEntry}>{$_('common.add', { default: 'Add' })}</Button>
 			</div>
 			{#if rateEntries.length > 0}
 				<div class="grid gap-2 rounded-md bg-muted/40 p-3 sm:grid-cols-[1fr_auto]">
@@ -445,7 +445,7 @@
 				{/if}
 			</div>
 			<div class="flex justify-end">
-				<Button disabled={controlsSaving || controlsLoading} onclick={saveRateMultipliers}>Save rates</Button>
+				<Button disabled={controlsSaving || controlsLoading} onclick={saveRateMultipliers}>{$_('admin.groups.saveRates', { default: 'Save rates' })}</Button>
 			</div>
 		</Card>
 
@@ -465,7 +465,7 @@
 			<div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
 				<Input placeholder="User ID" inputmode="numeric" bind:value={newRpmUserId} data-testid="group-rpm-user-id" />
 				<Input placeholder="RPM override" type="number" min="0" step="1" bind:value={newRpmOverride} data-testid="group-rpm-new-value" />
-				<Button variant="outline" onclick={addRpmEntry}>Add</Button>
+				<Button variant="outline" onclick={addRpmEntry}>{$_('common.add', { default: 'Add' })}</Button>
 			</div>
 			<div class="max-h-48 overflow-auto rounded-md border border-border" data-testid="group-rpm-list">
 				{#if controlsLoading}
@@ -486,7 +486,7 @@
 				{/if}
 			</div>
 			<div class="flex justify-end">
-				<Button disabled={controlsSaving || controlsLoading} onclick={saveRpmOverrides}>Save RPM</Button>
+				<Button disabled={controlsSaving || controlsLoading} onclick={saveRpmOverrides}>{$_('admin.groups.saveRpm', { default: 'Save RPM' })}</Button>
 			</div>
 		</Card>
 	</div>

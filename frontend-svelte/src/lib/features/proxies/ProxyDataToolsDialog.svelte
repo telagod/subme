@@ -162,7 +162,7 @@
 			<Textarea rows={7} bind:value={batchJson} oninput={refreshBatchParse} data-testid="proxy-batch-json" />
 			{#if batchParse.total > 0 || batchParse.error}
 				<div class="flex flex-wrap gap-3 rounded-md bg-muted p-3 text-sm" data-testid="proxy-batch-parse-summary">
-					<span>Valid {batchParse.valid}</span>
+					<span>{$_('admin.proxies.valid', { default: 'Valid' })} {batchParse.valid}</span>
 					<span class={batchParse.invalid > 0 ? 'text-amber-600' : 'text-muted-foreground'}>Invalid {batchParse.invalid}</span>
 					<span class={batchParse.duplicate > 0 ? 'text-muted-foreground' : 'text-muted-foreground'}>Duplicate {batchParse.duplicate}</span>
 					<span class="text-muted-foreground">Mode {batchParse.mode}</span>
@@ -172,7 +172,7 @@
 				</div>
 			{/if}
 			<div class="flex justify-end">
-				<Button disabled={dataBusy || batchParse.valid === 0} onclick={createBatch}>Create batch</Button>
+				<Button disabled={dataBusy || batchParse.valid === 0} onclick={createBatch}>{$_('admin.proxies.createBatch', { default: 'Create batch' })}</Button>
 			</div>
 		</Card>
 
@@ -190,9 +190,9 @@
 			{/if}
 			<Textarea rows={8} bind:value={dataJson} data-testid="proxy-data-json" />
 			<div class="flex flex-wrap justify-end gap-2">
-				<Button variant="outline" disabled={dataBusy || selectedIds.size === 0} onclick={exportSelected}>Export selected</Button>
-				<Button variant="outline" disabled={dataBusy} onclick={exportFiltered}>Export filtered</Button>
-				<Button variant="outline" disabled={dataBusy || !dataJson.trim()} onclick={downloadDataJson}>Download JSON</Button>
+				<Button variant="outline" disabled={dataBusy || selectedIds.size === 0} onclick={exportSelected}>{$_('admin.proxies.exportSelected', { default: 'Export selected' })}</Button>
+				<Button variant="outline" disabled={dataBusy} onclick={exportFiltered}>{$_('admin.proxies.exportFiltered', { default: 'Export filtered' })}</Button>
+				<Button variant="outline" disabled={dataBusy || !dataJson.trim()} onclick={downloadDataJson}>{$_('admin.proxies.downloadJson', { default: 'Download JSON' })}</Button>
 				<Button disabled={dataBusy || !dataJson.trim()} onclick={importData}>Import data</Button>
 			</div>
 			{#if dataImportResult}
