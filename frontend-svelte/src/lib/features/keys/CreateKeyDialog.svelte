@@ -289,12 +289,11 @@
 							data-testid="create-key-group"
 							bind:value={$form.groupId}
 							disabled={groupsLoading}
-						>
-							<option value="__none__">{$_('user.keys.groupDefault', { default: '默认分组' })}</option>
-							{#each groups as g (g.id)}
-								<option value={g.id}>{g.name} ({g.platform})</option>
-							{/each}
-						</NativeSelect>
+							options={[
+								{ value: '__none__', label: $_('user.keys.groupDefault', { default: 'Default group' }) },
+								...groups.map(g => ({ value: String(g.id), label: `${g.name} (${g.platform})` }))
+							]}
+						/>
 					</div>
 
 					<!-- quota -->
