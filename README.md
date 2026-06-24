@@ -321,10 +321,10 @@ cd ..
 npm install -g pnpm
 
 # 4. Build frontend
-cd frontend
+cd frontend-svelte
 pnpm install
 pnpm run build
-# Output will be in ../backend/internal/web/dist/
+# Output will be in ../backend/internal/web/dist_svelte/
 
 # 5. Build backend with embedded frontend
 cd ../backend
@@ -529,12 +529,10 @@ sub2api/
 │   │   └── gateway/          # API gateway core
 │   └── resources/            # Static resources
 │
-├── frontend/                 # Vue 3 frontend
+├── frontend-svelte/          # Svelte 5 frontend
 │   └── src/
-│       ├── api/              # API calls
-│       ├── stores/           # State management
-│       ├── views/            # Page components
-│       └── components/       # Reusable components
+│       ├── lib/              # API clients, UI, stores, and feature modules
+│       └── routes/           # SvelteKit routes
 │
 └── deploy/                   # Deployment files
     ├── docker-compose.yml    # Docker Compose configuration

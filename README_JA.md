@@ -314,10 +314,10 @@ cd sub2api
 npm install -g pnpm
 
 # 3. フロントエンドをビルド
-cd frontend
+cd frontend-svelte
 pnpm install
 pnpm run build
-# 出力先: ../backend/internal/web/dist/
+# 出力先: ../backend/internal/web/dist_svelte/
 
 # 4. フロントエンドを組み込んだバックエンドをビルド
 cd ../backend
@@ -507,12 +507,10 @@ sub2api/
 │   │   └── gateway/          # API ゲートウェイコア
 │   └── resources/            # 静的リソース
 │
-├── frontend/                 # Vue 3 フロントエンド
+├── frontend-svelte/          # Svelte 5 フロントエンド
 │   └── src/
-│       ├── api/              # API 呼び出し
-│       ├── stores/           # 状態管理
-│       ├── views/            # ページコンポーネント
-│       └── components/       # 再利用可能なコンポーネント
+│       ├── lib/              # API クライアント、UI、ストア、機能モジュール
+│       └── routes/           # SvelteKit ルート
 │
 └── deploy/                   # デプロイファイル
     ├── docker-compose.yml    # Docker Compose 設定

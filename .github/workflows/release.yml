@@ -82,21 +82,21 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: frontend-svelte/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: frontend
+        working-directory: frontend-svelte
 
       - name: Build frontend
         run: pnpm run build
-        working-directory: frontend
+        working-directory: frontend-svelte
 
       - name: Upload frontend artifact
         uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
-          path: backend/internal/web/dist/
+          path: backend/internal/web/dist_svelte/
           retention-days: 7
 
   release:
@@ -120,7 +120,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: frontend-dist
-          path: backend/internal/web/dist/
+          path: backend/internal/web/dist_svelte/
 
       - name: Setup Go
         uses: actions/setup-go@v6

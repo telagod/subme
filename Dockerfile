@@ -18,17 +18,17 @@ ARG GOSUMDB=sum.golang.google.cn
 # -----------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS frontend-builder
 
-WORKDIR /app/frontend
+WORKDIR /app/frontend-svelte
 
 # Install pnpm (pinned to v9 to match CI and keep builds reproducible)
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Install dependencies first (better caching)
-COPY frontend/package.json frontend/pnpm-lock.yaml ./
+COPY frontend-svelte/package.json frontend-svelte/pnpm-lock.yaml frontend-svelte/pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Copy frontend source and build
-COPY frontend/ ./
+COPY frontend-svelte/ ./
 RUN pnpm run build
 
 # -----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ RUN go mod download
 COPY backend/ ./
 
 # Copy frontend dist from previous stage (must be after backend copy to avoid being overwritten)
-COPY --from=frontend-builder /app/backend/internal/web/dist ./internal/web/dist
+COPY --from=frontend-builder /app/backend/internal/web/dist_svelte ./internal/web/dist_svelte
 
 # Build the binary (BuildType=release for CI builds, embed frontend)
 # Version precedence: build arg VERSION > cmd/server/VERSION

@@ -1,0 +1,105 @@
+<script lang="ts">
+	import { _ } from 'svelte-i18n';
+	import { getUserUsage, type AdminUser, type UserUsageStats } from '$lib/api/admin/users';
+	import Card from '$lib/ui/Card.svelte';
+
+	type Props = { user: AdminUser };
+	let { user }: Props = $props();
+
+	let stats = $state<UserUsageStats | null>(null);
+	let loading = $state(true);
+	let prevUserId = $state<number | null>(null);
+
+	function fmtTok(v: number): string {
+		if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+		if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+		if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+		return Math.round(v).toLocaleString();
+	}
+
+	function fmtCost(v: number): string {
+		const s = v.toFixed(8).replace(/\.?0+$/, '');
+		const parts = s.split('.');
+		if (parts.length === 1) return s + '.00';
+		if (parts[1].length < 2) return s + '0';
+		return s;
+	}
+
+	function fmt(iso: string | null | undefined): string {
+		if (!iso) return '—';
+		return new Date(iso).toLocaleString();
+	}
+
+	async function load() {
+		loading = true;
+		try { stats = await getUserUsage(user.id, 'month'); }
+		catch { stats = null; }
+		finally { loading = false; }
+	}
+
+	$effect(() => {
+		if (user.id !== prevUserId) {
+			prevUserId = user.id;
+			load();
+		}
+	});
+</script>
+
+<div class="flex flex-col gap-5">
+	<!-- KPI cards: Month Requests / Month Cost / Month Tokens / Concurrency -->
+	<div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+		<Card class="flex flex-col gap-1 px-4 py-3.5">
+			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.kpiRequests', { default: '月请求量' })}
+			</span>
+			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
+				{loading ? '...' : (stats?.total_requests ?? 0).toLocaleString()}
+			</span>
+		</Card>
+		<Card class="flex flex-col gap-1 px-4 py-3.5">
+			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.kpiMonthCost', { default: '月费用' })}
+			</span>
+			<span class="font-mono text-lg font-bold tabular-nums text-emerald-500">
+				{loading ? '...' : `$${fmtCost(stats?.total_cost ?? 0)}`}
+			</span>
+		</Card>
+		<Card class="flex flex-col gap-1 px-4 py-3.5">
+			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.kpiTokens', { default: '月令牌量' })}
+			</span>
+			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
+				{loading ? '...' : fmtTok(stats?.total_tokens ?? 0)}
+			</span>
+		</Card>
+		<Card class="flex flex-col gap-1 px-4 py-3.5">
+			<span class="text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+				{$_('admin.users.kpiConcurrency', { default: '并发数' })}
+			</span>
+			<span class="font-mono text-lg font-bold tabular-nums text-foreground">
+				{user.current_concurrency ?? 0}<span class="ml-0.5 text-xs font-normal text-muted-foreground">/{user.concurrency ?? '∞'}</span>
+			</span>
+		</Card>
+	</div>
+
+	<!-- User info rows -->
+	<div class="flex flex-col">
+		{#each [
+			{ label: $_('admin.users.infoId', { default: '用户 ID' }), value: `#${user.id}`, mono: true },
+			{ label: $_('admin.users.infoEmail', { default: '邮箱' }), value: user.email },
+			{ label: $_('admin.users.infoUsername', { default: '用户名' }), value: user.username, show: !!user.username },
+			{ label: $_('admin.users.infoConcurrency', { default: '并发数' }), value: String(user.concurrency ?? '—'), mono: true },
+			{ label: $_('admin.users.infoRpm', { default: 'RPM Limit' }), value: user.rpm_limit === 0 ? $_('admin.users.unlimited', { default: '不限' }) : String(user.rpm_limit ?? '—'), mono: true },
+			{ label: $_('admin.users.infoRegistered', { default: '已注册' }), value: fmt(user.created_at) },
+			{ label: $_('admin.users.infoLastActive', { default: '最后活跃' }), value: fmt(user.last_used_at), show: !!user.last_used_at },
+			{ label: $_('admin.users.infoNotes', { default: '备注' }), value: user.notes ?? '', show: !!user.notes }
+		] as row}
+			{#if row.show !== false}
+				<div class="flex items-baseline gap-3 border-b border-border py-2.5 text-sm">
+					<span class="w-24 shrink-0 text-xs text-muted-foreground">{row.label}</span>
+					<span class="flex-1 break-all text-foreground" class:font-mono={row.mono} class:text-xs={row.mono}>{row.value}</span>
+				</div>
+			{/if}
+		{/each}
+	</div>
+</div>

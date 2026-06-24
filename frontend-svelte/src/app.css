@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── shadcn HSL 语义变量 · Zinc 中性，亮色默认 ──
+ * 与 Vue tree style.css :root / .dark 对齐，dark 类切换暗色。
+ * 数字阶（zinc-50..zinc-950）保持完全一致，避免设计漂移。
+ */
+@layer base {
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 240 10% 3.9%;
+		--card: 0 0% 100%;
+		--card-foreground: 240 10% 3.9%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 240 10% 3.9%;
+		--primary: 240 5.9% 10%;
+		--primary-foreground: 0 0% 98%;
+		--secondary: 240 4.8% 95.9%;
+		--secondary-foreground: 240 5.9% 10%;
+		--muted: 240 4.8% 95.9%;
+		--muted-foreground: 240 3.8% 46.1%;
+		--accent: 240 4.8% 95.9%;
+		--accent-foreground: 240 5.9% 10%;
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 240 5.9% 90%;
+		--input: 240 5.9% 90%;
+		--ring: 240 5.9% 10%;
+		--radius: 0.5rem;
+	}
+
+	.dark {
+		--background: 240 10% 3.9%;
+		--foreground: 0 0% 98%;
+		--card: 240 10% 3.9%;
+		--card-foreground: 0 0% 98%;
+		--popover: 240 10% 3.9%;
+		--popover-foreground: 0 0% 98%;
+		--primary: 0 0% 98%;
+		--primary-foreground: 240 5.9% 10%;
+		--secondary: 240 3.7% 15.9%;
+		--secondary-foreground: 0 0% 98%;
+		--muted: 240 3.7% 15.9%;
+		--muted-foreground: 240 5% 64.9%;
+		--accent: 240 3.7% 15.9%;
+		--accent-foreground: 0 0% 98%;
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 0 0% 98%;
+		--border: 240 3.7% 15.9%;
+		--input: 240 3.7% 15.9%;
+		--ring: 240 4.9% 83.9%;
+	}
+
+	* {
+		@apply border-border;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	/* ── 密度模式 · AppShell 子树共用 ──
+	 * 注入到 AppShell 根节点 data-density="comfortable|compact" 上。
+	 * 子组件用 CSS 变量取尺寸，单源真相，避免散落的 if/else 切类名。
+	 *   --row-h   导航行 / 表格行高
+	 *   --input-h Input/Select/Button 触发器高度
+	 *   --px      水平内边距（横向 padding，行 + 触发器共享）
+	 */
+	[data-density='comfortable'] {
+		--row-h: 2.5rem; /* h-10 */
+		--input-h: 2.5rem; /* h-10 */
+		--px: 0.75rem; /* px-3 */
+	}
+	[data-density='compact'] {
+		--row-h: 2rem; /* h-8 */
+		--input-h: 2.25rem; /* h-9 */
+		--px: 0.5rem; /* px-2 */
+	}
+}
