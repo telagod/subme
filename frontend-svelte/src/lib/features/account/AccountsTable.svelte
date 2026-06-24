@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { _ } from 'svelte-i18n';
-	import { Clock, KeyRound, Pencil, Server, Settings, Shield } from '@lucide/svelte';
+	import { Clock, MoreHorizontal, Pencil, Server, Settings, Shield, KeyRound, RefreshCw, Power, AlertTriangle, Trash2 } from '@lucide/svelte';
 	import Badge from '$lib/ui/Badge.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Checkbox from '$lib/ui/Checkbox.svelte';
-	import AccountStatsRow from './AccountStatsRow.svelte';
 	import {
-		clearAccountError, recoverAccountState, refreshAccount, revertProxyFallback,
-		setAccountPrivacy, setAccountSchedulable, updateAccountStatus,
+		clearAccountError, recoverAccountState, refreshAccount,
+		setAccountPrivacy, updateAccountStatus,
 		type Account, type WindowStats
 	} from '$lib/api/admin/accounts';
 	import { showError, showSuccess } from '$lib/stores/toast.svelte';
-	import { accountIsSchedulable, accountPoolMode, formatGroupNames, formatProxyLabel, statusTone } from '$lib/features/supply/supply';
+	import { accountIsSchedulable, accountPoolMode, formatGroupNames, formatProxyLabel } from '$lib/features/supply/supply';
 
 	type Props = {
 		rows: Account[];
@@ -26,42 +25,41 @@
 		onTempHold: (account: Account) => void;
 		onRefresh: () => void;
 	};
-	let {
-		rows, loading, selectedIds, todayStats = {},
-		onToggleSelection, onTogglePage, onEdit, onTools, onReAuth, onTempHold, onRefresh
-	}: Props = $props();
+	let { rows, loading, selectedIds, todayStats = {}, onToggleSelection, onTogglePage, onEdit, onTools, onReAuth, onTempHold, onRefresh }: Props = $props();
 
-	let busy = $state(false);
 	const allSel = $derived(rows.length > 0 && rows.every(r => selectedIds.has(r.id)));
+	let openMenuId = $state<number | null>(null);
 
 	async function act(label: string, fn: () => Promise<unknown>) {
-		busy = true;
 		try { await fn(); showSuccess(label); onRefresh(); }
 		catch (err) { showError(err instanceof Error ? err.message : String(err)); }
-		finally { busy = false; }
 	}
 
 	function platformColor(p: string): string {
 		const lc = (p || '').toLowerCase();
-		if (lc.includes('anthropic')) return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20';
-		if (lc.includes('openai')) return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20';
-		if (lc.includes('google') || lc.includes('gemini')) return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20';
-		if (lc.includes('bedrock') || lc.includes('amazon')) return 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/20';
-		if (lc.includes('deepseek')) return 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-500/20';
-		return 'bg-muted text-muted-foreground border-border';
+		if (lc.includes('anthropic')) return 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400';
+		if (lc.includes('openai')) return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+		if (lc.includes('google') || lc.includes('gemini')) return 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400';
+		if (lc.includes('bedrock') || lc.includes('amazon')) return 'border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400';
+		if (lc.includes('deepseek')) return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400';
+		return 'border-border bg-muted text-muted-foreground';
 	}
 
-	function typeLabel(t: string): string {
-		if (t === 'api_key') return 'API Key';
-		if (t === 'oauth') return 'OAuth';
-		if (t === 'setup-token') return 'Setup';
-		return t;
+	function statusColor(s: string): string {
+		if (s === 'active') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+		if (s === 'error') return 'border-destructive/30 bg-destructive/10 text-destructive';
+		if (s === 'rate_limited') return 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400';
+		if (s === 'temp_unschedulable') return 'border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400';
+		return 'border-border bg-muted text-muted-foreground';
 	}
 
-	function modelCount(a: Account): number {
-		const mm = (a as Record<string, unknown>).model_mapping;
-		if (mm && typeof mm === 'object' && !Array.isArray(mm)) return Object.keys(mm as Record<string, string>).length;
-		return 0;
+	function statusLabel(s: string): string {
+		if (s === 'active') return $_('admin.accounts.statusActive', { default: 'Active' });
+		if (s === 'error') return $_('admin.accounts.statusError', { default: 'Error' });
+		if (s === 'inactive') return $_('admin.accounts.statusInactive', { default: 'Inactive' });
+		if (s === 'rate_limited') return $_('admin.accounts.statusRateLimited', { default: 'Rate limited' });
+		if (s === 'temp_unschedulable') return $_('admin.accounts.statusTempUnsched', { default: 'Temp hold' });
+		return s;
 	}
 
 	function relTime(v: string | null | undefined): string {
@@ -69,133 +67,141 @@
 		const d = new Date(v);
 		if (Number.isNaN(d.getTime())) return '';
 		const diff = Date.now() - d.getTime();
-		if (diff < 60000) return 'just now';
+		if (diff < 60000) return $_('admin.accounts.justNow', { default: 'just now' });
 		if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
 		if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
 		return `${Math.floor(diff / 86400000)}d`;
 	}
 
-	function hasFallback(a: Account): boolean { return (a as Record<string, unknown>).proxy_fallback_origin_id != null; }
+	function groups(a: Account): string {
+		const g = formatGroupNames(a);
+		return (g && g !== '-' && g !== 'None') ? g : '';
+	}
+
+	function proxy(a: Account): string {
+		const p = formatProxyLabel(a.proxy, a.proxy_id);
+		return (p && p !== '-' && p !== 'None') ? p : '';
+	}
+
+	function modelCount(a: Account): number {
+		const mm = (a as Record<string, unknown>).model_mapping;
+		if (mm && typeof mm === 'object' && !Array.isArray(mm)) return Object.keys(mm as Record<string, string>).length;
+		return 0;
+	}
 </script>
 
-<div class="overflow-hidden rounded-lg border border-border bg-card shadow-sm" data-testid="accounts-table-container">
+<div class="overflow-hidden rounded-xl border border-border bg-card shadow-sm" data-testid="accounts-table-container">
 	<div class="overflow-x-auto">
 		<table class="w-full text-sm" data-testid="accounts-table">
 			<thead>
-				<tr class="border-b border-border bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-					<th class="w-10 px-3 py-2.5"><Checkbox checked={allSel} onchange={onTogglePage} data-testid="accounts-select-all" /></th>
-					<th class="min-w-[200px] px-4 py-2.5 text-left">{$_('admin.accounts.col.account', { default: 'Account' })}</th>
-					<th class="w-[90px] px-3 py-2.5 text-left">{$_('admin.accounts.col.platform', { default: 'Platform' })}</th>
-					<th class="w-[90px] px-3 py-2.5 text-left">{$_('admin.accounts.col.status', { default: 'Status' })}</th>
-					<th class="w-[120px] px-3 py-2.5 text-left">{$_('admin.accounts.col.capacity', { default: 'Capacity' })}</th>
-					<th class="w-[100px] px-3 py-2.5 text-left">{$_('admin.accounts.col.usage', { default: 'Usage' })}</th>
-					<th class="w-[100px] px-3 py-2.5 text-left">{$_('admin.accounts.col.groups', { default: 'Groups' })}</th>
-					<th class="w-[90px] px-3 py-2.5 text-left">{$_('admin.accounts.col.proxy', { default: 'Proxy' })}</th>
-					<th class="w-[80px] px-3 py-2.5 text-left">{$_('admin.accounts.col.models', { default: 'Models' })}</th>
-					<th class="w-[100px] px-3 py-2.5 text-right">{$_('admin.accounts.col.actions', { default: 'Actions' })}</th>
+				<tr class="border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
+					<th class="w-10 px-4 py-3"><Checkbox checked={allSel} onchange={onTogglePage} data-testid="accounts-select-all" /></th>
+					<th class="min-w-[280px] px-4 py-3 text-left">{$_('admin.accounts.col.account', { default: 'Account' })}</th>
+					<th class="w-[100px] px-4 py-3 text-left">{$_('admin.accounts.col.status', { default: 'Status' })}</th>
+					<th class="w-[140px] px-4 py-3 text-left">{$_('admin.accounts.col.config', { default: 'Config' })}</th>
+					<th class="w-[120px] px-4 py-3 text-left">{$_('admin.accounts.col.routing', { default: 'Routing' })}</th>
+					<th class="w-[80px] px-4 py-3 text-right">{$_('admin.accounts.col.actions', { default: 'Actions' })}</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#if loading}
 					{#each Array(5) as _, i (i)}
-						<tr class="border-b border-border"><td colspan="10" class="px-4 py-4"><div class="h-5 animate-pulse rounded bg-muted"></div></td></tr>
+						<tr class="border-b border-border"><td colspan="6" class="px-4 py-5"><div class="h-6 animate-pulse rounded bg-muted"></div></td></tr>
 					{/each}
 				{:else if rows.length === 0}
 					<tr>
-						<td colspan="10" class="py-16 text-center">
-							<Server class="mx-auto h-10 w-10 text-muted-foreground/20" />
-							<p class="mt-3 text-sm text-muted-foreground">{$_('admin.accounts.noResults', { default: 'No accounts match the current filters.' })}</p>
+						<td colspan="6" class="py-20 text-center">
+							<Server class="mx-auto h-12 w-12 text-muted-foreground/15" />
+							<p class="mt-4 font-medium text-muted-foreground">{$_('admin.accounts.noResults', { default: 'No accounts match the current filters.' })}</p>
 						</td>
 					</tr>
 				{:else}
 					{#each rows as account (account.id)}
-						<tr class="border-b border-border transition-colors hover:bg-muted/30" data-testid="account-row">
-							<td class="px-3 py-3">
+						<tr class="group border-b border-border transition-colors hover:bg-muted/20" data-testid="account-row">
+							<td class="px-4 py-3.5">
 								<Checkbox checked={selectedIds.has(account.id)} onchange={() => onToggleSelection(account.id)} aria-label="Select account" />
 							</td>
-							<!-- Account name + type -->
-							<td class="px-4 py-3">
+
+							<!-- Account: name + platform + type + email -->
+							<td class="px-4 py-3.5">
 								<div class="flex items-center gap-3">
-									<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 text-xs font-bold text-primary">
+									<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-sm font-bold text-primary ring-1 ring-primary/10">
 										{(account.name || '#')[0].toUpperCase()}
 									</div>
 									<div class="min-w-0">
-										<p class="truncate font-medium">{account.name || `#${account.id}`}</p>
-										<div class="mt-0.5 flex items-center gap-1.5">
-											<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">{typeLabel(account.type)}</span>
-											{#if account.email && account.name}
-												<span class="truncate text-[10px] text-muted-foreground">{account.email}</span>
+										<div class="flex items-center gap-2">
+											<span class="truncate font-medium text-foreground">{account.name || `#${account.id}`}</span>
+											<span class="inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase {platformColor(account.platform)}">{account.platform}</span>
+										</div>
+										<div class="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+											<span class="rounded bg-muted px-1.5 py-0.5 text-[10px]">{account.type === 'api_key' ? 'API Key' : account.type === 'oauth' ? 'OAuth' : account.type}</span>
+											{#if account.email}
+												<span class="truncate">{account.email}</span>
+											{/if}
+											{#if account.last_used_at}
+												<span class="flex items-center gap-0.5"><Clock size={10} />{relTime(account.last_used_at)}</span>
 											{/if}
 										</div>
 									</div>
 								</div>
 							</td>
-							<!-- Platform -->
-							<td class="px-3 py-3">
-								<span class="inline-flex rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase {platformColor(account.platform)}">
-									{account.platform}
-								</span>
-							</td>
+
 							<!-- Status -->
-							<td class="px-3 py-3">
-								<Badge variant="outline" class={statusTone(account.status)}>{account.status}</Badge>
+							<td class="px-4 py-3.5">
+								<span class="inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold {statusColor(account.status)}">{statusLabel(account.status)}</span>
 								{#if account.status === 'error' && account.error_message}
-									<p class="mt-0.5 max-w-[120px] truncate text-[10px] text-destructive" title={account.error_message}>{account.error_message}</p>
+									<p class="mt-1 max-w-[120px] truncate text-[10px] text-destructive/80" title={account.error_message}>{account.error_message}</p>
 								{/if}
 							</td>
-							<!-- Capacity -->
-							<td class="px-3 py-3">
-								<div class="flex flex-wrap gap-1">
-									<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono" title="Priority">P{account.priority ?? '-'}</span>
-									<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono" title="Concurrency">C{account.concurrency ?? '-'}</span>
-									{#if accountIsSchedulable(account)}
-										<span class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">✓</span>
+
+							<!-- Config: priority, concurrency, schedulable, pool -->
+							<td class="px-4 py-3.5">
+								<div class="space-y-1">
+									<div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+										<span title={$_('admin.accounts.priority', { default: 'Priority' })}>{$_('admin.accounts.priShort', { default: 'Pri' })} <span class="font-mono font-medium text-foreground">{account.priority ?? 50}</span></span>
+										<span class="text-border">·</span>
+										<span title={$_('admin.accounts.concurrencyLabel', { default: 'Concurrency' })}>{$_('admin.accounts.conShort', { default: 'Con' })} <span class="font-mono font-medium text-foreground">{account.concurrency ?? 3}</span></span>
+									</div>
+									<div class="flex gap-1">
+										{#if accountIsSchedulable(account)}
+											<span class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">{$_('admin.accounts.schedulable', { default: 'Schedulable' })}</span>
+										{/if}
+										{#if accountPoolMode(account)}
+											<span class="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-600 dark:text-sky-400">{$_('admin.accounts.poolMode', { default: 'Pool' })}</span>
+										{/if}
+									</div>
+								</div>
+							</td>
+
+							<!-- Routing: groups + proxy + models -->
+							<td class="px-4 py-3.5">
+								<div class="space-y-1 text-xs">
+									{#if groups(account)}
+										<div class="flex items-center gap-1 text-muted-foreground">
+											<Shield size={11} />
+											<span class="truncate max-w-[100px]" title={groups(account)}>{groups(account)}</span>
+										</div>
 									{/if}
-									{#if accountPoolMode(account)}
-										<span class="rounded bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium text-sky-700 dark:text-sky-400">pool</span>
+									{#if proxy(account)}
+										<div class="flex items-center gap-1 text-muted-foreground">
+											<Server size={11} />
+											<span class="truncate max-w-[100px]">{proxy(account)}</span>
+										</div>
+									{/if}
+									{#if modelCount(account) > 0}
+										<div class="flex items-center gap-1 text-muted-foreground">
+											<KeyRound size={11} />
+											<span>{modelCount(account)} {$_('admin.accounts.models', { default: 'models' })}</span>
+										</div>
+									{/if}
+									{#if !groups(account) && !proxy(account) && modelCount(account) === 0}
+										<span class="text-muted-foreground/40">—</span>
 									{/if}
 								</div>
 							</td>
-							<!-- Usage -->
-							<td class="px-3 py-3">
-								{#if account.last_used_at}
-									<div class="flex items-center gap-1 text-[11px] text-muted-foreground">
-										<Clock size={10} />
-										<span>{relTime(account.last_used_at)}</span>
-									</div>
-								{:else}
-									<span class="text-xs text-muted-foreground/50">—</span>
-								{/if}
-							</td>
-							<!-- Groups -->
-							<td class="px-3 py-3">
-								{#if formatGroupNames(account) && formatGroupNames(account) !== '-' && formatGroupNames(account) !== 'None'}
-									<span class="inline-block max-w-[90px] truncate rounded bg-muted px-1.5 py-0.5 text-[10px]">{formatGroupNames(account)}</span>
-								{:else}
-									<span class="text-xs text-muted-foreground/50">—</span>
-								{/if}
-							</td>
-							<!-- Proxy -->
-							<td class="px-3 py-3">
-								{#if formatProxyLabel(account.proxy, account.proxy_id) && formatProxyLabel(account.proxy, account.proxy_id) !== '-' && formatProxyLabel(account.proxy, account.proxy_id) !== 'None'}
-									<span class="text-xs">{formatProxyLabel(account.proxy, account.proxy_id)}</span>
-									{#if hasFallback(account)}
-										<span class="mt-0.5 block rounded bg-amber-500/10 px-1 py-0.5 text-[9px] text-amber-600">fallback</span>
-									{/if}
-								{:else}
-									<span class="text-xs text-muted-foreground/50">—</span>
-								{/if}
-							</td>
-							<!-- Models -->
-							<td class="px-3 py-3">
-								{#if modelCount(account) > 0}
-									<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">{modelCount(account)}</span>
-								{:else}
-									<span class="text-xs text-muted-foreground/50">—</span>
-								{/if}
-							</td>
+
 							<!-- Actions -->
-							<td class="px-3 py-3">
+							<td class="px-4 py-3.5">
 								<div class="flex flex-wrap items-center justify-end gap-0.5">
 									<Button size="sm" variant="ghost" class="h-7 gap-1 px-2 text-xs" onclick={() => onEdit(account)}>
 										<Pencil size={12} />{$_('common.edit', { default: 'Edit' })}
@@ -214,7 +220,7 @@
 									<Button size="sm" variant="ghost" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.privacySet', { default: 'Privacy set' }), () => setAccountPrivacy(account.id, true))}>
 										{$_('admin.accounts.privacy', { default: 'Privacy' })}
 									</Button>
-									<Button size="sm" variant="ghost" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: 'State recovered' }), () => recoverAccountState(account.id))}>
+									<Button size="sm" variant="ghost" class="h-7 px-2 text-xs" onclick={() => act($_('admin.accounts.stateRecovered', { default: 'Recovered' }), () => recoverAccountState(account.id))}>
 										{$_('admin.accounts.recover', { default: 'Recover' })}
 									</Button>
 									{#if account.status === 'temp_unschedulable'}
