@@ -128,34 +128,51 @@
 	}
 </script>
 
-<div class="flex flex-wrap items-center gap-2">
-	{#if hasActiveFilters}
-		<span class="text-xs text-muted-foreground">{activeFilterCount} {activeFilterCount === 1 ? 'filter' : 'filters'}</span>
-	{/if}
-	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={exportSelected}>
-		<Download size={14} class="mr-1" />{$_('admin.accounts.exportSelected', { default: 'Export selected' })}
-	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.refreshed', { default: 'Refreshed' }), () => batchRefreshAccounts(selArr()))}>
-		<RotateCw size={14} class="mr-1" />{$_('admin.accounts.refreshSelected', { default: 'Refresh selected' })}
-	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0 || busy} onclick={() => act($_('admin.accounts.errorsCleared', { default: 'Errors cleared' }), () => batchClearAccountErrors(selArr()))}>
-		<ShieldCheck size={14} class="mr-1" />{$_('admin.accounts.clearErrors', { default: 'Clear errors' })}
-	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0} onclick={() => onOpenBulkEdit('selected', selArr())}>
-		<Pencil size={14} class="mr-1" />{$_('admin.accounts.editSelected', { default: 'Edit selected' })}
-	</Button>
-	<Button variant="outline" disabled={selectedIds.size === 0} class="border-destructive/30 text-destructive" onclick={() => { deleteOpen = true; }}>
-		<Trash2 size={14} class="mr-1" />{$_('admin.accounts.deleteSelected', { default: 'Delete selected' })}
-	</Button>
-	{#if total > 0 && hasActiveFilters}
-		<Button variant="outline" onclick={openBulkEditFiltered}>
-			{$_('admin.accounts.editFiltered', { default: 'Edit filtered' })} ({total})
+{#if selectedIds.size > 0}
+	<div class="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5">
+		<span class="text-sm font-medium">{selectedIds.size} {$_('admin.accounts.selected', { default: 'selected' })}</span>
+		{#if hasActiveFilters}
+			<span class="text-xs text-muted-foreground">· {activeFilterCount} {activeFilterCount === 1 ? $_('admin.accounts.filterSingular', { default: 'filter' }) : $_('admin.accounts.filtersActive', { default: 'filters' })}</span>
+		{/if}
+		<div class="flex flex-wrap gap-1.5">
+			<Button size="sm" variant="outline" disabled={busy} onclick={() => act($_('admin.accounts.refreshed', { default: 'Refreshed' }), () => batchRefreshAccounts(selArr()))}>
+				<RotateCw size={13} class="mr-1" />{$_('admin.accounts.refreshSelected', { default: 'Refresh' })}
+			</Button>
+			<Button size="sm" variant="outline" disabled={busy} onclick={() => act($_('admin.accounts.errorsCleared', { default: 'Errors cleared' }), () => batchClearAccountErrors(selArr()))}>
+				<ShieldCheck size={13} class="mr-1" />{$_('admin.accounts.clearErrors', { default: 'Clear errors' })}
+			</Button>
+			<Button size="sm" variant="outline" onclick={() => onOpenBulkEdit('selected', selArr())}>
+				<Pencil size={13} class="mr-1" />{$_('admin.accounts.editSelected', { default: 'Edit selected' })}
+			</Button>
+			<Button size="sm" variant="outline" class="border-destructive/30 text-destructive" onclick={() => { deleteOpen = true; }}>
+				<Trash2 size={13} class="mr-1" />{$_('admin.accounts.deleteSelected', { default: 'Delete' })}
+			</Button>
+			{#if hasActiveFilters && total > 0}
+				<Button size="sm" variant="outline" onclick={() => openFilteredBulk('refresh')}>
+					{$_('admin.accounts.refreshFiltered', { default: 'Refresh filtered' })}
+				</Button>
+				<Button size="sm" variant="outline" onclick={openBulkEditFiltered}>
+					{$_('admin.accounts.editFiltered', { default: 'Edit filtered' })} ({total})
+				</Button>
+			{/if}
+		</div>
+		<Button size="sm" variant="ghost" class="ml-auto text-xs" onclick={() => { selectedIds.clear(); }}>
+			{$_('common.cancel', { default: 'Cancel' })}
 		</Button>
-		<Button variant="outline" onclick={() => openFilteredBulk('refresh')}>
-			{$_('admin.accounts.refreshFiltered', { default: 'Refresh filtered' })}
-		</Button>
-	{/if}
-</div>
+	</div>
+{:else if hasActiveFilters && total > 0}
+	<div class="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-2">
+		<span class="text-xs text-muted-foreground">{activeFilterCount} {activeFilterCount === 1 ? $_('admin.accounts.filterSingular', { default: 'filter' }) : $_('admin.accounts.filtersActive', { default: 'filters' })}</span>
+		<div class="ml-auto flex gap-1.5">
+			<Button size="sm" variant="outline" onclick={() => openFilteredBulk('refresh')}>
+				<RotateCw size={13} class="mr-1" />{$_('admin.accounts.refreshFiltered', { default: 'Refresh filtered' })}
+			</Button>
+			<Button size="sm" variant="outline" onclick={openBulkEditFiltered}>
+				<Pencil size={13} class="mr-1" />{$_('admin.accounts.editFiltered', { default: 'Edit filtered' })} ({total})
+			</Button>
+		</div>
+	</div>
+{/if}
 
 <!-- Delete confirmation -->
 <ConfirmDialog
