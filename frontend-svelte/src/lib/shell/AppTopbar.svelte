@@ -124,21 +124,6 @@
 			<span>{localeShort}</span>
 		</Button>
 
-		<!-- 密度切换 -->
-		<Button
-			variant="outline"
-			size="icon"
-			onclick={onToggleDensity}
-			class="bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
-			style="height: var(--input-h); width: var(--input-h);"
-			aria-label={$_('topbar.toggleDensity', { default: 'Toggle density' })}
-			aria-pressed={density === 'compact'}
-			data-testid="topbar-density"
-			title={density}
-		>
-			<LayoutGrid class="h-4 w-4" />
-		</Button>
-
 		<!-- 主题切换 -->
 		<Button
 			variant="outline"

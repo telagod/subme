@@ -63,6 +63,7 @@
 	{navGroups}
 	variant="user"
 	density="comfortable"
+	user={auth.user ? { email: auth.user.email, role: auth.user.role, username: auth.user.username } : null}
 	{activePath}
 	isDark={theme.isDark}
 	onToggleTheme={handleToggleTheme}

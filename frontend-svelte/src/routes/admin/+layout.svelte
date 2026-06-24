@@ -42,6 +42,7 @@
 	variant="admin"
 	density="compact"
 	brandLabel="ADMIN"
+	user={auth.user ? { email: auth.user.email, role: auth.user.role, username: auth.user.username } : null}
 	{activePath}
 	isDark={theme.isDark}
 	onToggleTheme={handleToggleTheme}
