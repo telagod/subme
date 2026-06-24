@@ -90,6 +90,27 @@
 
 	<!-- 右侧操作簇 -->
 	<div class="flex items-center gap-2">
+		<!-- Admin/User 切换（直接可见，不藏在菜单里） -->
+		{#if variant === 'user' && user?.role === 'admin'}
+			<a
+				href="/admin/dashboard"
+				class="inline-flex h-8 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+				data-testid="topbar-admin-shortcut"
+			>
+				<ShieldCheck class="h-3.5 w-3.5" />
+				{$_('nav.adminPanel', { default: 'Admin' })}
+			</a>
+		{:else if variant === 'admin'}
+			<a
+				href="/dashboard"
+				class="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-muted/50 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+				data-testid="topbar-user-shortcut"
+			>
+				<LayoutDashboard class="h-3.5 w-3.5" />
+				{$_('nav.userPanel', { default: 'User' })}
+			</a>
+		{/if}
+
 		<!-- 语言切换 -->
 		<Button
 			variant="outline"

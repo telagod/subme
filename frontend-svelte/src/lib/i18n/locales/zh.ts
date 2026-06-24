@@ -363,6 +363,8 @@ export default {
     github: 'GitHub',
     switchToUserView: '切换到用户视图',
     switchToAdminView: '返回管理后台',
+    adminPanel: '管理后台',
+    userPanel: '用户端',
     mySubscriptions: '我的订阅',
     buySubscription: '充值/订阅',
     billing: '账单',

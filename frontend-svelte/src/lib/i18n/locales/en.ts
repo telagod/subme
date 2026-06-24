@@ -363,6 +363,8 @@ export default {
     github: 'GitHub',
     switchToUserView: 'Switch to User View',
     switchToAdminView: 'Back to Admin Panel',
+    adminPanel: 'Admin',
+    userPanel: 'User',
     mySubscriptions: 'My Subscriptions',
     buySubscription: 'Recharge / Subscription',
     billing: 'Billing',
