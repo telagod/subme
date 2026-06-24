@@ -233,8 +233,11 @@ function buildQuery(filter: ListTransactionsFilter = {}): string {
  * 后端未返回 balance → amount=0，UI 自行降级显示 $0.00。
  */
 export async function getBalance(): Promise<Balance> {
-	const raw = unwrapEnvelope<RawBalance>(await apiClient.get('/api/v1/user/billing/balance'));
-	return mapBalance(raw);
+	try {
+		const raw = unwrapEnvelope<RawBalance>(await apiClient.get('/api/v1/user/billing/balance'));
+		if (raw && typeof raw === 'object' && ('balance' in raw || 'amount' in raw)) return mapBalance(raw);
+	} catch { /* endpoint may not exist */ }
+	return { amount: 0, currency: 'USD', updatedAt: null };
 }
 
 /**
@@ -245,13 +248,19 @@ export async function getBalance(): Promise<Balance> {
 export async function listTransactions(
 	filter: ListTransactionsFilter = {}
 ): Promise<PaginatedTransactions> {
-	const resp = unwrapEnvelope<RawPaginatedTransactions | RawTransaction[]>(await apiClient.get(
-		`/api/v1/user/billing/transactions${buildQuery(filter)}`
-	));
+	let resp: RawPaginatedTransactions | RawTransaction[];
+	try {
+		resp = unwrapEnvelope<RawPaginatedTransactions | RawTransaction[]>(await apiClient.get(
+			`/api/v1/user/billing/transactions${buildQuery(filter)}`
+		));
+	} catch {
+		return { items: [], total: 0, pages: 0 };
+	}
 	if (Array.isArray(resp)) {
 		const items = resp.map(mapTransaction);
 		return { items, total: items.length, pages: 1 };
 	}
+	if (!resp || typeof resp !== 'object') return { items: [], total: 0, pages: 0 };
 	return {
 		items: extractTxList(resp).map(mapTransaction),
 		total: num(resp.total, 0),
